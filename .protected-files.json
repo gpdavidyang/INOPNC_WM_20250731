@@ -1,0 +1,156 @@
+{
+  "protectedFiles": [
+    {
+      "level": 1,
+      "category": "절대 수정 금지",
+      "files": [
+        {
+          "path": "lib/supabase/server.ts",
+          "description": "Supabase 서버 클라이언트 - 쿠키 처리 로직",
+          "criticalSections": [
+            "getAll()",
+            "setAll(cookiesToSet)",
+            "try-catch for cookie errors",
+            "sameSite: 'lax'",
+            "httpOnly: true"
+          ]
+        },
+        {
+          "path": "lib/supabase/client.ts",
+          "description": "Supabase 클라이언트 설정",
+          "criticalSections": [
+            "createBrowserClient",
+            "NEXT_PUBLIC_SUPABASE_URL",
+            "NEXT_PUBLIC_SUPABASE_ANON_KEY"
+          ]
+        },
+        {
+          "path": "middleware.ts",
+          "description": "인증 미들웨어 - 세션 관리",
+          "criticalSections": [
+            "getUser()",
+            "refreshSession()",
+            "publicPaths configuration",
+            "session refresh logic"
+          ]
+        },
+        {
+          "path": "app/auth/actions.ts",
+          "description": "서버 액션 - 로그인/로그아웃",
+          "criticalSections": [
+            "return { success: true }",
+            "NO redirect() calls",
+            "ProfileManager usage",
+            "error handling"
+          ]
+        }
+      ]
+    },
+    {
+      "level": 2,
+      "category": "신중한 수정 필요",
+      "files": [
+        {
+          "path": "lib/auth/session.ts",
+          "description": "세션 관리 유틸리티",
+          "criticalSections": [
+            "getAuthenticatedUser",
+            "requireAuth",
+            "session validation"
+          ]
+        },
+        {
+          "path": "lib/auth/profile-manager.ts",
+          "description": "프로필 동기화 로직",
+          "criticalSections": [
+            "createProfile",
+            "updateProfile",
+            "getProfile",
+            "profile synchronization"
+          ]
+        },
+        {
+          "path": "app/auth/callback/route.ts",
+          "description": "OAuth 콜백 처리",
+          "criticalSections": [
+            "exchangeCodeForSession",
+            "redirect logic",
+            "error handling"
+          ]
+        },
+        {
+          "path": "providers/auth-provider.tsx",
+          "description": "인증 컨텍스트 프로바이더",
+          "criticalSections": [
+            "AuthContext",
+            "useAuth hook",
+            "session state management"
+          ]
+        }
+      ]
+    },
+    {
+      "level": 3,
+      "category": "수정 가능하나 주의",
+      "files": [
+        {
+          "path": "app/auth/login/page.tsx",
+          "description": "로그인 UI 페이지",
+          "criticalSections": [
+            "signIn action usage",
+            "window.location redirect",
+            "form validation"
+          ]
+        },
+        {
+          "path": "app/auth/signup/page.tsx",
+          "description": "회원가입 UI 페이지",
+          "criticalSections": [
+            "signUp action usage",
+            "role selection",
+            "form validation"
+          ]
+        },
+        {
+          "path": "hooks/use-auth.ts",
+          "description": "인증 훅",
+          "criticalSections": [
+            "authentication state",
+            "user data fetching"
+          ]
+        },
+        {
+          "path": "lib/supabase/daily-reports.ts",
+          "description": "작업일지 DB 쿼리",
+          "criticalSections": [
+            "RLS policies",
+            "query structure",
+            "error handling"
+          ]
+        }
+      ]
+    }
+  ],
+  "rules": {
+    "level1": {
+      "requireApproval": true,
+      "runTestsBeforeChange": true,
+      "createBackup": true,
+      "allowedActions": ["none"]
+    },
+    "level2": {
+      "requireApproval": true,
+      "runTestsBeforeChange": true,
+      "createBackup": true,
+      "allowedActions": ["bugfix", "enhancement"]
+    },
+    "level3": {
+      "requireApproval": false,
+      "runTestsBeforeChange": true,
+      "createBackup": false,
+      "allowedActions": ["all"]
+    }
+  },
+  "lastUpdated": "2025-07-30",
+  "version": "1.0.0"
+}

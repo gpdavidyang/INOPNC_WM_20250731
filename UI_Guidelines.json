@@ -1,0 +1,377 @@
+{
+  "title": "Toss 디자인 시스템 기반 건설 작업일지 UI 가이드라인",
+  "corePhilosophy": {
+    "name": "Simplicity",
+    "description": "Toss의 창립 이래 변하지 않은 단일 원칙인 '단순함(Simplicity)'을 건설 작업일지 시스템에 적용합니다.",
+    "principles": [
+      {
+        "name": "Easy to Answer",
+        "description": "모든 인터페이스 질문은 3초 내에 답할 수 있어야 함"
+      },
+      {
+        "name": "Minimum Feature",
+        "description": "핵심 기능에만 집중, 불필요한 기능은 과감히 제거"
+      },
+      {
+        "name": "Focus on Impact",
+        "description": "미적 완벽함보다 실제 사용자 성과에 집중"
+      }
+    ]
+  },
+  "colorSystem": {
+    "primaryColors": {
+      "tossBlue": {
+        "default": "#0064FF",
+        "shades": {
+          "50": "#eff9ff",
+          "100": "#dff0ff",
+          "500": "#0064FF",
+          "600": "#0050d9",
+          "900": "#001a4d"
+        }
+      },
+      "tossGray": {
+        "default": "#202632",
+        "shades": {
+          "100": "#f7f8fa",
+          "200": "#e5e8eb",
+          "500": "#8b95a1",
+          "900": "#202632"
+        }
+      }
+    },
+    "usageGuidelines": {
+      "primaryAction": {
+        "color": "toss-blue-500",
+        "usage": "중요한 CTA 버튼 (작업일지 저장, 제출)"
+      },
+      "secondaryAction": {
+        "color": "toss-gray-200",
+        "usage": "보조 액션 (취소, 되돌리기)"
+      },
+      "successState": {
+        "color": "green-500",
+        "usage": "완료된 작업, 승인 상태"
+      },
+      "warningState": {
+        "color": "orange-500",
+        "usage": "주의 필요 항목"
+      },
+      "errorState": {
+        "color": "red-500",
+        "usage": "오류, 필수 입력 누락"
+      }
+    }
+  },
+  "typography": {
+    "fontFamily": "-apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', Pretendard, Roboto, 'Noto Sans KR', 'Segoe UI', 'Malgun Gothic', sans-serif",
+    "textSizes": {
+      "xs": {
+        "class": "text-xs",
+        "size": "12px",
+        "usage": "보조 텍스트"
+      },
+      "sm": {
+        "class": "text-sm",
+        "size": "14px",
+        "usage": "캡션, 메타 정보"
+      },
+      "base": {
+        "class": "text-base",
+        "size": "16px",
+        "usage": "본문 (모바일 최적)"
+      },
+      "lg": {
+        "class": "text-lg",
+        "size": "18px",
+        "usage": "부제목"
+      },
+      "xl": {
+        "class": "text-xl",
+        "size": "20px",
+        "usage": "섹션 제목"
+      },
+      "2xl": {
+        "class": "text-2xl",
+        "size": "24px",
+        "usage": "페이지 제목"
+      },
+      "3xl": {
+        "class": "text-3xl",
+        "size": "30px",
+        "usage": "대시보드 주요 수치"
+      }
+    }
+  },
+  "components": {
+    "button": {
+      "baseClasses": "inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 transform active:scale-95 disabled:opacity-50",
+      "variants": {
+        "primary": "bg-toss-blue-500 hover:bg-toss-blue-600 text-white shadow-md hover:shadow-lg",
+        "secondary": "bg-toss-gray-100 hover:bg-toss-gray-200 text-toss-gray-900",
+        "danger": "bg-red-500 hover:bg-red-600 text-white",
+        "ghost": "hover:bg-toss-gray-100 text-toss-gray-700"
+      },
+      "sizes": {
+        "sm": {
+          "classes": "px-4 py-2 text-sm min-h-[40px]"
+        },
+        "md": {
+          "classes": "px-6 py-3 text-base min-h-[48px]"
+        },
+        "lg": {
+          "classes": "px-8 py-4 text-lg min-h-[56px]"
+        },
+        "full": {
+          "classes": "w-full px-6 py-3 text-base min-h-[50px]",
+          "description": "모바일 최적화"
+        }
+      }
+    },
+    "card": {
+      "workLogCard": {
+        "baseClasses": "bg-white/80 backdrop-blur-sm border border-toss-gray-200/50 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all duration-300",
+        "interactiveClasses": "cursor-pointer hover:-translate-y-1"
+      }
+    },
+    "form": {
+      "progressiveDisclosure": {
+        "description": "단계별 정보 입력 패턴",
+        "features": [
+          "진행률 표시",
+          "애니메이션 전환",
+          "단계별 검증"
+        ]
+      }
+    }
+  },
+  "layout": {
+    "spacingScale": {
+      "unit": "8px",
+      "values": {
+        "0": "0px",
+        "1": "4px",
+        "2": "8px",
+        "3": "12px",
+        "4": "16px",
+        "6": "24px",
+        "8": "32px",
+        "12": "48px",
+        "16": "64px"
+      }
+    },
+    "container": {
+      "padding": {
+        "mobile": "px-4",
+        "tablet": "sm:px-6",
+        "desktop": "lg:px-8"
+      },
+      "maxWidth": "max-w-7xl"
+    },
+    "navigation": {
+      "bottom": {
+        "height": "50px",
+        "minTouchTarget": "50px"
+      }
+    }
+  },
+  "animation": {
+    "transitions": {
+      "page": {
+        "initial": { "opacity": 0, "y": 20 },
+        "animate": { "opacity": 1, "y": 0 },
+        "exit": { "opacity": 0, "y": -20 },
+        "duration": 0.3
+      },
+      "card": {
+        "hover": { "scale": 1.02 },
+        "duration": 0.2
+      },
+      "button": {
+        "tap": { "scale": 0.95 }
+      }
+    },
+    "easing": "[0.4, 0.0, 0.2, 1]"
+  },
+  "accessibility": {
+    "features": [
+      "스크린 리더 지원",
+      "키보드 네비게이션",
+      "모션 설정 존중",
+      "적절한 ARIA 레이블",
+      "포커스 관리"
+    ],
+    "guidelines": {
+      "touchTargets": "최소 44x44px",
+      "colorContrast": "WCAG AA 기준 충족",
+      "keyboardNavigation": "모든 인터랙티브 요소 접근 가능"
+    }
+  },
+  "pwa": {
+    "features": [
+      "Service Worker 캐싱",
+      "오프라인 지원",
+      "백그라운드 동기화",
+      "푸시 알림"
+    ],
+    "offlineStrategy": {
+      "cacheFirst": ["정적 자원", "폰트", "이미지"],
+      "networkFirst": ["API 요청", "동적 컨텐츠"],
+      "staleWhileRevalidate": ["자주 변경되는 자원"]
+    }
+  },
+  "formValidation": {
+    "library": "Zod + React Hook Form",
+    "patterns": {
+      "schemaValidation": "Zod 스키마 기반 검증",
+      "realTimeValidation": "onChange 이벤트 검증",
+      "errorDisplay": "인라인 에러 메시지"
+    },
+    "commonRules": {
+      "required": "필수 입력 항목",
+      "minLength": "최소 길이 제한",
+      "maxLength": "최대 길이 제한",
+      "pattern": "정규식 패턴 매칭",
+      "fileSize": "파일 크기 제한"
+    }
+  },
+  "dataVisualization": {
+    "library": "Chart.js + React Chart.js 2",
+    "chartTypes": [
+      "Line Chart - 시간별 추이",
+      "Bar Chart - 카테고리별 비교",
+      "Doughnut Chart - 비율 표시",
+      "Progress Chart - 진행률"
+    ],
+    "styling": {
+      "colors": "Toss 컬러 시스템 사용",
+      "animations": "부드러운 전환 효과",
+      "responsive": "반응형 크기 조정"
+    }
+  },
+  "namingConventions": {
+    "components": {
+      "pattern": "[Domain][Type]",
+      "examples": {
+        "WorkLogList": "작업일지 목록",
+        "WorkLogCard": "작업일지 카드",
+        "SiteMap": "현장 지도",
+        "ReportDashboard": "보고서 대시보드"
+      }
+    },
+    "fileStructure": {
+      "pattern": "도메인별 폴더 구조",
+      "example": "components/worklog/WorkLogList.tsx"
+    }
+  },
+  "stateManagement": {
+    "globalState": {
+      "library": "Zustand",
+      "features": [
+        "TypeScript 지원",
+        "DevTools 통합",
+        "Persist 미들웨어",
+        "선택적 구독"
+      ]
+    },
+    "componentState": {
+      "library": "React Context API",
+      "usage": "인증, 테마 등 전역 상태"
+    }
+  },
+  "testing": {
+    "types": [
+      {
+        "name": "컴포넌트 테스트",
+        "library": "React Testing Library",
+        "focus": "사용자 상호작용"
+      },
+      {
+        "name": "접근성 테스트",
+        "library": "jest-axe",
+        "focus": "WCAG 준수"
+      },
+      {
+        "name": "통합 테스트",
+        "library": "MSW",
+        "focus": "전체 플로우"
+      }
+    ],
+    "coverage": {
+      "target": "80% 이상",
+      "criticalPaths": "100% 커버리지"
+    }
+  },
+  "implementation": {
+    "phases": [
+      {
+        "phase": 1,
+        "name": "기초 설정",
+        "duration": "1주차",
+        "tasks": [
+          "Tailwind Config에 Toss 디자인 토큰 설정",
+          "기본 컴포넌트 라이브러리 구축",
+          "타이포그래피 시스템 구현"
+        ]
+      },
+      {
+        "phase": 2,
+        "name": "핵심 컴포넌트",
+        "duration": "2-3주차",
+        "tasks": [
+          "네비게이션 시스템 구현",
+          "폼 컴포넌트 및 Progressive Disclosure 패턴",
+          "대시보드 레이아웃 구성"
+        ]
+      },
+      {
+        "phase": 3,
+        "name": "고급 기능",
+        "duration": "4-5주차",
+        "tasks": [
+          "애니메이션 및 마이크로 인터랙션 추가",
+          "접근성 기능 구현 및 테스트",
+          "다크 모드 지원"
+        ]
+      },
+      {
+        "phase": 4,
+        "name": "최적화",
+        "duration": "6주차",
+        "tasks": [
+          "성능 최적화",
+          "사용자 테스트 및 피드백 반영",
+          "문서화 및 스타일 가이드 완성"
+        ]
+      }
+    ]
+  },
+  "dependencies": {
+    "required": [
+      "@toss/es-toolkit",
+      "overlay-kit",
+      "@suspensive/react",
+      "framer-motion",
+      "class-variance-authority",
+      "@radix-ui/react-*",
+      "zustand",
+      "immer",
+      "react-hook-form",
+      "@hookform/resolvers",
+      "zod",
+      "chart.js",
+      "react-chartjs-2",
+      "idb",
+      "workbox-webpack-plugin"
+    ],
+    "devDependencies": [
+      "@tailwindcss/forms",
+      "@tailwindcss/typography",
+      "@testing-library/react",
+      "@testing-library/jest-dom",
+      "@testing-library/user-event",
+      "jest-axe",
+      "msw"
+    ]
+  }
+}

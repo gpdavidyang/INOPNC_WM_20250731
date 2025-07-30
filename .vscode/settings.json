@@ -1,0 +1,25 @@
+{
+  "files.readonlyInclude": {
+    "**/lib/supabase/server.ts": true,
+    "**/lib/supabase/client.ts": true,
+    "**/middleware.ts": true,
+    "**/app/auth/actions.ts": true
+  },
+  "files.readonlyFromPermissions": true,
+  
+  // 파일 색상 커스터마이징
+  "workbench.colorCustomizations": {
+    "tab.inactiveBackground": "#ff000010",
+    "tab.inactiveForeground": "#ff0000aa"
+  },
+  
+  // 자동 포맷 비활성화 (중요 파일)
+  "editor.formatOnSave": true,
+  "[typescript]": {
+    "editor.formatOnSave": true
+  },
+  
+  // Git 변경사항 하이라이트
+  "git.decorations.enabled": true,
+  "scm.diffDecorations": "all"
+}

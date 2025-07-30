@@ -1,0 +1,26 @@
+name: Auto Backup Critical Files
+
+on:
+  push:
+    paths:
+      - 'lib/supabase/server.ts'
+      - 'lib/supabase/client.ts'
+      - 'middleware.ts'
+      - 'app/auth/actions.ts'
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Create backup
+        run: |
+          mkdir -p .backups
+          cp lib/supabase/server.ts .backups/server.ts.$(date +%Y%m%d_%H%M%S)
+          cp middleware.ts .backups/middleware.ts.$(date +%Y%m%d_%H%M%S)
+          
+      - name: Run critical tests
+        run: |
+          npm ci
+          npm run test:critical

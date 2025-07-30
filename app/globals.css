@@ -1,0 +1,92 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+  }
+
+  .dark {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+  }
+}
+
+@layer base {
+  body {
+    @apply bg-white text-toss-gray-900;
+  }
+}
+
+.dark body {
+  @apply bg-toss-gray-900 text-toss-gray-100;
+}
+
+/* Ensure safe area for iOS devices */
+.h-safe-area-inset-bottom {
+  height: env(safe-area-inset-bottom);
+}
+
+/* Keyboard navigation indicator */
+.keyboard-navigation *:focus {
+  @apply outline-2 outline-offset-2 outline-toss-blue-500;
+}
+
+/* Custom select styles */
+select {
+  background-image: none;
+}
+
+/* Override browser default select styles */
+select option {
+  background-color: white !important;
+  color: #202632 !important;
+  padding: 8px !important;
+}
+
+select option:hover {
+  background-color: #eff9ff !important; /* toss-blue-50 */
+}
+
+select option:checked {
+  background-color: #dff0ff !important; /* toss-blue-100 */
+}
+
+.dark select option {
+  background-color: #202632 !important; /* toss-gray-800 */
+  color: #f7f8fa !important; /* toss-gray-100 */
+}
+
+.dark select option:hover {
+  background-color: #2a3442 !important; /* slightly lighter than toss-gray-800 */
+}
+
+.dark select option:checked {
+  background-color: #001a4d !important; /* toss-blue-900 */
+}
+
+/* For webkit browsers (Chrome, Safari) - more specific */
+select:not([multiple]) option {
+  background-color: white !important;
+  color: #202632 !important;
+}
+
+.dark select:not([multiple]) option {
+  background-color: #202632 !important;
+  color: #f7f8fa !important;
+}
+
+/* Remove any gradient or image background */
+select {
+  background-image: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+}
+
+/* Focus state for select */
+select:focus {
+  @apply outline-none ring-2 ring-toss-blue-500 ring-offset-2;
+}

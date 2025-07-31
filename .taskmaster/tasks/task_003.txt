@@ -1,7 +1,7 @@
 # Task ID: 3
 # Title: Phase 3: Enhanced Features
 # Status: pending
-# Dependencies: 2 (Not found)
+# Dependencies: None
 # Priority: high
 # Description: Implement advanced attendance system and partner company integration
 # Details:
@@ -9,3 +9,27 @@ Advanced features for attendance tracking and partner management
 
 # Test Strategy:
 GPS accuracy tests, permission tests, integration tests
+
+# Subtasks:
+## 3.1. Sprint 3.1: Advanced Attendance System [pending]
+### Dependencies: None
+### Description: Enhance attendance system with GPS tracking and wage management
+### Details:
+- GPS location tracking for check-in/out
+- Geofencing for construction sites
+- Wage rate management by skill level
+- Overtime calculation with different rates
+- Payroll report generation
+- Attendance exception handling
+
+## 3.2. Sprint 3.2: Partner Company Integration [pending]
+### Dependencies: None
+### Description: Create partner company management and access control
+### Details:
+- Partner company profile management
+- Site-specific access control
+- Document sharing with permissions
+- Communication channels
+- Partner performance tracking
+- Contract management
+

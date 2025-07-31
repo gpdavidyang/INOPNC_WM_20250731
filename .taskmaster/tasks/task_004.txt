@@ -1,7 +1,7 @@
 # Task ID: 4
 # Title: Phase 4: Mobile Optimization & Offline Support
 # Status: pending
-# Dependencies: 3 (Not found)
+# Dependencies: None
 # Priority: medium
 # Description: Transform the application into a Progressive Web App with offline capabilities
 # Details:
@@ -9,3 +9,27 @@ Mobile-first optimization and offline functionality
 
 # Test Strategy:
 Offline functionality tests, sync tests, mobile UI tests
+
+# Subtasks:
+## 4.1. Sprint 4.1: Progressive Web App Implementation [pending]
+### Dependencies: None
+### Description: Convert application to PWA with offline support
+### Details:
+- Service worker implementation
+- Offline data caching strategy
+- Background sync for uploads
+- Push notifications
+- App install prompts
+- Offline indicator UI
+
+## 4.2. Sprint 4.2: Mobile-Specific Features [pending]
+### Dependencies: None
+### Description: Implement mobile-optimized features and UI
+### Details:
+- Direct camera integration
+- Voice-to-text for entries
+- Touch-optimized UI components
+- Gesture navigation
+- Mobile shortcuts
+- Responsive design for all screen sizes
+

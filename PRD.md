@@ -121,12 +121,27 @@ Provide a unified platform that eliminates paper-based workflows, improves data 
 - **Statistics Cards**: Real-time metrics relevant to user role
 - **Quick Actions**: One-click access to common tasks
 - **Recent Activity Feed**: Latest system activities and notifications
+- **Daily Report Button**: Prominent "작업일지 작성" button for workers, site managers, and partners
+- **Quick Menu Section**: 
+  - 2-column grid layout (2x1, 2x2, 2x3 expandable)
+  - Customizable menu items (add/remove functionality)
+  - Default items: 출력현황, 내문서함, 현장정보, 공도면
+- **Today's Site Info**: Collapsible section with:
+  - Site address with copy and T-Map navigation icons
+  - Process information (부재명, 작업공정, 작업구간) with drawing view icon
+  - Contact information for construction and safety managers
+- **Announcements**: Collapsible section for headquarters notices
 
 #### 2.2 Navigation System
 - **Responsive Sidebar**: Collapsible navigation with role-filtered menu items
+  - General users (worker, site_manager, customer_manager): 홈, 출력현황, 작업일지, 현장정보, 내문서함, 공유문서함, 도면 마킹 도구, 내정보
+  - Admin users: 홈, 현장 관리, 사용자 관리, 공유 문서함 관리, 급여 관리, NPC-1000 자재 관리, 도면 마킹 관리, 그 외 관리자 메뉴, 시스템 관리, 내정보
 - **Mobile-Optimized**: Touch-friendly interface for mobile devices  
 - **Tab-Based Content**: Clean organization of functional areas
 - **Breadcrumb Navigation**: Clear navigation hierarchy
+- **Bottom Navigation Bar**: Fixed bottom navigation for mobile with 5 main items:
+  - 홈(빠른메뉴), 출력현황, 작업일지, 공도면, 내문서함
+  - Special behavior for 공도면: Auto-filters shared documents by current site + '공도면' badge
 
 #### 2.3 Statistics and Metrics
 - **Daily Reports Count**: Today's submitted work reports
@@ -150,11 +165,18 @@ Provide a unified platform that eliminates paper-based workflows, improves data 
 - **Approval Comments**: Feedback mechanism for rejected reports
 - **Audit Trail**: Complete history of report changes and approvals
 
-#### 3.3 Report Viewing and Management
+#### 3.3 Report Viewing and Management  
+- **작업일지 작성 Button**: Button to create new daily report
+- **Report List Table**:
+  - Title Format: 소속약어 + 현장약어 + 부재명 (e.g., "INO_강남A_슬라브")
+  - Date: Report creation date (YYYY-MM-DD format)
+  - Status: 임시저장 (draft) or 작성완료 (completed)
+- **Sorting Options**: Sort by title, date, or status
 - **List View**: Paginated list of all reports with filtering
 - **Detail View**: Comprehensive report information with edit capabilities
 - **Status Filtering**: Filter reports by approval status
 - **Date Range Filtering**: View reports for specific time periods
+- **Access Restriction**: Users can only view and edit their own reports
 
 ## 작업일지 시스템 상세 요구사항
 
@@ -312,60 +334,124 @@ Provide a unified platform that eliminates paper-based workflows, improves data 
 - **현장 인식**: GPS 기반 현장 자동 선택
 - **출퇴근 연동**: 작업일지 작성과 출퇴근 기록 연계
 
-### 4. Attendance and Time Management
+### 4. Attendance and Time Management (출력현황)
 
-#### 4.1 Attendance Recording
-- **Daily Check-in/out**: Record work start and end times
-- **Work Hours Calculation**: Automatic calculation of regular and overtime hours
-- **Status Tracking**: Present, absent, holiday, sick leave, vacation
-- **GPS Location**: Optional location tracking for check-in/out verification
+#### 4.1 Worker/Site Manager View (A2, B2)
+##### Attendance Info Tab
+- **Site Selection**: Dropdown menu for site selection (single select only)
+- **Calendar Function**: 
+  - Year and month selection controls
+  - Default shows current month
+  - Displays sites where user registered daily reports (site abbreviations)
+  - Shows data registered through daily reports
+  - Shows assignments scheduled by headquarters
+- **Site Summary Below Calendar**:
+  - Site name and abbreviation
+  - Location and project period
+  - Additional site information
 
-#### 4.2 Payroll Integration
-- **Wage Rate Management**: Store historical wage rates by skill level
-- **Cost Calculation**: Automatic calculation of daily labor costs
-- **Overtime Tracking**: Separate tracking of overtime hours and rates
-- **Holiday Pay**: Special rates for holiday work
+##### Salary Info Tab  
+- **Site-based Salary View**: View salary by construction site
+- **Monthly Salary View**: View salary by month
+- **Payslip Access**: View detailed pay statements
+- **Payslip Download**: Download pay statements for records
+- **Access Restriction**: Users can only view their own attendance and salary information
 
-#### 4.3 Attendance Reporting
-- **Individual Reports**: Personal attendance history
-- **Team Reports**: Manager view of team attendance
-- **Site Summary**: Overall site attendance statistics
-- **Export Capabilities**: Data export for payroll processing
+#### 4.2 Partner Company View (C2)
+##### Attendance Info Tab
+- **Site Selection**: Select specific sites to view
+- **Total Working Days**: View total days worked by all company workers
+- **Total Work Hours**: View total work hours (공수) across all workers
+
+##### Salary Info Tab
+- **Site-based Salary Overview**: Salary status by construction site
+- **Worker-based Salary Overview**: Salary status by individual worker  
+- **Access Restriction**: Can only view data for their own company's workers
+
+#### 4.3 Terminology
+- **출력**: Work attendance history
+- **공수**: Worker hours or days invested in work
 
 ### 5. Document Management System
 
-#### 5.1 File Storage and Organization
-- **Personal Documents**: Private file storage for each user
-- **Shared Documents**: Team and project-level document sharing
-- **Folder Structure**: Hierarchical organization with folder paths
-- **File Type Support**: Support for various document formats
+#### 5.1 My Documents (내문서함) - A5, B5
+##### Document Categories
+- **Personal Salary Statements**: 개인 급여 명세서
+- **Daily Report Backups**: 작업일지 (백업)  
+- **Contracts/Agreements**: 계약서/협약서
+- **Certificates/Licenses**: 자격증/수료증
+- **Safety Education Certificates**: 안전교육 이수증
+- **Other Personal Documents**: 기타 개인 문서
 
-#### 5.2 Document Categories
-- **Personal**: User-specific documents and certificates
-- **Shared**: Team-accessible project documents
-- **Blueprints**: Technical drawings and specifications
-- **Reports**: Generated reports and analyses
-- **Certificates**: Worker certifications and qualifications
+##### Document Management Features
+- **Search Functions**: Search by document name, author, or date
+- **Filtering**: Filter by category or time period
+- **Sorting**: Sort by latest, name, or file size
+- **Upload Methods**: 
+  - File selection or drag & drop
+  - Supported formats: PDF, JPG, PNG, DOC, DOCX, XLS, XLSX
+  - Maximum file size: 10MB per file
+- **Download Options**: Individual or bulk download
+- **Delete Function**: Users can only delete their own uploaded documents
+- **Preview Support**: PDF and image file preview capabilities
+- **Storage Limit**: 1GB per user with remaining capacity display
 
-#### 5.3 Access Control and Auditing
-- **Permission-Based Access**: Role-based document access controls
-- **Access Logging**: Complete audit trail of document access
-- **Version Control**: Track document versions and changes
-- **Secure Storage**: Encrypted file storage with Supabase
+#### 5.2 Shared Documents (공유문서함) - All Users
+##### Document Categories with Access Control
+- **Safety Documents** (안전보건 문서):
+  - Access: All users can view
+  - Upload: Admin only
+  - Content: Safety education materials, MSDS, safety rules, emergency manuals
+- **Construction Standards/Manuals** (시공 표준/매뉴얼):
+  - Access: Workers, site managers, partners can view
+  - Upload: Admin and site managers only
+  - Content: Standard specifications, work manuals, quality standards
+- **Company Regulations/Notices** (회사 규정/공지):
+  - Access: All users can view
+  - Upload: Admin only
+  - Content: Employment rules, service regulations, announcements
+- **Education Materials** (교육 자료):
+  - Access: All users can view
+  - Upload: Admin and trainers only
+  - Content: Technical education, safety education, quality education materials
+- **Drawings/Design Documents** (도면/설계 문서):
+  - Access: Only related site personnel
+  - Upload: Admin and site managers only
+  - Content: Architectural, structural, equipment, and construction detail drawings
 
-### 6. Site and Project Information
+##### Features
+- **Search**: Integrated and category-specific search
+- **Filters**: Document type, upload date, site-specific
+- **Downloads**: Permission-based download access
+- **Favorites**: Bookmark frequently used documents
+- **Version Control**: Document version history with latest version display
+- **Notifications**: Alerts for new documents, important notices, and updates
 
-#### 6.1 Site Management
-- **Site Registry**: Comprehensive database of construction sites
-- **Site Details**: Address, project dates, manager contacts
-- **Status Tracking**: Active, inactive, completed site statuses
-- **Assignment Management**: User-to-site assignments with date tracking
+### 6. Site and Project Information (현장정보)
 
-#### 6.2 Project Information
-- **Project Overview**: Basic project information and timeline
-- **Team Structure**: Site managers and key personnel contacts
-- **Accommodation Details**: Worker accommodation information
-- **Emergency Contacts**: Emergency manager information
+#### 6.1 Today's Site Information
+- **Site Address**:
+  - Full address display with copy icon
+  - T-Map navigation link icon
+- **Accommodation Address**:
+  - Full address display with copy icon  
+  - T-Map navigation link icon
+- **Process Information**:
+  - 부재명 (Member name)
+  - 작업공정 (Work process)
+  - 작업구간 정보 (Work section details)
+  - View drawing icon for technical drawings
+- **Manager Contacts**:
+  - Construction manager phone with copy and call icons
+  - Safety manager phone with copy and call icons
+
+#### 6.2 Site Search Functions
+- **Search Options**:
+  - Site name search (text input)
+  - Regional search (dropdown selection)
+  - Worker name search (text input)
+  - Date range search (date picker)
+- **Access**: All users (worker, site_manager, customer_manager) can view site information
 
 #### 6.3 Organization Structure
 - **Multi-Level Hierarchy**: Head office, branch offices, departments

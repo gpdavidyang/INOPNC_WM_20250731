@@ -1,0 +1,66 @@
+# Task ID: 8
+# Title: Phase 2.5: Enhanced Attendance & Document Systems
+# Status: pending
+# Dependencies: None
+# Priority: high
+# Description: Implement comprehensive attendance management and document systems per PRD
+# Details:
+Implement the detailed attendance (출력현황) system with calendar views, salary information tabs, and partner company views. Also implement the comprehensive document management system with 6 categories for personal documents and role-based shared documents.
+
+# Test Strategy:
+End-to-end attendance workflow tests, document permission tests, integration tests
+
+# Subtasks:
+## 8.1. Sprint 8.1: Attendance Calendar System [pending]
+### Dependencies: None
+### Description: Build comprehensive attendance tracking with calendar interface
+### Details:
+- Site selection dropdown (single select)
+- Year/month navigation controls
+- Calendar grid showing daily report submissions
+- Site abbreviations display
+- Headquarters assignments display
+- Site summary information below calendar
+- Worker hours (공수) tracking integration
+
+## 8.2. Sprint 8.2: Salary Information System [pending]
+### Dependencies: None
+### Description: Implement salary viewing and payslip management
+### Details:
+- Site-based salary view
+- Monthly salary view
+- Detailed payslip access
+- Payslip PDF download
+- Access restrictions (own data only)
+- Partner company aggregated views
+- Total working days/hours calculations
+
+## 8.3. Sprint 8.3: Personal Document Management [pending]
+### Dependencies: None
+### Description: Build personal document storage system (내문서함)
+### Details:
+- 6 document categories implementation
+- Search by name/author/date
+- Category and time filtering
+- Sort by latest/name/size
+- Drag & drop upload
+- File format validation (PDF, JPG, PNG, DOC, DOCX, XLS, XLSX)
+- 10MB file size limit
+- Bulk download functionality
+- 1GB storage limit with usage display
+- Preview for PDFs and images
+
+## 8.4. Sprint 8.4: Shared Document System [pending]
+### Dependencies: None
+### Description: Implement role-based shared document management
+### Details:
+- 5 categories with role-based access
+- Safety documents (all users view, admin upload)
+- Construction standards (workers/managers view, admin/managers upload)
+- Company regulations (all view, admin upload)
+- Education materials (all view, admin/trainers upload)
+- Drawings (site personnel only)
+- Version control system
+- Favorites functionality
+- New document notifications
+

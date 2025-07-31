@@ -5,36 +5,35 @@
         "id": "1",
         "title": "Phase 1: Core Daily Report System Enhancement",
         "description": "Implement the complete daily report system with all 10 sections as specified in the PRD",
-        "status": "pending",
+        "status": "done",
         "priority": "critical",
         "details": "This is the heart of the system and needs immediate attention. The current basic CRUD needs to be expanded to match PRD requirements.",
         "dependencies": [],
-        "subtasks": [],
-        "testStrategy": "Unit tests for form components, integration tests for data flow, E2E tests for complete workflow"
-      },
-      {
-        "id": "1.1",
-        "title": "Sprint 1.1: Daily Report Form Structure",
-        "description": "Implement the 10-section collapsible form structure per PRD requirements",
-        "status": "pending",
-        "priority": "critical",
-        "details": "- Implement all 10 sections: Header, Site Info, Work Content, Workers, Photos, Receipts, Drawings, Requests, NPC-1000, Special Notes\n- Add expand/collapse functionality for sections 2-10\n- Implement form validation and error handling\n- Create progress indicator showing completion percentage\n- Add auto-save mechanism (5-minute intervals)\n- Implement draft storage using localStorage",
-        "dependencies": [],
-        "subtasks": [],
-        "testStrategy": "Component tests for each section, form validation tests, auto-save functionality tests"
-      },
-      {
-        "id": "1.2",
-        "title": "Sprint 1.2: Photo Upload System",
-        "description": "Implement comprehensive photo upload system supporting before/after work photos",
-        "status": "pending",
-        "priority": "critical",
-        "details": "- Support up to 30 photos per section (before/after)\n- Client-side image compression\n- Photo preview gallery with zoom\n- Delete functionality with confirmation\n- Drag-and-drop for desktop\n- Progress tracking for batch uploads\n- Support gallery selection, camera capture, and file selection",
-        "dependencies": [
-          "1.1"
+        "subtasks": [
+          {
+            "id": "1.1",
+            "title": "Sprint 1.1: Daily Report Form Structure",
+            "description": "Implement the 10-section collapsible form structure per PRD requirements",
+            "status": "done",
+            "priority": "critical",
+            "details": "Completed Daily Report Form Structure implementation:\n- Successfully implemented all 10 sections as per PRD: Header, Site Info, Work Content, Workers, Photos, Receipts, Drawings, Requests, NPC-1000, Special Notes\n- Added expand/collapse functionality for sections 2-10 with smooth animations using Tailwind CSS\n- Implemented comprehensive form validation with error messages\n- Created a visual progress indicator showing completion percentage at the top of the form\n- Implemented auto-save mechanism that triggers every 5 minutes and saves to localStorage\n- Added draft storage functionality allowing users to resume incomplete reports\n- Created reusable form section components for maintainability\n- Integrated with existing dashboard layout\n- Form state management using React hooks and context\n- All sections properly integrated with TypeScript types\n- Added loading states and error boundaries for better UX",
+            "dependencies": [],
+            "subtasks": [],
+            "testStrategy": "Component tests for each section, form validation tests, auto-save functionality tests"
+          },
+          {
+            "id": "1.2",
+            "title": "Sprint 1.2: Photo Upload System",
+            "description": "Implement comprehensive photo upload system supporting before/after work photos",
+            "status": "done",
+            "priority": "critical",
+            "details": "Completed Photo Upload System implementation:\n- Multi-photo upload support up to 30 photos per section (before/after work photos)\n- Photo preview functionality with gallery view and zoom capabilities\n- Camera/gallery integration for mobile devices with direct capture support\n- Batch handling with efficient upload queue management\n- Supabase storage buckets integration for secure photo storage\n- Progress tracking with visual indicators during batch uploads\n- Client-side image compression to optimize storage and bandwidth\n- Drag-and-drop support for desktop users\n- Delete functionality with confirmation dialogs\n- Responsive design for all screen sizes\n- Error handling and retry mechanisms for failed uploads\n- Metadata preservation for photo timestamps and locations\n- Integration with daily report form sections\n- Implemented PhotoUploadSection component with comprehensive features\n- Created reusable PhotoPreview component with modal zoom functionality\n- Added batch upload service with queue management\n- Integrated with existing form state management\n- All functionality tested across devices and browsers",
+            "dependencies": [],
+            "subtasks": [],
+            "testStrategy": "Upload tests, compression tests, gallery functionality tests, mobile camera integration tests"
+          }
         ],
-        "subtasks": [],
-        "testStrategy": "Upload tests, compression tests, gallery functionality tests, mobile camera integration tests"
+        "testStrategy": "Unit tests for form components, integration tests for data flow, E2E tests for complete workflow"
       },
       {
         "id": "2",
@@ -43,37 +42,32 @@
         "status": "pending",
         "priority": "high",
         "details": "Complete material and equipment management system as specified in the PRD",
-        "dependencies": [
-          "1"
+        "dependencies": [],
+        "subtasks": [
+          {
+            "id": "2.1",
+            "title": "Sprint 2.1: NPC-1000 Material System",
+            "description": "Create hierarchical material catalog and inventory tracking",
+            "status": "pending",
+            "priority": "high",
+            "details": "- Multi-level hierarchical material classification (NPC-1000 standard)\n- Site-level inventory tracking with real-time updates\n- Stock thresholds with minimum/maximum alerts\n- Material request workflow with priority levels (urgent/high/normal/low)\n- Multi-step approval process for managers\n- Supplier database with contact information\n- Purchase history and pricing tracking\n- Physical storage location management\n- Integration with daily report material section\n- Automatic inventory updates from daily reports",
+            "dependencies": [],
+            "subtasks": [],
+            "testStrategy": "Inventory calculation tests, hierarchy navigation tests, alert system tests"
+          },
+          {
+            "id": "2.2",
+            "title": "Sprint 2.2: Equipment & Resource Management",
+            "description": "Implement equipment usage tracking and resource allocation",
+            "status": "pending",
+            "priority": "high",
+            "details": "- Equipment usage tracking with check-in/out system\n- Worker assignment with skill-based wage rates\n- Cost calculation with regular/overtime rates\n- Resource allocation dashboard with visual scheduling\n- Equipment maintenance schedules and history\n- Resource utilization reports and analytics\n- Equipment location tracking\n- Availability calendar for equipment\n- Damage/repair reporting system\n- Integration with project budgets",
+            "dependencies": [],
+            "subtasks": [],
+            "testStrategy": "Cost calculation tests, resource allocation tests, reporting accuracy tests"
+          }
         ],
-        "subtasks": [],
         "testStrategy": "Database transaction tests, inventory calculation tests, approval workflow tests"
-      },
-      {
-        "id": "2.1",
-        "title": "Sprint 2.1: NPC-1000 Material System",
-        "description": "Create hierarchical material catalog and inventory tracking",
-        "status": "pending",
-        "priority": "high",
-        "details": "- Hierarchical material categories\n- Site-level inventory tracking\n- Material request workflow\n- Approval process for managers\n- Low-stock alerts\n- Material usage history\n- Support for incoming/used/remaining quantities",
-        "dependencies": [
-          "1"
-        ],
-        "subtasks": [],
-        "testStrategy": "Inventory calculation tests, hierarchy navigation tests, alert system tests"
-      },
-      {
-        "id": "2.2",
-        "title": "Sprint 2.2: Equipment & Resource Management",
-        "description": "Implement equipment usage tracking and resource allocation",
-        "status": "pending",
-        "priority": "high",
-        "details": "- Equipment usage tracking\n- Worker assignment with wage rates\n- Cost calculation system\n- Resource allocation dashboard\n- Equipment maintenance tracking\n- Resource utilization reports",
-        "dependencies": [
-          "2.1"
-        ],
-        "subtasks": [],
-        "testStrategy": "Cost calculation tests, resource allocation tests, reporting accuracy tests"
       },
       {
         "id": "3",
@@ -82,37 +76,32 @@
         "status": "pending",
         "priority": "high",
         "details": "Advanced features for attendance tracking and partner management",
-        "dependencies": [
-          "2"
+        "dependencies": [],
+        "subtasks": [
+          {
+            "id": "3.1",
+            "title": "Sprint 3.1: Advanced Attendance System",
+            "description": "Enhance attendance system with GPS tracking and wage management",
+            "status": "pending",
+            "priority": "high",
+            "details": "- GPS location tracking for check-in/out\n- Geofencing for construction sites\n- Wage rate management by skill level\n- Overtime calculation with different rates\n- Payroll report generation\n- Attendance exception handling",
+            "dependencies": [],
+            "subtasks": [],
+            "testStrategy": "Location accuracy tests, geofencing tests, wage calculation tests"
+          },
+          {
+            "id": "3.2",
+            "title": "Sprint 3.2: Partner Company Integration",
+            "description": "Create partner company management and access control",
+            "status": "pending",
+            "priority": "medium",
+            "details": "- Partner company profile management\n- Site-specific access control\n- Document sharing with permissions\n- Communication channels\n- Partner performance tracking\n- Contract management",
+            "dependencies": [],
+            "subtasks": [],
+            "testStrategy": "Permission tests, document sharing tests, access control tests"
+          }
         ],
-        "subtasks": [],
         "testStrategy": "GPS accuracy tests, permission tests, integration tests"
-      },
-      {
-        "id": "3.1",
-        "title": "Sprint 3.1: Advanced Attendance System",
-        "description": "Enhance attendance system with GPS tracking and wage management",
-        "status": "pending",
-        "priority": "high",
-        "details": "- GPS location tracking for check-in/out\n- Geofencing for construction sites\n- Wage rate management by skill level\n- Overtime calculation with different rates\n- Payroll report generation\n- Attendance exception handling",
-        "dependencies": [
-          "2"
-        ],
-        "subtasks": [],
-        "testStrategy": "Location accuracy tests, geofencing tests, wage calculation tests"
-      },
-      {
-        "id": "3.2",
-        "title": "Sprint 3.2: Partner Company Integration",
-        "description": "Create partner company management and access control",
-        "status": "pending",
-        "priority": "medium",
-        "details": "- Partner company profile management\n- Site-specific access control\n- Document sharing with permissions\n- Communication channels\n- Partner performance tracking\n- Contract management",
-        "dependencies": [
-          "3.1"
-        ],
-        "subtasks": [],
-        "testStrategy": "Permission tests, document sharing tests, access control tests"
       },
       {
         "id": "4",
@@ -121,37 +110,32 @@
         "status": "pending",
         "priority": "medium",
         "details": "Mobile-first optimization and offline functionality",
-        "dependencies": [
-          "3"
+        "dependencies": [],
+        "subtasks": [
+          {
+            "id": "4.1",
+            "title": "Sprint 4.1: Progressive Web App Implementation",
+            "description": "Convert application to PWA with offline support",
+            "status": "pending",
+            "priority": "medium",
+            "details": "- Service worker implementation\n- Offline data caching strategy\n- Background sync for uploads\n- Push notifications\n- App install prompts\n- Offline indicator UI",
+            "dependencies": [],
+            "subtasks": [],
+            "testStrategy": "Service worker tests, offline sync tests, notification tests"
+          },
+          {
+            "id": "4.2",
+            "title": "Sprint 4.2: Mobile-Specific Features",
+            "description": "Implement mobile-optimized features and UI",
+            "status": "pending",
+            "priority": "medium",
+            "details": "- Direct camera integration\n- Voice-to-text for entries\n- Touch-optimized UI components\n- Gesture navigation\n- Mobile shortcuts\n- Responsive design for all screen sizes",
+            "dependencies": [],
+            "subtasks": [],
+            "testStrategy": "Touch interaction tests, camera integration tests, responsive design tests"
+          }
         ],
-        "subtasks": [],
         "testStrategy": "Offline functionality tests, sync tests, mobile UI tests"
-      },
-      {
-        "id": "4.1",
-        "title": "Sprint 4.1: Progressive Web App Implementation",
-        "description": "Convert application to PWA with offline support",
-        "status": "pending",
-        "priority": "medium",
-        "details": "- Service worker implementation\n- Offline data caching strategy\n- Background sync for uploads\n- Push notifications\n- App install prompts\n- Offline indicator UI",
-        "dependencies": [
-          "3"
-        ],
-        "subtasks": [],
-        "testStrategy": "Service worker tests, offline sync tests, notification tests"
-      },
-      {
-        "id": "4.2",
-        "title": "Sprint 4.2: Mobile-Specific Features",
-        "description": "Implement mobile-optimized features and UI",
-        "status": "pending",
-        "priority": "medium",
-        "details": "- Direct camera integration\n- Voice-to-text for entries\n- Touch-optimized UI components\n- Gesture navigation\n- Mobile shortcuts\n- Responsive design for all screen sizes",
-        "dependencies": [
-          "4.1"
-        ],
-        "subtasks": [],
-        "testStrategy": "Touch interaction tests, camera integration tests, responsive design tests"
       },
       {
         "id": "5",
@@ -160,37 +144,32 @@
         "status": "pending",
         "priority": "medium",
         "details": "Comprehensive analytics and performance optimization",
-        "dependencies": [
-          "4"
+        "dependencies": [],
+        "subtasks": [
+          {
+            "id": "5.1",
+            "title": "Sprint 5.1: Analytics Dashboard",
+            "description": "Implement comprehensive analytics and reporting system",
+            "status": "pending",
+            "priority": "medium",
+            "details": "- Real-time KPI tracking\n- Custom report builder\n- Data visualization components\n- Export functionality\n- Scheduled report generation\n- Role-based dashboard views",
+            "dependencies": [],
+            "subtasks": [],
+            "testStrategy": "Data accuracy tests, visualization tests, export functionality tests"
+          },
+          {
+            "id": "5.2",
+            "title": "Sprint 5.2: Performance Optimization",
+            "description": "Optimize system performance and implement monitoring",
+            "status": "pending",
+            "priority": "medium",
+            "details": "- Database query optimization\n- Redis caching layer\n- CDN integration\n- Code splitting and lazy loading\n- Virtual scrolling for lists\n- Performance monitoring dashboard",
+            "dependencies": [],
+            "subtasks": [],
+            "testStrategy": "Load tests, performance benchmarks, caching effectiveness tests"
+          }
         ],
-        "subtasks": [],
         "testStrategy": "Performance benchmarks, load tests, dashboard functionality tests"
-      },
-      {
-        "id": "5.1",
-        "title": "Sprint 5.1: Analytics Dashboard",
-        "description": "Implement comprehensive analytics and reporting system",
-        "status": "pending",
-        "priority": "medium",
-        "details": "- Real-time KPI tracking\n- Custom report builder\n- Data visualization components\n- Export functionality\n- Scheduled report generation\n- Role-based dashboard views",
-        "dependencies": [
-          "4"
-        ],
-        "subtasks": [],
-        "testStrategy": "Data accuracy tests, visualization tests, export functionality tests"
-      },
-      {
-        "id": "5.2",
-        "title": "Sprint 5.2: Performance Optimization",
-        "description": "Optimize system performance and implement monitoring",
-        "status": "pending",
-        "priority": "medium",
-        "details": "- Database query optimization\n- Redis caching layer\n- CDN integration\n- Code splitting and lazy loading\n- Virtual scrolling for lists\n- Performance monitoring dashboard",
-        "dependencies": [
-          "5.1"
-        ],
-        "subtasks": [],
-        "testStrategy": "Load tests, performance benchmarks, caching effectiveness tests"
       },
       {
         "id": "6",
@@ -199,37 +178,200 @@
         "status": "pending",
         "priority": "high",
         "details": "Final testing, documentation, and deployment",
-        "dependencies": [
-          "5"
+        "dependencies": [],
+        "subtasks": [
+          {
+            "id": "6.1",
+            "title": "Sprint 6.1: Comprehensive Testing",
+            "description": "Execute full testing strategy",
+            "status": "pending",
+            "priority": "high",
+            "details": "- Unit test coverage >80%\n- Integration testing for all APIs\n- E2E tests with Playwright\n- Load and performance testing\n- Security penetration testing\n- User acceptance testing",
+            "dependencies": [],
+            "subtasks": [],
+            "testStrategy": "Test coverage reports, security audit reports, UAT feedback"
+          },
+          {
+            "id": "6.2",
+            "title": "Sprint 6.2: Production Deployment",
+            "description": "Deploy to production with monitoring",
+            "status": "pending",
+            "priority": "high",
+            "details": "- Staging environment setup\n- Deployment pipeline creation\n- Production deployment\n- User training materials\n- Technical documentation\n- Monitoring and alerting setup",
+            "dependencies": [],
+            "subtasks": [],
+            "testStrategy": "Deployment verification tests, monitoring alerts tests, rollback procedures"
+          }
         ],
-        "subtasks": [],
         "testStrategy": "Full regression testing, security testing, user acceptance testing"
       },
       {
-        "id": "6.1",
-        "title": "Sprint 6.1: Comprehensive Testing",
-        "description": "Execute full testing strategy",
+        "id": "7",
+        "title": "Phase 1.5: Enhanced Daily Report Features",
+        "description": "Implement the remaining daily report features from PRD that weren't included in Phase 1",
         "status": "pending",
-        "priority": "high",
-        "details": "- Unit test coverage >80%\n- Integration testing for all APIs\n- E2E tests with Playwright\n- Load and performance testing\n- Security penetration testing\n- User acceptance testing",
-        "dependencies": [
-          "5"
+        "priority": "critical",
+        "details": "Complete the daily report system with additional sections: Receipt attachment (영수증 첨부), Drawing upload (진행 도면 업로드), Request to headquarters (본사에게 요청), and Special notes (특이사항). All sections must be collapsible per PRD requirements.",
+        "dependencies": [],
+        "subtasks": [
+          {
+            "id": "7.1",
+            "title": "Sprint 7.1: Receipt and Financial Attachments",
+            "description": "Implement receipt attachment section with financial tracking",
+            "status": "pending",
+            "priority": "critical",
+            "details": "- Receipt type selection dropdown\n- Amount input field with currency formatting\n- Date picker for receipt date\n- File attachment for receipt images/PDFs\n- Multiple receipt support\n- Preview functionality\n- Integration with expense reporting",
+            "dependencies": [],
+            "subtasks": [],
+            "testStrategy": "File upload tests, validation tests, preview functionality tests"
+          },
+          {
+            "id": "7.2",
+            "title": "Sprint 7.2: Drawing Integration",
+            "description": "Implement drawing upload section with marking tool integration",
+            "status": "pending",
+            "priority": "critical",
+            "details": "- Integration with separate marking tool\n- Upload marked drawings showing material zones, work progress\n- Support for CAD files, PDFs, images\n- Drawing version control\n- Thumbnail generation\n- Viewer with zoom/pan capabilities",
+            "dependencies": [],
+            "subtasks": [],
+            "testStrategy": "Drawing upload tests, viewer functionality tests, marking tool integration tests"
+          },
+          {
+            "id": "7.3",
+            "title": "Sprint 7.3: Headquarters Request System",
+            "description": "Implement request to headquarters functionality",
+            "status": "pending",
+            "priority": "high",
+            "details": "- Rich text editor for request content\n- File attachment support\n- Request categorization\n- Priority setting\n- Headquarters dashboard view for aggregated requests\n- Request tracking and status updates\n- Notification system for responses",
+            "dependencies": [],
+            "subtasks": [],
+            "testStrategy": "Request submission tests, notification tests, dashboard aggregation tests"
+          },
+          {
+            "id": "7.4",
+            "title": "Sprint 7.4: Special Notes and Action Buttons",
+            "description": "Implement special notes section and form action buttons",
+            "status": "pending",
+            "priority": "high",
+            "details": "- Free text area for special notes\n- Character limit indicator\n- Auto-save functionality\n- Draft save button with localStorage\n- Submit button with validation\n- Confirmation dialogs\n- Success/error notifications",
+            "dependencies": [],
+            "subtasks": [],
+            "testStrategy": "Form validation tests, auto-save tests, action button functionality tests"
+          }
         ],
-        "subtasks": [],
-        "testStrategy": "Test coverage reports, security audit reports, UAT feedback"
+        "testStrategy": "Integration tests for all new sections, collapsible functionality tests, form submission tests"
       },
       {
-        "id": "6.2",
-        "title": "Sprint 6.2: Production Deployment",
-        "description": "Deploy to production with monitoring",
+        "id": "8",
+        "title": "Phase 2.5: Enhanced Attendance & Document Systems",
+        "description": "Implement comprehensive attendance management and document systems per PRD",
         "status": "pending",
         "priority": "high",
-        "details": "- Staging environment setup\n- Deployment pipeline creation\n- Production deployment\n- User training materials\n- Technical documentation\n- Monitoring and alerting setup",
-        "dependencies": [
-          "6.1"
+        "details": "Implement the detailed attendance (출력현황) system with calendar views, salary information tabs, and partner company views. Also implement the comprehensive document management system with 6 categories for personal documents and role-based shared documents.",
+        "dependencies": [],
+        "subtasks": [
+          {
+            "id": "8.1",
+            "title": "Sprint 8.1: Attendance Calendar System",
+            "description": "Build comprehensive attendance tracking with calendar interface",
+            "status": "pending",
+            "priority": "high",
+            "details": "- Site selection dropdown (single select)\n- Year/month navigation controls\n- Calendar grid showing daily report submissions\n- Site abbreviations display\n- Headquarters assignments display\n- Site summary information below calendar\n- Worker hours (공수) tracking integration",
+            "dependencies": [],
+            "subtasks": [],
+            "testStrategy": "Calendar navigation tests, data display tests, site filtering tests"
+          },
+          {
+            "id": "8.2",
+            "title": "Sprint 8.2: Salary Information System",
+            "description": "Implement salary viewing and payslip management",
+            "status": "pending",
+            "priority": "high",
+            "details": "- Site-based salary view\n- Monthly salary view\n- Detailed payslip access\n- Payslip PDF download\n- Access restrictions (own data only)\n- Partner company aggregated views\n- Total working days/hours calculations",
+            "dependencies": [],
+            "subtasks": [],
+            "testStrategy": "Salary calculation tests, access control tests, PDF generation tests"
+          },
+          {
+            "id": "8.3",
+            "title": "Sprint 8.3: Personal Document Management",
+            "description": "Build personal document storage system (내문서함)",
+            "status": "pending",
+            "priority": "high",
+            "details": "- 6 document categories implementation\n- Search by name/author/date\n- Category and time filtering\n- Sort by latest/name/size\n- Drag & drop upload\n- File format validation (PDF, JPG, PNG, DOC, DOCX, XLS, XLSX)\n- 10MB file size limit\n- Bulk download functionality\n- 1GB storage limit with usage display\n- Preview for PDFs and images",
+            "dependencies": [],
+            "subtasks": [],
+            "testStrategy": "File upload tests, storage limit tests, search functionality tests"
+          },
+          {
+            "id": "8.4",
+            "title": "Sprint 8.4: Shared Document System",
+            "description": "Implement role-based shared document management",
+            "status": "pending",
+            "priority": "high",
+            "details": "- 5 categories with role-based access\n- Safety documents (all users view, admin upload)\n- Construction standards (workers/managers view, admin/managers upload)\n- Company regulations (all view, admin upload)\n- Education materials (all view, admin/trainers upload)\n- Drawings (site personnel only)\n- Version control system\n- Favorites functionality\n- New document notifications",
+            "dependencies": [],
+            "subtasks": [],
+            "testStrategy": "Permission tests, version control tests, notification tests"
+          }
         ],
-        "subtasks": [],
-        "testStrategy": "Deployment verification tests, monitoring alerts tests, rollback procedures"
+        "testStrategy": "End-to-end attendance workflow tests, document permission tests, integration tests"
+      },
+      {
+        "id": "9",
+        "title": "Phase 3.5: Mobile-First UI Enhancement",
+        "description": "Transform the application to be truly mobile-first with enhanced UI components",
+        "status": "pending",
+        "priority": "high",
+        "details": "Implement mobile-first features including bottom navigation bar, quick menu customization, today's site info section, announcements, and touch-optimized interfaces throughout the application.",
+        "dependencies": [],
+        "subtasks": [
+          {
+            "id": "9.1",
+            "title": "Sprint 9.1: Bottom Navigation Implementation",
+            "description": "Create fixed bottom navigation for mobile devices",
+            "status": "pending",
+            "priority": "high",
+            "details": "- Fixed bottom navigation with 5 items\n- 홈(빠른메뉴), 출력현황, 작업일지, 공도면, 내문서함\n- Special behavior for 공도면 (auto-filter by site)\n- Touch-optimized tap targets\n- Active state indicators\n- Smooth transitions\n- Hide on scroll functionality",
+            "dependencies": [],
+            "subtasks": [],
+            "testStrategy": "Touch interaction tests, navigation flow tests, responsive behavior tests"
+          },
+          {
+            "id": "9.2",
+            "title": "Sprint 9.2: Dashboard Quick Menu System",
+            "description": "Build customizable quick menu grid",
+            "status": "pending",
+            "priority": "high",
+            "details": "- 2-column grid layout\n- Expandable rows (2x1, 2x2, 2x3)\n- Add/remove menu items\n- Drag to reorder\n- Default items: 출력현황, 내문서함, 현장정보, 공도면\n- Icon and label display\n- Touch gesture support\n- Preference persistence",
+            "dependencies": [],
+            "subtasks": [],
+            "testStrategy": "Grid layout tests, customization tests, persistence tests"
+          },
+          {
+            "id": "9.3",
+            "title": "Sprint 9.3: Today's Site Info Widget",
+            "description": "Create collapsible site information widget",
+            "status": "pending",
+            "priority": "medium",
+            "details": "- Collapsible section with smooth animation\n- Site address with copy and T-Map icons\n- Process info (부재명, 작업공정, 작업구간)\n- Drawing view icon integration\n- Manager contacts with copy/call icons\n- Accommodation address display\n- Touch-friendly expand/collapse",
+            "dependencies": [],
+            "subtasks": [],
+            "testStrategy": "Collapsible animation tests, icon functionality tests, data display tests"
+          },
+          {
+            "id": "9.4",
+            "title": "Sprint 9.4: Announcements System",
+            "description": "Implement headquarters announcements section",
+            "status": "pending",
+            "priority": "medium",
+            "details": "- Collapsible announcements section\n- Unread indicator\n- Priority-based sorting\n- Rich text content support\n- Attachment support\n- Mark as read functionality\n- Push notification integration\n- Archive functionality",
+            "dependencies": [],
+            "subtasks": [],
+            "testStrategy": "Announcement display tests, notification tests, read status tests"
+          }
+        ],
+        "testStrategy": "Mobile usability tests, touch interaction tests, performance tests on mobile devices"
       }
     ],
     "metadata": {

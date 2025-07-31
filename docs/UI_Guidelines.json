@@ -24,84 +24,713 @@
       },
       {
         "order": 4,
-        "id": "documents",
-        "label": "내문서함",
-        "icon": "FolderOpen",
-        "roles": ["worker", "site_manager", "customer_manager", "admin"]
+        "id": "site-info",
+        "label": "현장정보",
+        "icon": "MapPin",
+        "roles": ["worker", "site_manager", "customer_manager"]
       },
       {
         "order": 5,
-        "id": "shared-documents",
-        "label": "공유문서함",
-        "icon": "Share2",
-        "roles": ["worker", "site_manager", "customer_manager", "admin"]
+        "id": "documents",
+        "label": "내문서함",
+        "icon": "FolderOpen",
+        "roles": ["worker", "site_manager", "customer_manager"]
       },
       {
         "order": 6,
-        "id": "drawing-tools",
-        "label": "도면 마킹 도구",
-        "icon": "Edit3",
-        "roles": ["worker", "site_manager", "customer_manager", "admin"]
+        "id": "shared-documents",
+        "label": "공유문서함",
+        "icon": "Share2",
+        "roles": ["worker", "site_manager", "customer_manager"]
       },
       {
         "order": 7,
-        "id": "my-info",
-        "label": "내정보",
-        "icon": "User",
-        "roles": ["worker", "site_manager", "customer_manager", "admin"]
+        "id": "drawing-tools",
+        "label": "도면 마킹 도구",
+        "icon": "Edit3",
+        "roles": ["worker", "site_manager", "customer_manager"]
       },
       {
         "order": 8,
-        "id": "admin-menu-1",
-        "label": "관리자 메뉴1",
-        "icon": "Settings",
+        "id": "my-info",
+        "label": "내정보",
+        "icon": "User",
+        "roles": ["worker", "site_manager", "customer_manager"]
+      },
+      {
+        "order": 1,
+        "id": "admin-home",
+        "label": "홈",
+        "icon": "Home",
+        "roles": ["admin"]
+      },
+      {
+        "order": 2,
+        "id": "site-management",
+        "label": "현장 관리",
+        "icon": "Building2",
         "roles": ["admin"],
         "isAdminMenu": true
       },
       {
-        "order": 9,
-        "id": "admin-menu-2",
-        "label": "관리자 메뉴2",
+        "order": 3,
+        "id": "user-management",
+        "label": "사용자 관리",
         "icon": "Users",
         "roles": ["admin"],
         "isAdminMenu": true
       },
       {
-        "order": 10,
-        "id": "admin-menu-3",
-        "label": "관리자 메뉴3",
-        "icon": "BarChart3",
+        "order": 4,
+        "id": "shared-documents-management",
+        "label": "공유 문서함 관리",
+        "icon": "FolderCheck",
         "roles": ["admin"],
         "isAdminMenu": true
+      },
+      {
+        "order": 5,
+        "id": "payroll-management",
+        "label": "급여 관리",
+        "icon": "DollarSign",
+        "roles": ["admin"],
+        "isAdminMenu": true
+      },
+      {
+        "order": 6,
+        "id": "npc1000-materials-management",
+        "label": "NPC-1000 자재 관리",
+        "icon": "Package",
+        "roles": ["admin"],
+        "isAdminMenu": true
+      },
+      {
+        "order": 7,
+        "id": "drawing-marking-management",
+        "label": "도면 마킹 관리",
+        "icon": "Layers",
+        "roles": ["admin"],
+        "isAdminMenu": true
+      },
+      {
+        "order": 8,
+        "id": "other-admin-menus",
+        "label": "그 외 관리자 메뉴",
+        "icon": "MoreHorizontal",
+        "roles": ["admin"],
+        "isAdminMenu": true,
+        "note": "추후 결정 예정"
+      },
+      {
+        "order": 9,
+        "id": "admin-separator",
+        "label": "...",
+        "icon": null,
+        "roles": ["admin"],
+        "isAdminMenu": true,
+        "isSeparator": true
+      },
+      {
+        "order": 10,
+        "id": "system-management",
+        "label": "시스템 관리",
+        "icon": "Settings",
+        "roles": ["admin"],
+        "isAdminMenu": true
+      },
+      {
+        "order": 11,
+        "id": "admin-my-info",
+        "label": "내정보",
+        "icon": "User",
+        "roles": ["admin"]
       }
     ],
     "userRoles": {
       "worker": {
         "label": "작업자",
         "code": "A",
-        "menuAccess": [1, 2, 3, 4, 5, 6, 7]
+        "menuAccess": [1, 2, 3, 4, 5, 6, 7, 8]
       },
       "site_manager": {
         "label": "현장 관리자",
         "code": "B",
-        "menuAccess": [1, 2, 3, 4, 5, 6, 7]
+        "menuAccess": [1, 2, 3, 4, 5, 6, 7, 8]
       },
       "customer_manager": {
         "label": "파트너사",
         "code": "C",
-        "menuAccess": [1, 2, 3, 4, 5, 6, 7]
+        "menuAccess": [1, 2, 3, 4, 5, 6, 7, 8]
       },
       "admin": {
         "label": "본사 관리자",
         "code": "D",
-        "menuAccess": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        "menuAccess": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+        "note": "구체적인 기능은 추후 결정 예정"
       }
     },
     "menuConfiguration": {
-      "commonMenuRange": [1, 7],
-      "adminMenuRange": [8, 10],
+      "generalUserMenuRange": [1, 8],
+      "adminMenuRange": [1, 11],
+      "adminOnlyMenuRange": [2, 10],
       "showDividerBeforeAdmin": true,
-      "maintainOrderAcrossPlatforms": true
+      "maintainOrderAcrossPlatforms": true,
+      "adminMenuNote": "최종 구현 전 세부 기능 확정 필요"
+    }
+  },
+  "homeScreen": {
+    "dailyReportButton": {
+      "visibility": {
+        "roles": ["worker", "site_manager", "customer_manager"],
+        "location": "prominentPosition",
+        "description": "작업일지 작성 버튼을 홈 화면에서 더 눈에 띄게 표시"
+      }
+    },
+    "quickMenu": {
+      "layout": {
+        "columns": 2,
+        "rows": "dynamic",
+        "pattern": "2x1, 2x2, 2x3 등으로 확장 가능"
+      },
+      "defaultButtons": [
+        {
+          "id": "attendance",
+          "label": "출력현황",
+          "icon": "Calendar"
+        },
+        {
+          "id": "documents",
+          "label": "내문서함",
+          "icon": "FolderOpen"
+        },
+        {
+          "id": "site-info",
+          "label": "현장정보",
+          "icon": "MapPin"
+        },
+        {
+          "id": "drawings",
+          "label": "공도면",
+          "icon": "FileImage"
+        }
+      ],
+      "features": {
+        "customizable": true,
+        "addRemove": true,
+        "description": "사용자가 빠른 메뉴 항목을 추가/삭제 가능"
+      }
+    },
+    "todaySiteInfo": {
+      "collapsible": true,
+      "sections": {
+        "address": {
+          "fields": [
+            {
+              "type": "fullAddress",
+              "actions": ["copyAddress", "openTMap"]
+            },
+            {
+              "type": "shortAddress",
+              "actions": ["copyAddress", "openTMap"]
+            }
+          ]
+        },
+        "process": {
+          "fields": [
+            "memberName",
+            "processType",
+            "workSection"
+          ],
+          "actions": ["viewDrawing"]
+        },
+        "contacts": {
+          "constructionManager": {
+            "fields": ["phoneNumber"],
+            "actions": ["copyNumber", "makeCall"]
+          },
+          "safetyManager": {
+            "fields": ["phoneNumber"],
+            "actions": ["copyNumber", "makeCall"]
+          }
+        }
+      }
+    },
+    "announcements": {
+      "collapsible": true,
+      "content": {
+        "source": "headquarters",
+        "type": "notices",
+        "additional": "기타 등등"
+      }
+    }
+  },
+  "attendanceMenu": {
+    "terminology": {
+      "출력": "출근 이력",
+      "공수": "작업자가 투입된 시간 또는 일수"
+    },
+    "workerAndSiteManager": {
+      "roles": ["worker", "site_manager"],
+      "menuCode": "A2, B2",
+      "tabs": {
+        "attendanceInfo": {
+          "name": "출력정보",
+          "features": {
+            "siteSelection": {
+              "type": "dropdown",
+              "multiSelect": false,
+              "description": "현장 선택 (중복 선택 불가)"
+            },
+            "calendar": {
+              "controls": ["year", "month"],
+              "defaultView": "currentMonth",
+              "displays": [
+                {
+                  "type": "registeredSites",
+                  "format": "siteAbbreviation",
+                  "description": "본인이 작업일지 등록한 현장 정보"
+                },
+                {
+                  "type": "workLogData",
+                  "description": "작업일지를 통해 등록된 정보"
+                },
+                {
+                  "type": "assignedByHQ",
+                  "description": "본사에 의해 assign 예정된 정보"
+                }
+              ]
+            },
+            "siteSummary": {
+              "location": "belowCalendar",
+              "fields": [
+                "siteName",
+                "siteAbbreviation",
+                "location",
+                "period",
+                "additionalInfo"
+              ]
+            }
+          }
+        },
+        "salaryInfo": {
+          "name": "급여정보",
+          "features": [
+            "현장별 급여 조회",
+            "월별 급여 조회",
+            "급여 명세서 조회",
+            "급여 명세서 다운로드"
+          ]
+        }
+      },
+      "accessRestriction": "본인의 출력 정보와 급여 정보만 조회 가능"
+    },
+    "partnerCompany": {
+      "roles": ["customer_manager"],
+      "menuCode": "C2",
+      "tabs": {
+        "attendanceInfo": {
+          "name": "출력정보",
+          "features": {
+            "siteSelection": true,
+            "viewData": [
+              "총 투입일 수",
+              "총 출력(작업자 공수)"
+            ]
+          }
+        },
+        "salaryInfo": {
+          "name": "급여정보",
+          "features": [
+            "현장별 급여 현황",
+            "작업자별 급여 현황"
+          ]
+        }
+      },
+      "accessRestriction": "자사 소속 작업자들의 총 투입일 수와 총 출력(작업자 공수) 조회 가능"
+    }
+  },
+  "dailyReportsMenu": {
+    "workerAndSiteManager": {
+      "roles": ["worker", "site_manager"],
+      "menuCode": "A3, B3",
+      "mainComponents": {
+        "createButton": {
+          "label": "작업일지 작성",
+          "action": "navigateToCreateForm"
+        },
+        "reportsList": {
+          "tableColumns": [
+            {
+              "field": "title",
+              "header": "제목",
+              "format": "{companyAbbr}+{siteAbbr}+{memberName}",
+              "example": "INO_강남A_슬라브"
+            },
+            {
+              "field": "date",
+              "header": "날짜",
+              "format": "YYYY-MM-DD"
+            },
+            {
+              "field": "status",
+              "header": "상태",
+              "values": [
+                {
+                  "code": "draft",
+                  "label": "임시저장",
+                  "description": "작성 중인 상태"
+                },
+                {
+                  "code": "completed",
+                  "label": "작성완료",
+                  "description": "제출 완료된 상태"
+                }
+              ]
+            }
+          ],
+          "sortOptions": [
+            {
+              "field": "title",
+              "label": "제목순"
+            },
+            {
+              "field": "date",
+              "label": "날짜순"
+            },
+            {
+              "field": "status",
+              "label": "상태순"
+            }
+          ]
+        }
+      },
+      "accessRestriction": "본인이 작성한 작업일지만 조회 및 수정 가능"
+    }
+  },
+  "siteInfoMenu": {
+    "allUsers": {
+      "roles": ["worker", "site_manager", "customer_manager"],
+      "menuCode": "A4, B4, C4",
+      "sections": {
+        "todaysSite": {
+          "title": "오늘의 현장",
+          "components": {
+            "siteAddress": {
+              "fields": ["address"],
+              "actions": ["copyAddress", "openTMap"]
+            },
+            "accommodationAddress": {
+              "fields": ["address"],
+              "actions": ["copyAddress", "openTMap"]
+            },
+            "processInfo": {
+              "fields": [
+                "memberName",
+                "processType",
+                "workSection"
+              ],
+              "actions": ["viewDrawing"]
+            },
+            "contacts": {
+              "constructionManager": {
+                "fields": ["phoneNumber"],
+                "actions": ["copyNumber", "makeCall"]
+              },
+              "safetyManager": {
+                "fields": ["phoneNumber"],
+                "actions": ["copyNumber", "makeCall"]
+              }
+            }
+          }
+        },
+        "siteSearch": {
+          "title": "현장 조회",
+          "searchOptions": [
+            {
+              "type": "siteName",
+              "label": "현장명",
+              "inputType": "text"
+            },
+            {
+              "type": "region",
+              "label": "지역별",
+              "inputType": "select"
+            },
+            {
+              "type": "workerName",
+              "label": "작업자명",
+              "inputType": "text"
+            },
+            {
+              "type": "period",
+              "label": "기간별",
+              "inputType": "dateRange"
+            }
+          ]
+        }
+      },
+      "accessRestriction": "모든 사용자 현장 정보 조회 가능"
+    }
+  },
+  "myDocumentsMenu": {
+    "workerAndSiteManager": {
+      "roles": ["worker", "site_manager"],
+      "menuCode": "A5, B5",
+      "features": {
+        "documentList": {
+          "search": {
+            "types": ["documentName", "author", "date"],
+            "placeholder": "문서명, 작성자, 날짜로 검색"
+          },
+          "filter": {
+            "byCategory": true,
+            "byPeriod": true
+          },
+          "sort": {
+            "options": ["latest", "name", "size"]
+          }
+        },
+        "categories": [
+          {
+            "id": "salary",
+            "name": "개인 급여 명세서",
+            "icon": "DollarSign"
+          },
+          {
+            "id": "dailyReportBackup",
+            "name": "작업일지 (백업)",
+            "icon": "FileText"
+          },
+          {
+            "id": "contracts",
+            "name": "계약서/협약서",
+            "icon": "FileSignature"
+          },
+          {
+            "id": "certificates",
+            "name": "자격증/수료증",
+            "icon": "Award"
+          },
+          {
+            "id": "safetyEducation",
+            "name": "안전교육 이수증",
+            "icon": "Shield"
+          },
+          {
+            "id": "others",
+            "name": "기타 개인 문서",
+            "icon": "File"
+          }
+        ],
+        "documentManagement": {
+          "upload": {
+            "methods": ["fileSelect", "dragAndDrop"],
+            "supportedFormats": ["PDF", "JPG", "PNG", "DOC", "DOCX", "XLS", "XLSX"],
+            "maxFileSize": "10MB"
+          },
+          "download": {
+            "individual": true,
+            "bulk": true
+          },
+          "delete": {
+            "restriction": "본인이 업로드한 문서만 삭제 가능"
+          },
+          "preview": {
+            "supported": ["PDF", "images"]
+          }
+        },
+        "storageLimit": {
+          "perUser": "1GB",
+          "displayRemaining": true,
+          "alertOnExceed": true
+        }
+      },
+      "accessRestriction": "본인의 문서만 조회 및 관리 가능"
+    }
+  },
+  "sharedDocumentsMenu": {
+    "allUsers": {
+      "roles": ["worker", "site_manager", "customer_manager", "admin"],
+      "menuCode": "A6, B6, C6, D",
+      "categories": {
+        "safetyDocuments": {
+          "name": "안전보건 문서",
+          "access": {
+            "view": "all",
+            "upload": ["admin"]
+          },
+          "content": ["안전교육 자료", "MSDS", "안전 수칙", "비상대응 매뉴얼"]
+        },
+        "constructionStandards": {
+          "name": "시공 표준/매뉴얼",
+          "access": {
+            "view": ["worker", "site_manager", "customer_manager"],
+            "upload": ["admin", "site_manager"]
+          },
+          "content": ["표준 시방서", "작업 매뉴얼", "품질 기준서"]
+        },
+        "companyRegulations": {
+          "name": "회사 규정/공지",
+          "access": {
+            "view": "all",
+            "upload": ["admin"]
+          },
+          "content": ["취업규칙", "복무규정", "공지사항"]
+        },
+        "educationMaterials": {
+          "name": "교육 자료",
+          "access": {
+            "view": "all",
+            "upload": ["admin", "trainer"]
+          },
+          "content": ["기술교육", "안전교육", "품질교육 자료"]
+        },
+        "drawings": {
+          "name": "도면/설계 문서",
+          "access": {
+            "view": "해당 현장 관련자만",
+            "upload": ["admin", "site_manager"]
+          },
+          "content": ["건축도면", "구조도면", "설비도면", "시공상세도"]
+        }
+      },
+      "features": {
+        "search": {
+          "integrated": true,
+          "byCategory": true
+        },
+        "filter": {
+          "documentType": true,
+          "uploadDate": true,
+          "bySite": true
+        },
+        "download": {
+          "permissionBased": true
+        },
+        "favorites": {
+          "enabled": true,
+          "description": "자주 사용하는 문서 즐겨찾기 등록"
+        },
+        "versionControl": {
+          "enabled": true,
+          "showLatest": true,
+          "viewHistory": "authorized users only"
+        },
+        "notifications": {
+          "newDocument": true,
+          "importantNotice": true,
+          "documentUpdate": true
+        }
+      }
+    }
+  },
+  "bottomNavBar": {
+    "overview": {
+      "position": "fixed bottom",
+      "visibility": "always visible",
+      "purpose": "quick access to main menus"
+    },
+    "menuItems": [
+      {
+        "order": 1,
+        "id": "home",
+        "label": "홈(빠른메뉴)",
+        "icon": "Home",
+        "action": "navigateToHome",
+        "description": "홈 메뉴로 이동"
+      },
+      {
+        "order": 2,
+        "id": "attendance",
+        "label": "출력현황",
+        "icon": "Calendar",
+        "action": "navigateToAttendance",
+        "description": "출력현황 메뉴로 이동"
+      },
+      {
+        "order": 3,
+        "id": "daily-reports",
+        "label": "작업일지",
+        "icon": "FileText",
+        "action": "navigateToDailyReports",
+        "description": "작업일지 메뉴로 이동"
+      },
+      {
+        "order": 4,
+        "id": "blueprints",
+        "label": "공도면",
+        "icon": "FileImage",
+        "action": "navigateToSharedDocumentsWithBlueprintFilter",
+        "description": "공유문서함에서 해당 현장의 '공도면' badge 검색 결과",
+        "specialBehavior": {
+          "steps": [
+            "공유문서함으로 이동",
+            "현재 사용자의 현장 정보 확인",
+            "해당 현장 + '공도면' badge 자동 필터링",
+            "검색 결과 표시"
+          ],
+          "emptyState": "해당 현장의 공도면이 없습니다"
+        }
+      },
+      {
+        "order": 5,
+        "id": "my-documents",
+        "label": "내문서함",
+        "icon": "FolderOpen",
+        "action": "navigateToMyDocuments",
+        "description": "내문서함 메뉴로 이동"
+      }
+    ],
+    "design": {
+      "layout": {
+        "distribution": "equal spacing",
+        "height": {
+          "iOS": "56px",
+          "Android": "48px"
+        },
+        "background": "white or theme color",
+        "shadow": "top shadow for separation"
+      },
+      "iconAndLabel": {
+        "iconSize": "24x24px",
+        "labelSize": "10px",
+        "labelPosition": "below icon",
+        "colors": {
+          "inactive": "#666666",
+          "active": "primary color",
+          "activeBackground": "light primary color"
+        }
+      },
+      "interaction": {
+        "feedback": "ripple effect or background color change",
+        "activeIndicator": "highlight current menu",
+        "transition": "smooth animation"
+      }
+    },
+    "accessibility": {
+      "minTouchArea": "44x44px",
+      "voiceGuidance": "read menu labels",
+      "keyboardNavigation": "tab key navigation"
+    },
+    "responsive": {
+      "portrait": {
+        "layout": "5 items equal spacing",
+        "display": "icon + label"
+      },
+      "landscape": {
+        "layout": "5 items equal spacing maintained",
+        "padding": "auto adjust"
+      },
+      "tablet": {
+        "spacing": "increased menu spacing",
+        "sizing": "larger icons and fonts possible"
+      }
+    },
+    "implementation": {
+      "safeArea": "consider iPhone X+ home indicator",
+      "androidNavigation": "distinguish from system navigation",
+      "scrollBehavior": "fixed position on scroll",
+      "keyboardHandling": "hide NavBar when keyboard shows (optional)"
     }
   }
 }

@@ -1,0 +1,107 @@
+{
+  "sidebarMenu": {
+    "menuStructure": [
+      {
+        "order": 1,
+        "id": "home",
+        "label": "홈",
+        "icon": "Home",
+        "roles": ["worker", "site_manager", "customer_manager", "admin"]
+      },
+      {
+        "order": 2,
+        "id": "attendance",
+        "label": "출력현황",
+        "icon": "Calendar",
+        "roles": ["worker", "site_manager", "customer_manager", "admin"]
+      },
+      {
+        "order": 3,
+        "id": "daily-reports",
+        "label": "작업일지",
+        "icon": "FileText",
+        "roles": ["worker", "site_manager", "customer_manager", "admin"]
+      },
+      {
+        "order": 4,
+        "id": "documents",
+        "label": "내문서함",
+        "icon": "FolderOpen",
+        "roles": ["worker", "site_manager", "customer_manager", "admin"]
+      },
+      {
+        "order": 5,
+        "id": "shared-documents",
+        "label": "공유문서함",
+        "icon": "Share2",
+        "roles": ["worker", "site_manager", "customer_manager", "admin"]
+      },
+      {
+        "order": 6,
+        "id": "drawing-tools",
+        "label": "도면 마킹 도구",
+        "icon": "Edit3",
+        "roles": ["worker", "site_manager", "customer_manager", "admin"]
+      },
+      {
+        "order": 7,
+        "id": "my-info",
+        "label": "내정보",
+        "icon": "User",
+        "roles": ["worker", "site_manager", "customer_manager", "admin"]
+      },
+      {
+        "order": 8,
+        "id": "admin-menu-1",
+        "label": "관리자 메뉴1",
+        "icon": "Settings",
+        "roles": ["admin"],
+        "isAdminMenu": true
+      },
+      {
+        "order": 9,
+        "id": "admin-menu-2",
+        "label": "관리자 메뉴2",
+        "icon": "Users",
+        "roles": ["admin"],
+        "isAdminMenu": true
+      },
+      {
+        "order": 10,
+        "id": "admin-menu-3",
+        "label": "관리자 메뉴3",
+        "icon": "BarChart3",
+        "roles": ["admin"],
+        "isAdminMenu": true
+      }
+    ],
+    "userRoles": {
+      "worker": {
+        "label": "작업자",
+        "code": "A",
+        "menuAccess": [1, 2, 3, 4, 5, 6, 7]
+      },
+      "site_manager": {
+        "label": "현장 관리자",
+        "code": "B",
+        "menuAccess": [1, 2, 3, 4, 5, 6, 7]
+      },
+      "customer_manager": {
+        "label": "파트너사",
+        "code": "C",
+        "menuAccess": [1, 2, 3, 4, 5, 6, 7]
+      },
+      "admin": {
+        "label": "본사 관리자",
+        "code": "D",
+        "menuAccess": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+      }
+    },
+    "menuConfiguration": {
+      "commonMenuRange": [1, 7],
+      "adminMenuRange": [8, 10],
+      "showDividerBeforeAdmin": true,
+      "maintainOrderAcrossPlatforms": true
+    }
+  }
+}

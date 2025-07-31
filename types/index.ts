@@ -181,3 +181,6 @@ export interface ApprovalRequest {
   processed_at?: string | null
   created_at: string
 }
+
+// Export all construction-specific types
+export * from './construction'

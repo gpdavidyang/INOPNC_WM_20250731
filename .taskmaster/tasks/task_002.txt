@@ -1,0 +1,11 @@
+# Task ID: 2
+# Title: Phase 2: Material & Equipment Management
+# Status: pending
+# Dependencies: 1 (Not found)
+# Priority: high
+# Description: Build the NPC-1000 material management system and equipment tracking
+# Details:
+Complete material and equipment management system as specified in the PRD
+
+# Test Strategy:
+Database transaction tests, inventory calculation tests, approval workflow tests

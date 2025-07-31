@@ -96,17 +96,17 @@ export default function DailyReportList({ siteId, canCreate = false }: DailyRepo
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
                       <p className="text-sm font-medium text-indigo-600 truncate">
-                        {formatDate(report.work_date)}
+                        {formatDate(report.report_date)}
                       </p>
                       {getStatusBadge(report.status)}
                     </div>
                     <div className="mt-2 sm:flex sm:justify-between">
                       <div className="sm:flex">
                         <p className="flex items-center text-sm text-gray-500">
-                          현장: {report.sites?.name}
+                          현장: {report.site?.name}
                         </p>
                         <p className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0 sm:ml-6">
-                          작성자: {report.profiles?.full_name}
+                          작성자: {report.created_by_profile?.full_name}
                         </p>
                       </div>
                     </div>

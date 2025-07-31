@@ -8,18 +8,18 @@ export async function getDailyReports(siteId?: string) {
     .from('daily_reports')
     .select(`
       *,
-      sites!inner (
+      site:sites!inner (
         id,
         name,
         organization_id
       ),
-      profiles (
+      created_by_profile:profiles!daily_reports_created_by_fkey (
         id,
         full_name,
         email
       )
     `)
-    .order('work_date', { ascending: false })
+    .order('report_date', { ascending: false })
   
   if (siteId) {
     query = query.eq('site_id', siteId)
@@ -47,7 +47,7 @@ export async function getDailyReport(id: string) {
         name,
         organization_id
       ),
-      profiles (
+      created_by_profile:profiles!daily_reports_created_by_fkey (
         id,
         full_name,
         email

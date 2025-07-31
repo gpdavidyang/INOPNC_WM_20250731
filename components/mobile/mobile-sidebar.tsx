@@ -1,7 +1,7 @@
 'use client'
 
 import { Profile, UserRole } from '@/types'
-import { Home, FileText, Calendar, FolderOpen, Building, Share2, Users, BarChart3, Settings, X, Menu } from 'lucide-react'
+import { Home, FileText, Calendar, FolderOpen, Share2, Edit3, User, Users, BarChart3, Settings, X, Menu } from 'lucide-react'
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { signOut } from '@/app/auth/actions'
@@ -25,37 +25,43 @@ const menuItems: MenuItem[] = [
     id: 'home',
     label: '홈',
     icon: Home,
-    roles: ['worker', 'site_manager', 'customer_manager', 'admin', 'system_admin']
+    roles: ['worker', 'site_manager', 'customer_manager', 'admin']
+  },
+  {
+    id: 'attendance',
+    label: '출력현황',
+    icon: Calendar,
+    roles: ['worker', 'site_manager', 'customer_manager', 'admin']
   },
   {
     id: 'daily-reports',
     label: '작업일지',
     icon: FileText,
-    roles: ['worker', 'site_manager', 'admin', 'system_admin']
-  },
-  {
-    id: 'attendance',
-    label: '출근/급여관리',
-    icon: Calendar,
-    roles: ['worker', 'site_manager', 'admin', 'system_admin']
+    roles: ['worker', 'site_manager', 'customer_manager', 'admin']
   },
   {
     id: 'documents',
     label: '내문서함',
     icon: FolderOpen,
-    roles: ['worker', 'site_manager', 'customer_manager', 'admin', 'system_admin']
-  },
-  {
-    id: 'site-info',
-    label: '현장정보',
-    icon: Building,
-    roles: ['worker', 'site_manager', 'customer_manager', 'admin', 'system_admin']
+    roles: ['worker', 'site_manager', 'customer_manager', 'admin']
   },
   {
     id: 'shared-documents',
     label: '공유문서함',
     icon: Share2,
-    roles: ['worker', 'site_manager', 'customer_manager', 'admin', 'system_admin']
+    roles: ['worker', 'site_manager', 'customer_manager', 'admin']
+  },
+  {
+    id: 'drawing-tools',
+    label: '도면 마킹 도구',
+    icon: Edit3,
+    roles: ['worker', 'site_manager', 'customer_manager', 'admin']
+  },
+  {
+    id: 'my-info',
+    label: '내정보',
+    icon: User,
+    roles: ['worker', 'site_manager', 'customer_manager', 'admin']
   }
 ]
 

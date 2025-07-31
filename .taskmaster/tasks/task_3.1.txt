@@ -1,0 +1,16 @@
+# Task ID: 3.1
+# Title: Sprint 3.1: Advanced Attendance System
+# Status: pending
+# Dependencies: 2 (Not found)
+# Priority: high
+# Description: Enhance attendance system with GPS tracking and wage management
+# Details:
+- GPS location tracking for check-in/out
+- Geofencing for construction sites
+- Wage rate management by skill level
+- Overtime calculation with different rates
+- Payroll report generation
+- Attendance exception handling
+
+# Test Strategy:
+Location accuracy tests, geofencing tests, wage calculation tests

@@ -1,0 +1,16 @@
+# Task ID: 2.2
+# Title: Sprint 2.2: Equipment & Resource Management
+# Status: pending
+# Dependencies: 2.1 (Not found)
+# Priority: high
+# Description: Implement equipment usage tracking and resource allocation
+# Details:
+- Equipment usage tracking
+- Worker assignment with wage rates
+- Cost calculation system
+- Resource allocation dashboard
+- Equipment maintenance tracking
+- Resource utilization reports
+
+# Test Strategy:
+Cost calculation tests, resource allocation tests, reporting accuracy tests

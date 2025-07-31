@@ -1,37 +1,65 @@
-import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import DailyReportForm from '@/components/daily-reports/daily-report-form'
+import { redirect } from 'next/navigation'
+import DailyReportFormEnhanced from '@/components/daily-reports/daily-report-form-enhanced'
 
 export default async function NewDailyReportPage() {
-  const supabase = await createClient()
+  const supabase = createClient()
   
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
+  // Check authentication
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
     redirect('/auth/login')
   }
-  
-  // Get user profile to check permissions
+
+  // Get user profile
   const { data: profile } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', user.id)
     .single()
-  
-  if (!profile || !['worker', 'site_manager'].includes(profile.role)) {
-    redirect('/dashboard')
+
+  if (!profile) {
+    redirect('/auth/login')
   }
+
+  // Check if user can create reports
+  const allowedRoles = ['worker', 'site_manager', 'admin', 'system_admin']
+  if (!allowedRoles.includes(profile.role)) {
+    redirect('/dashboard/daily-reports')
+  }
+
+  // Get sites
+  const sitesQuery = profile.site_id 
+    ? supabase.from('sites').select('*').eq('id', profile.site_id)
+    : supabase.from('sites').select('*').eq('organization_id', profile.organization_id).eq('status', 'active')
   
-  // Get sites for the form
-  const { data: sites } = await supabase
-    .from('sites')
-    .select('id, name, organization_id')
-    .eq('status', 'active')
+  const { data: sites } = await sitesQuery
+
+  // Get materials
+  const { data: materials } = await supabase
+    .from('materials')
+    .select(`
+      *,
+      category:material_categories(*)
+    `)
+    .eq('is_active', true)
     .order('name')
-  
+
+  // Get workers for attendance
+  const { data: workers } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('organization_id', profile.organization_id)
+    .in('role', ['worker', 'site_manager'])
+    .eq('status', 'active')
+    .order('full_name')
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">새 작업일지 작성</h1>
-      <DailyReportForm sites={sites || []} />
-    </div>
+    <DailyReportFormEnhanced
+      sites={sites || []}
+      currentUser={profile}
+      materials={materials || []}
+      workers={workers || []}
+    />
   )
 }

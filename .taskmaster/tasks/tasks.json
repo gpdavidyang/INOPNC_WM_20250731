@@ -1,0 +1,241 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": "1",
+        "title": "Phase 1: Core Daily Report System Enhancement",
+        "description": "Implement the complete daily report system with all 10 sections as specified in the PRD",
+        "status": "pending",
+        "priority": "critical",
+        "details": "This is the heart of the system and needs immediate attention. The current basic CRUD needs to be expanded to match PRD requirements.",
+        "dependencies": [],
+        "subtasks": [],
+        "testStrategy": "Unit tests for form components, integration tests for data flow, E2E tests for complete workflow"
+      },
+      {
+        "id": "1.1",
+        "title": "Sprint 1.1: Daily Report Form Structure",
+        "description": "Implement the 10-section collapsible form structure per PRD requirements",
+        "status": "pending",
+        "priority": "critical",
+        "details": "- Implement all 10 sections: Header, Site Info, Work Content, Workers, Photos, Receipts, Drawings, Requests, NPC-1000, Special Notes\n- Add expand/collapse functionality for sections 2-10\n- Implement form validation and error handling\n- Create progress indicator showing completion percentage\n- Add auto-save mechanism (5-minute intervals)\n- Implement draft storage using localStorage",
+        "dependencies": [],
+        "subtasks": [],
+        "testStrategy": "Component tests for each section, form validation tests, auto-save functionality tests"
+      },
+      {
+        "id": "1.2",
+        "title": "Sprint 1.2: Photo Upload System",
+        "description": "Implement comprehensive photo upload system supporting before/after work photos",
+        "status": "pending",
+        "priority": "critical",
+        "details": "- Support up to 30 photos per section (before/after)\n- Client-side image compression\n- Photo preview gallery with zoom\n- Delete functionality with confirmation\n- Drag-and-drop for desktop\n- Progress tracking for batch uploads\n- Support gallery selection, camera capture, and file selection",
+        "dependencies": [
+          "1.1"
+        ],
+        "subtasks": [],
+        "testStrategy": "Upload tests, compression tests, gallery functionality tests, mobile camera integration tests"
+      },
+      {
+        "id": "2",
+        "title": "Phase 2: Material & Equipment Management",
+        "description": "Build the NPC-1000 material management system and equipment tracking",
+        "status": "pending",
+        "priority": "high",
+        "details": "Complete material and equipment management system as specified in the PRD",
+        "dependencies": [
+          "1"
+        ],
+        "subtasks": [],
+        "testStrategy": "Database transaction tests, inventory calculation tests, approval workflow tests"
+      },
+      {
+        "id": "2.1",
+        "title": "Sprint 2.1: NPC-1000 Material System",
+        "description": "Create hierarchical material catalog and inventory tracking",
+        "status": "pending",
+        "priority": "high",
+        "details": "- Hierarchical material categories\n- Site-level inventory tracking\n- Material request workflow\n- Approval process for managers\n- Low-stock alerts\n- Material usage history\n- Support for incoming/used/remaining quantities",
+        "dependencies": [
+          "1"
+        ],
+        "subtasks": [],
+        "testStrategy": "Inventory calculation tests, hierarchy navigation tests, alert system tests"
+      },
+      {
+        "id": "2.2",
+        "title": "Sprint 2.2: Equipment & Resource Management",
+        "description": "Implement equipment usage tracking and resource allocation",
+        "status": "pending",
+        "priority": "high",
+        "details": "- Equipment usage tracking\n- Worker assignment with wage rates\n- Cost calculation system\n- Resource allocation dashboard\n- Equipment maintenance tracking\n- Resource utilization reports",
+        "dependencies": [
+          "2.1"
+        ],
+        "subtasks": [],
+        "testStrategy": "Cost calculation tests, resource allocation tests, reporting accuracy tests"
+      },
+      {
+        "id": "3",
+        "title": "Phase 3: Enhanced Features",
+        "description": "Implement advanced attendance system and partner company integration",
+        "status": "pending",
+        "priority": "high",
+        "details": "Advanced features for attendance tracking and partner management",
+        "dependencies": [
+          "2"
+        ],
+        "subtasks": [],
+        "testStrategy": "GPS accuracy tests, permission tests, integration tests"
+      },
+      {
+        "id": "3.1",
+        "title": "Sprint 3.1: Advanced Attendance System",
+        "description": "Enhance attendance system with GPS tracking and wage management",
+        "status": "pending",
+        "priority": "high",
+        "details": "- GPS location tracking for check-in/out\n- Geofencing for construction sites\n- Wage rate management by skill level\n- Overtime calculation with different rates\n- Payroll report generation\n- Attendance exception handling",
+        "dependencies": [
+          "2"
+        ],
+        "subtasks": [],
+        "testStrategy": "Location accuracy tests, geofencing tests, wage calculation tests"
+      },
+      {
+        "id": "3.2",
+        "title": "Sprint 3.2: Partner Company Integration",
+        "description": "Create partner company management and access control",
+        "status": "pending",
+        "priority": "medium",
+        "details": "- Partner company profile management\n- Site-specific access control\n- Document sharing with permissions\n- Communication channels\n- Partner performance tracking\n- Contract management",
+        "dependencies": [
+          "3.1"
+        ],
+        "subtasks": [],
+        "testStrategy": "Permission tests, document sharing tests, access control tests"
+      },
+      {
+        "id": "4",
+        "title": "Phase 4: Mobile Optimization & Offline Support",
+        "description": "Transform the application into a Progressive Web App with offline capabilities",
+        "status": "pending",
+        "priority": "medium",
+        "details": "Mobile-first optimization and offline functionality",
+        "dependencies": [
+          "3"
+        ],
+        "subtasks": [],
+        "testStrategy": "Offline functionality tests, sync tests, mobile UI tests"
+      },
+      {
+        "id": "4.1",
+        "title": "Sprint 4.1: Progressive Web App Implementation",
+        "description": "Convert application to PWA with offline support",
+        "status": "pending",
+        "priority": "medium",
+        "details": "- Service worker implementation\n- Offline data caching strategy\n- Background sync for uploads\n- Push notifications\n- App install prompts\n- Offline indicator UI",
+        "dependencies": [
+          "3"
+        ],
+        "subtasks": [],
+        "testStrategy": "Service worker tests, offline sync tests, notification tests"
+      },
+      {
+        "id": "4.2",
+        "title": "Sprint 4.2: Mobile-Specific Features",
+        "description": "Implement mobile-optimized features and UI",
+        "status": "pending",
+        "priority": "medium",
+        "details": "- Direct camera integration\n- Voice-to-text for entries\n- Touch-optimized UI components\n- Gesture navigation\n- Mobile shortcuts\n- Responsive design for all screen sizes",
+        "dependencies": [
+          "4.1"
+        ],
+        "subtasks": [],
+        "testStrategy": "Touch interaction tests, camera integration tests, responsive design tests"
+      },
+      {
+        "id": "5",
+        "title": "Phase 5: Analytics & Performance",
+        "description": "Build analytics dashboard and optimize system performance",
+        "status": "pending",
+        "priority": "medium",
+        "details": "Comprehensive analytics and performance optimization",
+        "dependencies": [
+          "4"
+        ],
+        "subtasks": [],
+        "testStrategy": "Performance benchmarks, load tests, dashboard functionality tests"
+      },
+      {
+        "id": "5.1",
+        "title": "Sprint 5.1: Analytics Dashboard",
+        "description": "Implement comprehensive analytics and reporting system",
+        "status": "pending",
+        "priority": "medium",
+        "details": "- Real-time KPI tracking\n- Custom report builder\n- Data visualization components\n- Export functionality\n- Scheduled report generation\n- Role-based dashboard views",
+        "dependencies": [
+          "4"
+        ],
+        "subtasks": [],
+        "testStrategy": "Data accuracy tests, visualization tests, export functionality tests"
+      },
+      {
+        "id": "5.2",
+        "title": "Sprint 5.2: Performance Optimization",
+        "description": "Optimize system performance and implement monitoring",
+        "status": "pending",
+        "priority": "medium",
+        "details": "- Database query optimization\n- Redis caching layer\n- CDN integration\n- Code splitting and lazy loading\n- Virtual scrolling for lists\n- Performance monitoring dashboard",
+        "dependencies": [
+          "5.1"
+        ],
+        "subtasks": [],
+        "testStrategy": "Load tests, performance benchmarks, caching effectiveness tests"
+      },
+      {
+        "id": "6",
+        "title": "Phase 6: Testing & Deployment",
+        "description": "Comprehensive testing and production deployment",
+        "status": "pending",
+        "priority": "high",
+        "details": "Final testing, documentation, and deployment",
+        "dependencies": [
+          "5"
+        ],
+        "subtasks": [],
+        "testStrategy": "Full regression testing, security testing, user acceptance testing"
+      },
+      {
+        "id": "6.1",
+        "title": "Sprint 6.1: Comprehensive Testing",
+        "description": "Execute full testing strategy",
+        "status": "pending",
+        "priority": "high",
+        "details": "- Unit test coverage >80%\n- Integration testing for all APIs\n- E2E tests with Playwright\n- Load and performance testing\n- Security penetration testing\n- User acceptance testing",
+        "dependencies": [
+          "5"
+        ],
+        "subtasks": [],
+        "testStrategy": "Test coverage reports, security audit reports, UAT feedback"
+      },
+      {
+        "id": "6.2",
+        "title": "Sprint 6.2: Production Deployment",
+        "description": "Deploy to production with monitoring",
+        "status": "pending",
+        "priority": "high",
+        "details": "- Staging environment setup\n- Deployment pipeline creation\n- Production deployment\n- User training materials\n- Technical documentation\n- Monitoring and alerting setup",
+        "dependencies": [
+          "6.1"
+        ],
+        "subtasks": [],
+        "testStrategy": "Deployment verification tests, monitoring alerts tests, rollback procedures"
+      }
+    ],
+    "metadata": {
+      "created": "2025-07-31T05:22:55.572Z",
+      "updated": "2025-07-31T05:22:55.572Z",
+      "description": "Tasks for master context"
+    }
+  }
+}

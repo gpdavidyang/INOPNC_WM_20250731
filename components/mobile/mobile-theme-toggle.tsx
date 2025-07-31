@@ -11,6 +11,11 @@ interface MobileThemeToggleProps {
 
 export default function MobileThemeToggle({ className }: MobileThemeToggleProps) {
   const { theme, setTheme } = useTheme()
+  const [mounted, setMounted] = React.useState(false)
+
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const toggleTheme = () => {
     if (theme === "light") {
@@ -21,6 +26,8 @@ export default function MobileThemeToggle({ className }: MobileThemeToggleProps)
       setTheme("light")
     }
   }
+
+  const isDarkMode = theme === "dark" || (theme === "system" && mounted && window.matchMedia("(prefers-color-scheme: dark)").matches)
 
   return (
     <button
@@ -33,10 +40,14 @@ export default function MobileThemeToggle({ className }: MobileThemeToggleProps)
       )}
     >
       <div className="flex items-center">
-        {theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches) ? (
-          <Moon className="mr-3 h-5 w-5" />
+        {mounted ? (
+          isDarkMode ? (
+            <Moon className="mr-3 h-5 w-5" />
+          ) : (
+            <Sun className="mr-3 h-5 w-5" />
+          )
         ) : (
-          <Sun className="mr-3 h-5 w-5" />
+          <div className="mr-3 h-5 w-5" />
         )}
         <span>테마</span>
       </div>
@@ -51,9 +62,29 @@ export default function MobileThemeToggle({ className }: MobileThemeToggleProps)
 
 export function MobileThemeToggleCompact({ className }: MobileThemeToggleProps) {
   const { theme, setTheme } = useTheme()
+  const [mounted, setMounted] = React.useState(false)
+
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const toggleTheme = () => {
     setTheme(theme === "light" ? "dark" : "light")
+  }
+
+  if (!mounted) {
+    return (
+      <button
+        className={cn(
+          "p-2 rounded-lg transition-colors",
+          "hover:bg-gray-100 dark:hover:bg-gray-800",
+          className
+        )}
+        aria-label="테마 변경"
+      >
+        <div className="h-5 w-5" />
+      </button>
+    )
   }
 
   return (

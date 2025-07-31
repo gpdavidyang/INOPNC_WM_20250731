@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { Profile } from '@/types'
 import { createClient } from '@/lib/supabase/client'
 import { Calendar, Users, FileText, AlertCircle } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 interface HomeTabProps {
   profile: Profile
@@ -25,6 +26,7 @@ export default function HomeTab({ profile }: HomeTabProps) {
   })
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
+  const router = useRouter()
 
   useEffect(() => {
     fetchStats()
@@ -37,7 +39,7 @@ export default function HomeTab({ profile }: HomeTabProps) {
       const { count: todayReports } = await supabase
         .from('daily_reports')
         .select('*', { count: 'exact', head: true })
-        .eq('work_date', today)
+        .eq('report_date', today)
 
       // 승인 대기 건수
       const { count: pendingApprovals } = await supabase
@@ -188,7 +190,9 @@ export default function HomeTab({ profile }: HomeTabProps) {
           </h3>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {(profile.role === 'worker' || profile.role === 'site_manager') && (
-              <button className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+              <button 
+                onClick={() => router.push('/dashboard/daily-reports/new')}
+                className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
                 작업일지 작성
               </button>
             )}

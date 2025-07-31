@@ -102,7 +102,7 @@ for (const test of criticalTests) {
     passed++
   } catch (error) {
     console.log(`❌ ${test.name}`)
-    console.log(`   ${error.message}`)
+    console.log(`   ${(error as Error).message || error}`)
     failed++
   }
 }

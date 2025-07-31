@@ -13,16 +13,16 @@ export async function signIn(email: string, password: string) {
   })
 
   if (error) {
-    // Log failed login attempt
-    try {
-      await supabase.rpc('log_auth_event', {
-        user_id: email,
-        event_type: 'login_failed',
-        details: { error: error.message }
-      })
-    } catch (logError) {
-      console.error('Failed to log auth event:', logError)
-    }
+    // TODO: Log failed login attempt when log_auth_event function is created
+    // try {
+    //   await supabase.rpc('log_auth_event', {
+    //     user_id: email,
+    //     event_type: 'login_failed',
+    //     details: { error: error.message }
+    //   })
+    // } catch (logError) {
+    //   console.error('Failed to log auth event:', logError)
+    // }
     
     return { error: error.message }
   }
@@ -46,12 +46,12 @@ export async function signIn(email: string, password: string) {
           .eq('id', data.user.id)
       }
 
-      // Log successful login
-      await supabase.rpc('log_auth_event', {
-        user_id: data.user.id,
-        event_type: 'login',
-        details: { email }
-      })
+      // TODO: Log successful login when log_auth_event function is created
+      // await supabase.rpc('log_auth_event', {
+      //   user_id: data.user.id,
+      //   event_type: 'login',
+      //   details: { email }
+      // })
     } catch (updateError) {
       console.error('Failed to update login stats:', updateError)
     }
@@ -162,15 +162,15 @@ export async function signOut() {
   const { data: { user } } = await supabase.auth.getUser()
   
   if (user) {
-    // Log logout event
-    try {
-      await supabase.rpc('log_auth_event', {
-        user_id: user.id,
-        event_type: 'logout'
-      })
-    } catch (logError) {
-      console.error('Failed to log logout event:', logError)
-    }
+    // TODO: Log logout event when log_auth_event function is created
+    // try {
+    //   await supabase.rpc('log_auth_event', {
+    //     user_id: user.id,
+    //     event_type: 'logout'
+    //   })
+    // } catch (logError) {
+    //   console.error('Failed to log logout event:', logError)
+    // }
   }
   
   const { error } = await supabase.auth.signOut()

@@ -15,7 +15,8 @@ import {
   Edit2,
   ArrowUpRight,
   ArrowDownRight,
-  BarChart3
+  BarChart3,
+  Plus
 } from 'lucide-react'
 import {
   Dialog,
@@ -104,7 +105,7 @@ export function MaterialInventory({ materials, searchQuery }: MaterialInventoryP
   const getStockBadge = (status: string) => {
     switch (status) {
       case 'out':
-        return <Badge variant="destructive">재고 없음</Badge>
+        return <Badge variant="error">재고 없음</Badge>
       case 'low':
         return <Badge variant="warning">재고 부족</Badge>
       case 'high':

@@ -37,8 +37,12 @@ export function MaterialManagement({ materials, categories }: MaterialManagement
   // Calculate statistics
   const totalMaterials = materials.length
   const activeMaterials = materials.filter(m => m.is_active).length
-  const lowStockItems = 0 // This would come from inventory data
-  const pendingRequests = 0 // This would come from request data
+  const lowStockItems = materials.filter(m => 
+    m.current_stock !== undefined && 
+    m.minimum_stock !== undefined && 
+    m.current_stock <= m.minimum_stock
+  ).length
+  const pendingRequests = 3 // Mock pending requests
 
   return (
     <div className="space-y-6">

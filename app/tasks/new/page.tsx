@@ -18,12 +18,14 @@ export default async function NewTaskPage() {
     .eq('id', user.id)
     .single()
 
-  // Get all projects for selection
-  const { data: projects } = await supabase
-    .from('projects')
-    .select('id, name')
-    .eq('status', 'active')
-    .order('name')
+  // TODO: Get all projects for selection when projects table is created
+  // const { data: projects } = await supabase
+  //   .from('projects')
+  //   .select('id, name')
+  //   .eq('status', 'active')
+  //   .order('name')
+
+  const projects: any[] = []
 
   // Get all users for assignment
   const { data: users } = await supabase

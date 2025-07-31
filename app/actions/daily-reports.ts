@@ -245,17 +245,6 @@ export async function getDailyReportById(id: string) {
       .select(`
         *,
         site:sites(*),
-        work_logs(
-          *,
-          work_log_materials(
-            *,
-            material:materials(*)
-          )
-        ),
-        attendance_records(
-          *,
-          worker:profiles(*)
-        ),
         created_by_profile:profiles!daily_reports_created_by_fkey(*),
         approved_by_profile:profiles!daily_reports_approved_by_fkey(*)
       `)
@@ -277,190 +266,192 @@ export async function getDailyReportById(id: string) {
 // ==========================================
 // WORK LOG ACTIONS
 // ==========================================
+// TODO: Implement when work_logs table is created
 
-export async function addWorkLog(
-  daily_report_id: string,
-  data: {
-    work_type: string
-    location: string
-    description: string
-    worker_count: number
-    notes?: string
-  }
-) {
-  try {
-    const supabase = createClient()
+// export async function addWorkLog(
+//   daily_report_id: string,
+//   data: {
+//     work_type: string
+//     location: string
+//     description: string
+//     worker_count: number
+//     notes?: string
+//   }
+// ) {
+//   try {
+//     const supabase = createClient()
     
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
-    if (userError || !user) {
-      return { success: false, error: 'User not authenticated' }
-    }
+//     const { data: { user }, error: userError } = await supabase.auth.getUser()
+//     if (userError || !user) {
+//       return { success: false, error: 'User not authenticated' }
+//     }
 
-    const { data: workLog, error } = await supabase
-      .from('work_logs')
-      .insert({
-        daily_report_id,
-        ...data,
-        created_by: user.id
-      })
-      .select()
-      .single()
+//     const { data: workLog, error } = await supabase
+//       .from('work_logs')
+//       .insert({
+//         daily_report_id,
+//         ...data,
+//         created_by: user.id
+//       })
+//       .select()
+//       .single()
 
-    if (error) {
-      console.error('Error adding work log:', error)
-      return { success: false, error: error.message }
-    }
+//     if (error) {
+//       console.error('Error adding work log:', error)
+//       return { success: false, error: error.message }
+//     }
 
-    revalidatePath(`/dashboard/daily-reports/${daily_report_id}`)
-    return { success: true, data: workLog }
-  } catch (error) {
-    console.error('Error in addWorkLog:', error)
-    return { success: false, error: 'Failed to add work log' }
-  }
-}
+//     revalidatePath(`/dashboard/daily-reports/${daily_report_id}`)
+//     return { success: true, data: workLog }
+//   } catch (error) {
+//     console.error('Error in addWorkLog:', error)
+//     return { success: false, error: 'Failed to add work log' }
+//   }
+// }
 
-export async function updateWorkLog(
-  id: string,
-  data: Partial<WorkLog>
-) {
-  try {
-    const supabase = createClient()
+// export async function updateWorkLog(
+//   id: string,
+//   data: Partial<WorkLog>
+// ) {
+//   try {
+//     const supabase = createClient()
     
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
-    if (userError || !user) {
-      return { success: false, error: 'User not authenticated' }
-    }
+//     const { data: { user }, error: userError } = await supabase.auth.getUser()
+//     if (userError || !user) {
+//       return { success: false, error: 'User not authenticated' }
+//     }
 
-    const { data: workLog, error } = await supabase
-      .from('work_logs')
-      .update({
-        ...data,
-        updated_by: user.id,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', id)
-      .select()
-      .single()
+//     const { data: workLog, error } = await supabase
+//       .from('work_logs')
+//       .update({
+//         ...data,
+//         updated_by: user.id,
+//         updated_at: new Date().toISOString()
+//       })
+//       .eq('id', id)
+//       .select()
+//       .single()
 
-    if (error) {
-      console.error('Error updating work log:', error)
-      return { success: false, error: error.message }
-    }
+//     if (error) {
+//       console.error('Error updating work log:', error)
+//       return { success: false, error: error.message }
+//     }
 
-    return { success: true, data: workLog }
-  } catch (error) {
-    console.error('Error in updateWorkLog:', error)
-    return { success: false, error: 'Failed to update work log' }
-  }
-}
+//     return { success: true, data: workLog }
+//   } catch (error) {
+//     console.error('Error in updateWorkLog:', error)
+//     return { success: false, error: 'Failed to update work log' }
+//   }
+// }
 
-export async function deleteWorkLog(id: string) {
-  try {
-    const supabase = createClient()
+// export async function deleteWorkLog(id: string) {
+//   try {
+//     const supabase = createClient()
     
-    const { error } = await supabase
-      .from('work_logs')
-      .delete()
-      .eq('id', id)
+//     const { error } = await supabase
+//       .from('work_logs')
+//       .delete()
+//       .eq('id', id)
 
-    if (error) {
-      console.error('Error deleting work log:', error)
-      return { success: false, error: error.message }
-    }
+//     if (error) {
+//       console.error('Error deleting work log:', error)
+//       return { success: false, error: error.message }
+//     }
 
-    return { success: true }
-  } catch (error) {
-    console.error('Error in deleteWorkLog:', error)
-    return { success: false, error: 'Failed to delete work log' }
-  }
-}
+//     return { success: true }
+//   } catch (error) {
+//     console.error('Error in deleteWorkLog:', error)
+//     return { success: false, error: 'Failed to delete work log' }
+//   }
+// }
 
 // ==========================================
 // WORK LOG MATERIALS ACTIONS
 // ==========================================
+// TODO: Implement when work_log_materials table is created
 
-export async function addWorkLogMaterials(
-  work_log_id: string,
-  materials: Array<{
-    material_id: string
-    quantity: number
-    notes?: string
-  }>
-) {
-  try {
-    const supabase = createClient()
+// export async function addWorkLogMaterials(
+//   work_log_id: string,
+//   materials: Array<{
+//     material_id: string
+//     quantity: number
+//     notes?: string
+//   }>
+// ) {
+//   try {
+//     const supabase = createClient()
     
-    const { data, error } = await supabase
-      .from('work_log_materials')
-      .insert(
-        materials.map(m => ({
-          work_log_id,
-          ...m
-        }))
-      )
-      .select()
+//     const { data, error } = await supabase
+//       .from('work_log_materials')
+//       .insert(
+//         materials.map(m => ({
+//           work_log_id,
+//           ...m
+//         }))
+//       )
+//       .select()
 
-    if (error) {
-      console.error('Error adding work log materials:', error)
-      return { success: false, error: error.message }
-    }
+//     if (error) {
+//       console.error('Error adding work log materials:', error)
+//       return { success: false, error: error.message }
+//     }
 
-    return { success: true, data }
-  } catch (error) {
-    console.error('Error in addWorkLogMaterials:', error)
-    return { success: false, error: 'Failed to add work log materials' }
-  }
-}
+//     return { success: true, data }
+//   } catch (error) {
+//     console.error('Error in addWorkLogMaterials:', error)
+//     return { success: false, error: 'Failed to add work log materials' }
+//   }
+// }
 
-export async function updateWorkLogMaterial(
-  id: string,
-  data: {
-    quantity?: number
-    notes?: string
-  }
-) {
-  try {
-    const supabase = createClient()
+// export async function updateWorkLogMaterial(
+//   id: string,
+//   data: {
+//     quantity?: number
+//     notes?: string
+//   }
+// ) {
+//   try {
+//     const supabase = createClient()
     
-    const { data: material, error } = await supabase
-      .from('work_log_materials')
-      .update({
-        ...data,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', id)
-      .select()
-      .single()
+//     const { data: material, error } = await supabase
+//       .from('work_log_materials')
+//       .update({
+//         ...data,
+//         updated_at: new Date().toISOString()
+//       })
+//       .eq('id', id)
+//       .select()
+//       .single()
 
-    if (error) {
-      console.error('Error updating work log material:', error)
-      return { success: false, error: error.message }
-    }
+//     if (error) {
+//       console.error('Error updating work log material:', error)
+//       return { success: false, error: error.message }
+//     }
 
-    return { success: true, data: material }
-  } catch (error) {
-    console.error('Error in updateWorkLogMaterial:', error)
-    return { success: false, error: 'Failed to update work log material' }
-  }
-}
+//     return { success: true, data: material }
+//   } catch (error) {
+//     console.error('Error in updateWorkLogMaterial:', error)
+//     return { success: false, error: 'Failed to update work log material' }
+//   }
+// }
 
-export async function deleteWorkLogMaterial(id: string) {
-  try {
-    const supabase = createClient()
+// export async function deleteWorkLogMaterial(id: string) {
+//   try {
+//     const supabase = createClient()
     
-    const { error } = await supabase
-      .from('work_log_materials')
-      .delete()
-      .eq('id', id)
+//     const { error } = await supabase
+//       .from('work_log_materials')
+//       .delete()
+//       .eq('id', id)
 
-    if (error) {
-      console.error('Error deleting work log material:', error)
-      return { success: false, error: error.message }
-    }
+//     if (error) {
+//       console.error('Error deleting work log material:', error)
+//       return { success: false, error: error.message }
+//     }
 
-    return { success: true }
-  } catch (error) {
-    console.error('Error in deleteWorkLogMaterial:', error)
-    return { success: false, error: 'Failed to delete work log material' }
-  }
-}
+//     return { success: true }
+//   } catch (error) {
+//     console.error('Error in deleteWorkLogMaterial:', error)
+//     return { success: false, error: 'Failed to delete work log material' }
+//   }
+// }

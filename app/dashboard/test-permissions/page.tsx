@@ -40,7 +40,7 @@ export default async function TestPermissionsPage() {
     daily_reports: {
       canView: await testQuery(supabase, 'daily_reports', 'select'),
       canCreate: await testQuery(supabase, 'daily_reports', 'insert', { 
-        site_id: profile.site_id || '11111111-1111-1111-1111-111111111111',
+        site_id: '11111111-1111-1111-1111-111111111111',
         work_date: new Date(),
         weather_morning: 'sunny',
         reported_by: user.id
@@ -60,20 +60,20 @@ export default async function TestPermissionsPage() {
         <h2 className="text-lg font-medium mb-4">현재 사용자 정보</h2>
         <dl className="grid grid-cols-2 gap-4">
           <div>
-            <dt className="text-sm font-medium text-gray-500">이메일</dt>
+            <dt className="text-sm font-medium text-gray-700">이메일</dt>
             <dd className="text-sm text-gray-900">{user.email}</dd>
           </div>
           <div>
-            <dt className="text-sm font-medium text-gray-500">역할</dt>
+            <dt className="text-sm font-medium text-gray-700">역할</dt>
             <dd className="text-sm text-gray-900">{profile.role}</dd>
           </div>
           <div>
-            <dt className="text-sm font-medium text-gray-500">조직</dt>
-            <dd className="text-sm text-gray-900">{profile.organization_id || 'N/A'}</dd>
+            <dt className="text-sm font-medium text-gray-700">조직</dt>
+            <dd className="text-sm text-gray-900">N/A</dd>
           </div>
           <div>
-            <dt className="text-sm font-medium text-gray-500">현장</dt>
-            <dd className="text-sm text-gray-900">{profile.site_id || 'N/A'}</dd>
+            <dt className="text-sm font-medium text-gray-700">현장</dt>
+            <dd className="text-sm text-gray-900">N/A</dd>
           </div>
         </dl>
       </div>
@@ -85,7 +85,7 @@ export default async function TestPermissionsPage() {
             <div className="space-y-2">
               {Object.entries(permissions).map(([action, allowed]) => (
                 <div key={action} className="flex items-center justify-between">
-                  <span className="text-sm text-gray-700">{action}</span>
+                  <span className="text-sm text-gray-800">{action}</span>
                   <span className={`text-sm font-medium ${allowed ? 'text-green-600' : 'text-red-600'}`}>
                     {allowed ? '✅ 허용' : '❌ 거부'}
                   </span>
@@ -96,7 +96,7 @@ export default async function TestPermissionsPage() {
         ))}
       </div>
 
-      <div className="mt-6 text-sm text-gray-500">
+      <div className="mt-6 text-sm text-gray-700">
         <p>* 이 페이지는 테스트 목적으로만 사용됩니다.</p>
         <p>* 실제 데이터는 변경되지 않습니다.</p>
       </div>

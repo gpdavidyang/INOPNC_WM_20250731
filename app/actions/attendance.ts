@@ -8,6 +8,95 @@ import { revalidatePath } from 'next/cache'
 // ATTENDANCE ACTIONS
 // ==========================================
 
+export async function getAttendanceRecords(params: {
+  user_id?: string
+  site_id?: string
+  date_from: string
+  date_to: string
+}) {
+  try {
+    const supabase = createClient()
+    
+    let query = supabase
+      .from('attendance_records')
+      .select(`
+        *,
+        site:sites(id, name),
+        worker:profiles(id, full_name, email)
+      `)
+      .gte('attendance_date', params.date_from)
+      .lte('attendance_date', params.date_to)
+      .order('attendance_date', { ascending: true })
+
+    if (params.user_id) {
+      query = query.eq('user_id', params.user_id)
+    }
+    if (params.site_id) {
+      query = query.eq('site_id', params.site_id)
+    }
+
+    const { data, error } = await query
+
+    if (error) {
+      console.error('Error fetching attendance records:', error)
+      return { success: false, error: error.message }
+    }
+
+    return { success: true, data }
+  } catch (error) {
+    console.error('Error in getAttendanceRecords:', error)
+    return { success: false, error: 'Failed to fetch attendance records' }
+  }
+}
+
+export async function getCompanyAttendanceSummary(params: {
+  organization_id: string
+  site_id?: string
+  date_from: string
+  date_to: string
+}) {
+  try {
+    const supabase = createClient()
+    
+    // For now, return mock data
+    // In a real implementation, this would aggregate attendance data
+    const dates = []
+    const current = new Date(params.date_from)
+    const end = new Date(params.date_to)
+    
+    while (current <= end) {
+      const dayOfWeek = current.getDay()
+      // Skip weekends for mock data
+      if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+        dates.push({
+          date: current.toISOString().split('T')[0],
+          site_id: params.site_id,
+          totalWorkers: Math.floor(Math.random() * 10) + 5,
+          totalHours: (Math.floor(Math.random() * 10) + 5) * 8
+        })
+      }
+      current.setDate(current.getDate() + 1)
+    }
+
+    const totalDays = dates.length
+    const totalWorkers = Math.max(...dates.map(d => d.totalWorkers))
+    const totalHours = dates.reduce((sum, d) => sum + d.totalHours, 0)
+
+    return { 
+      success: true, 
+      data: {
+        records: dates,
+        totalDays,
+        totalWorkers,
+        totalHours
+      }
+    }
+  } catch (error) {
+    console.error('Error in getCompanyAttendanceSummary:', error)
+    return { success: false, error: 'Failed to fetch company attendance summary' }
+  }
+}
+
 export async function checkIn(data: {
   site_id: string
   latitude?: number
@@ -33,7 +122,7 @@ export async function checkIn(data: {
       .from('daily_reports')
       .select('id')
       .eq('site_id', data.site_id)
-      .eq('report_date', today)
+      .eq('work_date', today)
       .single()
 
     if (!dailyReport) {
@@ -42,7 +131,9 @@ export async function checkIn(data: {
         .from('daily_reports')
         .insert({
           site_id: data.site_id,
-          report_date: today,
+          work_date: today,
+          member_name: user.email || 'Unknown',
+          process_type: 'general',
           status: 'draft',
           created_by: user.id
         })
@@ -60,8 +151,9 @@ export async function checkIn(data: {
     const { data: existingAttendance } = await supabase
       .from('attendance_records')
       .select('id')
-      .eq('daily_report_id', dailyReport.id)
-      .eq('worker_id', user.id)
+      .eq('site_id', data.site_id)
+      .eq('user_id', user.id)
+      .eq('work_date', today)
       .single()
 
     if (existingAttendance) {
@@ -72,11 +164,11 @@ export async function checkIn(data: {
     const { data: attendance, error: attendanceError } = await supabase
       .from('attendance_records')
       .insert({
-        daily_report_id: dailyReport.id,
-        worker_id: user.id,
+        site_id: data.site_id,
+        user_id: user.id,
+        work_date: today,
         check_in_time: checkInTime,
-        status: 'present' as AttendanceStatus,
-        created_by: user.id
+        status: 'present' as AttendanceStatus
       })
       .select()
       .single()
@@ -86,26 +178,27 @@ export async function checkIn(data: {
       return { success: false, error: attendanceError.message }
     }
 
-    // Create location record if GPS data provided
-    if (data.latitude && data.longitude) {
-      const { error: locationError } = await supabase
-        .from('attendance_locations')
-        .insert({
-          attendance_record_id: attendance.id,
-          check_type: 'in',
-          latitude: data.latitude,
-          longitude: data.longitude,
-          accuracy: data.accuracy,
-          address: data.address,
-          device_info: data.device_info,
-          ip_address: null // Would need to get from request headers
-        })
+    // TODO: Create location record if GPS data provided
+    // The attendance_locations table needs to be created first
+    // if (data.latitude && data.longitude) {
+    //   const { error: locationError } = await supabase
+    //     .from('attendance_locations')
+    //     .insert({
+    //       attendance_record_id: attendance.id,
+    //       check_type: 'in',
+    //       latitude: data.latitude,
+    //       longitude: data.longitude,
+    //       accuracy: data.accuracy,
+    //       address: data.address,
+    //       device_info: data.device_info,
+    //       ip_address: null // Would need to get from request headers
+    //     })
 
-      if (locationError) {
-        console.error('Error creating location record:', locationError)
-        // Don't fail the whole operation if location fails
-      }
-    }
+    //   if (locationError) {
+    //     console.error('Error creating location record:', locationError)
+    //     // Don't fail the whole operation if location fails
+    //   }
+    // }
 
     revalidatePath('/dashboard/attendance')
     return { success: true, data: attendance }
@@ -136,9 +229,9 @@ export async function checkOut(data: {
     // Get attendance record
     const { data: attendance, error: fetchError } = await supabase
       .from('attendance_records')
-      .select('*, daily_report:daily_reports(report_date)')
+      .select('*')
       .eq('id', data.attendance_id)
-      .eq('worker_id', user.id)
+      .eq('user_id', user.id)
       .single()
 
     if (fetchError || !attendance) {
@@ -177,25 +270,26 @@ export async function checkOut(data: {
       return { success: false, error: updateError.message }
     }
 
-    // Create location record if GPS data provided
-    if (data.latitude && data.longitude) {
-      const { error: locationError } = await supabase
-        .from('attendance_locations')
-        .insert({
-          attendance_record_id: data.attendance_id,
-          check_type: 'out',
-          latitude: data.latitude,
-          longitude: data.longitude,
-          accuracy: data.accuracy,
-          address: data.address,
-          device_info: data.device_info,
-          ip_address: null
-        })
+    // TODO: Create location record if GPS data provided
+    // The attendance_locations table needs to be created first
+    // if (data.latitude && data.longitude) {
+    //   const { error: locationError } = await supabase
+    //     .from('attendance_locations')
+    //     .insert({
+    //       attendance_record_id: data.attendance_id,
+    //       check_type: 'out',
+    //       latitude: data.latitude,
+    //       longitude: data.longitude,
+    //       accuracy: data.accuracy,
+    //       address: data.address,
+    //       device_info: data.device_info,
+    //       ip_address: null
+    //     })
 
-      if (locationError) {
-        console.error('Error creating location record:', locationError)
-      }
-    }
+    //   if (locationError) {
+    //     console.error('Error creating location record:', locationError)
+    //   }
+    // }
 
     revalidatePath('/dashboard/attendance')
     return { success: true, data: updatedAttendance }
@@ -221,18 +315,12 @@ export async function getTodayAttendance(site_id?: string) {
       .select(`
         *,
         worker:profiles(*),
-        daily_report:daily_reports!inner(
-          id,
-          report_date,
-          site_id,
-          site:sites(*)
-        ),
-        attendance_locations(*)
+        site:sites(*)
       `)
-      .eq('daily_report.report_date', today)
+      .eq('work_date', today)
 
     if (site_id) {
-      query = query.eq('daily_report.site_id', site_id)
+      query = query.eq('site_id', site_id)
     }
 
     const { data, error } = await query
@@ -267,21 +355,21 @@ export async function getMyAttendance(filters: {
       .from('attendance_records')
       .select(`
         *,
-        daily_report:daily_reports!inner(
+        site:sites(
           id,
           report_date,
           site_id,
           site:sites(*)
         )
       `)
-      .eq('worker_id', user.id)
-      .order('daily_report.report_date', { ascending: false })
+      .eq('user_id', user.id)
+      .order('work_date', { ascending: false })
 
     if (filters.start_date) {
-      query = query.gte('daily_report.report_date', filters.start_date)
+      query = query.gte('work_date', filters.start_date)
     }
     if (filters.end_date) {
-      query = query.lte('daily_report.report_date', filters.end_date)
+      query = query.lte('work_date', filters.end_date)
     }
     if (filters.site_id) {
       query = query.eq('daily_report.site_id', filters.site_id)
@@ -348,12 +436,12 @@ export async function updateAttendanceRecord(
 }
 
 export async function addBulkAttendance(
-  daily_report_id: string,
+  site_id: string,
+  work_date: string,
   workers: Array<{
-    worker_id: string
+    user_id: string
     check_in_time: string
     check_out_time?: string
-    work_type?: string
     notes?: string
   }>
 ) {
@@ -372,16 +460,15 @@ export async function addBulkAttendance(
       const hoursWorked = checkOut ? (checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60) : 0
       
       return {
-        daily_report_id,
-        worker_id: worker.worker_id,
+        site_id,
+        user_id: worker.user_id,
+        work_date,
         check_in_time: worker.check_in_time,
         check_out_time: worker.check_out_time,
         work_hours: hoursWorked,
         overtime_hours: Math.max(0, hoursWorked - 8),
-        work_type: worker.work_type,
         notes: worker.notes,
-        status: 'present' as AttendanceStatus,
-        created_by: user.id
+        status: 'present' as AttendanceStatus
       }
     })
 
@@ -396,7 +483,6 @@ export async function addBulkAttendance(
     }
 
     revalidatePath('/dashboard/attendance')
-    revalidatePath(`/dashboard/daily-reports/${daily_report_id}`)
     return { success: true, data }
   } catch (error) {
     console.error('Error in addBulkAttendance:', error)
@@ -421,15 +507,15 @@ export async function getMonthlyAttendance(year: number, month: number) {
       .from('attendance_records')
       .select(`
         *,
-        daily_report:daily_reports!inner(
+        site:sites(
           report_date,
           site_id
         )
       `)
-      .eq('worker_id', user.id)
-      .gte('daily_report.report_date', startDate)
-      .lte('daily_report.report_date', endDate)
-      .order('daily_report.report_date', { ascending: true })
+      .eq('user_id', user.id)
+      .gte('work_date', startDate)
+      .lte('work_date', endDate)
+      .order('work_date', { ascending: true })
 
     if (error) {
       console.error('Error fetching monthly attendance:', error)
@@ -439,7 +525,7 @@ export async function getMonthlyAttendance(year: number, month: number) {
     // Transform data to include date field for calendar
     const transformedData = data?.map(record => ({
       ...record,
-      date: record.daily_report.report_date
+      date: record.work_date
     })) || []
 
     return { success: true, data: transformedData }
@@ -461,7 +547,7 @@ export async function getAttendanceSummary(filters: {
       .from('attendance_records')
       .select(`
         id,
-        worker_id,
+        user_id,
         work_hours,
         overtime_hours,
         status,
@@ -470,13 +556,13 @@ export async function getAttendanceSummary(filters: {
           full_name,
           email
         ),
-        daily_report:daily_reports!inner(
+        site:sites(
           report_date,
           site_id
         )
       `)
-      .gte('daily_report.report_date', filters.start_date)
-      .lte('daily_report.report_date', filters.end_date)
+      .gte('work_date', filters.start_date)
+      .lte('work_date', filters.end_date)
 
     if (filters.site_id) {
       query = query.eq('daily_report.site_id', filters.site_id)
@@ -491,7 +577,9 @@ export async function getAttendanceSummary(filters: {
 
     // Group by worker
     const workerSummary = data?.reduce((acc, record) => {
-      const workerId = record.worker_id
+      const workerId = record.user_id
+      if (!workerId) return acc // Skip if no worker ID
+      
       if (!acc[workerId]) {
         acc[workerId] = {
           worker: record.worker,

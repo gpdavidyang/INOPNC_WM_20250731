@@ -128,9 +128,9 @@ export function MaterialTransactions({ materials }: MaterialTransactionsProps) {
       case 'in':
         return <Badge variant="success">입고</Badge>
       case 'out':
-        return <Badge variant="destructive">출고</Badge>
+        return <Badge variant="error">출고</Badge>
       case 'return':
-        return <Badge variant="info">반품</Badge>
+        return <Badge variant="secondary">반품</Badge>
       case 'waste':
         return <Badge variant="warning">폐기</Badge>
       case 'adjustment':

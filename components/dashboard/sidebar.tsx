@@ -193,7 +193,7 @@ function SidebarContent({
 
         {/* Main menu */}
         <nav className="space-y-1">
-          {filteredMenuItems.map((item) => {
+          {filteredMenuItems.map((item: any) => {
             const Icon = item.icon
             return (
               <button
@@ -220,7 +220,7 @@ function SidebarContent({
               관리자 메뉴
             </p>
             <nav className="space-y-1">
-              {filteredAdminMenuItems.map((item) => {
+              {filteredAdminMenuItems.map((item: any) => {
                 const Icon = item.icon
                 return (
                   <button

@@ -18,23 +18,26 @@ export default async function TasksPage() {
     .eq('id', user.id)
     .single()
 
-  // Get all tasks with related data
-  const { data: tasks } = await supabase
-    .from('tasks')
-    .select(`
-      *,
-      project:projects(id, name),
-      assigned_user:profiles!tasks_assigned_to_fkey(id, full_name, email),
-      created_user:profiles!tasks_created_by_fkey(id, full_name, email)
-    `)
-    .order('created_at', { ascending: false })
+  // TODO: Get all tasks with related data when tasks table is created
+  // const { data: tasks } = await supabase
+  //   .from('tasks')
+  //   .select(`
+  //     *,
+  //     project:projects(id, name),
+  //     assigned_user:profiles!tasks_assigned_to_fkey(id, full_name, email),
+  //     created_user:profiles!tasks_created_by_fkey(id, full_name, email)
+  //   `)
+  //   .order('created_at', { ascending: false })
 
-  // Get all projects for filter
-  const { data: projects } = await supabase
-    .from('projects')
-    .select('id, name')
-    .eq('status', 'active')
-    .order('name')
+  // TODO: Get all projects for filter when projects table is created
+  // const { data: projects } = await supabase
+  //   .from('projects')
+  //   .select('id, name')
+  //   .eq('status', 'active')
+  //   .order('name')
+
+  const tasks: any[] = []
+  const projects: any[] = []
 
   // Get all users for assignment
   const { data: users } = await supabase

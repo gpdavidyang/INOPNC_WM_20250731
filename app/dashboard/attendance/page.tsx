@@ -1,10 +1,10 @@
+import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import AttendanceCheck from '@/components/attendance/attendance-check'
-import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Calendar } from 'lucide-react'
-import Link from 'next/link'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { AttendanceCalendar } from '@/components/attendance/attendance-calendar'
+import { SalaryInfo } from '@/components/attendance/salary-info'
+import { LoadingSpinner } from '@/components/ui/loading-spinner'
 
 export default async function AttendancePage() {
   const supabase = createClient()
@@ -15,10 +15,14 @@ export default async function AttendancePage() {
     redirect('/auth/login')
   }
 
-  // Get user profile
+  // Get user profile with organization and site info
   const { data: profile } = await supabase
     .from('profiles')
-    .select('*, site:sites(*)')
+    .select(`
+      *,
+      organization:organizations(*),
+      site:sites(*)
+    `)
     .eq('id', user.id)
     .single()
 
@@ -26,41 +30,46 @@ export default async function AttendancePage() {
     redirect('/auth/login')
   }
 
-  // Check if user has a site assigned
-  if (!profile.site_id || !profile.site) {
-    return (
-      <div className="max-w-2xl mx-auto">
-        <Card className="p-12 text-center">
-          <h2 className="text-xl font-semibold mb-4">현장 배정 필요</h2>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
-            출퇴근 체크를 위해서는 현장에 배정되어야 합니다.
-            <br />
-            관리자에게 문의하세요.
-          </p>
-        </Card>
-      </div>
-    )
-  }
+  const isPartnerCompany = profile.role === 'customer_manager'
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold">출퇴근 관리</h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            현재 현장: {profile.site.name}
-          </p>
-        </div>
-        
-        <Link href="/dashboard/attendance/calendar">
-          <Button variant="outline">
-            <Calendar className="h-4 w-4 mr-2" />
-            월별 현황
-          </Button>
-        </Link>
+    <div className="h-full bg-white">
+      <div className="border-b border-gray-200 bg-white px-6 py-4">
+        <h1 className="text-2xl font-semibold text-gray-900">출력현황</h1>
+        <p className="mt-1 text-sm text-gray-600">
+          {isPartnerCompany 
+            ? '소속 회사 작업자들의 출력 현황을 확인합니다'
+            : '나의 출력 및 급여 정보를 확인합니다'
+          }
+        </p>
       </div>
 
-      <AttendanceCheck site={profile.site} />
+      <div className="p-6">
+        <Tabs defaultValue="attendance" className="space-y-4">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="attendance">출력 정보</TabsTrigger>
+            <TabsTrigger value="salary">급여 정보</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="attendance" className="space-y-4">
+            <Suspense fallback={<LoadingSpinner />}>
+              <AttendanceCalendar 
+                profile={profile}
+                isPartnerView={isPartnerCompany}
+              />
+            </Suspense>
+          </TabsContent>
+
+          <TabsContent value="salary" className="space-y-4">
+            <Suspense fallback={<LoadingSpinner />}>
+              <SalaryInfo 
+                profile={profile}
+                isPartnerView={isPartnerCompany}
+              />
+            </Suspense>
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   )
 }

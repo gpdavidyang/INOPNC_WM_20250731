@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { approveDailyReport } from '@/app/actions/daily-reports'
-import { getFileAttachments } from '@/app/actions/documents'
+// import { getFileAttachments } from '@/app/actions/documents' // TODO: Implement when table exists
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -44,13 +44,14 @@ export default function DailyReportDetail({ report, currentUser }: DailyReportDe
   const [attachments, setAttachments] = useState<any[]>([])
 
   // Load attachments
-  useState(() => {
-    getFileAttachments('daily_report', report.id).then(result => {
-      if (result.success && result.data) {
-        setAttachments(result.data)
-      }
-    })
-  })
+  // TODO: Implement when file attachments are available
+  // useState(() => {
+  //   getFileAttachments('daily_report', report.id).then(result => {
+  //     if (result.success && result.data) {
+  //       setAttachments(result.data)
+  //     }
+  //   })
+  // })
 
   const canApprove = 
     ['site_manager', 'admin', 'system_admin'].includes(currentUser.role) &&
@@ -168,22 +169,22 @@ export default function DailyReportDetail({ report, currentUser }: DailyReportDe
             <p className="text-sm text-gray-500">작업일자</p>
             <p className="font-medium flex items-center gap-2">
               <Calendar className="h-4 w-4" />
-              {new Date(report.report_date).toLocaleDateString('ko-KR')}
+              {new Date((report as any).report_date || report.work_date).toLocaleDateString('ko-KR')}
             </p>
           </div>
           <div>
             <p className="text-sm text-gray-500">날씨</p>
             <p className="font-medium flex items-center gap-2">
               <Cloud className="h-4 w-4" />
-              {report.weather || '-'}
+              {(report as any).weather || (report as any).weather_morning || '-'}
             </p>
           </div>
           <div>
             <p className="text-sm text-gray-500">기온</p>
             <p className="font-medium flex items-center gap-2">
               <Thermometer className="h-4 w-4" />
-              {report.temperature_high && report.temperature_low
-                ? `${report.temperature_high}°C ~ ${report.temperature_low}°C`
+              {(report as any).temperature_high && (report as any).temperature_low
+                ? `${(report as any).temperature_high}°C ~ ${(report as any).temperature_low}°C`
                 : '-'}
             </p>
           </div>
@@ -337,10 +338,10 @@ export default function DailyReportDetail({ report, currentUser }: DailyReportDe
       <Card className="p-6">
         <h2 className="text-lg font-semibold mb-4">비고 및 첨부파일</h2>
         
-        {report.notes && (
+        {(report as any).notes && (
           <div className="mb-4">
             <p className="text-sm text-gray-500 mb-2">특이사항</p>
-            <p className="whitespace-pre-wrap">{report.notes}</p>
+            <p className="whitespace-pre-wrap">{(report as any).notes}</p>
           </div>
         )}
 

@@ -1,10 +1,10 @@
+import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { getDocuments } from '@/app/actions/documents'
-import DocumentsList from '@/components/documents/documents-list'
-import { Button } from '@/components/ui/button'
-import { Plus } from 'lucide-react'
-import Link from 'next/link'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { MyDocuments } from '@/components/documents/my-documents'
+import { SharedDocuments } from '@/components/documents/shared-documents'
+import { LoadingSpinner } from '@/components/ui/loading-spinner'
 
 export default async function DocumentsPage() {
   const supabase = createClient()
@@ -18,7 +18,10 @@ export default async function DocumentsPage() {
   // Get user profile
   const { data: profile } = await supabase
     .from('profiles')
-    .select('*')
+    .select(`
+      *,
+      organization:organizations(*)
+    `)
     .eq('id', user.id)
     .single()
 
@@ -26,29 +29,35 @@ export default async function DocumentsPage() {
     redirect('/auth/login')
   }
 
-  // Get user's documents
-  const documentsResult = await getDocuments()
-  const documents = documentsResult.success ? documentsResult.data : []
-
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold">문서 관리</h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            개인 문서 및 업무 관련 파일을 관리합니다
-          </p>
-        </div>
-        
-        <Link href="/dashboard/documents/upload">
-          <Button variant="primary">
-            <Plus className="h-4 w-4 mr-2" />
-            문서 업로드
-          </Button>
-        </Link>
+    <div className="h-full bg-white">
+      <div className="border-b border-gray-200 bg-white px-6 py-4">
+        <h1 className="text-2xl font-semibold text-gray-900">문서 관리</h1>
+        <p className="mt-1 text-sm text-gray-600">
+          개인 문서 및 공유 문서를 관리합니다
+        </p>
       </div>
 
-      <DocumentsList documents={documents} />
+      <div className="p-6">
+        <Tabs defaultValue="my-documents" className="space-y-4">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="my-documents">내문서함</TabsTrigger>
+            <TabsTrigger value="shared-documents">공유문서함</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="my-documents" className="space-y-4">
+            <Suspense fallback={<LoadingSpinner />}>
+              <MyDocuments profile={profile} />
+            </Suspense>
+          </TabsContent>
+
+          <TabsContent value="shared-documents" className="space-y-4">
+            <Suspense fallback={<LoadingSpinner />}>
+              <SharedDocuments profile={profile} />
+            </Suspense>
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   )
 }

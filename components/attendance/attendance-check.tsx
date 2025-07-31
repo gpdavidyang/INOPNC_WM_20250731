@@ -54,7 +54,7 @@ export default function AttendanceCheck({ site }: AttendanceCheckProps) {
       const result = await getTodayAttendance(site.id)
       if (result.success && result.data && result.data.length > 0) {
         // Find current user's attendance
-        setTodayAttendance(result.data[0]) // This should be filtered by current user
+        setTodayAttendance(result.data[0] as any) // This should be filtered by current user
       }
     } catch (error) {
       console.error('Error fetching attendance:', error)
@@ -118,7 +118,7 @@ export default function AttendanceCheck({ site }: AttendanceCheckProps) {
       })
 
       if (result.success && result.data) {
-        setTodayAttendance(result.data)
+        setTodayAttendance(result.data as any)
       } else {
         alert(result.error || '출근 체크에 실패했습니다')
       }
@@ -145,7 +145,7 @@ export default function AttendanceCheck({ site }: AttendanceCheckProps) {
       })
 
       if (result.success && result.data) {
-        setTodayAttendance(result.data)
+        setTodayAttendance(result.data as any)
       } else {
         alert(result.error || '퇴근 체크에 실패했습니다')
       }

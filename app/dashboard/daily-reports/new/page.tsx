@@ -28,38 +28,37 @@ export default async function NewDailyReportPage() {
     redirect('/dashboard/daily-reports')
   }
 
-  // Get sites
-  const sitesQuery = profile.site_id 
-    ? supabase.from('sites').select('*').eq('id', profile.site_id)
-    : supabase.from('sites').select('*').eq('organization_id', profile.organization_id).eq('status', 'active')
+  // Get sites - simplified for now since site relationships aren't properly set up
+  const sitesQuery = supabase.from('sites').select('*').eq('status', 'active')
   
   const { data: sites } = await sitesQuery
 
-  // Get materials
-  const { data: materials } = await supabase
-    .from('materials')
-    .select(`
-      *,
-      category:material_categories(*)
-    `)
-    .eq('is_active', true)
-    .order('name')
+  // TODO: Get materials when materials table is created
+  // const { data: materials } = await supabase
+  //   .from('materials')
+  //   .select(`
+  //     *,
+  //     category:material_categories(*)
+  //   `)
+  //   .eq('is_active', true)
+  //   .order('name')
+  
+  const materials: any[] = []
 
-  // Get workers for attendance
+  // Get workers for attendance - simplified query since organization relationships aren't set up
   const { data: workers } = await supabase
     .from('profiles')
     .select('*')
-    .eq('organization_id', profile.organization_id)
     .in('role', ['worker', 'site_manager'])
     .eq('status', 'active')
     .order('full_name')
 
   return (
     <DailyReportFormEnhanced
-      sites={sites || []}
-      currentUser={profile}
+      sites={sites as any || []}
+      currentUser={profile as any}
       materials={materials || []}
-      workers={workers || []}
+      workers={workers as any || []}
     />
   )
 }

@@ -29,42 +29,44 @@ export default function TaskDetail({
   const [newComment, setNewComment] = useState('')
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
-    title: task.title,
-    description: task.description || '',
-    project_id: task.project_id || '',
-    assigned_to: task.assigned_to || '',
-    priority: task.priority,
-    status: task.status,
-    due_date: task.due_date ? new Date(task.due_date).toISOString().slice(0, 16) : '',
+    title: task?.title || '',
+    description: task?.description || '',
+    project_id: task?.project_id || '',
+    assigned_to: task?.assigned_to || '',
+    priority: task?.priority || 'medium',
+    status: task?.status || 'pending',
+    due_date: task?.due_date ? new Date(task.due_date).toISOString().slice(0, 16) : '',
   })
 
   const canEdit = currentProfile?.role === 'admin' || 
                   currentProfile?.role === 'manager' ||
-                  task.created_by === currentUser.id ||
-                  task.assigned_to === currentUser.id
+                  task?.created_by === currentUser.id ||
+                  task?.assigned_to === currentUser.id
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
 
     try {
-      const { error } = await supabase
-        .from('tasks')
-        .update({
-          ...formData,
-          project_id: formData.project_id || null,
-          assigned_to: formData.assigned_to || null,
-          due_date: formData.due_date || null,
-          completed_at: formData.status === 'completed' && task.status !== 'completed' 
-            ? new Date().toISOString() 
-            : task.completed_at,
-        })
-        .eq('id', task.id)
+      // TODO: Implement when tasks table is created
+      // const { error } = await supabase
+      //   .from('tasks')
+      //   .update({
+      //     ...formData,
+      //     project_id: formData.project_id || null,
+      //     assigned_to: formData.assigned_to || null,
+      //     due_date: formData.due_date || null,
+      //     completed_at: formData.status === 'completed' && task?.status !== 'completed' 
+      //       ? new Date().toISOString() 
+      //       : task?.completed_at,
+      //   })
+      //   .eq('id', task?.id)
 
-      if (error) throw error
+      // if (error) throw error
 
+      alert('작업 수정 기능은 아직 구현 중입니다.')
       setIsEditing(false)
-      router.refresh()
+      // router.refresh()
     } catch (error: any) {
       alert('작업 수정 중 오류가 발생했습니다: ' + error.message)
     } finally {
@@ -78,18 +80,20 @@ export default function TaskDetail({
 
     setLoading(true)
     try {
-      const { error } = await supabase
-        .from('comments')
-        .insert({
-          task_id: task.id,
-          user_id: currentUser.id,
-          content: newComment,
-        })
+      // TODO: Implement when comments table is created
+      // const { error } = await supabase
+      //   .from('comments')
+      //   .insert({
+      //     task_id: task?.id,
+      //     user_id: currentUser.id,
+      //     content: newComment,
+      //   })
 
-      if (error) throw error
+      // if (error) throw error
 
+      alert('댓글 추가 기능은 아직 구현 중입니다.')
       setNewComment('')
-      router.refresh()
+      // router.refresh()
     } catch (error: any) {
       alert('댓글 추가 중 오류가 발생했습니다: ' + error.message)
     } finally {

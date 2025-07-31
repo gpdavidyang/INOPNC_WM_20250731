@@ -30,21 +30,23 @@ export default function TaskForm({ currentUser, currentProfile, projects, users 
     setLoading(true)
 
     try {
-      const { error } = await supabase
-        .from('tasks')
-        .insert({
-          ...formData,
-          project_id: formData.project_id || null,
-          assigned_to: formData.assigned_to || null,
-          due_date: formData.due_date || null,
-          created_by: currentUser.id,
-          status: 'pending',
-        })
+      // TODO: Implement when tasks table is created
+      // const { error } = await supabase
+      //   .from('tasks')
+      //   .insert({
+      //     ...formData,
+      //     project_id: formData.project_id || null,
+      //     assigned_to: formData.assigned_to || null,
+      //     due_date: formData.due_date || null,
+      //     created_by: currentUser.id,
+      //     status: 'pending',
+      //   })
 
-      if (error) throw error
+      // if (error) throw error
 
+      alert('작업 생성 기능은 아직 구현 중입니다.')
       router.push('/tasks')
-      router.refresh()
+      // router.refresh()
     } catch (error: any) {
       alert('작업 생성 중 오류가 발생했습니다: ' + error.message)
     } finally {

@@ -68,7 +68,7 @@ export default function DailyReportList({
       })
 
       if (result.success && result.data) {
-        setReports(result.data)
+        setReports(result.data as DailyReport[])
         setTotalCount(result.count || 0)
       }
     } catch (error) {
@@ -86,9 +86,9 @@ export default function DailyReportList({
   const getStatusBadge = (status: DailyReportStatus) => {
     const statusConfig = {
       draft: { label: '작성중', variant: 'secondary' as const, icon: Clock },
-      submitted: { label: '제출됨', variant: 'primary' as const, icon: FileText },
+      submitted: { label: '제출됨', variant: 'outline' as const, icon: FileText },
       approved: { label: '승인됨', variant: 'success' as const, icon: CheckCircle },
-      rejected: { label: '반려됨', variant: 'danger' as const, icon: XCircle }
+      rejected: { label: '반려됨', variant: 'error' as const, icon: XCircle }
     }
 
     const config = statusConfig[status]
@@ -129,7 +129,7 @@ export default function DailyReportList({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
           <Select
             value={filters.site_id}
-            onChange={(value) => handleFilterChange('site_id', value)}
+            onChange={(e) => handleFilterChange('site_id', e.target.value)}
           >
             <option value="">모든 현장</option>
             {sites.map(site => (
@@ -139,7 +139,7 @@ export default function DailyReportList({
 
           <Select
             value={filters.status}
-            onChange={(value) => handleFilterChange('status', value)}
+            onChange={(e) => handleFilterChange('status', e.target.value)}
           >
             <option value="">모든 상태</option>
             <option value="draft">작성중</option>
@@ -205,11 +205,11 @@ export default function DailyReportList({
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
                     <h3 className="font-semibold">
-                      {report.site?.name || '현장 정보 없음'}
+                      {(report as any).site?.name || '현장 정보 없음'}
                     </h3>
                     <span className="text-sm text-gray-500">
                       <Calendar className="inline h-3 w-3 mr-1" />
-                      {new Date(report.report_date).toLocaleDateString('ko-KR')}
+                      {new Date((report as any).report_date || report.work_date).toLocaleDateString('ko-KR')}
                     </span>
                     {getStatusBadge(report.status || 'draft')}
                   </div>
@@ -218,36 +218,36 @@ export default function DailyReportList({
                     <div>
                       <span className="text-gray-500">작성자:</span>
                       <span className="ml-1 font-medium">
-                        {report.created_by_profile?.full_name || '-'}
+                        {(report as any).created_by_profile?.full_name || '-'}
                       </span>
                     </div>
-                    {report.weather && (
+                    {(report as any).weather && (
                       <div>
                         <span className="text-gray-500">날씨:</span>
-                        <span className="ml-1">{report.weather}</span>
+                        <span className="ml-1">{(report as any).weather}</span>
                       </div>
                     )}
-                    {(report.temperature_high || report.temperature_low) && (
+                    {((report as any).temperature_high || (report as any).temperature_low) && (
                       <div>
                         <span className="text-gray-500">기온:</span>
                         <span className="ml-1">
-                          {report.temperature_high}°C ~ {report.temperature_low}°C
+                          {(report as any).temperature_high}°C ~ {(report as any).temperature_low}°C
                         </span>
                       </div>
                     )}
-                    {report.approved_by_profile && (
+                    {(report as any).approved_by_profile && (
                       <div>
                         <span className="text-gray-500">승인자:</span>
                         <span className="ml-1 font-medium">
-                          {report.approved_by_profile.full_name}
+                          {(report as any).approved_by_profile.full_name}
                         </span>
                       </div>
                     )}
                   </div>
 
-                  {report.notes && (
+                  {(report as any).notes && (
                     <p className="mt-2 text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
-                      {report.notes}
+                      {(report as any).notes}
                     </p>
                   )}
                 </div>

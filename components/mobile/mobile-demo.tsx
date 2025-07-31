@@ -15,13 +15,10 @@ import { cn } from '@/lib/utils'
 // Sample profile data
 const sampleProfile: Profile = {
   id: '1',
-  user_id: '1',
   email: 'worker@inopnc.com',
   full_name: '김건설',
   phone: '010-1234-5678',
   role: 'worker',
-  organization_id: '1',
-  site_id: '1',
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString()
 }

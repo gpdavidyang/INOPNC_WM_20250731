@@ -26,7 +26,7 @@ export default async function SettingsPage() {
       <h1 className="text-2xl font-bold text-gray-900 mb-6">계정 설정</h1>
       
       <div className="bg-white shadow rounded-lg p-6">
-        <SettingsForm user={user} profile={profile} />
+        <SettingsForm user={user} profile={profile as any} />
       </div>
     </div>
   )

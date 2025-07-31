@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { getMonthlyAttendance } from '@/app/actions/attendance'
-import AttendanceCalendar from '@/components/attendance/attendance-calendar'
+import { AttendanceCalendar } from '@/components/attendance/attendance-calendar'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft, Download, FileText } from 'lucide-react'
@@ -27,8 +27,9 @@ export default async function AttendanceCalendarPage() {
     redirect('/auth/login')
   }
 
-  // Check if user has a site assigned
-  if (!profile.site_id || !profile.site) {
+  // Check if user has a site assigned  
+  // TODO: Fix site property access when site relationship is properly set up
+  if (!profile.site || (Array.isArray(profile.site) && profile.site.length === 0)) {
     return (
       <div className="max-w-4xl mx-auto">
         <Card className="p-12 text-center">
@@ -70,7 +71,7 @@ export default async function AttendanceCalendarPage() {
           <div>
             <h1 className="text-2xl font-bold">월별 출퇴근 현황</h1>
             <p className="text-gray-600 dark:text-gray-400">
-              {profile.site.name} - {profile.full_name}
+              {Array.isArray(profile.site) && profile.site.length > 0 ? profile.site[0].name : '현장 정보 없음'} - {profile.full_name}
             </p>
           </div>
         </div>
@@ -88,10 +89,8 @@ export default async function AttendanceCalendarPage() {
       </div>
 
       <AttendanceCalendar 
-        year={year}
-        month={month}
-        attendanceData={monthlyData}
-        userId={user.id}
+        profile={profile}
+        isPartnerView={false}
       />
     </div>
   )

@@ -15,7 +15,9 @@ import {
   Building,
   Hash,
   ChevronRight,
-  FolderOpen
+  ChevronDown,
+  FolderOpen,
+  Folder
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -32,7 +34,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { createMaterial, updateMaterial } from '@/app/actions/materials'
-import { toast } from '@/components/ui/use-toast'
+import { useToast } from '@/components/ui/use-toast'
 
 interface MaterialCatalogProps {
   materials: any[]
@@ -41,7 +43,9 @@ interface MaterialCatalogProps {
 }
 
 export function MaterialCatalog({ materials, categories, searchQuery }: MaterialCatalogProps) {
+  const { toast } = useToast()
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set())
   const [showAddDialog, setShowAddDialog] = useState(false)
   const [editingMaterial, setEditingMaterial] = useState<any>(null)
   const [formData, setFormData] = useState({
@@ -55,26 +59,51 @@ export function MaterialCatalog({ materials, categories, searchQuery }: Material
     is_active: true
   })
 
+  // Create hierarchical category structure
+  const createCategoryHierarchy = () => {
+    const hierarchy = new Map()
+    const rootCategories = categories.filter(cat => cat.level === 1)
+    
+    rootCategories.forEach(rootCat => {
+      const subCategories = categories.filter(cat => cat.parent_id === rootCat.id)
+      hierarchy.set(rootCat.id, {
+        ...rootCat,
+        children: subCategories
+      })
+    })
+    
+    return hierarchy
+  }
+
+  const categoryHierarchy = createCategoryHierarchy()
+
   // Filter materials
   const filteredMaterials = materials.filter(material => {
     const matchesSearch = !searchQuery || 
       material.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      material.material_code?.toLowerCase().includes(searchQuery.toLowerCase())
+      material.material_code?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      material.description?.toLowerCase().includes(searchQuery.toLowerCase())
     
     const matchesCategory = !selectedCategory || material.category_id === selectedCategory
     
     return matchesSearch && matchesCategory
   })
 
-  // Group materials by category
-  const materialsByCategory = filteredMaterials.reduce((acc, material) => {
-    const categoryName = material.category?.name || '미분류'
-    if (!acc[categoryName]) {
-      acc[categoryName] = []
+  // Toggle category expansion
+  const toggleCategory = (categoryId: string) => {
+    const newExpanded = new Set(expandedCategories)
+    if (newExpanded.has(categoryId)) {
+      newExpanded.delete(categoryId)
+    } else {
+      newExpanded.add(categoryId)
     }
-    acc[categoryName].push(material)
-    return acc
-  }, {} as Record<string, any[]>)
+    setExpandedCategories(newExpanded)
+  }
+
+  // Get materials for a specific category
+  const getMaterialsForCategory = (categoryId: string) => {
+    return filteredMaterials.filter(material => material.category_id === categoryId)
+  }
 
   const handleSubmit = async () => {
     try {
@@ -156,62 +185,118 @@ export function MaterialCatalog({ materials, categories, searchQuery }: Material
 
   return (
     <div className="space-y-4">
-      {/* Category Filter */}
-      <div className="flex gap-2 flex-wrap">
-        <Button
-          variant={!selectedCategory ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setSelectedCategory(null)}
-        >
-          전체
-        </Button>
-        {categories.map(category => (
-          <Button
-            key={category.id}
-            variant={selectedCategory === category.id ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setSelectedCategory(category.id)}
-          >
-            {category.name}
-          </Button>
-        ))}
-      </div>
-
-      {/* Add Material Button */}
-      <div className="flex justify-end">
-        <Button 
-          onClick={() => {
-            resetForm()
-            setEditingMaterial(null)
-            setShowAddDialog(true)
-          }}
-          className="gap-2"
-        >
-          <Plus className="h-4 w-4" />
-          자재 추가
-        </Button>
-      </div>
-
-      {/* Materials by Category */}
-      <div className="space-y-6">
-        {Object.entries(materialsByCategory).map(([categoryName, categoryMaterials]) => (
-          <div key={categoryName} className="space-y-3">
-            <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
-              <FolderOpen className="h-4 w-4" />
-              {categoryName}
-              <Badge variant="secondary" className="ml-2">
-                {categoryMaterials.length}개
-              </Badge>
+      {/* Category Filter - Hierarchical */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Category Tree */}
+        <div className="lg:col-span-1">
+          <Card className="p-4">
+            <h3 className="font-medium text-gray-900 mb-3">NPC-1000 카테고리</h3>
+            <div className="space-y-1">
+              <button
+                onClick={() => setSelectedCategory(null)}
+                className={`w-full text-left px-3 py-2 rounded text-sm transition-colors ${
+                  !selectedCategory 
+                    ? 'bg-blue-100 text-blue-700 font-medium' 
+                    : 'hover:bg-gray-100 text-gray-800'
+                }`}
+              >
+                📋 전체 자재
+              </button>
+              
+              {Array.from(categoryHierarchy.values()).map(rootCategory => (
+                <div key={rootCategory.id} className="space-y-1">
+                  <button
+                    onClick={() => toggleCategory(rootCategory.id)}
+                    className="w-full flex items-center justify-between px-3 py-2 rounded text-sm text-gray-900 hover:bg-gray-100"
+                  >
+                    <div className="flex items-center gap-2">
+                      {expandedCategories.has(rootCategory.id) ? (
+                        <ChevronDown className="h-3.5 w-3.5" />
+                      ) : (
+                        <ChevronRight className="h-3.5 w-3.5" />
+                      )}
+                      <Folder className="h-3.5 w-3.5" />
+                      <span>{rootCategory.name}</span>
+                    </div>
+                    <Badge variant="outline" className="text-xs">
+                      {rootCategory.code}
+                    </Badge>
+                  </button>
+                  
+                  {expandedCategories.has(rootCategory.id) && rootCategory.children && (
+                    <div className="ml-6 space-y-1">
+                      {rootCategory.children.map((subCategory: any) => (
+                        <button
+                          key={subCategory.id}
+                          onClick={() => setSelectedCategory(subCategory.id)}
+                          className={`w-full flex items-center justify-between px-3 py-2 rounded text-sm transition-colors ${
+                            selectedCategory === subCategory.id 
+                              ? 'bg-blue-100 text-blue-700 font-medium' 
+                              : 'hover:bg-gray-100 text-gray-800'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <FolderOpen className="h-3.5 w-3.5" />
+                            <span>{subCategory.name}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Badge variant="outline" className="text-xs">
+                              {getMaterialsForCategory(subCategory.id).length}
+                            </Badge>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
+          </Card>
+        </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {categoryMaterials.map(material => (
+        {/* Materials Content */}
+        <div className="lg:col-span-3 space-y-4">
+          {/* Add Material Button */}
+          <div className="flex justify-between items-center">
+            <div>
+              <h2 className="text-lg font-medium text-gray-900">
+                {selectedCategory 
+                  ? categories.find(c => c.id === selectedCategory)?.name || '자재 목록'
+                  : '전체 자재 목록'
+                }
+              </h2>
+              <p className="text-sm text-gray-900 mt-1">
+                총 {filteredMaterials.length}개의 자재
+              </p>
+            </div>
+            <Button 
+              onClick={() => {
+                resetForm()
+                setEditingMaterial(null)
+                setShowAddDialog(true)
+              }}
+              className="gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              자재 추가
+            </Button>
+          </div>
+
+          {/* Materials Grid */}
+          {filteredMaterials.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {filteredMaterials.map(material => (
                 <Card key={material.id} className="p-4 hover:shadow-md transition-shadow">
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex-1">
-                      <h3 className="font-medium text-gray-900">{material.name}</h3>
+                      <div className="flex items-center gap-2 mb-2">
+                        <h3 className="font-medium text-gray-900">{material.name}</h3>
+                        <Badge variant="outline" className="text-xs">
+                          {material.category?.name}
+                        </Badge>
+                      </div>
                       {material.description && (
-                        <p className="text-sm text-gray-600 mt-1">{material.description}</p>
+                        <p className="text-sm text-gray-900">{material.description}</p>
                       )}
                     </div>
                     <DropdownMenu>
@@ -230,38 +315,73 @@ export function MaterialCatalog({ materials, categories, searchQuery }: Material
                   </div>
 
                   <div className="space-y-2 text-sm">
-                    <div className="flex items-center gap-2 text-gray-600">
-                      <Hash className="h-3.5 w-3.5" />
-                      <span>코드: {material.material_code || '-'}</span>
+                    <div className="flex items-center gap-2 text-gray-900">
+                      <Hash className="h-3.5 w-3.5 text-gray-700" />
+                      <span className="font-mono text-xs">{material.material_code}</span>
                     </div>
-                    <div className="flex items-center gap-2 text-gray-600">
-                      <Package className="h-3.5 w-3.5" />
+                    <div className="flex items-center gap-2 text-gray-900">
+                      <Package className="h-3.5 w-3.5 text-gray-700" />
                       <span>단위: {material.unit}</span>
                     </div>
                     {material.unit_price && (
-                      <div className="flex items-center gap-2 text-gray-600">
-                        <DollarSign className="h-3.5 w-3.5" />
+                      <div className="flex items-center gap-2 text-gray-900">
+                        <DollarSign className="h-3.5 w-3.5 text-gray-700" />
                         <span>단가: {material.unit_price.toLocaleString()}원</span>
                       </div>
                     )}
                     {material.supplier && (
-                      <div className="flex items-center gap-2 text-gray-600">
-                        <Building className="h-3.5 w-3.5" />
+                      <div className="flex items-center gap-2 text-gray-900">
+                        <Building className="h-3.5 w-3.5 text-gray-700" />
                         <span>공급업체: {material.supplier}</span>
                       </div>
                     )}
                   </div>
 
-                  <div className="mt-3 flex items-center justify-between">
+                  <div className="mt-4 flex items-center justify-between">
                     <Badge variant={material.is_active ? 'default' : 'secondary'}>
                       {material.is_active ? '사용중' : '사용안함'}
                     </Badge>
+                    {material.current_stock !== undefined && (
+                      <div className="text-sm">
+                        <span className={`font-medium ${
+                          material.current_stock <= material.minimum_stock 
+                            ? 'text-red-600' 
+                            : material.current_stock >= material.maximum_stock
+                            ? 'text-amber-600'
+                            : 'text-green-600'
+                        }`}>
+                          재고: {material.current_stock} {material.unit}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </Card>
               ))}
             </div>
-          </div>
-        ))}
+          ) : (
+            <Card className="p-8 text-center">
+              <Package className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">자재가 없습니다</h3>
+              <p className="text-gray-900 mb-4">
+                {selectedCategory 
+                  ? '선택한 카테고리에 등록된 자재가 없습니다.' 
+                  : '등록된 자재가 없습니다.'
+                }
+              </p>
+              <Button 
+                onClick={() => {
+                  resetForm()
+                  setEditingMaterial(null)
+                  setShowAddDialog(true)
+                }}
+                className="gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                첫 번째 자재 추가
+              </Button>
+            </Card>
+          )}
+        </div>
       </div>
 
       {/* Add/Edit Material Dialog */}
@@ -287,10 +407,14 @@ export function MaterialCatalog({ materials, categories, searchQuery }: Material
                 required
               >
                 <option value="">카테고리 선택</option>
-                {categories.map(category => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
+                {Array.from(categoryHierarchy.values()).map(rootCategory => (
+                  <optgroup key={rootCategory.id} label={`${rootCategory.name} (${rootCategory.code})`}>
+                    {rootCategory.children && rootCategory.children.map((subCategory: any) => (
+                      <option key={subCategory.id} value={subCategory.id}>
+                        {subCategory.name} ({subCategory.code})
+                      </option>
+                    ))}
+                  </optgroup>
                 ))}
               </select>
             </div>

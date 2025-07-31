@@ -24,29 +24,33 @@ export default function TaskList({ currentUser, currentProfile, tasks, projects,
   })
 
   const handleStatusChange = async (taskId: string, newStatus: string) => {
-    const { error } = await supabase
-      .from('tasks')
-      .update({ 
-        status: newStatus,
-        completed_at: newStatus === 'completed' ? new Date().toISOString() : null
-      })
-      .eq('id', taskId)
+    // TODO: Implement when tasks table is created
+    // const { error } = await supabase
+    //   .from('tasks')
+    //   .update({ 
+    //     status: newStatus,
+    //     completed_at: newStatus === 'completed' ? new Date().toISOString() : null
+    //   })
+    //   .eq('id', taskId)
 
-    if (!error) {
-      router.refresh()
-    }
+    // if (!error) {
+    //   router.refresh()
+    // }
+    alert('작업 상태 변경 기능은 아직 구현 중입니다.')
   }
 
   const handleDelete = async (taskId: string) => {
     if (confirm('정말로 이 작업을 삭제하시겠습니까?')) {
-      const { error } = await supabase
-        .from('tasks')
-        .delete()
-        .eq('id', taskId)
+      // TODO: Implement when tasks table is created
+      // const { error } = await supabase
+      //   .from('tasks')
+      //   .delete()
+      //   .eq('id', taskId)
 
-      if (!error) {
-        router.refresh()
-      }
+      // if (!error) {
+      //   router.refresh()
+      // }
+      alert('작업 삭제 기능은 아직 구현 중입니다.')
     }
   }
 

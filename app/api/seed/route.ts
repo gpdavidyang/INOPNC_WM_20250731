@@ -1,7 +1,14 @@
-import { createClient } from '@/lib/supabase/server'
+// TODO: Seed route disabled due to database schema mismatches
 import { NextResponse } from 'next/server'
 
 export async function GET() {
+  return NextResponse.json({ message: 'Seed route disabled' }, { status: 200 })
+}
+
+/*
+import { createClient } from '@/lib/supabase/server'
+
+export async function GET_DISABLED() {
   try {
     const supabase = await createClient()
     // Create demo organizations
@@ -71,3 +78,4 @@ export async function GET() {
     return NextResponse.json({ error: '데모 데이터 생성 실패' }, { status: 500 })
   }
 }
+*/

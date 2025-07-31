@@ -66,14 +66,24 @@ export async function middleware(request: NextRequest) {
     // Public routes that don't require authentication
     const publicPaths = ['/auth/login', '/auth/signup']
     const isPublicPath = publicPaths.some(path => pathname.startsWith(path))
+    
+    // Demo pages that are accessible regardless of auth status
+    const demoPaths = ['/mobile-demo', '/components']
+    const isDemoPath = demoPaths.some(path => pathname.startsWith(path))
 
     // Debug logging
     console.log('Middleware:', {
       pathname,
       hasUser: !!user,
       isPublicPath,
+      isDemoPath,
       error: error?.message
     })
+    
+    // Skip auth check for demo pages
+    if (isDemoPath) {
+      return response
+    }
 
     // If user is not signed in and tries to access protected route
     if (!user && !isPublicPath) {

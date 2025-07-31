@@ -116,12 +116,12 @@ export function MaterialRequests({ materials }: MaterialRequestsProps) {
           승인됨
         </Badge>
       case 'rejected':
-        return <Badge variant="destructive" className="gap-1">
+        return <Badge variant="error" className="gap-1">
           <XCircle className="h-3 w-3" />
           반려됨
         </Badge>
       case 'ordered':
-        return <Badge variant="info" className="gap-1">
+        return <Badge variant="secondary" className="gap-1">
           <Package className="h-3 w-3" />
           발주완료
         </Badge>
@@ -138,7 +138,7 @@ export function MaterialRequests({ materials }: MaterialRequestsProps) {
   const getPriorityBadge = (priority: string) => {
     switch (priority) {
       case 'urgent':
-        return <Badge variant="destructive">긴급</Badge>
+        return <Badge variant="error">긴급</Badge>
       case 'high':
         return <Badge variant="warning">높음</Badge>
       case 'low':
@@ -514,7 +514,7 @@ export function MaterialRequests({ materials }: MaterialRequestsProps) {
                     <Button
                       type="button"
                       variant="outline"
-                      size="icon"
+                      size="sm"
                       onClick={() => removeRequestItem(index)}
                     >
                       <XCircle className="h-4 w-4" />

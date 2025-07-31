@@ -116,7 +116,7 @@ export default function DocumentsList({ documents }: DocumentsListProps) {
                         {document.title}
                       </h3>
                       <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {formatFileSize(document.file_size)}
+                        {formatFileSize(document.file_size || 0)}
                       </p>
                     </div>
                   </div>
@@ -137,7 +137,7 @@ export default function DocumentsList({ documents }: DocumentsListProps) {
                     variant="outline"
                     size="sm"
                     className="flex-1"
-                    onClick={() => window.open(document.file_path, '_blank')}
+                    onClick={() => window.open((document as any).file_path, '_blank')}
                   >
                     <Download className="h-4 w-4 mr-1" />
                     다운로드

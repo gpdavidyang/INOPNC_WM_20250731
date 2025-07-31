@@ -48,7 +48,6 @@ const Dropdown = React.forwardRef<HTMLDivElement, DropdownProps>(
     return (
       <div ref={dropdownRef} className={cn("relative", className)}>
         <Button
-          ref={ref}
           type="button"
           variant="outline"
           role="combobox"

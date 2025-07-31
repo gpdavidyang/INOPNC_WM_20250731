@@ -31,21 +31,23 @@ export default function ProjectList({ currentUser, currentProfile, projects }: P
     setLoading(true)
 
     try {
-      const { error } = await supabase
-        .from('projects')
-        .insert({
-          ...formData,
-          start_date: formData.start_date || null,
-          end_date: formData.end_date || null,
-          created_by: currentUser.id,
-          status: 'active',
-        })
+      // TODO: Implement when projects table is created
+      // const { error } = await supabase
+      //   .from('projects')
+      //   .insert({
+      //     ...formData,
+      //     start_date: formData.start_date || null,
+      //     end_date: formData.end_date || null,
+      //     created_by: currentUser.id,
+      //     status: 'active',
+      //   })
 
-      if (error) throw error
+      // if (error) throw error
 
+      alert('프로젝트 기능은 아직 구현 중입니다.')
       setShowModal(false)
       setFormData({ name: '', description: '', start_date: '', end_date: '' })
-      router.refresh()
+      // router.refresh()
     } catch (error: any) {
       alert('프로젝트 생성 중 오류가 발생했습니다: ' + error.message)
     } finally {
@@ -54,14 +56,16 @@ export default function ProjectList({ currentUser, currentProfile, projects }: P
   }
 
   const handleStatusChange = async (projectId: string, newStatus: string) => {
-    const { error } = await supabase
-      .from('projects')
-      .update({ status: newStatus })
-      .eq('id', projectId)
+    // TODO: Implement when projects table is created
+    // const { error } = await supabase
+    //   .from('projects')
+    //   .update({ status: newStatus })
+    //   .eq('id', projectId)
 
-    if (!error) {
-      router.refresh()
-    }
+    // if (!error) {
+    //   router.refresh()
+    // }
+    alert('프로젝트 상태 변경 기능은 아직 구현 중입니다.')
   }
 
   const getStatusBadge = (status: string) => {
@@ -123,11 +127,11 @@ export default function ProjectList({ currentUser, currentProfile, projects }: P
                     </span>
                   </div>
                   
-                  <p className="text-sm text-gray-500 mb-4">
+              <p className="text-sm text-gray-700 mb-4">
                     {project.description || '설명 없음'}
                   </p>
                   
-                  <div className="space-y-2 text-sm text-gray-500">
+                  <div className="space-y-2 text-sm text-gray-700">
                     <div>작업: {project.tasks?.[0]?.count || 0}개</div>
                     {project.start_date && (
                       <div>시작일: {new Date(project.start_date).toLocaleDateString()}</div>

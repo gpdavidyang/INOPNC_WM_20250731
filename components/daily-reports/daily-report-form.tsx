@@ -25,7 +25,11 @@ export default function DailyReportForm({ sites }: DailyReportFormProps) {
     work_content: '',
     weather: '',
     temperature: '',
-    special_notes: ''
+    special_notes: '',
+    member_name: '',
+    process_type: '',
+    total_workers: 0,
+    issues: ''
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -34,8 +38,14 @@ export default function DailyReportForm({ sites }: DailyReportFormProps) {
     try {
       setLoading(true)
       const report = await createDailyReport({
-        ...formData,
-        temperature: formData.temperature ? parseFloat(formData.temperature) : null
+        site_id: formData.site_id,
+        work_date: formData.work_date,
+        member_name: formData.member_name || 'Unknown',
+        process_type: formData.process_type || 'General',
+        total_workers: formData.total_workers || 1,
+        issues: formData.issues || formData.special_notes || ''
+        // TODO: Add temperature when schema supports it
+        // temperature: formData.temperature ? parseFloat(formData.temperature) : null
       })
       
       router.push(`/dashboard/daily-reports/${report.id}`)

@@ -18,15 +18,17 @@ export default async function ProjectsPage() {
     .eq('id', user.id)
     .single()
 
-  // Get all projects with task counts
-  const { data: projects } = await supabase
-    .from('projects')
-    .select(`
-      *,
-      created_user:profiles!projects_created_by_fkey(id, full_name, email),
-      tasks(count)
-    `)
-    .order('created_at', { ascending: false })
+  // TODO: Get projects when projects table is created
+  // const { data: projects } = await supabase
+  //   .from('projects')
+  //   .select(`
+  //     *,
+  //     created_user:profiles!projects_created_by_fkey(id, full_name, email),
+  //     tasks(count)
+  //   `)
+  //   .order('created_at', { ascending: false })
+  
+  const projects: any[] = []
 
   return (
     <div className="min-h-screen bg-gray-100">

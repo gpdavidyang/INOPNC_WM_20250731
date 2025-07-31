@@ -732,5 +732,326 @@
       "scrollBehavior": "fixed position on scroll",
       "keyboardHandling": "hide NavBar when keyboard shows (optional)"
     }
+  },
+  "adminFeatures": {
+    "userManagement": {
+      "accountManagement": {
+        "features": ["create", "modify", "activate", "deactivate", "passwordReset"]
+      },
+      "permissionManagement": {
+        "roleBasedAccess": true,
+        "siteBasedAccess": true,
+        "specialPermissions": true
+      },
+      "userStatistics": {
+        "activeUsers": true,
+        "loginStats": true,
+        "activityLogs": true
+      },
+      "bulkOperations": {
+        "excelUpload": true,
+        "multipleSelection": true,
+        "massNotification": true
+      }
+    },
+    "dashboardAnalytics": {
+      "realTimeKPI": {
+        "dailyReportRate": true,
+        "attendanceStats": true,
+        "systemUsage": true
+      },
+      "userActivityAnalysis": {
+        "accessFrequency": true,
+        "featureUsageStats": true,
+        "timeBasedPatterns": true
+      },
+      "siteProgressTracking": {
+        "siteWiseProgress": true,
+        "delayMonitoring": true,
+        "qualityMetrics": true
+      },
+      "systemPerformance": {
+        "responseTime": true,
+        "errorRate": true,
+        "resourceUsage": true
+      }
+    },
+    "advancedApprovalManagement": {
+      "workflowSetup": {
+        "multiStageApproval": true,
+        "conditionalRules": true,
+        "autoEscalation": true
+      },
+      "bulkProcessing": {
+        "batchApproval": true,
+        "conditionalAutoApproval": true,
+        "rejectionTemplates": true
+      },
+      "performanceAnalysis": {
+        "averageProcessingTime": true,
+        "approverPerformance": true,
+        "bottleneckIdentification": true
+      },
+      "delegationManagement": {
+        "temporaryDelegation": true,
+        "absenceAutoDelegate": true,
+        "delegationHistory": true
+      }
+    },
+    "siteManagementSystem": {
+      "siteSetup": {
+        "newSiteRegistration": true,
+        "siteInfoManagement": true,
+        "processPlanning": true
+      },
+      "staffAssignment": {
+        "workerAssignment": true,
+        "managerDesignation": true,
+        "partnerConnection": true
+      },
+      "monitoring": {
+        "realTimeWorkStatus": true,
+        "safetyIncidentMonitoring": true,
+        "materialUsageTracking": true
+      },
+      "performanceAnalysis": {
+        "siteProductivity": true,
+        "qualityMetrics": true,
+        "costAnalysis": true
+      }
+    },
+    "notificationManagement": {
+      "announcementCreation": {
+        "globalAnnouncements": true,
+        "groupSpecificNotices": true,
+        "priorityLevels": true,
+        "readConfirmationTracking": true
+      },
+      "notificationRulesEngine": {
+        "autoNotificationConditions": true,
+        "channelManagement": ["app", "sms", "email"],
+        "notificationScheduling": true
+      },
+      "emergencyCommunication": {
+        "emergencyAlerts": true,
+        "siteSpecificUrgentNotices": true,
+        "safetyAlertSystem": true
+      },
+      "effectivenessAnalysis": {
+        "deliveryRate": true,
+        "readRate": true,
+        "responseTimeTracking": true
+      }
+    },
+    "systemConfigurationManagement": {
+      "masterDataManagement": {
+        "codeManagement": true,
+        "terminologyDictionary": true,
+        "standardTemplates": true
+      },
+      "workflowConfiguration": {
+        "businessProcessDefinition": true,
+        "automationRules": true,
+        "integrationSettings": true
+      },
+      "externalIntegration": {
+        "erpSystemConnection": true,
+        "accountingSystemIntegration": true,
+        "apiManagement": true
+      },
+      "securityPolicy": {
+        "passwordPolicy": true,
+        "accessControl": true,
+        "auditLogSettings": true
+      }
+    },
+    "reportGenerationSystem": {
+      "standardReports": {
+        "dailyWeeklyMonthlyReports": true,
+        "siteComprehensiveReports": true,
+        "executiveDashboard": true
+      },
+      "customReports": {
+        "reportBuilder": true,
+        "filteringAndGrouping": true,
+        "chartCustomization": true
+      },
+      "analyticsTools": {
+        "trendAnalysis": true,
+        "predictiveModeling": true,
+        "comparativeAnalysis": true
+      },
+      "automation": {
+        "scheduledReports": true,
+        "autoEmailSending": true,
+        "conditionalAlerts": true
+      }
+    },
+    "npc1000MaterialManagement": {
+      "inventoryMonitoring": {
+        "allSiteInventoryStatus": true,
+        "realTimeUsageTracking": true,
+        "lowStockAlerts": true
+      },
+      "requestManagement": {
+        "materialRequestApproval": true,
+        "priorityAdjustment": true,
+        "deliveryTracking": true
+      },
+      "optimizationAnalysis": {
+        "usagePatternAnalysis": true,
+        "wasteIdentification": true,
+        "inventoryOptimizationRecommendations": true
+      },
+      "supplierManagement": {
+        "vendorPerformanceEvaluation": true,
+        "contractManagement": true,
+        "qualityTracking": true
+      }
+    },
+    "technicalRequirements": {
+      "performanceAndScalability": {
+        "concurrentUsers": "10000+",
+        "activeSites": "500+",
+        "dataRetention": "7+ years",
+        "dashboardLoadTime": "< 2 seconds"
+      },
+      "enhancedSecurity": {
+        "multiFactorAuthentication": true,
+        "adminAuditLogging": true,
+        "leastPrivilegePrinciple": true,
+        "regularSecurityAssessments": true
+      },
+      "integrationCapabilities": {
+        "restApiEndpoints": true,
+        "realTimeDataSync": true,
+        "webhookSupport": true,
+        "standardDataExportFormats": true
+      }
+    },
+    "successMetrics": {
+      "operationalEfficiency": {
+        "manualTaskReduction": true,
+        "approvalProcessingTimeReduction": true,
+        "dataAccuracyImprovement": true,
+        "complianceScoreImprovement": true
+      },
+      "businessImpact": {
+        "automationCostSavings": true,
+        "projectCompletionRateImprovement": true,
+        "safetyIncidentPrevention": true,
+        "customerSatisfactionIncrease": true
+      }
+    },
+    "implementationRoadmap": {
+      "phase1": {
+        "duration": "1-2 months",
+        "focus": "Core management infrastructure"
+      },
+      "phase2": {
+        "duration": "3-4 months",
+        "focus": "Advanced management tools"
+      },
+      "phase3": {
+        "duration": "5-6 months",
+        "focus": "Analytics and optimization"
+      },
+      "phase4": {
+        "duration": "7+ months",
+        "focus": "Enhancement and expansion"
+      }
+    }
+  },
+  "blueprintMarkupTool": {
+    "overview": {
+      "purpose": "Visual marking of work progress on construction blueprints",
+      "users": ["worker", "site_manager", "customer_manager", "admin"]
+    },
+    "coreMarkingTools": {
+      "boxMarkingTools": {
+        "materialArea": {
+          "color": "#9CA3AF",
+          "label": "자재구간",
+          "meaning": "자재 대기/준비 구간"
+        },
+        "workInProgress": {
+          "color": "#EF4444",
+          "label": "작업진행",
+          "meaning": "현재 진행 중인 작업"
+        },
+        "workCompleted": {
+          "color": "#3B82F6",
+          "label": "작업완료",
+          "meaning": "완료된 작업 구간"
+        }
+      },
+      "otherTools": {
+        "textTool": "도면에 텍스트 주석 추가",
+        "penTool": "자유곡선 그리기 (빨간색, 2px)",
+        "undoRedo": "최대 20단계 실행 취소",
+        "delete": "선택된 객체 삭제",
+        "zoomTool": "25% ~ 500% 범위"
+      }
+    },
+    "uiLayout": {
+      "desktop": {
+        "topToolbar": "홈, 열기, 저장, 공유, 닫기",
+        "leftToolPanel": "마킹 도구들 세로 배치",
+        "mainCanvas": "확대/축소 가능한 도면 표시",
+        "bottomStatusbar": "파일명, 마킹 개수, 줌 비율"
+      },
+      "mobile": {
+        "topHeader": "뒤로가기, 파일명, 저장",
+        "mainCanvas": "터치 확대/축소 지원",
+        "bottomToolbar": "주요 도구들 가로 배치"
+      }
+    },
+    "saveAndShare": {
+      "saveLocation": {
+        "myDocuments": "개인 작업 마킹 저장",
+        "sharedDocuments": "팀 공유용 마킹 저장 (현장관리자 이상)"
+      },
+      "fileFormat": {
+        "supportedInput": [".dwg", ".dxf", ".jpg", ".png", ".pdf"],
+        "maxSize": "50MB",
+        "saveFormat": "JSON 형태의 마킹 데이터"
+      }
+    },
+    "permissions": {
+      "blueprintView": ["worker", "site_manager", "customer_manager", "admin"],
+      "markupEdit": ["worker", "site_manager", "customer_manager", "admin"],
+      "myDocumentsSave": ["worker", "site_manager", "customer_manager", "admin"],
+      "sharedDocumentsSave": ["site_manager", "customer_manager", "admin"],
+      "otherUserMarkupEdit": ["site_manager", "admin"],
+      "markupFileDelete": "owner or site_manager or admin"
+    },
+    "dailyReportIntegration": {
+      "attachMarkup": "작업일지 작성 시 마킹 도면 첨부 가능",
+      "visualProgress": "시각적 진행률과 텍스트 보고서 연계",
+      "historyManagement": "일일 진행률 시각화 및 히스토리 관리"
+    },
+    "realtimeCollaboration": {
+      "multiUserEditing": "여러 사용자가 동시에 동일 도면 작업 가능 (Phase 4 목표)",
+      "realTimeSync": "변경 사항 실시간 동기화",
+      "conflictPrevention": "충돌 방지 및 버전 관리"
+    },
+    "developmentPriority": {
+      "phase1": {
+        "duration": "2-3주",
+        "features": ["기본 UI 레이아웃", "도면 파일 로드", "박스 마킹 도구", "텍스트 입력", "기본 편집", "저장 기능"]
+      },
+      "phase2": {
+        "duration": "2-3주",
+        "features": ["공유문서함 저장", "권한 관리", "버전 관리", "펜 그리기", "되돌리기/다시실행"]
+      },
+      "phase3": {
+        "duration": "2-3주",
+        "features": ["작업일지 연동", "모바일 최적화", "키보드 단축키", "성능 최적화"]
+      },
+      "phase4": {
+        "duration": "3-4주",
+        "features": ["실시간 협업 편집", "측정 도구", "다양한 파일 형식", "고급 마킹 도구"]
+      }
+    }
   }
 }

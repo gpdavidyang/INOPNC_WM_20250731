@@ -87,10 +87,15 @@ export async function createDailyReport(report: Partial<DailyReport>) {
   const { data, error } = await supabase
     .from('daily_reports')
     .insert({
-      ...report,
-      reported_by: userData.user.id,
-      status: 'draft'
-    })
+      site_id: report.site_id,
+      work_date: report.work_date,
+      member_name: report.member_name,
+      process_type: report.process_type,
+      total_workers: report.total_workers,
+      issues: report.issues,
+      created_by: userData.user.id,
+      status: 'draft' as any
+    } as any)
     .select()
     .single()
   

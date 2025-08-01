@@ -49,12 +49,74 @@ export interface Site {
   safety_manager_phone?: string | null
   accommodation_name?: string | null
   accommodation_address?: string | null
+  // 확장된 현장 정보
+  work_process?: string | null // 작업공정 (예: 슬라브 타설, 철근 배근 등)
+  work_section?: string | null // 작업구간 (예: 지하 1층, B동 3층 등)
+  component_name?: string | null // 부재명 (예: 기둥 C1-C5 구간)
+  manager_name?: string | null // 건축 담당자 이름
+  safety_manager_name?: string | null // 안전 담당자 이름
   status?: SiteStatus | null
   start_date: string
   end_date?: string | null
   created_at: string
   updated_at: string
   created_by?: string | null
+}
+
+// 현장 배정 역할
+export type SiteAssignmentRole = 'worker' | 'site_manager' | 'supervisor'
+
+// 현장 배정
+export interface SiteAssignment {
+  id: string
+  site_id: string
+  user_id: string
+  assigned_date: string
+  unassigned_date?: string | null
+  role?: SiteAssignmentRole | null
+  is_active: boolean
+  created_at: string
+  updated_at: string
+  // 조인된 정보
+  site?: Site
+  profile?: Profile
+}
+
+// 현재 사용자 현장 정보 (DB 함수 반환 타입)
+export interface CurrentUserSite {
+  site_id: string
+  site_name: string
+  site_address: string
+  work_process?: string | null
+  work_section?: string | null
+  component_name?: string | null
+  manager_name?: string | null
+  construction_manager_phone?: string | null
+  safety_manager_name?: string | null
+  safety_manager_phone?: string | null
+  accommodation_name?: string | null
+  accommodation_address?: string | null
+  assigned_date: string
+  user_role: SiteAssignmentRole
+  site_status: SiteStatus
+  start_date: string
+  end_date?: string | null
+}
+
+// 사용자 현장 이력 (DB 함수 반환 타입)
+export interface UserSiteHistory {
+  site_id: string
+  site_name: string
+  site_address: string
+  work_process?: string | null
+  work_section?: string | null
+  assigned_date: string
+  unassigned_date?: string | null
+  user_role: SiteAssignmentRole
+  site_status: SiteStatus
+  start_date: string
+  end_date?: string | null
+  is_active: boolean
 }
 
 // 작업일지 상태
@@ -184,3 +246,40 @@ export interface ApprovalRequest {
 
 // Export all construction-specific types
 export * from './construction'
+
+// 마킹 도면 문서
+export interface MarkupDocument {
+  id: string
+  title: string
+  description?: string
+  original_blueprint_url: string
+  original_blueprint_filename: string
+  markup_data: any[] // MarkupObject[] from markup types
+  preview_image_url?: string
+  location: 'personal' | 'shared'
+  created_by: string
+  created_at: string
+  updated_at: string
+  site_id?: string
+  is_deleted: boolean
+  file_size: number
+  markup_count: number
+}
+
+// 마킹 도면 권한
+export interface MarkupDocumentPermission {
+  id: string
+  document_id: string
+  user_id: string
+  permission_type: 'view' | 'edit' | 'admin'
+  granted_by: string
+  granted_at: string
+  expires_at?: string
+}
+
+// Export module-specific types
+export * from './attendance'
+export * from './daily-reports'
+export * from './documents'
+export * from './materials'
+export * from './site-info'

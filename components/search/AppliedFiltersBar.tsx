@@ -34,7 +34,7 @@ export function AppliedFiltersBar({
         </div>
         <Button
           variant="outline"
-          size="sm"
+          size="compact"
           onClick={onClearAll}
           className="h-7 px-2 text-xs"
         >

@@ -1,6 +1,0 @@
-export { default as MobileDemo } from './mobile-demo'
-export { default as MobileLayout } from './mobile-layout'
-export { default as MobileSidebar } from './mobile-sidebar'
-export { default as MobileBottomNav } from './mobile-bottom-nav'
-export { default as MobileHeader } from './mobile-header'
-export { default as MobileThemeToggle, MobileThemeToggleCompact } from './mobile-theme-toggle'

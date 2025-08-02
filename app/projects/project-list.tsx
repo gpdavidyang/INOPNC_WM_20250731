@@ -115,7 +115,7 @@ export default function ProjectList({ currentUser, currentProfile, projects }: P
 
           {/* Project Grid */}
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {projects.map((project) => (
+            {projects.map((project: any) => (
               <div key={project.id} className="bg-white overflow-hidden shadow rounded-lg">
                 <div className="px-4 py-5 sm:p-6">
                   <div className="flex items-center justify-between mb-4">

@@ -5,6 +5,8 @@ import { Profile, CurrentUserSite, UserSiteHistory, SiteInfo } from '@/types'
 import { createClient } from '@/lib/supabase/client'
 import { getCurrentUserSite, getUserSiteHistory } from '@/app/actions/site-info'
 import TodaySiteInfo from '@/components/site-info/TodaySiteInfo'
+import { useFontSize,  getTypographyClass, getFullTypographyClass } from '@/contexts/FontSizeContext'
+import { useTouchMode } from '@/contexts/TouchModeContext'
 import { 
   Calendar, FileText, MapPin, FolderOpen, 
   Share2, Edit3, ChevronDown, ChevronUp, Phone, Copy, Navigation,
@@ -37,6 +39,8 @@ interface QuickMenuItem {
 }
 
 export default function HomeTab({ profile }: HomeTabProps) {
+  const { isLargeFont } = useFontSize()
+  const { touchMode } = useTouchMode()
   const [siteInfoExpanded, setSiteInfoExpanded] = useState(false)
   const [announcementExpanded, setAnnouncementExpanded] = useState(false)
   const [quickMenuSettingsOpen, setQuickMenuSettingsOpen] = useState(false)
@@ -193,7 +197,7 @@ export default function HomeTab({ profile }: HomeTabProps) {
       ],
       construction_period: {
         start_date: site.start_date,
-        end_date: site.end_date
+        end_date: site.end_date || ''
       },
       is_active: site.site_status === 'active'
     }
@@ -328,12 +332,16 @@ export default function HomeTab({ profile }: HomeTabProps) {
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-700 dark:to-blue-800 rounded-xl p-4 shadow-lg">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-white font-semibold text-base">작업일지 작성</h3>
+              <h3 className={`text-white font-semibold ${getFullTypographyClass('heading', 'base', isLargeFont)}`}>작업일지 작성</h3>
               <p className="text-blue-100 text-xs mt-1">오늘의 작업 내용을 기록하세요</p>
             </div>
             <button
               onClick={() => router.push('/dashboard/daily-reports/new')}
-              className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 active:scale-95 touch-manipulation flex items-center gap-2"
+              className={`bg-white/20 hover:bg-white/30 text-white rounded-lg font-medium text-sm transition-all duration-200 active:scale-95 touch-manipulation flex items-center gap-2 ${
+                touchMode === 'glove' ? 'px-6 py-3 min-h-[56px]' : 
+                touchMode === 'precision' ? 'px-3 py-1.5 min-h-[44px]' : 
+                'px-4 py-2 min-h-[48px]'
+              }`}
             >
               <FileText className="h-4 w-4" />
               작성하기
@@ -345,7 +353,7 @@ export default function HomeTab({ profile }: HomeTabProps) {
       {/* Quick Menu Section - 2 Column Grid */}
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">빠른메뉴</h3>
+          <h3 className={`${getFullTypographyClass('heading', 'lg', isLargeFont)} text-gray-900 dark:text-gray-100`}>빠른메뉴</h3>
           <button
             onClick={() => setQuickMenuSettingsOpen(true)}
             className="flex items-center gap-1 px-2 py-1 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
@@ -361,7 +369,11 @@ export default function HomeTab({ profile }: HomeTabProps) {
             <button 
               key={item.id}
               onClick={() => router.push(item.path)}
-              className="flex flex-col items-center p-4 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-xl transition-all duration-200 active:scale-95 touch-manipulation min-h-[80px]"
+              className={`flex flex-col items-center p-4 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-xl transition-all duration-200 active:scale-95 touch-manipulation ${
+                touchMode === 'glove' ? 'min-h-[88px] p-5' : 
+                touchMode === 'precision' ? 'min-h-[72px] p-3' : 
+                'min-h-[80px] p-4'
+              }`}
             >
               <div className={`mb-2 ${item.color}`}>
                 {item.icon}
@@ -386,7 +398,7 @@ export default function HomeTab({ profile }: HomeTabProps) {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <MapPin className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">현장 참여 이력</h3>
+                <h3 className={`${getFullTypographyClass('heading', 'lg', isLargeFont)} text-gray-900 dark:text-gray-100`}>현장 참여 이력</h3>
               </div>
               <span className="text-xs text-gray-500 dark:text-gray-400">{siteHistory.length}개 현장</span>
             </div>
@@ -473,7 +485,7 @@ export default function HomeTab({ profile }: HomeTabProps) {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Megaphone className="h-4 w-4 text-orange-600 dark:text-orange-400" />
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">공지사항</h3>
+              <h3 className={`${getFullTypographyClass('heading', 'sm', isLargeFont)} text-gray-900 dark:text-gray-100`}>공지사항</h3>
               {announcements.filter(a => !a.isRead).length > 0 && (
                 <span className="px-2 py-0.5 bg-red-500 text-white text-xs rounded-full">
                   {announcements.filter(a => !a.isRead).length}
@@ -522,7 +534,7 @@ export default function HomeTab({ profile }: HomeTabProps) {
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
         <div className="px-3 py-2 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">최근 활동</h3>
+            <h3 className={`${getFullTypographyClass('heading', 'sm', isLargeFont)} text-gray-900 dark:text-gray-100`}>최근 활동</h3>
             <span className="text-xs text-gray-500 dark:text-gray-400">실시간</span>
           </div>
         </div>

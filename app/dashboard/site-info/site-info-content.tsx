@@ -8,6 +8,8 @@ import { RefreshCw, Clock, Search } from 'lucide-react'
 import SiteSearchModal from '@/components/site-info/SiteSearchModal'
 import { assignUserToSite } from '@/app/actions/site-info'
 import { createClient } from '@/lib/supabase/client'
+import { useFontSize, getTypographyClass, getFullTypographyClass } from '@/contexts/FontSizeContext'
+import { useTouchMode } from '@/contexts/TouchModeContext'
 
 interface SiteInfoContentProps {
   initialCurrentSite: CurrentUserSite | null
@@ -18,6 +20,8 @@ export default function SiteInfoContent({
   initialCurrentSite, 
   initialSiteHistory 
 }: SiteInfoContentProps) {
+  const { isLargeFont } = useFontSize()
+  const { touchMode } = useTouchMode()
   const [currentSite, setCurrentSite] = useState<CurrentUserSite | null>(initialCurrentSite)
   const [siteHistory, setSiteHistory] = useState<UserSiteHistory[]>(initialSiteHistory)
   const [loading, setLoading] = useState(false)
@@ -81,7 +85,7 @@ export default function SiteInfoContent({
       ],
       construction_period: {
         start_date: site.start_date,
-        end_date: site.end_date
+        end_date: site.end_date || ''
       },
       is_active: site.site_status === 'active'
     }
@@ -130,7 +134,7 @@ export default function SiteInfoContent({
       const result = await assignUserToSite(userId, siteId, 'worker')
       
       if (!result.success) {
-        setError(result.error)
+        setError(result.error || '현장 변경에 실패했습니다.')
         return
       }
       
@@ -147,15 +151,22 @@ export default function SiteInfoContent({
   // Convert site info for display
   const siteInfo = convertToSiteInfo(currentSite)
 
+  // Touch-responsive padding
+  const getPadding = () => {
+    if (touchMode === 'glove') return 'p-6 sm:p-8'
+    if (touchMode === 'precision') return 'p-3 sm:p-4'
+    return 'p-4 sm:p-6'
+  }
+
   return (
-    <div className="space-y-6 p-4 sm:p-6 max-w-7xl mx-auto">
+    <div className={`space-y-6 ${getPadding()} max-w-7xl mx-auto`}>
       {/* Header - Mobile Optimized */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
+          <h1 className={`${getFullTypographyClass('heading', isLargeFont ? '3xl' : '2xl', isLargeFont)} font-bold text-gray-900 dark:text-gray-100`}>
             현장정보
           </h1>
-          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+          <p className={`mt-1 ${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-600 dark:text-gray-400`}>
             현재 배정된 현장의 정보를 확인하세요
           </p>
         </div>
@@ -163,7 +174,11 @@ export default function SiteInfoContent({
         <div className="flex gap-2">
           <button
             onClick={() => setShowSearchModal(true)}
-            className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-sm"
+            className={`flex items-center gap-2 ${
+              touchMode === 'glove' ? 'px-5 py-3 min-h-[56px]' : 
+              touchMode === 'precision' ? 'px-3 py-1.5 min-h-[44px]' : 
+              'px-4 py-2 min-h-[48px]'
+            } bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${getTypographyClass('base', isLargeFont)}`}
           >
             <Search className="h-4 w-4" />
             <span className="hidden sm:inline">현장 변경</span>
@@ -172,7 +187,11 @@ export default function SiteInfoContent({
           <button
             onClick={refreshData}
             disabled={isRefreshing}
-            className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 text-sm"
+            className={`flex items-center gap-2 ${
+              touchMode === 'glove' ? 'px-5 py-3 min-h-[56px]' : 
+              touchMode === 'precision' ? 'px-3 py-1.5 min-h-[44px]' : 
+              'px-4 py-2 min-h-[48px]'
+            } bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 ${getTypographyClass('base', isLargeFont)}`}
           >
             <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
             <span className="hidden sm:inline">새로고침</span>
@@ -182,8 +201,10 @@ export default function SiteInfoContent({
 
       {/* Error State */}
       {error && (
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-          <p className="text-sm text-red-800 dark:text-red-200">
+        <div className={`bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg ${
+          touchMode === 'glove' ? 'p-6' : touchMode === 'precision' ? 'p-3' : 'p-4'
+        }`}>
+          <p className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-red-800 dark:text-red-200`}>
             {error}
           </p>
         </div>
@@ -198,13 +219,17 @@ export default function SiteInfoContent({
 
       {/* Site History - Mobile Optimized - Always Show */}
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-        <div className="px-4 sm:px-6 py-3 sm:py-4 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
+        <div className={`${
+          touchMode === 'glove' ? 'px-6 sm:px-8 py-4 sm:py-5' : 
+          touchMode === 'precision' ? 'px-3 sm:px-4 py-2 sm:py-3' : 
+          'px-4 sm:px-6 py-3 sm:py-4'
+        } bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600`}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 sm:gap-3">
               <Clock className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600 dark:text-purple-400" />
-              <h2 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100">현장 참여 이력</h2>
+              <h2 className={`${getFullTypographyClass('heading', 'lg', isLargeFont)} font-semibold text-gray-900 dark:text-gray-100`}>현장 참여 이력</h2>
             </div>
-            <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+            <span className={`${getFullTypographyClass('caption', 'sm', isLargeFont)} text-gray-500 dark:text-gray-400`}>
               {siteHistory.length > 0 ? `${siteHistory.length}개 현장` : '0개 현장'}
             </span>
           </div>
@@ -216,7 +241,7 @@ export default function SiteInfoContent({
           <div className="p-6 sm:p-8">
             <div className="flex flex-col items-center justify-center space-y-4">
               <RefreshCw className="h-8 w-8 text-gray-400 animate-spin" />
-              <p className="text-sm text-gray-500 dark:text-gray-400">현장 이력을 불러오는 중...</p>
+              <p className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-500 dark:text-gray-400`}>현장 이력을 불러오는 중...</p>
             </div>
           </div>
         ) : siteHistory.length === 0 ? (
@@ -227,16 +252,20 @@ export default function SiteInfoContent({
                 <Clock className="h-8 w-8 text-gray-400" />
               </div>
               <div className="text-center space-y-2">
-                <h3 className="text-base font-medium text-gray-900 dark:text-gray-100">
+                <h3 className={`${getFullTypographyClass('heading', 'base', isLargeFont)} font-medium text-gray-900 dark:text-gray-100`}>
                   참여한 현장이 없습니다
                 </h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400 max-w-xs">
+                <p className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-500 dark:text-gray-400 max-w-xs`}>
                   아직 배정된 현장이 없거나 현장 참여 이력이 없습니다.
                 </p>
               </div>
               <button
                 onClick={() => setShowSearchModal(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors touch-manipulation"
+                className={`flex items-center gap-2 ${
+                  touchMode === 'glove' ? 'px-6 py-3 min-h-[56px]' : 
+                  touchMode === 'precision' ? 'px-3 py-1.5 min-h-[44px]' : 
+                  'px-4 py-2 min-h-[48px]'
+                } bg-blue-600 hover:bg-blue-700 text-white rounded-lg ${getFullTypographyClass('button', 'base', isLargeFont)} font-medium transition-colors touch-manipulation`}
               >
                 <Search className="h-4 w-4" />
                 현장 찾기
@@ -247,19 +276,23 @@ export default function SiteInfoContent({
           // Site History List
           <div className="divide-y divide-gray-100 dark:divide-gray-700">
             {siteHistory.map((site, index) => (
-              <div key={`${site.site_id}-${index}`} className="p-4 sm:p-6 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+              <div key={`${site.site_id}-${index}`} className={`${
+                touchMode === 'glove' ? 'p-6 sm:p-8' : 
+                touchMode === 'precision' ? 'p-3 sm:p-4' : 
+                'p-4 sm:p-6'
+              } hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors`}>
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-2 mb-2">
-                      <h3 className="text-base sm:text-lg font-medium text-gray-900 dark:text-gray-100">
+                      <h3 className={`${getFullTypographyClass('heading', 'base', isLargeFont)} font-medium text-gray-900 dark:text-gray-100`}>
                         {site.site_name}
                       </h3>
                       {site.is_active && (
-                        <span className="px-2 py-0.5 bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 text-xs sm:text-sm rounded-full">
+                        <span className={`px-2 py-0.5 bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 ${getFullTypographyClass('caption', 'xs', isLargeFont)} rounded-full`}>
                           현재
                         </span>
                       )}
-                      <span className={`px-2 py-0.5 text-xs sm:text-sm rounded-full ${
+                      <span className={`px-2 py-0.5 ${getFullTypographyClass('caption', 'xs', isLargeFont)} rounded-full ${
                         site.user_role === 'site_manager' 
                           ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400'
                           : site.user_role === 'supervisor'
@@ -270,10 +303,10 @@ export default function SiteInfoContent({
                          site.user_role === 'supervisor' ? '감독관' : '작업자'}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2 line-clamp-2">{site.site_address}</p>
+                    <p className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-600 dark:text-gray-400 mb-2 line-clamp-2`}>{site.site_address}</p>
                     
                     {(site.work_process || site.work_section) && (
-                      <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-500">
+                      <div className={`${getFullTypographyClass('caption', 'sm', isLargeFont)} text-gray-500 dark:text-gray-500`}>
                         {site.work_process && <span>{site.work_process}</span>}
                         {site.work_process && site.work_section && <span className="mx-1 sm:mx-2">•</span>}
                         {site.work_section && <span>{site.work_section}</span>}
@@ -281,7 +314,7 @@ export default function SiteInfoContent({
                     )}
                   </div>
                   <div className="text-left sm:text-right flex-shrink-0">
-                    <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mb-1">
+                    <div className={`${getFullTypographyClass('caption', 'sm', isLargeFont)} text-gray-500 dark:text-gray-400 mb-1`}>
                       {new Date(site.assigned_date).toLocaleDateString('ko-KR', {
                         year: 'numeric',
                         month: '2-digit',
@@ -298,7 +331,7 @@ export default function SiteInfoContent({
                         </>
                       )}
                     </div>
-                    <div className={`text-xs sm:text-sm ${
+                    <div className={`${getFullTypographyClass('caption', 'sm', isLargeFont)} ${
                       site.site_status === 'active' 
                         ? 'text-green-600 dark:text-green-400'
                         : site.site_status === 'completed'
@@ -316,7 +349,7 @@ export default function SiteInfoContent({
             {/* Load More Button (for future pagination) */}
             {siteHistory.length >= 10 && (
               <div className="p-4 text-center border-t border-gray-100 dark:border-gray-700">
-                <button className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
+                <button className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors`}>
                   더 보기 ({siteHistory.length}개 중 10개 표시)
                 </button>
               </div>

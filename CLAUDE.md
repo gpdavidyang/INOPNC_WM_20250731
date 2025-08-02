@@ -52,16 +52,28 @@ npm run protect:check          # Verify critical features are working
 ### Project Structure
 ```
 ├── app/                    # Next.js App Router pages
+│   ├── api/               # API routes
+│   │   └── markup-documents/  # Markup document management API
 │   ├── auth/              # Authentication pages (login, signup, reset-password)
 │   ├── dashboard/         # Main dashboard and sub-pages
 │   └── api/               # API routes
 ├── components/            # Reusable React components
+│   ├── markup/           # Blueprint markup system components
+│   │   ├── canvas/       # HTML5 Canvas drawing components
+│   │   ├── dialogs/      # Save/Open/Share dialogs
+│   │   ├── hooks/        # Custom hooks for markup functionality
+│   │   ├── list/         # Document list and management UI
+│   │   ├── toolbar/      # Tool palette and toolbars
+│   │   └── upload/       # Blueprint file upload components
 │   └── dashboard/         # Dashboard-specific components
 ├── lib/                   # Utility functions and configurations
 │   ├── supabase/         # Supabase client configurations
 │   └── auth/             # Authentication utilities
 ├── types/                # TypeScript type definitions
+│   └── markup.ts         # Markup system type definitions
 ├── supabase/             # Database migrations and seeds
+│   └── migrations/
+│       └── 107_create_markup_documents.sql
 └── public/               # Static assets
 ```
 
@@ -82,6 +94,8 @@ Key tables with RLS (Row Level Security) enabled:
 - `attendance_records` - Worker attendance
 - `documents` - File management
 - `notifications` - User notifications
+- `markup_documents` - Blueprint markup documents (마킹 도면 문서)
+- `markup_document_permissions` - Markup document sharing permissions
 
 ### User Roles
 - `worker` - Basic worker, can view/create own reports
@@ -156,6 +170,149 @@ try {
 - Never remove try-catch blocks in cookie handling
 - Server actions must not use redirect()
 
+## Blueprint Markup System
+
+A complete Canvas-based blueprint markup and document management system for construction drawings.
+
+### Key Components
+
+#### 1. Markup Editor (`/components/markup/markup-editor.tsx`)
+- Main orchestrator component with dual-view mode (list/editor)
+- Manages blueprint upload, canvas state, and document operations
+- Integrates all markup functionality into a cohesive interface
+
+#### 2. Canvas System (`/components/markup/canvas/`)
+- `markup-canvas.tsx` - HTML5 Canvas with drawing capabilities
+- Supports box markings (3 colors), text annotations, and pen drawing
+- Mouse/touch event handling for desktop and mobile
+- Zoom and pan functionality with Ctrl+scroll wheel
+
+#### 3. Tool Palette (`/components/markup/toolbar/`)
+- `tool-palette.tsx` - Drawing tool selection interface
+- `top-toolbar.tsx` - File operations (home, open, save, share)
+- `bottom-statusbar.tsx` - Document info and status display
+- Responsive design for mobile and desktop layouts
+
+#### 4. Document Management (`/components/markup/list/`)
+- `markup-document-list.tsx` - Complete document library interface
+- Grid-based document cards with thumbnails and metadata
+- Search, filtering (personal/shared), and pagination
+- Quick actions: open, edit, delete with confirmation
+
+#### 5. File Operations (`/components/markup/dialogs/`)
+- `save-dialog.tsx` - Document saving with metadata input
+- `open-dialog.tsx` - Document selection from saved library
+- `share-dialog.tsx` - Sharing permissions (future feature)
+
+#### 6. Upload System (`/components/markup/upload/`)
+- `blueprint-upload.tsx` - Drag & drop file upload interface
+- Supports image files (JPG, PNG, PDF)
+- Visual feedback for drag states and file validation
+
+#### 7. Custom Hooks (`/components/markup/hooks/`)
+- `use-markup-tools.ts` - Undo/redo, copy/paste, delete operations
+- `use-canvas-state.ts` - Zoom, pan, and viewport management
+- `use-file-manager.ts` - Document CRUD operations with API integration
+
+### API Endpoints
+
+#### Markup Documents API (`/app/api/markup-documents/`)
+- `GET /api/markup-documents` - List documents with pagination, search, filtering
+- `POST /api/markup-documents` - Create new markup document
+- `GET /api/markup-documents/[id]` - Get specific document details
+- `PUT /api/markup-documents/[id]` - Update existing document
+- `DELETE /api/markup-documents/[id]` - Soft delete document
+
+### Database Schema
+
+#### markup_documents table
+```sql
+CREATE TABLE markup_documents (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title VARCHAR(255) NOT NULL,
+  description TEXT,
+  original_blueprint_url TEXT NOT NULL,
+  original_blueprint_filename VARCHAR(255) NOT NULL,
+  markup_data JSONB NOT NULL DEFAULT '[]'::jsonb,
+  preview_image_url TEXT,
+  location VARCHAR(20) DEFAULT 'personal' CHECK (location IN ('personal', 'shared')),
+  created_by UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  site_id UUID REFERENCES sites(id) ON DELETE SET NULL,
+  is_deleted BOOLEAN DEFAULT FALSE,
+  markup_count INTEGER DEFAULT 0
+);
+```
+
+#### Row Level Security Policies
+- Users can only access their own personal documents
+- Shared documents are accessible to users from the same site
+- Admins have full access to all documents
+- Automatic cleanup of soft-deleted documents
+
+### Type Definitions
+
+#### Core Types (`/types/markup.ts`)
+```typescript
+export interface MarkupObject {
+  id: string
+  type: 'box' | 'text' | 'drawing'
+  x: number
+  y: number
+  // ... additional properties
+}
+
+export interface MarkupEditorState {
+  currentFile: MarkupDocument | null
+  markupObjects: MarkupObject[]
+  toolState: ToolState
+  viewerState: ViewerState
+  // ... additional state
+}
+```
+
+#### Database Types (`/types/index.ts`)
+```typescript
+export interface MarkupDocument {
+  id: string
+  title: string
+  description?: string
+  original_blueprint_url: string
+  original_blueprint_filename: string
+  markup_data: any[]
+  location: 'personal' | 'shared'
+  created_by: string
+  // ... additional fields
+}
+```
+
+### Usage Workflow
+
+1. **Access**: Sidebar → "도면 마킹 도구" → Document list view
+2. **Create New**: "새 마킹 도구" button → Editor view
+3. **Upload**: Drag & drop or click to upload blueprint image
+4. **Markup**: Use tool palette to add markings on uploaded blueprint
+5. **Save**: Top toolbar save button → Enter metadata → Save to database
+6. **Manage**: Home button returns to list → View, edit, or delete documents
+
+### Key Features
+
+- **Dual View Mode**: Seamless switching between document list and editor
+- **Canvas Drawing**: High-performance HTML5 Canvas with multiple tools
+- **Document Persistence**: Full CRUD operations with database storage
+- **Responsive Design**: Optimized for both mobile and desktop usage
+- **Keyboard Shortcuts**: Professional shortcuts for power users
+- **Undo/Redo**: Unlimited operation history with efficient state management
+- **File Management**: Complete document lifecycle with metadata
+
+### Integration Points
+
+- Integrated into main dashboard via sidebar navigation
+- Uses existing authentication and user profile system
+- Follows project's RLS security model
+- Consistent with project's UI/UX patterns and components
+
 ## Test Accounts
 
 For development/testing:
@@ -163,3 +320,7 @@ For development/testing:
 - manager@inopnc.com / password123
 - customer@inopnc.com / password123
 - admin@inopnc.com / password123
+
+## Task Master AI Instructions
+**Import Task Master's development workflow commands and guidelines, treat as if import is in the main CLAUDE.md file.**
+@./.taskmaster/CLAUDE.md

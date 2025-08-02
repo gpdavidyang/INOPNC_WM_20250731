@@ -143,7 +143,7 @@ export function SearchInterface({
             </div>
             <Button
               variant="outline"
-              size="sm"
+              size="compact"
               onClick={() => setIsExpanded(!isExpanded)}
             >
               {isExpanded ? (

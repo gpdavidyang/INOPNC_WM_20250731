@@ -10,6 +10,18 @@ import {
   WorkLogMaterial
 } from '@/types'
 import { revalidatePath } from 'next/cache'
+import { 
+  AppError, 
+  ErrorType, 
+  validateSupabaseResponse, 
+  logError,
+  handleAsync 
+} from '@/lib/error-handling'
+import {
+  notifyDailyReportSubmitted,
+  notifyDailyReportApproved,
+  notifyDailyReportRejected
+} from '@/lib/notifications/triggers'
 
 // ==========================================
 // DAILY REPORT ACTIONS
@@ -32,7 +44,7 @@ export async function createDailyReport(data: {
     // Get current user
     const { data: { user }, error: userError } = await supabase.auth.getUser()
     if (userError || !user) {
-      return { success: false, error: 'User not authenticated' }
+      throw new AppError('로그인이 필요합니다.', ErrorType.AUTHENTICATION, 401)
     }
 
     // Check if report already exists for this date
@@ -44,7 +56,7 @@ export async function createDailyReport(data: {
       .single()
 
     if (existing) {
-      return { success: false, error: 'Report already exists for this date' }
+      throw new AppError('해당 날짜의 보고서가 이미 존재합니다.', ErrorType.VALIDATION)
     }
 
     // Create new daily report
@@ -59,16 +71,16 @@ export async function createDailyReport(data: {
       .select()
       .single()
 
-    if (error) {
-      console.error('Error creating daily report:', error)
-      return { success: false, error: error.message }
-    }
+    validateSupabaseResponse(report, error)
 
     revalidatePath('/dashboard/daily-reports')
     return { success: true, data: report }
   } catch (error) {
-    console.error('Error in createDailyReport:', error)
-    return { success: false, error: 'Failed to create daily report' }
+    logError(error, 'createDailyReport')
+    return { 
+      success: false, 
+      error: error instanceof AppError ? error.message : '일일보고서 생성에 실패했습니다.' 
+    }
   }
 }
 
@@ -89,23 +101,29 @@ export async function updateDailyReport(
       .select()
       .single()
 
-    if (error) {
-      console.error('Error updating daily report:', error)
-      return { success: false, error: error.message }
-    }
+    validateSupabaseResponse(report, error)
 
     revalidatePath('/dashboard/daily-reports')
     revalidatePath(`/dashboard/daily-reports/${id}`)
     return { success: true, data: report }
   } catch (error) {
-    console.error('Error in updateDailyReport:', error)
-    return { success: false, error: 'Failed to update daily report' }
+    logError(error, 'updateDailyReport')
+    return { 
+      success: false, 
+      error: error instanceof AppError ? error.message : '일일보고서 수정에 실패했습니다.' 
+    }
   }
 }
 
 export async function submitDailyReport(id: string) {
   try {
     const supabase = createClient()
+    
+    // Get current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError || !user) {
+      throw new AppError('로그인이 필요합니다.', ErrorType.AUTHENTICATION, 401)
+    }
     
     const { data: report, error } = await supabase
       .from('daily_reports')
@@ -120,20 +138,23 @@ export async function submitDailyReport(id: string) {
       .single()
 
     if (error) {
-      console.error('Error submitting daily report:', error)
-      return { success: false, error: error.message }
+      throw new AppError('보고서를 찾을 수 없거나 이미 제출되었습니다.', ErrorType.NOT_FOUND)
     }
 
-    if (!report) {
-      return { success: false, error: 'Report not found or already submitted' }
-    }
+    validateSupabaseResponse(report, error)
+
+    // Send notification to site managers
+    await notifyDailyReportSubmitted(report as unknown as DailyReport, user.id)
 
     revalidatePath('/dashboard/daily-reports')
     revalidatePath(`/dashboard/daily-reports/${id}`)
     return { success: true, data: report }
   } catch (error) {
-    console.error('Error in submitDailyReport:', error)
-    return { success: false, error: 'Failed to submit daily report' }
+    logError(error, 'submitDailyReport')
+    return { 
+      success: false, 
+      error: error instanceof AppError ? error.message : '일일보고서 제출에 실패했습니다.' 
+    }
   }
 }
 
@@ -147,7 +168,7 @@ export async function approveDailyReport(
     
     const { data: { user }, error: userError } = await supabase.auth.getUser()
     if (userError || !user) {
-      return { success: false, error: 'User not authenticated' }
+      throw new AppError('로그인이 필요합니다.', ErrorType.AUTHENTICATION, 401)
     }
 
     const { data: report, error } = await supabase
@@ -165,20 +186,27 @@ export async function approveDailyReport(
       .single()
 
     if (error) {
-      console.error('Error approving daily report:', error)
-      return { success: false, error: error.message }
+      throw new AppError('보고서를 찾을 수 없거나 제출 상태가 아닙니다.', ErrorType.NOT_FOUND)
     }
 
-    if (!report) {
-      return { success: false, error: 'Report not found or not in submitted status' }
+    validateSupabaseResponse(report, error)
+
+    // Send notification based on approval status
+    if (approve) {
+      await notifyDailyReportApproved(report as unknown as DailyReport, user.id)
+    } else {
+      await notifyDailyReportRejected(report as unknown as DailyReport, user.id, comments)
     }
 
     revalidatePath('/dashboard/daily-reports')
     revalidatePath(`/dashboard/daily-reports/${id}`)
     return { success: true, data: report }
   } catch (error) {
-    console.error('Error in approveDailyReport:', error)
-    return { success: false, error: 'Failed to approve daily report' }
+    logError(error, 'approveDailyReport')
+    return { 
+      success: false, 
+      error: error instanceof AppError ? error.message : '일일보고서 승인에 실패했습니다.' 
+    }
   }
 }
 
@@ -197,20 +225,18 @@ export async function getDailyReports(filters: {
       .from('daily_reports')
       .select(`
         *,
-        site:sites(id, name),
-        created_by_profile:profiles!daily_reports_created_by_fkey(full_name),
-        approved_by_profile:profiles!daily_reports_approved_by_fkey(full_name)
+        site:sites(id, name)
       `)
-      .order('report_date', { ascending: false })
+      .order('work_date', { ascending: false })
 
     if (filters.site_id) {
       query = query.eq('site_id', filters.site_id)
     }
     if (filters.start_date) {
-      query = query.gte('report_date', filters.start_date)
+      query = query.gte('work_date', filters.start_date)
     }
     if (filters.end_date) {
-      query = query.lte('report_date', filters.end_date)
+      query = query.lte('work_date', filters.end_date)
     }
     if (filters.status) {
       query = query.eq('status', filters.status)
@@ -225,14 +251,17 @@ export async function getDailyReports(filters: {
     const { data, error, count } = await query
 
     if (error) {
-      console.error('Error fetching daily reports:', error)
-      return { success: false, error: error.message }
+      logError(error, 'getDailyReports')
+      throw new AppError('일일보고서 목록을 불러오는데 실패했습니다.', ErrorType.SERVER_ERROR)
     }
 
     return { success: true, data, count }
   } catch (error) {
-    console.error('Error in getDailyReports:', error)
-    return { success: false, error: 'Failed to fetch daily reports' }
+    logError(error, 'getDailyReports')
+    return { 
+      success: false, 
+      error: error instanceof AppError ? error.message : '일일보고서 목록을 불러오는데 실패했습니다.' 
+    }
   }
 }
 
@@ -244,22 +273,23 @@ export async function getDailyReportById(id: string) {
       .from('daily_reports')
       .select(`
         *,
-        site:sites(*),
-        created_by_profile:profiles!daily_reports_created_by_fkey(*),
-        approved_by_profile:profiles!daily_reports_approved_by_fkey(*)
+        site:sites(*)
       `)
       .eq('id', id)
       .single()
 
     if (error) {
-      console.error('Error fetching daily report:', error)
-      return { success: false, error: error.message }
+      logError(error, 'getDailyReportById')
+      throw new AppError('일일보고서를 찾을 수 없습니다.', ErrorType.NOT_FOUND)
     }
 
     return { success: true, data }
   } catch (error) {
-    console.error('Error in getDailyReportById:', error)
-    return { success: false, error: 'Failed to fetch daily report' }
+    logError(error, 'getDailyReportById')
+    return { 
+      success: false, 
+      error: error instanceof AppError ? error.message : '일일보고서를 불러오는데 실패했습니다.' 
+    }
   }
 }
 

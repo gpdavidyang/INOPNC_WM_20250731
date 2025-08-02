@@ -20,6 +20,8 @@ import { getSalaryInfo, getCompanySalarySummary, getPayslips } from '@/app/actio
 import { getSites } from '@/app/actions/sites'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
+import { useFontSize, getTypographyClass, getFullTypographyClass } from '@/contexts/FontSizeContext'
+import { useTouchMode } from '@/contexts/TouchModeContext'
 
 interface SalaryInfoProps {
   profile: any
@@ -42,6 +44,8 @@ interface SalaryData {
 }
 
 export function SalaryInfo({ profile, isPartnerView }: SalaryInfoProps) {
+  const { isLargeFont } = useFontSize()
+  const { touchMode } = useTouchMode()
   const [selectedPeriod, setSelectedPeriod] = useState('site') // 'site' or 'month'
   const [selectedSite, setSelectedSite] = useState<string>('')
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), 'yyyy-MM'))
@@ -147,9 +151,9 @@ export function SalaryInfo({ profile, isPartnerView }: SalaryInfoProps) {
   }
 
   // Calculate totals for individual view
-  const totalSalary = salaryData.reduce((sum, item) => sum + item.net_salary, 0)
-  const totalDays = salaryData.reduce((sum, item) => sum + item.total_days, 0)
-  const totalHours = salaryData.reduce((sum, item) => sum + item.total_hours, 0)
+  const totalSalary = salaryData.reduce((sum: any, item: any) => sum + item.net_salary, 0)
+  const totalDays = salaryData.reduce((sum: any, item: any) => sum + item.total_days, 0)
+  const totalHours = salaryData.reduce((sum: any, item: any) => sum + item.total_hours, 0)
 
   return (
     <div className="space-y-6">
@@ -159,6 +163,7 @@ export function SalaryInfo({ profile, isPartnerView }: SalaryInfoProps) {
           <Button
             variant={selectedPeriod === 'site' ? 'secondary' : 'outline'}
             onClick={() => setSelectedPeriod('site')}
+            size={touchMode === 'glove' ? 'field' : touchMode === 'precision' ? 'compact' : 'standard'}
             className="flex-1 sm:flex-initial"
           >
             <Building2 className="h-4 w-4 mr-2" />
@@ -167,6 +172,7 @@ export function SalaryInfo({ profile, isPartnerView }: SalaryInfoProps) {
           <Button
             variant={selectedPeriod === 'month' ? 'secondary' : 'outline'}
             onClick={() => setSelectedPeriod('month')}
+            size={touchMode === 'glove' ? 'field' : touchMode === 'precision' ? 'compact' : 'standard'}
             className="flex-1 sm:flex-initial"
           >
             <Calendar className="h-4 w-4 mr-2" />
@@ -178,7 +184,11 @@ export function SalaryInfo({ profile, isPartnerView }: SalaryInfoProps) {
           <select
             value={selectedSite}
             onChange={(e) => setSelectedSite(e.target.value)}
-            className="flex-1 h-10 px-3 rounded-md border border-gray-300 bg-white"
+            className={`flex-1 rounded-md border border-gray-300 bg-white ${
+              touchMode === 'glove' ? 'h-14 px-4 text-base' : 
+              touchMode === 'precision' ? 'h-9 px-2 text-sm' : 
+              'h-10 px-3 text-base'
+            }`}
           >
             {sites.map(site => (
               <option key={site.id} value={site.id}>
@@ -191,7 +201,11 @@ export function SalaryInfo({ profile, isPartnerView }: SalaryInfoProps) {
             type="month"
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(e.target.value)}
-            className="flex-1 h-10 px-3 rounded-md border border-gray-300 bg-white"
+            className={`flex-1 rounded-md border border-gray-300 bg-white ${
+              touchMode === 'glove' ? 'h-14 px-4 text-base' : 
+              touchMode === 'precision' ? 'h-9 px-2 text-sm' : 
+              'h-10 px-3 text-base'
+            }`}
           />
         )}
       </div>
@@ -200,31 +214,31 @@ export function SalaryInfo({ profile, isPartnerView }: SalaryInfoProps) {
       {isPartnerView ? (
         // Partner Company Summary
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card className="p-4">
+          <Card className={touchMode === 'glove' ? 'p-6' : touchMode === 'precision' ? 'p-3' : 'p-4'}>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">총 작업자</p>
-                <p className="text-2xl font-bold">{companySummary.totalWorkers}명</p>
+                <p className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-600`}>총 작업자</p>
+                <p className={`${getFullTypographyClass('heading', '2xl', isLargeFont)} font-bold`}>{companySummary.totalWorkers}명</p>
               </div>
               <Users className="h-8 w-8 text-gray-400" />
             </div>
           </Card>
 
-          <Card className="p-4">
+          <Card className={touchMode === 'glove' ? 'p-6' : touchMode === 'precision' ? 'p-3' : 'p-4'}>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">총 지급액</p>
-                <p className="text-xl font-bold">{formatCurrency(companySummary.totalAmount)}</p>
+                <p className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-600`}>총 지급액</p>
+                <p className={`${getFullTypographyClass('heading', 'xl', isLargeFont)} font-bold`}>{formatCurrency(companySummary.totalAmount)}</p>
               </div>
               <Wallet className="h-8 w-8 text-blue-400" />
             </div>
           </Card>
 
-          <Card className="p-4">
+          <Card className={touchMode === 'glove' ? 'p-6' : touchMode === 'precision' ? 'p-3' : 'p-4'}>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">미지급액</p>
-                <p className="text-xl font-bold text-amber-600">
+                <p className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-600`}>미지급액</p>
+                <p className={`${getFullTypographyClass('heading', 'xl', isLargeFont)} font-bold text-amber-600`}>
                   {formatCurrency(companySummary.pendingAmount)}
                 </p>
               </div>
@@ -232,11 +246,11 @@ export function SalaryInfo({ profile, isPartnerView }: SalaryInfoProps) {
             </div>
           </Card>
 
-          <Card className="p-4">
+          <Card className={touchMode === 'glove' ? 'p-6' : touchMode === 'precision' ? 'p-3' : 'p-4'}>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">지급완료</p>
-                <p className="text-xl font-bold text-green-600">
+                <p className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-600`}>지급완료</p>
+                <p className={`${getFullTypographyClass('heading', 'xl', isLargeFont)} font-bold text-green-600`}>
                   {formatCurrency(companySummary.paidAmount)}
                 </p>
               </div>
@@ -247,31 +261,31 @@ export function SalaryInfo({ profile, isPartnerView }: SalaryInfoProps) {
       ) : (
         // Individual Worker Summary
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="p-4">
+          <Card className={touchMode === 'glove' ? 'p-6' : touchMode === 'precision' ? 'p-3' : 'p-4'}>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">총 급여</p>
-                <p className="text-xl font-bold">{formatCurrency(totalSalary)}</p>
+                <p className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-600`}>총 급여</p>
+                <p className={`${getFullTypographyClass('heading', 'xl', isLargeFont)} font-bold`}>{formatCurrency(totalSalary)}</p>
               </div>
               <DollarSign className="h-8 w-8 text-green-400" />
             </div>
           </Card>
 
-          <Card className="p-4">
+          <Card className={touchMode === 'glove' ? 'p-6' : touchMode === 'precision' ? 'p-3' : 'p-4'}>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">총 근무일</p>
-                <p className="text-2xl font-bold">{totalDays}일</p>
+                <p className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-600`}>총 근무일</p>
+                <p className={`${getFullTypographyClass('heading', '2xl', isLargeFont)} font-bold`}>{totalDays}일</p>
               </div>
               <Calendar className="h-8 w-8 text-blue-400" />
             </div>
           </Card>
 
-          <Card className="p-4">
+          <Card className={touchMode === 'glove' ? 'p-6' : touchMode === 'precision' ? 'p-3' : 'p-4'}>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">총 근무시간</p>
-                <p className="text-2xl font-bold">{totalHours}시간</p>
+                <p className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-600`}>총 근무시간</p>
+                <p className={`${getFullTypographyClass('heading', '2xl', isLargeFont)} font-bold`}>{totalHours}시간</p>
               </div>
               <TrendingUp className="h-8 w-8 text-purple-400" />
             </div>
@@ -280,17 +294,17 @@ export function SalaryInfo({ profile, isPartnerView }: SalaryInfoProps) {
       )}
 
       {/* Salary Details */}
-      <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4">
+      <Card className={touchMode === 'glove' ? 'p-8' : touchMode === 'precision' ? 'p-4' : 'p-6'}>
+        <h3 className={`${getFullTypographyClass('heading', 'lg', isLargeFont)} font-semibold mb-4`}>
           {isPartnerView ? '작업자별 급여 상세' : '급여 상세 내역'}
         </h3>
 
         {loading ? (
-          <div className="text-center py-8 text-gray-500">
+          <div className={`text-center py-8 ${getFullTypographyClass('body', 'base', isLargeFont)} text-gray-500`}>
             급여 정보를 불러오는 중...
           </div>
         ) : salaryData.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
+          <div className={`text-center py-8 ${getFullTypographyClass('body', 'base', isLargeFont)} text-gray-500`}>
             급여 정보가 없습니다.
           </div>
         ) : (
@@ -371,7 +385,7 @@ export function SalaryInfo({ profile, isPartnerView }: SalaryInfoProps) {
           </h3>
           
           <div className="space-y-3">
-            {payslips.map((payslip) => (
+            {payslips.map((payslip: any) => (
               <div
                 key={payslip.id}
                 className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
@@ -387,7 +401,7 @@ export function SalaryInfo({ profile, isPartnerView }: SalaryInfoProps) {
                 <div className="flex items-center gap-2">
                   {getStatusBadge(payslip.status)}
                   <Button
-                    size="sm"
+                    size="compact"
                     variant="outline"
                     onClick={() => handleDownloadPayslip(payslip.id)}
                   >

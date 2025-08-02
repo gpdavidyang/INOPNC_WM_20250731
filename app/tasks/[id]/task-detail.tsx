@@ -394,7 +394,7 @@ export default function TaskDetail({
 
                   {/* Comments List */}
                   <ul className="divide-y divide-gray-200">
-                    {comments.map((comment) => (
+                    {comments.map((comment: any) => (
                       <li key={comment.id} className="px-4 py-4">
                         <div className="flex space-x-3">
                           <div className="flex-1 space-y-1">

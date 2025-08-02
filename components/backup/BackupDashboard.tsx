@@ -132,7 +132,7 @@ export function BackupDashboard({ className }: BackupDashboardProps) {
       case 'running':
         return <Badge variant="default" className="bg-blue-100 text-blue-800">실행중</Badge>
       case 'failed':
-        return <Badge variant="destructive">실패</Badge>
+        return <Badge variant="error">실패</Badge>
       case 'cancelled':
         return <Badge variant="secondary">취소됨</Badge>
       case 'pending':
@@ -254,14 +254,14 @@ export function BackupDashboard({ className }: BackupDashboardProps) {
         <Card className="p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold">백업 설정</h2>
-            <Button size="sm" variant="outline">
+            <Button size="compact" variant="outline">
               <Settings className="w-4 h-4 mr-2" />
               설정 관리
             </Button>
           </div>
           
           <div className="space-y-3">
-            {configs.map((config) => {
+            {configs.map((config: any) => {
               const isRunning = runningJobs.includes(config.id)
               
               return (
@@ -289,7 +289,7 @@ export function BackupDashboard({ className }: BackupDashboardProps) {
                   </div>
                   <div className="flex gap-2">
                     <Button
-                      size="sm"
+                      size="compact"
                       variant="outline"
                       onClick={() => handleManualBackup(config.id)}
                       disabled={isRunning || !config.enabled}
@@ -314,14 +314,14 @@ export function BackupDashboard({ className }: BackupDashboardProps) {
         <Card className="p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold">최근 백업 작업</h2>
-            <Button size="sm" variant="outline">
+            <Button size="compact" variant="outline">
               <BarChart3 className="w-4 h-4 mr-2" />
               전체 보기
             </Button>
           </div>
           
           <div className="space-y-3">
-            {recentJobs.map((job) => (
+            {recentJobs.map((job: any) => (
               <div key={job.id} className="flex items-center justify-between p-3 border rounded-lg">
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
@@ -340,12 +340,12 @@ export function BackupDashboard({ className }: BackupDashboardProps) {
                 </div>
                 <div className="flex gap-2">
                   {job.status === 'completed' && job.file_path && (
-                    <Button size="sm" variant="outline">
+                    <Button size="compact" variant="outline">
                       <Download className="w-4 h-4" />
                     </Button>
                   )}
                   {job.status === 'completed' && (
-                    <Button size="sm" variant="outline">
+                    <Button size="compact" variant="outline">
                       <Upload className="w-4 h-4" />
                     </Button>
                   )}

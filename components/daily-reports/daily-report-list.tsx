@@ -89,7 +89,7 @@ export default function DailyReportList({ siteId, canCreate = false }: DailyRepo
         </div>
       ) : (
         <ul className="divide-y divide-gray-200">
-          {reports.map((report) => (
+          {reports.map((report: any) => (
             <li key={report.id}>
               <div className="px-4 py-4 sm:px-6">
                 <div className="flex items-center justify-between">

@@ -240,7 +240,7 @@ export class DatabaseBackupService {
     for (const table of tables) {
       try {
         // Check if table has records modified since last backup
-        const { data, error } = await this.supabase
+        const { data, error } = await (this.supabase as any)
           .from(table)
           .select('id')
           .gte('updated_at', since)
@@ -267,7 +267,7 @@ export class DatabaseBackupService {
 
     for (const table of tables) {
       try {
-        const { data, error } = await this.supabase
+        const { data, error } = await (this.supabase as any)
           .from(table)
           .select('*')
           .gte('updated_at', since)

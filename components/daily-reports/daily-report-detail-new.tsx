@@ -24,6 +24,8 @@ import {
   Paperclip
 } from 'lucide-react'
 import { DailyReport, Profile } from '@/types'
+import { showErrorNotification } from '@/lib/error-handling'
+import { toast } from 'sonner'
 
 interface DailyReportDetailProps {
   report: DailyReport & {
@@ -66,13 +68,14 @@ export default function DailyReportDetail({ report, currentUser }: DailyReportDe
     try {
       const result = await approveDailyReport(report.id, approve, approvalComments)
       if (result.success) {
+        toast.success(approve ? '보고서가 승인되었습니다.' : '보고서가 반려되었습니다.')
         router.refresh()
         setShowApprovalDialog(false)
       } else {
-        alert(result.error || '처리 중 오류가 발생했습니다')
+        showErrorNotification(result.error || '처리 중 오류가 발생했습니다', 'handleApproval')
       }
     } catch (error) {
-      alert('처리 중 오류가 발생했습니다')
+      showErrorNotification(error, 'handleApproval')
     } finally {
       setLoading(false)
     }
@@ -97,8 +100,8 @@ export default function DailyReportDetail({ report, currentUser }: DailyReportDe
     )
   }
 
-  const totalWorkerCount = report.work_logs?.reduce((sum, log) => sum + (log.worker_count || 0), 0) || 0
-  const totalMaterialUsage = report.work_logs?.reduce((sum, log) => 
+  const totalWorkerCount = report.work_logs?.reduce((sum: any, log: any) => sum + (log.worker_count || 0), 0) || 0
+  const totalMaterialUsage = report.work_logs?.reduce((sum: any, log: any) => 
     sum + (log.work_log_materials?.length || 0), 0
   ) || 0
 
@@ -109,7 +112,7 @@ export default function DailyReportDetail({ report, currentUser }: DailyReportDe
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
-            size="sm"
+            size="compact"
             onClick={() => router.back()}
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -349,7 +352,7 @@ export default function DailyReportDetail({ report, currentUser }: DailyReportDe
           <div>
             <p className="text-sm text-gray-500 mb-2">첨부파일</p>
             <div className="space-y-2">
-              {attachments.map((attachment) => (
+              {attachments.map((attachment: any) => (
                 <div 
                   key={attachment.id} 
                   className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
@@ -363,7 +366,7 @@ export default function DailyReportDetail({ report, currentUser }: DailyReportDe
                   </div>
                   <Button
                     variant="ghost"
-                    size="sm"
+                    size="compact"
                     onClick={() => window.open(attachment.file_path, '_blank')}
                   >
                     <Download className="h-4 w-4" />

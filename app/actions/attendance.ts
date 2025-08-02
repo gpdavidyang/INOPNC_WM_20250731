@@ -80,7 +80,7 @@ export async function getCompanyAttendanceSummary(params: {
 
     const totalDays = dates.length
     const totalWorkers = Math.max(...dates.map(d => d.totalWorkers))
-    const totalHours = dates.reduce((sum, d) => sum + d.totalHours, 0)
+    const totalHours = dates.reduce((sum: any, d: any) => sum + d.totalHours, 0)
 
     return { 
       success: true, 
@@ -385,11 +385,11 @@ export async function getMyAttendance(filters: {
     // Calculate summary
     const summary = {
       total_days: data?.length || 0,
-      total_hours: data?.reduce((sum, record) => sum + (record.work_hours || 0), 0) || 0,
-      total_overtime: data?.reduce((sum, record) => sum + (record.overtime_hours || 0), 0) || 0,
-      days_present: data?.filter(r => r.status === 'present').length || 0,
-      days_absent: data?.filter(r => r.status === 'absent').length || 0,
-      days_holiday: data?.filter(r => r.status === 'holiday').length || 0
+      total_hours: data?.reduce((sum: any, record: any) => sum + (record.work_hours || 0), 0) || 0,
+      total_overtime: data?.reduce((sum: any, record: any) => sum + (record.overtime_hours || 0), 0) || 0,
+      days_present: data?.filter((r: any) => r.status === 'present').length || 0,
+      days_absent: data?.filter((r: any) => r.status === 'absent').length || 0,
+      days_holiday: data?.filter((r: any) => r.status === 'holiday').length || 0
     }
 
     return { success: true, data, summary }
@@ -523,7 +523,7 @@ export async function getMonthlyAttendance(year: number, month: number) {
     }
 
     // Transform data to include date field for calendar
-    const transformedData = data?.map(record => ({
+    const transformedData = data?.map((record: any) => ({
       ...record,
       date: record.work_date
     })) || []
@@ -576,7 +576,7 @@ export async function getAttendanceSummary(filters: {
     }
 
     // Group by worker
-    const workerSummary = data?.reduce((acc, record) => {
+    const workerSummary = data?.reduce((acc: any, record: any) => {
       const workerId = record.user_id
       if (!workerId) return acc // Skip if no worker ID
       

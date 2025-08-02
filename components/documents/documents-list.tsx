@@ -135,7 +135,7 @@ export default function DocumentsList({ documents }: DocumentsListProps) {
                 <div className="flex items-center gap-2">
                   <Button
                     variant="outline"
-                    size="sm"
+                    size="compact"
                     className="flex-1"
                     onClick={() => window.open((document as any).file_path, '_blank')}
                   >
@@ -144,7 +144,7 @@ export default function DocumentsList({ documents }: DocumentsListProps) {
                   </Button>
                   <Button
                     variant="ghost"
-                    size="sm"
+                    size="compact"
                     className="text-red-600"
                   >
                     <Trash2 className="h-4 w-4" />

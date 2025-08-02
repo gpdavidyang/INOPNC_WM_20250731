@@ -1,0 +1,253 @@
+{
+	"meta": {
+		"generatedAt": "2025-08-01T04:37:20.096Z",
+		"tasksAnalyzed": 8,
+		"totalTasks": 9,
+		"analysisCount": 30,
+		"thresholdScore": 5,
+		"projectName": "Task Master",
+		"usedResearch": true
+	},
+	"complexityAnalysis": [
+		{
+			"taskId": "2.1",
+			"taskTitle": "Sprint 2.1: NPC-1000 Material System",
+			"complexityScore": 8,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Break down the NPC-1000 material system implementation into subtasks covering: 1) Database schema and API endpoints for hierarchical material catalog, 2) Real-time inventory tracking system with stock level monitoring, 3) Material request workflow with multi-step approval process, 4) Supplier management and purchase history tracking, 5) Physical storage location management system, 6) Integration with daily reports for automatic inventory updates. Each subtask should include specific technical implementation details, UI components, and data validation requirements.",
+			"reasoning": "High complexity due to hierarchical data structure (NPC-1000 standard), real-time inventory tracking requirements, multi-step approval workflows, and integration with existing daily report system. Requires sophisticated database design, state management, and business logic implementation."
+		},
+		{
+			"taskId": "2.2",
+			"taskTitle": "Sprint 2.2: Equipment & Resource Management",
+			"complexityScore": 7,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Divide equipment and resource management into subtasks: 1) Equipment check-in/out system with location tracking, 2) Worker assignment system with skill-based wage rate management, 3) Cost calculation engine for regular/overtime rates and budget integration, 4) Resource allocation dashboard with visual scheduling calendar, 5) Equipment maintenance tracking and damage reporting system. Focus on database relationships, scheduling algorithms, and interactive UI components.",
+			"reasoning": "Moderately high complexity involving multiple interconnected systems - equipment tracking, worker management, cost calculations, and scheduling. Requires complex UI components like calendars and dashboards, plus sophisticated business logic for resource allocation and cost calculations."
+		},
+		{
+			"taskId": "3.1",
+			"taskTitle": "Sprint 3.1: Advanced Attendance System",
+			"complexityScore": 7,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Implement advanced attendance features: 1) GPS location tracking and geofencing system for site boundaries, 2) Wage rate management system by skill level with database schema, 3) Overtime calculation engine with configurable rate rules, 4) Payroll report generation with export capabilities. Include mobile device integration, location services handling, and accurate time/wage calculations.",
+			"reasoning": "High complexity due to GPS/geolocation requirements, complex wage calculation rules, and payroll integration. Requires mobile device APIs, location services, and sophisticated calculation engines for different wage scenarios."
+		},
+		{
+			"taskId": "3.2",
+			"taskTitle": "Sprint 3.2: Partner Company Integration",
+			"complexityScore": 6,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Create partner company management system: 1) Partner company profile management with CRUD operations, 2) Site-specific access control and permission system, 3) Document sharing platform with granular permissions, 4) Partner performance tracking and contract management. Focus on role-based access control, secure document handling, and multi-tenant architecture considerations.",
+			"reasoning": "Moderate complexity focused on access control, permissions, and multi-tenant considerations. Requires careful security implementation and role-based access patterns but less technical complexity than real-time systems."
+		},
+		{
+			"taskId": "4.1",
+			"taskTitle": "Sprint 4.1: Progressive Web App Implementation",
+			"complexityScore": 8,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Convert to PWA with offline support: 1) Service worker implementation with caching strategies, 2) Offline data synchronization system using IndexedDB, 3) Background sync for queued uploads when online, 4) Push notification system implementation, 5) App installation flow and offline UI indicators. Include cache versioning, sync conflict resolution, and notification permissions handling.",
+			"reasoning": "High complexity due to service worker implementation, offline data synchronization challenges, and background sync requirements. Requires deep understanding of PWA APIs, caching strategies, and conflict resolution for offline/online data sync."
+		},
+		{
+			"taskId": "4.2",
+			"taskTitle": "Sprint 4.2: Mobile-Specific Features",
+			"complexityScore": 6,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Implement mobile-optimized features: 1) Camera integration with image capture and optimization, 2) Voice-to-text implementation for form inputs, 3) Touch-optimized UI components library, 4) Gesture navigation system and mobile shortcuts. Focus on device API integration, performance optimization for mobile, and touch-friendly interfaces.",
+			"reasoning": "Moderate complexity involving mobile device APIs and UI optimization. While technically challenging, these are well-documented patterns with established implementation approaches."
+		},
+		{
+			"taskId": "5.1",
+			"taskTitle": "Sprint 5.1: Analytics Dashboard",
+			"complexityScore": 7,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Build comprehensive analytics system: 1) Real-time KPI tracking system with data aggregation, 2) Custom report builder with drag-and-drop interface, 3) Data visualization components using charts/graphs library, 4) Export functionality for multiple formats (PDF, Excel, CSV), 5) Scheduled report generation with email delivery. Include data warehouse considerations, visualization performance, and report templating system.",
+			"reasoning": "High complexity due to real-time data aggregation, custom report builder requirements, and multiple visualization needs. Requires efficient data processing, caching strategies, and sophisticated UI for report building."
+		},
+		{
+			"taskId": "5.2",
+			"taskTitle": "Sprint 5.2: Performance Optimization",
+			"complexityScore": 8,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Optimize system performance: 1) Database query optimization with indexing and query analysis, 2) Redis caching layer implementation with cache invalidation strategies, 3) CDN integration and static asset optimization, 4) Code splitting and lazy loading implementation, 5) Performance monitoring dashboard with metrics collection. Include benchmarking, profiling tools setup, and automated performance regression detection.",
+			"reasoning": "High complexity requiring deep technical knowledge of performance optimization techniques across multiple layers (database, caching, CDN, frontend). Requires careful measurement, analysis, and iterative optimization."
+		},
+		{
+			"taskId": "6.1",
+			"taskTitle": "Sprint 6.1: Comprehensive Testing",
+			"complexityScore": 9,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Execute comprehensive testing strategy: 1) Unit test implementation to achieve >80% coverage, 2) API integration testing suite with mocking strategies, 3) E2E test automation using Playwright, 4) Load and performance testing setup with metrics, 5) Security penetration testing and vulnerability assessment, 6) User acceptance testing coordination and feedback system. Include CI/CD integration, test reporting, and automated regression detection.",
+			"reasoning": "Very high complexity due to multiple testing methodologies, tools, and coverage requirements. Requires expertise in various testing frameworks, security testing, and coordination of UAT activities."
+		},
+		{
+			"taskId": "6.2",
+			"taskTitle": "Sprint 6.2: Production Deployment",
+			"complexityScore": 7,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Deploy to production environment: 1) Staging environment setup with production parity, 2) CI/CD pipeline creation with automated deployments, 3) Production deployment with zero-downtime strategy, 4) Monitoring and alerting setup with dashboards, 5) Documentation creation and user training materials. Include rollback procedures, health checks, and post-deployment verification.",
+			"reasoning": "High complexity involving DevOps practices, infrastructure setup, and production considerations. Requires careful planning for zero-downtime deployment and comprehensive monitoring setup."
+		},
+		{
+			"taskId": "7.1",
+			"taskTitle": "Sprint 7.1: Receipt and Financial Attachments",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Implement receipt attachment system: 1) Receipt form UI with type selection and amount input validation, 2) File upload system for receipts with preview functionality, 3) Integration with expense reporting module. Include file type validation, image optimization, and financial data accuracy checks.",
+			"reasoning": "Moderate complexity focused on file handling and form validation. Standard patterns for file upload and preview, with additional financial validation requirements."
+		},
+		{
+			"taskId": "7.2",
+			"taskTitle": "Sprint 7.2: Drawing Integration",
+			"complexityScore": 7,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Create drawing management system: 1) Drawing upload system supporting multiple formats (CAD, PDF, images), 2) Integration with external marking tool API, 3) Drawing viewer with zoom/pan capabilities, 4) Version control system for drawing updates. Include thumbnail generation, large file handling, and marking tool synchronization.",
+			"reasoning": "High complexity due to external tool integration, multiple file format support, and specialized viewer requirements. Requires handling large files and implementing sophisticated viewing capabilities."
+		},
+		{
+			"taskId": "7.3",
+			"taskTitle": "Sprint 7.3: Headquarters Request System",
+			"complexityScore": 6,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Build headquarters request system: 1) Request form with rich text editor and categorization, 2) Request tracking system with status updates, 3) Headquarters dashboard for request aggregation, 4) Notification system for request responses. Include request routing logic, priority handling, and real-time updates.",
+			"reasoning": "Moderate complexity involving workflow management, notifications, and dashboard aggregation. Requires careful state management and real-time communication features."
+		},
+		{
+			"taskId": "7.4",
+			"taskTitle": "Sprint 7.4: Special Notes and Action Buttons",
+			"complexityScore": 4,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Implement special notes and form actions: 1) Special notes textarea with character limit and auto-save, 2) Form action buttons with validation and confirmation dialogs, 3) Draft save functionality using localStorage. Focus on user experience, data persistence, and error handling.",
+			"reasoning": "Lower complexity involving standard form patterns with auto-save functionality. Well-established patterns for implementation with focus on UX considerations."
+		},
+		{
+			"taskId": "8.1",
+			"taskTitle": "Sprint 8.1: Attendance Calendar System",
+			"complexityScore": 6,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Build attendance calendar interface: 1) Calendar component with year/month navigation, 2) Site filtering system with data aggregation, 3) Daily report submission indicators and site abbreviations, 4) Worker hours tracking integration. Include calendar state management, data fetching optimization, and responsive grid layout.",
+			"reasoning": "Moderate complexity focusing on calendar UI and data visualization. Requires efficient data fetching and state management for calendar views with multiple data points."
+		},
+		{
+			"taskId": "8.2",
+			"taskTitle": "Sprint 8.2: Salary Information System",
+			"complexityScore": 7,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Implement salary viewing system: 1) Salary calculation engine with site/monthly views, 2) Payslip generation and PDF export system, 3) Access control for salary data viewing, 4) Partner company aggregated salary views. Focus on calculation accuracy, secure data access, and PDF generation performance.",
+			"reasoning": "High complexity due to sensitive financial data handling, complex calculations, and PDF generation requirements. Requires strict access control and accurate calculation engines."
+		},
+		{
+			"taskId": "8.3",
+			"taskTitle": "Sprint 8.3: Personal Document Management",
+			"complexityScore": 6,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Create personal document storage: 1) Document categorization system with 6 categories, 2) Search and filtering functionality, 3) Drag-drop file upload with validation, 4) Storage quota management with usage tracking, 5) Document preview system for multiple formats. Include file compression, quota enforcement, and efficient search indexing.",
+			"reasoning": "Moderate complexity involving file management, search functionality, and storage limits. Requires careful handling of file uploads, storage optimization, and preview generation."
+		},
+		{
+			"taskId": "8.4",
+			"taskTitle": "Sprint 8.4: Shared Document System",
+			"complexityScore": 7,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Build shared document platform: 1) Role-based document access control system, 2) Document categorization with 5 category types, 3) Version control system for document updates, 4) Favorites and notification system, 5) Site-specific document filtering. Implement granular permissions, version tracking, and efficient notification delivery.",
+			"reasoning": "High complexity due to complex permission matrix, version control requirements, and role-based access patterns. Requires sophisticated authorization system and document versioning."
+		},
+		{
+			"taskId": "9.1",
+			"taskTitle": "Sprint 9.1: Bottom Navigation Implementation",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Create mobile bottom navigation: 1) Fixed bottom navigation component with 5 items, 2) Navigation state management and active indicators, 3) Special behaviors and scroll-based visibility. Focus on touch optimization, smooth transitions, and platform-specific considerations.",
+			"reasoning": "Moderate complexity focusing on mobile UI patterns and navigation state management. Well-established mobile patterns but requires careful implementation for smooth UX."
+		},
+		{
+			"taskId": "9.2",
+			"taskTitle": "Sprint 9.2: Dashboard Quick Menu System",
+			"complexityScore": 6,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Build customizable quick menu: 1) Grid layout system with expandable rows, 2) Drag-and-drop reordering functionality, 3) Menu item add/remove interface, 4) Preference persistence system. Include touch gesture handling, smooth animations, and state synchronization.",
+			"reasoning": "Moderate complexity involving drag-and-drop functionality and preference management. Requires careful handling of touch interactions and state persistence."
+		},
+		{
+			"taskId": "9.3",
+			"taskTitle": "Sprint 9.3: Today's Site Info Widget",
+			"complexityScore": 4,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Create site info widget: 1) Collapsible widget component with animations, 2) Site information display with action icons, 3) Integration with external apps (T-Map, phone). Focus on smooth animations, data formatting, and external app launching.",
+			"reasoning": "Lower complexity involving UI component creation with standard mobile patterns. Focuses on presentation and basic interactivity."
+		},
+		{
+			"taskId": "9.4",
+			"taskTitle": "Sprint 9.4: Announcements System",
+			"complexityScore": 5,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Implement announcements feature: 1) Announcement display system with collapsible UI, 2) Read/unread status tracking, 3) Push notification integration, 4) Archive and priority sorting functionality. Include notification permissions, background updates, and efficient data fetching.",
+			"reasoning": "Moderate complexity involving notifications and state management. Requires integration with push notification services and careful handling of read status synchronization."
+		},
+		{
+			"taskId": "2",
+			"taskTitle": "Phase 2: Material & Equipment Management",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down this task with a focus on phase 2: material & equipment management.",
+			"reasoning": "Automatically added due to missing analysis in AI response."
+		},
+		{
+			"taskId": "3",
+			"taskTitle": "Phase 3: Enhanced Features",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down this task with a focus on phase 3: enhanced features.",
+			"reasoning": "Automatically added due to missing analysis in AI response."
+		},
+		{
+			"taskId": "4",
+			"taskTitle": "Phase 4: Mobile Optimization & Offline Support",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down this task with a focus on phase 4: mobile optimization & offline support.",
+			"reasoning": "Automatically added due to missing analysis in AI response."
+		},
+		{
+			"taskId": "5",
+			"taskTitle": "Phase 5: Analytics & Performance",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down this task with a focus on phase 5: analytics & performance.",
+			"reasoning": "Automatically added due to missing analysis in AI response."
+		},
+		{
+			"taskId": "6",
+			"taskTitle": "Phase 6: Testing & Deployment",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down this task with a focus on phase 6: testing & deployment.",
+			"reasoning": "Automatically added due to missing analysis in AI response."
+		},
+		{
+			"taskId": "7",
+			"taskTitle": "Phase 1.5: Enhanced Daily Report Features",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down this task with a focus on phase 1.5: enhanced daily report features.",
+			"reasoning": "Automatically added due to missing analysis in AI response."
+		},
+		{
+			"taskId": "8",
+			"taskTitle": "Phase 2.5: Enhanced Attendance & Document Systems",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down this task with a focus on phase 2.5: enhanced attendance & document systems.",
+			"reasoning": "Automatically added due to missing analysis in AI response."
+		},
+		{
+			"taskId": "9",
+			"taskTitle": "Phase 3.5: Mobile-First UI Enhancement",
+			"complexityScore": 5,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down this task with a focus on phase 3.5: mobile-first ui enhancement.",
+			"reasoning": "Automatically added due to missing analysis in AI response."
+		}
+	]
+}

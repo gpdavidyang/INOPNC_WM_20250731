@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
+import { useFontSize,  getTypographyClass, getFullTypographyClass } from '@/contexts/FontSizeContext'
+import { useTouchMode } from '@/contexts/TouchModeContext'
 import { 
   Plus,
   Edit2,
@@ -43,6 +45,8 @@ interface MaterialCatalogProps {
 }
 
 export function MaterialCatalog({ materials, categories, searchQuery }: MaterialCatalogProps) {
+  const { isLargeFont } = useFontSize()
+  const { touchMode } = useTouchMode()
   const { toast } = useToast()
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set())
@@ -129,8 +133,9 @@ export function MaterialCatalog({ materials, categories, searchQuery }: Material
       } else {
         const result = await createMaterial({
           ...formData,
+          code: formData.material_code,
           unit_price: formData.unit_price ? parseFloat(formData.unit_price) : undefined
-        })
+        } as any)
         if (result.success) {
           toast({
             title: '자재 추가 완료',
@@ -301,7 +306,7 @@ export function MaterialCatalog({ materials, categories, searchQuery }: Material
                     </div>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                        <Button variant="ghost" size="compact" className="h-8 w-8 p-0">
                           <MoreVertical className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>

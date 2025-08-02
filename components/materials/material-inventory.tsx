@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
+import { useFontSize, getTypographyClass } from '@/contexts/FontSizeContext'
+import { useTouchMode } from '@/contexts/TouchModeContext'
 import { 
   Package,
   AlertTriangle,
@@ -33,10 +35,14 @@ import { Progress } from '@/components/ui/progress'
 
 interface MaterialInventoryProps {
   materials: any[]
+  initialInventory: any[]
+  currentUser: any
   searchQuery: string
 }
 
-export function MaterialInventory({ materials, searchQuery }: MaterialInventoryProps) {
+export function MaterialInventory({ materials, initialInventory, currentUser, searchQuery }: MaterialInventoryProps) {
+  const { isLargeFont } = useFontSize()
+  const { touchMode } = useTouchMode()
   const [selectedSite, setSelectedSite] = useState<string>('')
   const [sites, setSites] = useState<any[]>([])
   const [inventory, setInventory] = useState<any[]>([])
@@ -126,7 +132,7 @@ export function MaterialInventory({ materials, searchQuery }: MaterialInventoryP
           current_stock: parseFloat(stockData.current_stock),
           minimum_stock: stockData.minimum_stock ? parseFloat(stockData.minimum_stock) : undefined,
           maximum_stock: stockData.maximum_stock ? parseFloat(stockData.maximum_stock) : undefined
-        }
+        } as any
       )
 
       if (result.success) {
@@ -268,7 +274,7 @@ export function MaterialInventory({ materials, searchQuery }: MaterialInventoryP
                         </p>
                       </div>
                       <Button
-                        size="sm"
+                        size="compact"
                         variant="outline"
                         onClick={() => openUpdateDialog(item)}
                       >
@@ -345,7 +351,7 @@ export function MaterialInventory({ materials, searchQuery }: MaterialInventoryP
                   <Button
                     key={material.id}
                     variant="outline"
-                    size="sm"
+                    size="compact"
                     onClick={() => openUpdateDialog({ 
                       material_id: material.id, 
                       material,

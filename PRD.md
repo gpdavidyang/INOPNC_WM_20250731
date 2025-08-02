@@ -127,21 +127,55 @@ Provide a unified platform that eliminates paper-based workflows, improves data 
   - Customizable menu items (add/remove functionality)
   - Default items: 출력현황, 내문서함, 현장정보, 공도면
 - **Today's Site Info**: Collapsible section with:
-  - Site address with copy and T-Map navigation icons
-  - Process information (부재명, 작업공정, 작업구간) with drawing view icon
-  - Contact information for construction and safety managers
+  - Site address: Full address with copy icon and T-Map navigation icon
+  - Accommodation address: Full address with copy icon and T-Map navigation icon
+  - Process information:
+    - 부재명 (Member name): e.g., 슬라브, 기둥, 거더
+    - 작업공정 (Work process): e.g., 철근, 거푸집, 콘크리트
+    - 작업구간 (Work section): e.g., 3층 A구역
+    - Drawing view icon for related technical drawings
+  - Contact information:
+    - Construction manager: Name, title, phone with copy and call icons
+    - Safety manager: Name, title, phone with copy and call icons
 - **Announcements**: Collapsible section for headquarters notices
 
 #### 2.2 Navigation System
+
+##### Desktop Navigation
 - **Responsive Sidebar**: Collapsible navigation with role-filtered menu items
-  - General users (worker, site_manager, customer_manager): 홈, 출력현황, 작업일지, 현장정보, 내문서함, 공유문서함, 도면 마킹 도구, 내정보
-  - Admin users: 홈, 현장 관리, 사용자 관리, 공유 문서함 관리, 급여 관리, NPC-1000 자재 관리, 도면 마킹 관리, 그 외 관리자 메뉴, 시스템 관리, 내정보
-- **Mobile-Optimized**: Touch-friendly interface for mobile devices  
+  - General users (worker, site_manager, customer_manager): 홈, 출력현황, 작업일지, 현장정보, 내문서함, 공유문서함, **도면 마킹 도구** ✅, 내정보
+  - Admin users: 홈, 현장 관리, 사용자 관리, 공유 문서함 관리, 급여 관리, NPC-1000 자재 관리, **도면 마킹 관리** ✅, 그 외 관리자 메뉴, 시스템 관리, 내정보
 - **Tab-Based Content**: Clean organization of functional areas
 - **Breadcrumb Navigation**: Clear navigation hierarchy
-- **Bottom Navigation Bar**: Fixed bottom navigation for mobile with 5 main items:
-  - 홈(빠른메뉴), 출력현황, 작업일지, 공도면, 내문서함
-  - Special behavior for 공도면: Auto-filters shared documents by current site + '공도면' badge
+
+##### Mobile Navigation - Bottom Navigation Bar
+**Purpose**: Fixed bottom navigation for mobile devices providing quick access to primary functions
+
+**Menu Configuration**:
+| 순서 | 메뉴명 | 아이콘 | 동작 설명 |
+|------|--------|--------|-----------|
+| 1 | 홈(빠른메뉴) | Home | 홈 화면으로 이동, 빠른메뉴 섹션 표시 |
+| 2 | 출력현황 | Calendar | 출력현황 메뉴로 직접 이동 |
+| 3 | 작업일지 | FileText | 작업일지 목록 화면으로 이동 |
+| 4 | 공도면 | FileImage | 공유문서함의 공도면 필터링 결과 표시 |
+| 5 | 내문서함 | FolderOpen | 내문서함 메뉴로 직접 이동 |
+
+**Design Specifications**:
+- **Layout**: 5개 메뉴 균등 배치, 중앙 정렬
+- **Height**: iOS 56px (Safe Area 제외), Android 48px
+- **Background**: 기본 흰색 (#FFFFFF), 다크모드 대응
+- **Icons**: 24x24px, Outline/Filled 스타일
+- **Labels**: 10px 폰트, 아이콘 하단 4px 간격
+- **Colors**:
+  - 비활성: #666666
+  - 활성: Primary Color (#007AFF 또는 브랜드 컬러)
+
+**Special Features**:
+- **공도면 Auto-Filter**: 현재 사용자의 활성 현장으로 자동 필터링 + '공도면' badge 검색
+- **Safe Area Support**: iOS Home Indicator와 충돌 방지
+- **Touch Optimization**: 44x44px 최소 터치 영역
+- **Accessibility**: 스크린 리더 지원, 키보드 네비게이션
+- **Responsive**: 세로/가로 모드, 태블릿, 폴더블 디바이스 대응
 
 #### 2.3 Statistics and Metrics
 - **Daily Reports Count**: Today's submitted work reports
@@ -226,9 +260,14 @@ Provide a unified platform that eliminates paper-based workflows, improves data 
 - **일자**: 영수증 발행 날짜
 - **파일첨부**: 영수증 이미지/파일 첨부
 
-#### 7. 진행 도면 업로드 (접기/펼치기 가능)
+#### 7. 진행 도면 업로드 (접기/펼치기 가능) ✅ **구현완료**
 - 별도 화면의 '도면 마킹 도구'에서 생성된 마킹 도면 첨부
 - 자재구간, 작업완료, 작업진행 등이 표기된 도면 파일 선택 및 첨부
+- **구현 상태**: Canvas 기반 도면 마킹 시스템 완전 구현
+  - HTML5 Canvas 기반 고성능 그리기 도구
+  - 박스 마킹 (회색/빨간/파란), 텍스트, 펜 도구
+  - 완전한 문서 관리 시스템 (저장/불러오기/목록/삭제)
+  - 반응형 모바일/데스크톱 지원
 
 #### 8. 본사에게 요청 (접기/펼치기 가능)
 - **요청 내용**: 본사에게 요청하고 싶은 사항을 텍스트로 작성
@@ -318,21 +357,61 @@ Provide a unified platform that eliminates paper-based workflows, improves data 
 
 ### 모바일 특화 기능
 
-#### 1. 오프라인 모드
+#### 1. 하단 네비게이션 바 (Bottom Navigation Bar)
+**Fixed bottom navigation providing instant access to essential functions**
+
+##### 1.1 Interaction Design
+- **터치 피드백**: 
+  - Android: Material Design 리플 효과
+  - iOS: 배경색 하이라이트 변화
+  - 지속 시간: 200ms
+- **활성 상태 표시**:
+  - 아이콘 및 레이블 컬러 변경
+  - 선택적 연한 배경색 추가
+  - 상단/하단 2px 인디케이터 (선택적)
+- **전환 애니메이션**:
+  - 터치 시 95% 스케일 다운
+  - 페이드 인/아웃 효과 (300ms)
+
+##### 1.2 플랫폼별 대응
+**iOS 특화**:
+- Safe Area 대응: iPhone X 이상 34px 추가 여백
+- Home Indicator 충돌 방지
+- 스와이프 제스처와의 충돌 방지
+
+**Android 특화**:
+- 시스템 네비게이션 구분 (3버튼/제스처)
+- 뒤로 가기 버튼 연동
+- MaterialYou 테마 대응
+
+##### 1.3 성능 최적화
+- **렌더링**: 하드웨어 가속 활용
+- **메모리**: 아이콘 캐싱 시스템
+- **애니메이션**: 60fps 유지 보장
+- **터치 응답**: 즉각적인 피드백 (<16ms)
+
+#### 2. 오프라인 모드
 - **로컬 저장**: 네트워크 없이 작성 가능
 - **자동 동기화**: 네트워크 연결시 자동 업로드
 - **충돌 해결**: 버전 관리 및 병합 기능
 
-#### 2. 모바일 최적화
+#### 3. 모바일 최적화
 - **터치 UI**: 손가락 터치에 최적화된 입력 필드
 - **음성 입력**: 작업 내용 음성 입력 지원
 - **제스처**: 스와이프로 섹션 이동
 - **카메라 연동**: 즉시 사진 촬영 및 첨부
 
-#### 3. 위치 기반 서비스
+#### 4. 위치 기반 서비스
 - **GPS 태깅**: 작성 위치 자동 기록
 - **현장 인식**: GPS 기반 현장 자동 선택
 - **출퇴근 연동**: 작업일지 작성과 출퇴근 기록 연계
+
+#### 5. 모바일 접근성
+- **터치 영역**: Apple HIG 기준 44x44px 최소 크기 보장
+- **스크린 리더**: 전체 내비게이션 요소에 대한 접근성 레이블
+- **키보드 네비게이션**: Tab키를 통한 순차적 접근 지원
+- **다크모드**: 시스템 설정 자동 감지 및 대응
+- **폰트 크기**: 시스템 폰트 크기 설정 반영
 
 ### 4. Attendance and Time Management (출력현황)
 
@@ -430,30 +509,211 @@ Provide a unified platform that eliminates paper-based workflows, improves data 
 ### 6. Site and Project Information (현장정보)
 
 #### 6.1 Today's Site Information
-- **Site Address**:
-  - Full address display with copy icon
+##### Site Address Section
+- **Components**:
+  - Full address display
+  - Copy icon for clipboard copy
   - T-Map navigation link icon
-- **Accommodation Address**:
-  - Full address display with copy icon  
+- **Functions**:
+  - Address copy: Copy address to clipboard
+  - T-Map link: Launch T-Map app for navigation
+
+##### Accommodation Address Section
+- **Components**:
+  - Full address display
+  - Copy icon for clipboard copy  
   - T-Map navigation link icon
-- **Process Information**:
-  - 부재명 (Member name)
-  - 작업공정 (Work process)
-  - 작업구간 정보 (Work section details)
-  - View drawing icon for technical drawings
-- **Manager Contacts**:
-  - Construction manager phone with copy and call icons
-  - Safety manager phone with copy and call icons
+- **Functions**:
+  - Address copy: Copy address to clipboard
+  - T-Map link: Launch T-Map app for navigation
+
+##### Process Information Section
+- **Display Information**:
+  - 부재명 (Member name): e.g., 슬라브, 기둥, 거더
+  - 작업공정 (Work process): e.g., 철근, 거푸집, 콘크리트
+  - 작업구간 정보 (Work section): e.g., 3층 A구역
+- **Functions**:
+  - View drawing icon: Display related drawings in popup/new window
+
+##### Manager Contacts Section
+- **Construction Manager**:
+  - Name and title display
+  - Phone number
+  - Copy icon for number copy
+  - Phone icon for direct calling
+- **Safety Manager**:
+  - Name and title display
+  - Phone number
+  - Copy icon for number copy
+  - Phone icon for direct calling
+
+### 6A. Blueprint Markup Management System (도면 마킹 관리 시스템) ✅ **구현완료**
+
+#### 6A.1 System Overview
+A comprehensive Canvas-based blueprint markup and document management system designed for construction drawing annotation and collaboration.
+
+##### Key Features ✅
+- **HTML5 Canvas Drawing**: High-performance drawing interface optimized for construction blueprints
+- **Dual-View Architecture**: Seamless navigation between document library and markup editor
+- **Complete Document Lifecycle**: Upload, edit, save, organize, and delete markup documents
+- **Multi-Tool Support**: Box markings (3 colors), text annotations, pen drawing, and selection tools
+- **Professional Shortcuts**: Full keyboard shortcut support for power users
+- **Responsive Design**: Optimized for both mobile field use and desktop office work
+
+#### 6A.2 Document Management Interface ✅
+
+##### Document Library View (Default Landing)
+- **Grid Layout**: Visual document cards with thumbnails and metadata
+- **Smart Search**: Real-time search by document title and description
+- **Category Filtering**: Personal documents vs. shared site documents
+- **Pagination**: Efficient handling of large document collections
+- **Quick Actions**: One-click open, edit, or delete operations
+- **Document Metadata**: Creation date, markup count, file information
+
+#### 6A.3 Markup Editor Interface ✅
+
+##### Blueprint Upload System
+- **Drag & Drop Support**: Intuitive file upload with visual feedback
+- **File Format Support**: JPG, PNG, PDF with automatic processing
+- **Upload States**: Clear visual indicators for drag-over and processing states
+
+##### Drawing Tools and Interface
+- **Tool Palette Layout**:
+  - Desktop: Left sidebar with icon-based tools
+  - Mobile: Bottom toolbar with optimized touch targets
+- **Available Tools**:
+  - 회색 박스: General area marking
+  - 빨간 박스: Problem/attention area marking  
+  - 파란 박스: Completed/confirmed area marking
+  - 텍스트 도구: Text annotation placement
+  - 펜 도구: Freehand drawing
+  - 선택 도구: Object selection and manipulation
+
+##### Canvas Functionality
+- **High-Performance Rendering**: Optimized Canvas implementation for smooth drawing
+- **Zoom and Pan**: Ctrl+scroll wheel zoom, drag-to-pan navigation
+- **Precision Drawing**: Accurate mouse and touch input handling
+- **Object Manipulation**: Select, move, and modify existing markup objects
+
+#### 6A.4 Technical Implementation ✅
+
+##### Database Schema
+```sql
+markup_documents (
+  id, title, description, original_blueprint_url,
+  markup_data JSONB, location ('personal'|'shared'),
+  created_by, site_id, markup_count, created_at, updated_at
+)
+```
+
+##### API Endpoints
+- `GET /api/markup-documents` - List with pagination, search, filters
+- `POST /api/markup-documents` - Create new markup document
+- `GET /api/markup-documents/[id]` - Retrieve specific document
+- `PUT /api/markup-documents/[id]` - Update existing document
+- `DELETE /api/markup-documents/[id]` - Soft delete document
 
 #### 6.2 Site Search Functions
-- **Search Options**:
-  - Site name search (text input)
-  - Regional search (dropdown selection)
-  - Worker name search (text input)
-  - Date range search (date picker)
-- **Access**: All users (worker, site_manager, customer_manager) can view site information
+##### Search Filters
+1. **Site Name Search**
+   - Input type: Text field
+   - Auto-complete functionality
+   - Partial search support
+   
+2. **Regional Search**
+   - Input type: Dropdown selection
+   - Hierarchical structure: Province/City → District/County
+   - Multiple selection capability
+   
+3. **Worker Name Search**
+   - Input type: Text field
+   - Auto-complete functionality
+   - Search by name or ID
+   
+4. **Date Range Search**
+   - Input type: Date range picker
+   - Start date ~ End date
+   - Quick selection options: This week, This month, Last 3 months
 
-#### 6.3 Organization Structure
+##### Search Results Display
+- **List Format**:
+  - Site name
+  - Site address
+  - Construction period
+  - Current progress percentage
+  - Number of participants
+- **Sorting Options**:
+  - By site name
+  - By distance (from current location)
+  - By start date
+  - By progress percentage
+
+##### Access Control
+- **View Permission**: All users (A4, B4, C4) can view site information
+- **Restrictions**:
+  - Workers (A4): Only sites they participate in
+  - Site Managers (B4): Only sites they manage
+  - Partners (C4): Only contracted sites
+
+#### 6.3 UI/UX Guidelines for Site Information
+
+##### Layout Design
+###### Today's Site Section
+- **Card Format**: Group information in card-style containers
+- **Clear Separation**: Visual distinction between sections
+- **Collapsible Sections**: Expand/collapse functionality (optional)
+
+###### Site Search Section
+- **Search Filters**: Positioned at the top
+- **Search Results**: Displayed below filters
+- **Scrolling**: Infinite scroll or pagination for results
+
+##### Icons and Action Buttons
+###### Icon Styling
+- **Intuitive Icons**: Use recognizable icons for actions
+- **Touch Area**: Minimum 44x44px touch targets
+- **Feedback**: Hover/tap state visual feedback
+
+###### Action Button Behaviors
+- **Copy**: Display toast message for successful copy
+- **T-Map**: Check app installation before launching
+- **Phone**: Direct connection to phone app
+- **View Drawing**: Display in modal or new tab
+
+##### Responsive Design
+###### Mobile Layout
+- **Vertical Layout**: Single column scrollable design
+- **Touch Optimization**: Larger button sizes for touch
+- **Section Priority**: Most important information first
+
+###### Tablet/Desktop Layout
+- **Two-Column Layout**: Consider sidebar for filters
+- **Main Area**: Results display in primary content area
+- **Persistent Filters**: Keep search filters visible
+
+##### Empty State Handling
+- **No Results**: Clear message when no search results
+- **No Site Info**: Informative message when no site data
+- **Action Suggestions**: Provide relevant next actions
+
+#### 6.4 Technical Implementation
+
+##### Location-Based Services
+- **Location Permission**: Request current location access
+- **Distance Calculation**: Algorithm for site proximity
+- **Map API Integration**: Connection to mapping services
+
+##### External App Integration
+- **T-Map URL Scheme**: Deep linking to T-Map app
+- **Phone App Integration**: Direct calling functionality
+- **Drawing Viewer**: Integration with document viewer
+
+##### Data Caching Strategy
+- **Site Information Cache**: Local caching of frequently accessed data
+- **Offline Mode Support**: Access to cached data without network
+- **Synchronization**: Smart sync strategy for data updates
+
+#### 6.5 Organization Structure
 - **Multi-Level Hierarchy**: Head office, branch offices, departments
 - **Partner Management**: External company relationships
 - **Site Assignments**: Partner company assignments to specific sites
@@ -629,11 +889,25 @@ Supabase real-time subscriptions enable:
 - **Database Indexing**: Optimized queries with proper indexing
 - **Caching**: Client-side and server-side caching strategies
 
+#### Mobile Performance Requirements
+- **Bottom Navigation Bar Performance**:
+  - Hardware acceleration for rendering
+  - Icon caching with efficient memory management
+  - 60fps animation performance guarantee
+  - Touch response time under 16ms
+  - Load time optimization for mobile networks (3G/4G/5G)
+
 #### Scalability Features
 - **Horizontal Scaling**: Supabase auto-scaling database
 - **CDN Integration**: Global content distribution
 - **Edge Computing**: Serverless functions at edge locations
 - **Database Partitioning**: Large table partitioning for performance
+
+#### Mobile-Specific Optimizations
+- **Touch Interface**: Optimized for finger navigation with 44x44px minimum touch targets
+- **Network Resilience**: Offline capability with intelligent sync
+- **Battery Optimization**: Efficient rendering and reduced background processing
+- **Platform Integration**: Native-like performance through platform-specific optimizations
 
 ## User Flows
 
@@ -1028,6 +1302,11 @@ Supabase real-time subscriptions enable:
 
 #### Mobile Application
 - **Native Mobile Apps**: iOS and Android native applications
+- **Enhanced Bottom Navigation**: 
+  - Dynamic menu customization based on user role and preferences
+  - Context-aware menu items that adapt to current task
+  - Advanced gesture navigation (swipe between tabs)
+  - Haptic feedback integration for iOS and Android
 - **Offline Capability**: Offline data entry with sync capabilities
 - **Push Notifications**: Native mobile push notification support
 - **Camera Integration**: Photo and video capture for documentation

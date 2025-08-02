@@ -27,6 +27,8 @@ import {
 import { getSharedDocuments } from '@/app/actions/documents'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
+import { useFontSize,  getTypographyClass, getFullTypographyClass } from '@/contexts/FontSizeContext'
+import { useTouchMode } from '@/contexts/TouchModeContext'
 
 interface SharedDocumentsProps {
   profile: any
@@ -99,6 +101,8 @@ const sharedCategories = [
 ]
 
 export function SharedDocuments({ profile }: SharedDocumentsProps) {
+  const { isLargeFont } = useFontSize()
+  const { touchMode } = useTouchMode()
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [documents, setDocuments] = useState<SharedDocument[]>([])
   const [loading, setLoading] = useState(false)
@@ -172,11 +176,11 @@ export function SharedDocuments({ profile }: SharedDocumentsProps) {
       <div className="space-y-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <p className="text-sm text-gray-600">
+            <p className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-600`}>
               역할과 소속에 따라 접근 가능한 문서가 다를 수 있습니다.
             </p>
           </div>
-          <div className="flex items-center gap-2 text-sm">
+          <div className={`flex items-center gap-2 ${getFullTypographyClass('body', 'sm', isLargeFont)}`}>
             <Users className="h-4 w-4 text-gray-500" />
             <span className="text-gray-600">내 역할: </span>
             <Badge>{profile.role === 'admin' ? '관리자' : profile.role === 'site_manager' ? '현장소장' : '작업자'}</Badge>
@@ -184,12 +188,14 @@ export function SharedDocuments({ profile }: SharedDocumentsProps) {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {accessibleCategories.map((category) => {
+          {accessibleCategories.map((category: any) => {
             const Icon = category.icon
             return (
               <Card
                 key={category.id}
-                className="p-6 cursor-pointer hover:shadow-lg transition-shadow"
+                className={`${
+                  touchMode === 'glove' ? 'p-8' : touchMode === 'precision' ? 'p-4' : 'p-6'
+                } cursor-pointer hover:shadow-lg transition-shadow`}
                 onClick={() => setSelectedCategory(category.id)}
               >
                 <div className="flex items-start gap-4">
@@ -197,10 +203,10 @@ export function SharedDocuments({ profile }: SharedDocumentsProps) {
                     <Icon className="h-6 w-6" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900">{category.name}</h3>
-                    <p className="text-sm text-gray-600 mt-1">{category.description}</p>
+                    <h3 className={`${getFullTypographyClass('body', 'base', isLargeFont)} font-semibold text-gray-900`}>{category.name}</h3>
+                    <p className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-600 mt-1`}>{category.description}</p>
                     <div className="flex items-center justify-between mt-3">
-                      <div className="flex items-center text-sm text-gray-500">
+                      <div className={`flex items-center ${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-500`}>
                         <span>문서 보기</span>
                         <ChevronRight className="h-4 w-4 ml-1" />
                       </div>
@@ -224,7 +230,7 @@ export function SharedDocuments({ profile }: SharedDocumentsProps) {
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
-            size="sm"
+            size={touchMode === 'glove' ? 'standard' : touchMode === 'precision' ? 'compact' : 'compact'}
             onClick={() => setSelectedCategory(null)}
           >
             ← 뒤로
@@ -234,7 +240,7 @@ export function SharedDocuments({ profile }: SharedDocumentsProps) {
               <div className={`p-2 rounded-lg ${selectedCategoryInfo.color}`}>
                 <selectedCategoryInfo.icon className="h-5 w-5" />
               </div>
-              <h2 className="text-xl font-semibold">{selectedCategoryInfo.name}</h2>
+              <h2 className={`${getFullTypographyClass('heading', 'xl', isLargeFont)} font-semibold`}>{selectedCategoryInfo.name}</h2>
             </div>
           )}
         </div>
@@ -248,10 +254,17 @@ export function SharedDocuments({ profile }: SharedDocumentsProps) {
             placeholder="문서 검색..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+            className={`pl-10 ${
+              touchMode === 'glove' ? 'h-14 text-lg' : 
+              touchMode === 'precision' ? 'h-9 text-sm' : 
+              'h-10 text-base'
+            }`}
           />
         </div>
-        <Button variant="outline">
+        <Button 
+          variant="outline"
+          size={touchMode === 'glove' ? 'field' : touchMode === 'precision' ? 'compact' : 'standard'}
+        >
           <Filter className="h-4 w-4 mr-2" />
           필터
         </Button>
@@ -259,22 +272,26 @@ export function SharedDocuments({ profile }: SharedDocumentsProps) {
 
       {/* Document List */}
       {loading ? (
-        <div className="text-center py-12 text-gray-500">
+        <div className={`text-center py-12 ${getFullTypographyClass('body', 'base', isLargeFont)} text-gray-500`}>
           문서를 불러오는 중...
         </div>
       ) : filteredDocuments.length === 0 ? (
-        <Card className="p-12 text-center">
+        <Card className={`${
+          touchMode === 'glove' ? 'p-16' : touchMode === 'precision' ? 'p-8' : 'p-12'
+        } text-center`}>
           <FolderOpen className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-500">
+          <p className={`${getFullTypographyClass('body', 'base', isLargeFont)} text-gray-500`}>
             {searchTerm ? '검색 결과가 없습니다.' : '이 카테고리에 공유된 문서가 없습니다.'}
           </p>
         </Card>
       ) : (
         <div className="space-y-2">
-          {filteredDocuments.map((doc) => (
+          {filteredDocuments.map((doc: any) => (
             <Card
               key={doc.id}
-              className="p-4 hover:shadow-md transition-shadow"
+              className={`${
+                touchMode === 'glove' ? 'p-6' : touchMode === 'precision' ? 'p-3' : 'p-4'
+              } hover:shadow-md transition-shadow`}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
@@ -282,8 +299,8 @@ export function SharedDocuments({ profile }: SharedDocumentsProps) {
                     <FileText className="h-6 w-6 text-gray-600" />
                   </div>
                   <div>
-                    <h4 className="font-medium text-gray-900">{doc.name}</h4>
-                    <div className="flex items-center gap-4 mt-1 text-sm text-gray-500">
+                    <h4 className={`${getFullTypographyClass('body', 'base', isLargeFont)} font-medium text-gray-900`}>{doc.name}</h4>
+                    <div className={`flex items-center gap-4 mt-1 ${getFullTypographyClass('caption', 'sm', isLargeFont)} text-gray-500`}>
                       <span className="flex items-center gap-1">
                         <Clock className="h-3.5 w-3.5" />
                         {format(new Date(doc.uploadDate), 'yyyy.MM.dd', { locale: ko })}
@@ -306,14 +323,14 @@ export function SharedDocuments({ profile }: SharedDocumentsProps) {
                   {getAccessBadge(doc.accessLevel)}
                   <Button
                     variant="ghost"
-                    size="sm"
+                    size={touchMode === 'glove' ? 'standard' : touchMode === 'precision' ? 'compact' : 'compact'}
                     onClick={() => window.open(doc.url, '_blank')}
                   >
                     <Eye className="h-4 w-4" />
                   </Button>
                   <Button
                     variant="ghost"
-                    size="sm"
+                    size={touchMode === 'glove' ? 'standard' : touchMode === 'precision' ? 'compact' : 'compact'}
                     onClick={() => window.open(doc.url, '_blank')}
                   >
                     <Download className="h-4 w-4" />

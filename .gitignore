@@ -33,4 +33,31 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
+.tsbuildinfo
 next-env.d.ts
+breaking-changes-report.json
+
+# Logs
+logs
+*.log
+dev-debug.log
+# Dependency directories
+node_modules/
+# Environment variables
+.env
+# Editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+# OS specific
+
+# Task files
+tasks.json
+tasks/
+
+# Other repositories
+SuperClaude_Framework/ 

@@ -1,25 +1,51 @@
 {
-  "files.readonlyInclude": {
-    "**/lib/supabase/server.ts": true,
-    "**/lib/supabase/client.ts": true,
-    "**/middleware.ts": true,
-    "**/app/auth/actions.ts": true
-  },
-  "files.readonlyFromPermissions": true,
-  
-  // 파일 색상 커스터마이징
-  "workbench.colorCustomizations": {
-    "tab.inactiveBackground": "#ff000010",
-    "tab.inactiveForeground": "#ff0000aa"
-  },
-  
-  // 자동 포맷 비활성화 (중요 파일)
-  "editor.formatOnSave": true,
-  "[typescript]": {
-    "editor.formatOnSave": true
-  },
-  
-  // Git 변경사항 하이라이트
-  "git.decorations.enabled": true,
-  "scm.diffDecorations": "all"
+	"amp.mcpServers": {
+		"task-master-ai": {
+			"command": "npx",
+			"args": [
+				"-y",
+				"--package=task-master-ai",
+				"task-master-ai"
+			],
+			"env": {
+				"ANTHROPIC_API_KEY": "YOUR_ANTHROPIC_API_KEY_HERE",
+				"PERPLEXITY_API_KEY": "YOUR_PERPLEXITY_API_KEY_HERE",
+				"OPENAI_API_KEY": "YOUR_OPENAI_KEY_HERE",
+				"GOOGLE_API_KEY": "YOUR_GOOGLE_KEY_HERE",
+				"XAI_API_KEY": "YOUR_XAI_KEY_HERE",
+				"OPENROUTER_API_KEY": "YOUR_OPENROUTER_KEY_HERE",
+				"MISTRAL_API_KEY": "YOUR_MISTRAL_KEY_HERE",
+				"AZURE_OPENAI_API_KEY": "YOUR_AZURE_KEY_HERE",
+				"OLLAMA_API_KEY": "YOUR_OLLAMA_API_KEY_HERE"
+			}
+		}
+	},
+	"editor.codeActionsOnSave": {
+		"source.fixAll.eslint": "explicit",
+		"source.organizeImports": "explicit"
+	},
+	"eslint.validate": [
+		"javascript",
+		"javascriptreact",
+		"typescript",
+		"typescriptreact"
+	],
+	"typescript.tsdk": "node_modules/typescript/lib",
+	"typescript.enablePromptUseWorkspaceTsdk": true,
+	"typescript.preferences.includePackageJsonAutoImports": "on",
+	"search.useGlobalIgnoreFiles": true,
+	"search.exclude": {
+		"**/node_modules": true,
+		"**/.next": true,
+		"**/dist": true,
+		"**/.tsbuildinfo": true
+	},
+	"files.watcherExclude": {
+		"**/.git/objects/**": true,
+		"**/.git/subtree-cache/**": true,
+		"**/node_modules/**": true,
+		"**/.next/**": true
+	},
+	"typescript.tsserver.maxTsServerMemory": 8192,
+	"typescript.tsserver.experimental.enableProjectDiagnostics": true
 }

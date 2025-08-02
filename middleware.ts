@@ -71,14 +71,16 @@ export async function middleware(request: NextRequest) {
     const demoPaths = ['/mobile-demo', '/components']
     const isDemoPath = demoPaths.some(path => pathname.startsWith(path))
 
-    // Debug logging
-    console.log('Middleware:', {
-      pathname,
-      hasUser: !!user,
-      isPublicPath,
-      isDemoPath,
-      error: error?.message
-    })
+    // Debug logging - only log important events, not every request
+    if (error || (!user && !isPublicPath && !isDemoPath)) {
+      console.log('Middleware auth issue:', {
+        pathname,
+        hasUser: !!user,
+        isPublicPath,
+        isDemoPath,
+        error: error?.message
+      })
+    }
     
     // Skip auth check for demo pages
     if (isDemoPath) {

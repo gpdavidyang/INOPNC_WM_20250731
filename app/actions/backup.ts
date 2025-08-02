@@ -32,13 +32,13 @@ export async function getBackupConfigs(): Promise<{
     const supabase = createClient()
     
     const { data, error } = await supabase
-      .from('backup_configs')
+      .from('backup_configs' as any)
       .select('*')
       .order('created_at', { ascending: false })
     
     validateSupabaseResponse(data, error)
     
-    return { success: true, data: data as BackupConfig[] }
+    return { success: true, data: data as unknown as BackupConfig[] }
   } catch (error) {
     logError(error, 'getBackupConfigs')
     return { 
@@ -55,7 +55,7 @@ export async function createBackupConfig(
     const supabase = createClient()
     
     const { data, error } = await supabase
-      .from('backup_configs')
+      .from('backup_configs' as any)
       .insert(config)
       .select()
       .single()
@@ -68,7 +68,7 @@ export async function createBackupConfig(
       await scheduler.addSchedule({
         name: `${config.name} 스케줄`,
         cron_expression: config.schedule,
-        config_id: data.id,
+        config_id: (data as any)?.id,
         enabled: true,
         timezone: 'Asia/Seoul'
       })
@@ -76,7 +76,7 @@ export async function createBackupConfig(
     
     revalidatePath('/dashboard/admin/backup')
     
-    return { success: true, data: data as BackupConfig }
+    return { success: true, data: data as unknown as BackupConfig }
   } catch (error) {
     logError(error, 'createBackupConfig')
     return { 
@@ -94,7 +94,7 @@ export async function updateBackupConfig(
     const supabase = createClient()
     
     const { data, error } = await supabase
-      .from('backup_configs')
+      .from('backup_configs' as any)
       .update(updates)
       .eq('id', id)
       .select()
@@ -104,7 +104,7 @@ export async function updateBackupConfig(
     
     revalidatePath('/dashboard/admin/backup')
     
-    return { success: true, data: data as BackupConfig }
+    return { success: true, data: data as unknown as BackupConfig }
   } catch (error) {
     logError(error, 'updateBackupConfig')
     return { 
@@ -120,20 +120,20 @@ export async function deleteBackupConfig(id: string): Promise<{ success: boolean
     
     // First, remove any associated schedules
     const { data: schedules } = await supabase
-      .from('backup_schedules')
+      .from('backup_schedules' as any)
       .select('id')
       .eq('config_id', id)
     
     if (schedules) {
       const scheduler = getBackupScheduler()
       for (const schedule of schedules) {
-        await scheduler.removeSchedule(schedule.id)
+        await scheduler.removeSchedule((schedule as any).id)
       }
     }
     
     // Delete the config (CASCADE will handle related records)
     const { error } = await supabase
-      .from('backup_configs')
+      .from('backup_configs' as any)
       .delete()
       .eq('id', id)
     
@@ -180,7 +180,7 @@ export async function getBackupJobs(
     const supabase = createClient()
     
     let query = supabase
-      .from('backup_jobs')
+      .from('backup_jobs' as any)
       .select(`
         *,
         backup_configs(name)
@@ -199,7 +199,7 @@ export async function getBackupJobs(
     
     validateSupabaseResponse(data, error)
     
-    return { success: true, data: data as BackupJob[] }
+    return { success: true, data: data as unknown as BackupJob[] }
   } catch (error) {
     logError(error, 'getBackupJobs')
     return { 
@@ -218,7 +218,7 @@ export async function getBackupJob(jobId: string): Promise<{
     const supabase = createClient()
     
     const { data, error } = await supabase
-      .from('backup_jobs')
+      .from('backup_jobs' as any)
       .select(`
         *,
         backup_configs(name, description)
@@ -228,7 +228,7 @@ export async function getBackupJob(jobId: string): Promise<{
     
     validateSupabaseResponse(data, error)
     
-    return { success: true, data: data as BackupJob }
+    return { success: true, data: data as unknown as BackupJob }
   } catch (error) {
     logError(error, 'getBackupJob')
     return { 
@@ -265,24 +265,24 @@ export async function getBackupStats(): Promise<{
     
     // Get overall stats
     const { data: jobs, error: jobsError } = await supabase
-      .from('backup_jobs')
+      .from('backup_jobs' as any)
       .select('status, file_size, completed_at, started_at')
     
     validateSupabaseResponse(jobs, jobsError)
     
     const stats: BackupStats = {
-      total_backups: jobs.length,
-      successful_backups: jobs.filter(j => j.status === 'completed').length,
-      failed_backups: jobs.filter(j => j.status === 'failed').length,
-      total_size: jobs.reduce((sum, j) => sum + (j.file_size || 0), 0),
-      compressed_size: jobs.reduce((sum, j) => sum + (j.file_size || 0), 0), // Simplified
+      total_backups: jobs?.length || 0,
+      successful_backups: jobs?.filter((j: any) => j.status === 'completed').length || 0,
+      failed_backups: jobs?.filter((j: any) => j.status === 'failed').length || 0,
+      total_size: jobs?.reduce((sum: number, j: any) => sum + (j.file_size || 0), 0) || 0,
+      compressed_size: jobs?.reduce((sum: number, j: any) => sum + (j.file_size || 0), 0) || 0, // Simplified
       average_duration: 0
     }
     
     // Calculate average duration
-    const completedJobs = jobs.filter(j => j.status === 'completed' && j.started_at && j.completed_at)
+    const completedJobs = jobs?.filter((j: any) => j.status === 'completed' && j.started_at && j.completed_at) || []
     if (completedJobs.length > 0) {
-      const totalDuration = completedJobs.reduce((sum, j) => {
+      const totalDuration = completedJobs.reduce((sum: number, j: any) => {
         const start = new Date(j.started_at).getTime()
         const end = new Date(j.completed_at).getTime()
         return sum + (end - start)
@@ -291,14 +291,14 @@ export async function getBackupStats(): Promise<{
     }
     
     // Get latest and oldest backups
-    if (jobs.length > 0) {
+    if (jobs && jobs.length > 0) {
       const sortedJobs = jobs
-        .filter(j => j.status === 'completed')
-        .sort((a, b) => new Date(b.completed_at).getTime() - new Date(a.completed_at).getTime())
+        .filter((j: any) => j.status === 'completed')
+        .sort((a: any, b: any) => new Date(b.completed_at).getTime() - new Date(a.completed_at).getTime())
       
       if (sortedJobs.length > 0) {
-        stats.latest_backup = sortedJobs[0] as BackupJob
-        stats.oldest_backup = sortedJobs[sortedJobs.length - 1] as BackupJob
+        stats.latest_backup = sortedJobs[0] as unknown as BackupJob
+        stats.oldest_backup = sortedJobs[sortedJobs.length - 1] as unknown as BackupJob
       }
     }
     
@@ -321,7 +321,7 @@ export async function getBackupSchedules(): Promise<{
     const supabase = createClient()
     
     const { data, error } = await supabase
-      .from('backup_schedules')
+      .from('backup_schedules' as any)
       .select(`
         *,
         backup_configs(name, description)
@@ -330,7 +330,7 @@ export async function getBackupSchedules(): Promise<{
     
     validateSupabaseResponse(data, error)
     
-    return { success: true, data: data as BackupSchedule[] }
+    return { success: true, data: data as unknown as BackupSchedule[] }
   } catch (error) {
     logError(error, 'getBackupSchedules')
     return { 
@@ -354,7 +354,7 @@ export async function createBackupSchedule(
     // Get the created schedule
     const supabase = createClient()
     const { data, error } = await supabase
-      .from('backup_schedules')
+      .from('backup_schedules' as any)
       .select('*')
       .eq('id', result.id)
       .single()
@@ -363,7 +363,7 @@ export async function createBackupSchedule(
     
     revalidatePath('/dashboard/admin/backup')
     
-    return { success: true, data: data as BackupSchedule }
+    return { success: true, data: data as unknown as BackupSchedule }
   } catch (error) {
     logError(error, 'createBackupSchedule')
     return { 
@@ -426,7 +426,7 @@ export async function restoreBackup(
     
     // Create restore job record
     const { data, error } = await supabase
-      .from('backup_restore_jobs')
+      .from('backup_restore_jobs' as any)
       .insert({
         backup_job_id: request.backup_id,
         target_database: request.target_database,
@@ -444,18 +444,18 @@ export async function restoreBackup(
     // TODO: Implement actual restore logic
     // For now, just mark as completed for demo purposes
     await supabase
-      .from('backup_restore_jobs')
+      .from('backup_restore_jobs' as any)
       .update({
         status: 'completed',
         progress: 100,
         completed_at: new Date().toISOString(),
         restored_items: ['demo_restore']
       })
-      .eq('id', data.id)
+      .eq('id', (data as any)?.id)
     
     revalidatePath('/dashboard/admin/backup')
     
-    return { success: true, jobId: data.id }
+    return { success: true, jobId: (data as any)?.id }
   } catch (error) {
     logError(error, 'restoreBackup')
     return { 

@@ -255,7 +255,7 @@ export default function DailyReportList({
                 <div className="flex items-center gap-2 ml-4">
                   <Button
                     variant="ghost"
-                    size="sm"
+                    size="compact"
                     onClick={(e) => {
                       e.stopPropagation()
                       router.push(`/dashboard/daily-reports/${report.id}`)
@@ -265,7 +265,7 @@ export default function DailyReportList({
                   </Button>
                   <Button
                     variant="ghost"
-                    size="sm"
+                    size="compact"
                     onClick={(e) => {
                       e.stopPropagation()
                       // TODO: Implement download functionality
@@ -285,7 +285,7 @@ export default function DailyReportList({
         <div className="flex items-center justify-center gap-2">
           <Button
             variant="outline"
-            size="sm"
+            size="compact"
             onClick={() => setPage(page - 1)}
             disabled={page === 1}
           >
@@ -301,7 +301,7 @@ export default function DailyReportList({
                 <Button
                   key={pageNum}
                   variant={pageNum === page ? 'primary' : 'outline'}
-                  size="sm"
+                  size="compact"
                   onClick={() => setPage(pageNum)}
                   className="w-10"
                 >
@@ -313,7 +313,7 @@ export default function DailyReportList({
 
           <Button
             variant="outline"
-            size="sm"
+            size="compact"
             onClick={() => setPage(page + 1)}
             disabled={page === totalPages}
           >

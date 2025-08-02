@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import { Phone, Copy, Mail, User, Check, ChevronDown, ChevronUp } from 'lucide-react'
 import { ManagerContact } from '@/types/site-info'
+import { useFontSize, getTypographyClass , getFullTypographyClass } from '@/contexts/FontSizeContext'
+import { useTouchMode } from '@/contexts/TouchModeContext'
 
 interface ManagerContactsProps {
   managers: ManagerContact[]
@@ -15,6 +17,8 @@ export default function ManagerContacts({
   expanded = true,
   onExpandedChange 
 }: ManagerContactsProps) {
+  const { isLargeFont } = useFontSize()
+  const { touchMode } = useTouchMode()
   const [isExpanded, setIsExpanded] = useState(expanded)
   const [copiedField, setCopiedField] = useState<string | null>(null)
   const [showToast, setShowToast] = useState(false)
@@ -92,9 +96,11 @@ export default function ManagerContacts({
 
   if (managers.length === 0) {
     return (
-      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 text-center">
+      <div className={`bg-gray-50 dark:bg-gray-800 rounded-lg ${
+        touchMode === 'glove' ? 'p-8' : touchMode === 'precision' ? 'p-4' : 'p-6'
+      } text-center`}>
         <User className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-        <p className="text-sm text-gray-600 dark:text-gray-400">
+        <p className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-600 dark:text-gray-400`}>
           담당자 정보가 등록되지 않았습니다.
         </p>
       </div>
@@ -107,14 +113,16 @@ export default function ManagerContacts({
         {/* Header */}
         <button
           onClick={toggleExpanded}
-          className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors touch-manipulation"
+          className={`w-full ${
+            touchMode === 'glove' ? 'px-6 py-4' : touchMode === 'precision' ? 'px-3 py-2' : 'px-4 py-3'
+          } flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors touch-manipulation`}
         >
           <div className="flex items-center gap-3">
             <Phone className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-            <span className="font-medium text-gray-900 dark:text-gray-100">
+            <span className={`${getFullTypographyClass('body', 'base', isLargeFont)} font-medium text-gray-900 dark:text-gray-100`}>
               담당자 연락처
             </span>
-            <span className="text-sm text-gray-500 dark:text-gray-400">
+            <span className={`${getFullTypographyClass('caption', 'sm', isLargeFont)} text-gray-500 dark:text-gray-400`}>
               ({managers.length}명)
             </span>
           </div>
@@ -127,7 +135,9 @@ export default function ManagerContacts({
 
         {/* Content */}
         {isExpanded && (
-          <div className="p-4 pt-0 space-y-3 animate-in slide-in-from-top-1 duration-200">
+          <div className={`${
+            touchMode === 'glove' ? 'p-6 pt-0' : touchMode === 'precision' ? 'p-3 pt-0' : 'p-4 pt-0'
+          } space-y-3 animate-in slide-in-from-top-1 duration-200`}>
             {managers.map((manager: any) => (
               <ContactCard
                 key={`${manager.role}-${manager.name}`}
@@ -139,6 +149,8 @@ export default function ManagerContacts({
                 getInitials={getInitials}
                 getRoleLabel={getRoleLabel}
                 getRoleColor={getRoleColor}
+                isLargeFont={isLargeFont}
+                touchMode={touchMode}
               />
             ))}
           </div>
@@ -150,7 +162,7 @@ export default function ManagerContacts({
         <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-bottom-2 duration-200">
           <div className="bg-gray-900 dark:bg-gray-700 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2">
             <Check className="h-4 w-4" />
-            <span className="text-sm">{toastMessage}</span>
+            <span className={`${getFullTypographyClass('body', 'sm', isLargeFont)}`}>{toastMessage}</span>
           </div>
         </div>
       )}
@@ -168,6 +180,8 @@ interface ContactCardProps {
   getInitials: (name: string) => string
   getRoleLabel: (role: string) => string
   getRoleColor: (role: string) => string
+  isLargeFont: boolean
+  touchMode: string
 }
 
 function ContactCard({
@@ -178,10 +192,14 @@ function ContactCard({
   copiedField,
   getInitials,
   getRoleLabel,
-  getRoleColor
+  getRoleColor,
+  isLargeFont,
+  touchMode
 }: ContactCardProps) {
   return (
-    <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+    <div className={`bg-gray-50 dark:bg-gray-700/50 rounded-lg ${
+      touchMode === 'glove' ? 'p-6' : touchMode === 'precision' ? 'p-3' : 'p-4'
+    } hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors`}>
       <div className="flex items-start gap-3">
         {/* Avatar */}
         <div className="flex-shrink-0">
@@ -201,23 +219,27 @@ function ContactCard({
         {/* Contact Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <h4 className="font-medium text-gray-900 dark:text-gray-100">
+            <h4 className={`${getFullTypographyClass('body', 'base', isLargeFont)} font-medium text-gray-900 dark:text-gray-100`}>
               {manager.name}
             </h4>
-            <span className={`text-xs px-2 py-0.5 rounded-full ${getRoleColor(manager.role)}`}>
+            <span className={`${getFullTypographyClass('caption', 'xs', isLargeFont)} px-2 py-0.5 rounded-full ${getRoleColor(manager.role)}`}>
               {getRoleLabel(manager.role)}
             </span>
           </div>
 
           {/* Phone */}
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-sm text-gray-600 dark:text-gray-400">
+            <span className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-600 dark:text-gray-400`}>
               {manager.phone}
             </span>
             <div className="flex gap-1">
               <button
                 onClick={() => onCopy(manager.phone, `phone-${manager.role}`, '전화번호')}
-                className="p-1.5 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-all touch-manipulation min-w-[48px] min-h-[48px] flex items-center justify-center"
+                className={`p-1.5 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-all touch-manipulation ${
+                  touchMode === 'glove' ? 'min-w-[56px] min-h-[56px]' : 
+                  touchMode === 'precision' ? 'min-w-[44px] min-h-[44px]' : 
+                  'min-w-[48px] min-h-[48px]'
+                } flex items-center justify-center`}
                 title="전화번호 복사"
               >
                 {copiedField === `phone-${manager.role}` ? (
@@ -228,7 +250,11 @@ function ContactCard({
               </button>
               <button
                 onClick={() => onCall(manager.phone)}
-                className="p-1.5 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-all touch-manipulation min-w-[48px] min-h-[48px] flex items-center justify-center"
+                className={`p-1.5 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-all touch-manipulation ${
+                  touchMode === 'glove' ? 'min-w-[56px] min-h-[56px]' : 
+                  touchMode === 'precision' ? 'min-w-[44px] min-h-[44px]' : 
+                  'min-w-[48px] min-h-[48px]'
+                } flex items-center justify-center`}
                 title="전화 걸기"
               >
                 <Phone className="h-3.5 w-3.5" />
@@ -239,13 +265,17 @@ function ContactCard({
           {/* Email (if available) */}
           {manager.email && (
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600 dark:text-gray-400 truncate">
+              <span className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-600 dark:text-gray-400 truncate`}>
                 {manager.email}
               </span>
               <div className="flex gap-1">
                 <button
                   onClick={() => onCopy(manager.email!, `email-${manager.role}`, '이메일')}
-                  className="p-1.5 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-all touch-manipulation min-w-[48px] min-h-[48px] flex items-center justify-center"
+                  className={`p-1.5 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-all touch-manipulation ${
+                  touchMode === 'glove' ? 'min-w-[56px] min-h-[56px]' : 
+                  touchMode === 'precision' ? 'min-w-[44px] min-h-[44px]' : 
+                  'min-w-[48px] min-h-[48px]'
+                } flex items-center justify-center`}
                   title="이메일 복사"
                 >
                   {copiedField === `email-${manager.role}` ? (
@@ -256,7 +286,11 @@ function ContactCard({
                 </button>
                 <button
                   onClick={() => onEmail(manager.email!)}
-                  className="p-1.5 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-all touch-manipulation min-w-[48px] min-h-[48px] flex items-center justify-center"
+                  className={`p-1.5 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-all touch-manipulation ${
+                  touchMode === 'glove' ? 'min-w-[56px] min-h-[56px]' : 
+                  touchMode === 'precision' ? 'min-w-[44px] min-h-[44px]' : 
+                  'min-w-[48px] min-h-[48px]'
+                } flex items-center justify-center`}
                   title="이메일 보내기"
                 >
                   <Mail className="h-3.5 w-3.5" />

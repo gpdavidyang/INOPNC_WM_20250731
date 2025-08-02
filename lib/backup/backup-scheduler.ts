@@ -27,7 +27,7 @@ export class BackupScheduler {
   async initializeScheduler() {
     try {
       // Load existing schedules from database
-      const { data: schedules, error } = await this.supabase
+      const { data: schedules, error } = await (this.supabase as any)
         .from('backup_schedules')
         .select(`
           *,
@@ -81,7 +81,7 @@ export class BackupScheduler {
       }
 
       // Get backup configuration
-      const { data: config, error: configError } = await this.supabase
+      const { data: config, error: configError } = await (this.supabase as any)
         .from('backup_configs')
         .select('*')
         .eq('id', configId)
@@ -138,7 +138,7 @@ export class BackupScheduler {
       }
 
       // Get backup configuration
-      const { data: config, error: configError } = await this.supabase
+      const { data: config, error: configError } = await (this.supabase as any)
         .from('backup_configs')
         .select('*')
         .eq('id', configId)
@@ -319,7 +319,7 @@ export class BackupScheduler {
 
   private async createBackupJobRecord(config: BackupConfig, trigger: 'manual' | 'scheduled'): Promise<string | null> {
     try {
-      const { data, error } = await this.supabase
+      const { data, error } = await (this.supabase as any)
         .from('backup_jobs')
         .insert({
           config_id: config.id,
@@ -368,7 +368,7 @@ export class BackupScheduler {
         updates.metadata = metadata
       }
 
-      const { error } = await this.supabase
+      const { error } = await (this.supabase as any)
         .from('backup_jobs')
         .update(updates)
         .eq('id', jobId)
@@ -383,7 +383,7 @@ export class BackupScheduler {
 
   private async getLastBackupTime(configId: string): Promise<string> {
     try {
-      const { data, error } = await this.supabase
+      const { data, error } = await (this.supabase as any)
         .from('backup_jobs')
         .select('completed_at')
         .eq('config_id', configId)
@@ -407,7 +407,7 @@ export class BackupScheduler {
   private async updateScheduleLastRun(scheduleId: string) {
     try {
       const now = new Date()
-      const { error } = await this.supabase
+      const { error } = await (this.supabase as any)
         .from('backup_schedules')
         .update({
           last_run: now.toISOString(),
@@ -426,7 +426,7 @@ export class BackupScheduler {
   private calculateNextRun(scheduleId: string, from: Date): string {
     const job = this.scheduledJobs.get(scheduleId)
     if (job) {
-      return job.nextDate().toISOString()
+      return job.nextDate().toJSDate().toISOString()
     }
     return new Date(from.getTime() + 24 * 60 * 60 * 1000).toISOString() // Default: 24 hours
   }
@@ -445,7 +445,7 @@ export class BackupScheduler {
       }
 
       // Log validation result
-      const { error } = await this.supabase
+      const { error } = await (this.supabase as any)
         .from('backup_jobs')
         .update({
           metadata: {
@@ -478,7 +478,7 @@ export class BackupScheduler {
       cutoffDate.setDate(cutoffDate.getDate() - config.retention_days)
 
       // Get old backup jobs
-      const { data: oldJobs, error } = await this.supabase
+      const { data: oldJobs, error } = await (this.supabase as any)
         .from('backup_jobs')
         .select('id, file_path')
         .eq('config_id', config.id)
@@ -500,7 +500,7 @@ export class BackupScheduler {
           }
 
           // Delete database record
-          await this.supabase
+          await (this.supabase as any)
             .from('backup_jobs')
             .delete()
             .eq('id', job.id)
@@ -517,7 +517,7 @@ export class BackupScheduler {
 
   async addSchedule(schedule: Omit<BackupSchedule, 'id' | 'last_run' | 'next_run'>): Promise<{ success: boolean; id?: string; error?: string }> {
     try {
-      const { data, error } = await this.supabase
+      const { data, error } = await (this.supabase as any)
         .from('backup_schedules')
         .insert({
           ...schedule,
@@ -551,12 +551,12 @@ export class BackupScheduler {
       // Stop cron job
       const job = this.scheduledJobs.get(scheduleId)
       if (job) {
-        job.destroy()
+        job.stop()
         this.scheduledJobs.delete(scheduleId)
       }
 
       // Delete from database
-      const { error } = await this.supabase
+      const { error } = await (this.supabase as any)
         .from('backup_schedules')
         .delete()
         .eq('id', scheduleId)
@@ -579,7 +579,7 @@ export class BackupScheduler {
   private parseNextRun(cronExpression: string, timezone: string): string {
     try {
       const job = new CronJob(cronExpression, () => {}, null, false, timezone)
-      return job.nextDate().toISOString()
+      return job.nextDate().toJSDate().toISOString()
     } catch (error) {
       logError(error, 'parseNextRun')
       return new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // Default: 24 hours
@@ -593,7 +593,7 @@ export class BackupScheduler {
   async cancelJob(jobId: string): Promise<{ success: boolean; error?: string }> {
     try {
       // Update job status to cancelled
-      const { error } = await this.supabase
+      const { error } = await (this.supabase as any)
         .from('backup_jobs')
         .update({
           status: 'cancelled',

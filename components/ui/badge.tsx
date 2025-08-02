@@ -1,9 +1,13 @@
+'use client'
+
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
+import { useFontSize, getTypographyClass , getFullTypographyClass } from '@/contexts/FontSizeContext'
+import { useTouchMode } from '@/contexts/TouchModeContext'
 
 const badgeVariants = cva(
-  "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+  "inline-flex items-center rounded-full font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
   {
     variants: {
       variant: {
@@ -19,9 +23,15 @@ const badgeVariants = cva(
           "border-transparent bg-red-100 text-red-800",
         outline: "text-toss-gray-900 border border-toss-gray-200",
       },
+      touchMode: {
+        normal: "px-2.5 py-0.5",
+        glove: "px-3 py-1",
+        precision: "px-2 py-0.25"
+      }
     },
     defaultVariants: {
       variant: "default",
+      touchMode: "normal"
     },
   }
 )
@@ -31,8 +41,18 @@ export interface BadgeProps
     VariantProps<typeof badgeVariants> {}
 
 function Badge({ className, variant, ...props }: BadgeProps) {
+  const { isLargeFont } = useFontSize()
+  const { touchMode } = useTouchMode()
+  
   return (
-    <div className={cn(badgeVariants({ variant }), className)} {...props} />
+    <div 
+      className={cn(
+        badgeVariants({ variant, touchMode }), 
+        getFullTypographyClass('caption', 'xs', isLargeFont),
+        className
+      )} 
+      {...props} 
+    />
   )
 }
 

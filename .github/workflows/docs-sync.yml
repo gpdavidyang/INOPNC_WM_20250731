@@ -1,0 +1,46 @@
+name: 문서 동기화 검증
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'USER_CUSTOMIZATIONS.md'
+      - 'PRD.md'
+      - 'DOCUMENT_SYNC_STRATEGY.md'
+  
+  schedule:
+    # 매일 오전 9시 (UTC)에 문서 동기화 상태 확인
+    - cron: '0 9 * * *'
+
+  workflow_dispatch:
+    # 수동 실행 가능
+
+jobs:
+  docs-sync:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout 코드
+      uses: actions/checkout@v4
+      
+    - name: Node.js 설정
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: 의존성 설치
+      run: npm ci
+      
+    - name: 문서 동기화 검증
+      run: npm run docs:verify
+      
+    - name: 문서 불일치 보고
+      if: failure()
+      run: |
+        echo "## 📋 문서 동기화 실패" >> $GITHUB_STEP_SUMMARY
+        echo "문서 간 불일치가 발견되었습니다." >> $GITHUB_STEP_SUMMARY
+        echo "다음 명령어로 수동 동기화를 수행하세요:" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+        echo "npm run docs:sync" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY

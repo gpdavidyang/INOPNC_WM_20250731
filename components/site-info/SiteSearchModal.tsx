@@ -5,6 +5,8 @@ import { X, Search, Clock, MapPin, Building2, ChevronRight } from 'lucide-react'
 import { SiteSearchResult } from '@/types/site-info'
 import { createClient } from '@/lib/supabase/client'
 import { debounce } from 'lodash'
+import { useFontSize, getTypographyClass , getFullTypographyClass } from '@/contexts/FontSizeContext'
+import { useTouchMode } from '@/contexts/TouchModeContext'
 
 interface SiteSearchModalProps {
   isOpen: boolean
@@ -22,6 +24,8 @@ export default function SiteSearchModal({
   onSelectSite,
   currentSiteId
 }: SiteSearchModalProps) {
+  const { isLargeFont } = useFontSize()
+  const { touchMode } = useTouchMode()
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<SiteSearchResult[]>([])
   const [recentSites, setRecentSites] = useState<SiteSearchResult[]>([])
@@ -62,7 +66,7 @@ export default function SiteSearchModal({
 
         if (error) throw error
 
-        const formattedSites = data?.map(site => ({
+        const formattedSites = data?.map((site: any) => ({
           id: (site as any).id,
           name: (site as any).name,
           address: (site as any).full_address?.[0]?.full_address || '주소 정보 없음',
@@ -80,7 +84,7 @@ export default function SiteSearchModal({
 
         // Sort by the order in recentIds to maintain recency
         const sortedSites = recentIds
-          .map(id => formattedSites.find(site => site.id === id))
+          .map(id => formattedSites.find((site: any) => site.id === id))
           .filter(Boolean) as SiteSearchResult[]
 
         setRecentSites(sortedSites.slice(0, RECENT_SITES_LIMIT))
@@ -122,7 +126,7 @@ export default function SiteSearchModal({
 
         if (error) throw error
 
-        const formattedResults = data?.map(site => ({
+        const formattedResults = data?.map((site: any) => ({
           id: (site as any).id,
           name: (site as any).name,
           address: (site as any).full_address?.[0]?.full_address || '주소 정보 없음',
@@ -209,14 +213,18 @@ export default function SiteSearchModal({
       <div className="relative min-h-screen flex items-center justify-center p-4">
         <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-2xl max-h-[80vh] overflow-hidden">
           {/* Header */}
-          <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4">
+          <div className={`sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 ${
+            touchMode === 'glove' ? 'p-6' : touchMode === 'precision' ? 'p-3' : 'p-4'
+          }`}>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+              <h2 className={`${getFullTypographyClass('heading', 'xl', isLargeFont)} font-semibold text-gray-900 dark:text-gray-100`}>
                 현장 검색
               </h2>
               <button
                 onClick={onClose}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                className={`${
+                  touchMode === 'glove' ? 'p-3' : touchMode === 'precision' ? 'p-1.5' : 'p-2'
+                } hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors`}
               >
                 <X className="h-5 w-5 text-gray-500" />
               </button>
@@ -231,7 +239,9 @@ export default function SiteSearchModal({
                 value={searchQuery}
                 onChange={handleSearchChange}
                 placeholder="현장명으로 검색..."
-                className="w-full pl-10 pr-10 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
+                className={`w-full pl-10 pr-10 ${
+                  touchMode === 'glove' ? 'py-4 text-lg' : touchMode === 'precision' ? 'py-2 text-sm' : 'py-3 text-base'
+                } bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400`}
               />
               {searchQuery && (
                 <button
@@ -251,22 +261,24 @@ export default function SiteSearchModal({
               <div className="p-8 text-center">
                 <div className="inline-flex items-center gap-2 text-gray-500">
                   <div className="animate-spin rounded-full h-5 w-5 border-2 border-gray-300 border-t-blue-500" />
-                  <span>검색 중...</span>
+                  <span className={getFullTypographyClass('body', 'base', isLargeFont)}>검색 중...</span>
                 </div>
               </div>
             )}
 
             {/* Error State */}
             {error && (
-              <div className="p-4 m-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                <p className="text-sm text-red-800 dark:text-red-200">{error}</p>
+              <div className={`${
+                touchMode === 'glove' ? 'p-6 m-6' : touchMode === 'precision' ? 'p-3 m-3' : 'p-4 m-4'
+              } bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg`}>
+                <p className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-red-800 dark:text-red-200`}>{error}</p>
               </div>
             )}
 
             {/* Recent Sites */}
             {!searchQuery && recentSites.length > 0 && (
-              <div className="p-4">
-                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+              <div className={touchMode === 'glove' ? 'p-6' : touchMode === 'precision' ? 'p-3' : 'p-4'}>
+                <h3 className={`${getFullTypographyClass('body', 'sm', isLargeFont)} font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2`}>
                   <Clock className="h-4 w-4" />
                   최근 방문한 현장
                 </h3>
@@ -277,6 +289,8 @@ export default function SiteSearchModal({
                       site={site}
                       onSelect={() => handleSelectSite(site)}
                       isCurrentSite={site.id === currentSiteId}
+                      isLargeFont={isLargeFont}
+                      touchMode={touchMode}
                     />
                   ))}
                 </div>
@@ -285,8 +299,8 @@ export default function SiteSearchModal({
 
             {/* Search Results */}
             {searchQuery && !loading && searchResults.length > 0 && (
-              <div className="p-4">
-                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+              <div className={touchMode === 'glove' ? 'p-6' : touchMode === 'precision' ? 'p-3' : 'p-4'}>
+                <h3 className={`${getFullTypographyClass('body', 'sm', isLargeFont)} font-medium text-gray-700 dark:text-gray-300 mb-3`}>
                   검색 결과 ({searchResults.length}개)
                 </h3>
                 <div className="space-y-2">
@@ -296,6 +310,8 @@ export default function SiteSearchModal({
                       site={site}
                       onSelect={() => handleSelectSite(site)}
                       isCurrentSite={site.id === currentSiteId}
+                      isLargeFont={isLargeFont}
+                      touchMode={touchMode}
                     />
                   ))}
                 </div>
@@ -305,7 +321,7 @@ export default function SiteSearchModal({
             {/* No Results */}
             {searchQuery && !loading && searchResults.length === 0 && (
               <div className="p-8 text-center">
-                <p className="text-gray-500 dark:text-gray-400">
+                <p className={`${getFullTypographyClass('body', 'base', isLargeFont)} text-gray-500 dark:text-gray-400`}>
                   &quot;{searchQuery}&quot;에 대한 검색 결과가 없습니다.
                 </p>
               </div>
@@ -315,7 +331,7 @@ export default function SiteSearchModal({
             {!searchQuery && recentSites.length === 0 && !loading && (
               <div className="p-8 text-center">
                 <Building2 className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-                <p className="text-gray-500 dark:text-gray-400">
+                <p className={`${getFullTypographyClass('body', 'base', isLargeFont)} text-gray-500 dark:text-gray-400`}>
                   현장을 검색해주세요
                 </p>
               </div>
@@ -332,9 +348,11 @@ interface SiteCardProps {
   site: SiteSearchResult
   onSelect: () => void
   isCurrentSite?: boolean
+  isLargeFont: boolean
+  touchMode: string
 }
 
-function SiteCard({ site, onSelect, isCurrentSite }: SiteCardProps) {
+function SiteCard({ site, onSelect, isCurrentSite, isLargeFont, touchMode }: SiteCardProps) {
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('ko-KR', {
       year: 'numeric',
@@ -347,7 +365,9 @@ function SiteCard({ site, onSelect, isCurrentSite }: SiteCardProps) {
     <button
       onClick={onSelect}
       disabled={isCurrentSite}
-      className={`w-full text-left p-4 rounded-lg border transition-all ${
+      className={`w-full text-left ${
+        touchMode === 'glove' ? 'p-6' : touchMode === 'precision' ? 'p-3' : 'p-4'
+      } rounded-lg border transition-all ${
         isCurrentSite
           ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 cursor-default'
           : 'bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
@@ -356,20 +376,20 @@ function SiteCard({ site, onSelect, isCurrentSite }: SiteCardProps) {
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">
-            <h4 className="font-medium text-gray-900 dark:text-gray-100">
+            <h4 className={`${getFullTypographyClass('body', 'base', isLargeFont)} font-medium text-gray-900 dark:text-gray-100`}>
               {site.name}
             </h4>
             {isCurrentSite && (
-              <span className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-200 rounded">
+              <span className={`${getFullTypographyClass('caption', 'xs', isLargeFont)} px-2 py-1 bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-200 rounded`}>
                 현재 현장
               </span>
             )}
           </div>
-          <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400 mb-2">
+          <div className={`flex items-center gap-1 ${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-600 dark:text-gray-400 mb-2`}>
             <MapPin className="h-3 w-3" />
             <span>{site.address}</span>
           </div>
-          <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+          <div className={`flex items-center gap-4 ${getFullTypographyClass('caption', 'xs', isLargeFont)} text-gray-500 dark:text-gray-400`}>
             <span>
               {formatDate(site.construction_period.start_date)} ~ {formatDate(site.construction_period.end_date)}
             </span>

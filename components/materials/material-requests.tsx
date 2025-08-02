@@ -41,9 +41,10 @@ import { ko } from 'date-fns/locale'
 
 interface MaterialRequestsProps {
   materials: any[]
+  currentUser: any
 }
 
-export function MaterialRequests({ materials }: MaterialRequestsProps) {
+export function MaterialRequests({ materials, currentUser }: MaterialRequestsProps) {
   const [requests, setRequests] = useState<any[]>([])
   const [sites, setSites] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
@@ -178,8 +179,7 @@ export function MaterialRequests({ materials }: MaterialRequestsProps) {
       const { data: { user } } = await (await fetch('/api/auth/user')).json()
       
       const result = await createMaterialRequest({
-        ...requestForm,
-        requested_by: user?.id || ''
+        ...requestForm
       })
 
       if (result.success) {
@@ -384,14 +384,14 @@ export function MaterialRequests({ materials }: MaterialRequestsProps) {
                   {request.status === 'pending' && (
                     <div className="flex gap-2 justify-end">
                       <Button
-                        size="sm"
+                        size="compact"
                         variant="outline"
                         onClick={() => handleStatusUpdate(request.id, 'rejected', '재고 충분')}
                       >
                         반려
                       </Button>
                       <Button
-                        size="sm"
+                        size="compact"
                         onClick={() => handleStatusUpdate(request.id, 'approved')}
                       >
                         승인
@@ -402,7 +402,7 @@ export function MaterialRequests({ materials }: MaterialRequestsProps) {
                   {request.status === 'approved' && (
                     <div className="flex justify-end">
                       <Button
-                        size="sm"
+                        size="compact"
                         onClick={() => handleStatusUpdate(request.id, 'ordered')}
                       >
                         발주 완료
@@ -413,7 +413,7 @@ export function MaterialRequests({ materials }: MaterialRequestsProps) {
                   {request.status === 'ordered' && (
                     <div className="flex justify-end">
                       <Button
-                        size="sm"
+                        size="compact"
                         onClick={() => handleStatusUpdate(request.id, 'delivered')}
                       >
                         입고 완료
@@ -514,7 +514,7 @@ export function MaterialRequests({ materials }: MaterialRequestsProps) {
                     <Button
                       type="button"
                       variant="outline"
-                      size="sm"
+                      size="compact"
                       onClick={() => removeRequestItem(index)}
                     >
                       <XCircle className="h-4 w-4" />
@@ -524,7 +524,7 @@ export function MaterialRequests({ materials }: MaterialRequestsProps) {
                 <Button
                   type="button"
                   variant="outline"
-                  size="sm"
+                  size="compact"
                   onClick={addRequestItem}
                   className="w-full"
                 >

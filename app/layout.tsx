@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/providers/auth-provider";
-import { ThemeProvider } from "@/providers/theme-provider";
-import { FontSizeProvider } from "@/providers/font-size-provider";
+import { ErrorBoundary } from "@/components/error-boundary";
+import { FontSizeProvider } from "@/contexts/FontSizeContext";
+import { TouchModeProvider } from "@/contexts/TouchModeContext";
+import { Toaster } from 'sonner';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -18,15 +20,28 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko" suppressHydrationWarning>
+    <html lang="ko">
       <body className={inter.className}>
-        <ThemeProvider defaultTheme="light">
+        <ErrorBoundary>
           <FontSizeProvider>
-            <AuthProvider>
-              {children}
-            </AuthProvider>
+            <TouchModeProvider>
+              <AuthProvider>
+                {children}
+                <Toaster 
+                  position="top-right"
+                  richColors
+                  closeButton
+                  toastOptions={{
+                    duration: 4000,
+                    style: {
+                      borderRadius: '8px',
+                    }
+                  }}
+                />
+              </AuthProvider>
+            </TouchModeProvider>
           </FontSizeProvider>
-        </ThemeProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );

@@ -93,13 +93,13 @@ export async function getCompanySalarySummary(params: {
       status: Math.random() > 0.7 ? 'pending' : 'paid'
     }))
     
-    const totalAmount = details.reduce((sum, d) => sum + d.net_salary, 0)
+    const totalAmount = details.reduce((sum: any, d: any) => sum + d.net_salary, 0)
     const pendingAmount = details
       .filter(d => d.status === 'pending')
-      .reduce((sum, d) => sum + d.net_salary, 0)
+      .reduce((sum: any, d: any) => sum + d.net_salary, 0)
     const paidAmount = details
       .filter(d => d.status === 'paid')
-      .reduce((sum, d) => sum + d.net_salary, 0)
+      .reduce((sum: any, d: any) => sum + d.net_salary, 0)
 
     return { 
       success: true, 

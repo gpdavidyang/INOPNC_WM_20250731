@@ -183,7 +183,7 @@ export default function TaskList({ currentUser, currentProfile, tasks, projects,
                   작업이 없습니다.
                 </li>
               ) : (
-                filteredTasks.map((task) => (
+                filteredTasks.map((task: any) => (
                   <li key={task.id}>
                     <div className="px-4 py-4 sm:px-6">
                       <div className="flex items-center justify-between">

@@ -15,8 +15,7 @@ import { Separator } from "@/components/ui/separator"
 import { NavBar } from "@/components/ui/navbar"
 import { BottomNavigation } from "@/components/ui/bottom-navigation"
 import { Footer, SimpleFooter } from "@/components/ui/footer"
-import { ThemeToggle } from "@/components/ui/theme-toggle"
-import { Calendar, CheckCircle, AlertCircle, XCircle, Home, Settings, User, Menu, FileText, Users, Bell, BarChart } from "lucide-react"
+import { Calendar, CheckCircle, AlertCircle, XCircle, Home, Settings, User, Menu, FileText, Users, Bell, BarChart, FileImage, FolderOpen } from "lucide-react"
 import { useState } from "react"
 
 export default function ComponentsPage() {
@@ -45,14 +44,42 @@ export default function ComponentsPage() {
     { label: "보고서", href: "/reports", icon: <BarChart className="h-4 w-4" /> }
   ]
 
-  // Bottom Navigation demo data
+  // Bottom Navigation demo data - PRD 사양에 맞게 업데이트
   const bottomNavItems = [
-    { label: "홈", href: "/", icon: <Home /> },
-    { label: "작업일지", href: "/worklogs", icon: <FileText />, badge: 3 },
-    { label: "현장", href: "/sites", icon: <Calendar /> },
-    { label: "알림", href: "/notifications", icon: <Bell />, badge: 5 },
-    { label: "내정보", href: "/profile", icon: <User /> }
+    { 
+      label: "홈(빠른메뉴)", 
+      href: "/dashboard", 
+      icon: <Home /> 
+    },
+    { 
+      label: "출력현황", 
+      href: "/dashboard/attendance", 
+      icon: <Calendar /> 
+    },
+    { 
+      label: "작업일지", 
+      href: "/dashboard/daily-reports", 
+      icon: <FileText />, 
+      badge: 3 
+    },
+    { 
+      label: "공도면", 
+      href: "/dashboard/shared-documents", 
+      icon: <FileImage />,
+      specialAction: 'filter-blueprint' as const
+    },
+    { 
+      label: "내문서함", 
+      href: "/dashboard/my-documents", 
+      icon: <FolderOpen /> 
+    }
   ]
+
+  // Demo user data for 공도면 특수 동작
+  const demoUser = {
+    id: "demo-user",
+    active_site_id: "site-gangnam-a"
+  }
 
   // Footer demo data
   const footerSections = [
@@ -112,12 +139,24 @@ export default function ComponentsPage() {
 
         {/* Mobile Bottom Navigation Demo */}
         <Container>
-          <Text size="sm" color="muted" className="mb-4">모바일 하단 내비게이션 (모바일 화면에서 확인)</Text>
-          <div className="relative border border-toss-gray-200 dark:border-toss-gray-700 rounded-lg overflow-hidden">
-            <div className="h-96 bg-toss-gray-50 dark:bg-toss-gray-800 flex items-center justify-center">
-              <Text color="muted">모바일 콘텐츠 영역</Text>
+          <div className="space-y-4">
+            <div>
+              <Text size="sm" color="muted" className="mb-2">모바일 하단 내비게이션 - PRD 사양 적용</Text>
+              <div className="text-xs text-gray-600 space-y-1">
+                <p>• PRD 메뉴 구성: 홈(빠른메뉴), 출력현황, 작업일지, 공도면, 내문서함</p>
+                <p>• 공도면 특수 동작: 활성 현장으로 자동 필터링</p>
+                <p>• 디자인: 44x44px 터치 영역, 24x24px 아이콘, 10px 폰트</p>
+              </div>
             </div>
-            <BottomNavigation items={bottomNavItems} />
+            <div className="relative border border-toss-gray-200 dark:border-toss-gray-700 rounded-lg overflow-hidden">
+              <div className="h-96 bg-toss-gray-50 dark:bg-toss-gray-800 flex items-center justify-center">
+                <div className="text-center">
+                  <Text color="muted" className="mb-2">모바일 콘텐츠 영역</Text>
+                  <Text size="xs" color="muted">공도면 버튼 클릭 시 현장 ID &quot;{demoUser.active_site_id}&quot;로 자동 필터링</Text>
+                </div>
+              </div>
+              <BottomNavigation items={bottomNavItems} currentUser={demoUser} />
+            </div>
           </div>
         </Container>
       </section>
@@ -133,7 +172,6 @@ export default function ComponentsPage() {
               Toss 디자인 시스템 기반 건설 작업일지 UI 컴포넌트
             </Text>
           </div>
-          <ThemeToggle />
         </div>
       </div>
 
@@ -189,9 +227,9 @@ export default function ComponentsPage() {
           <div>
             <Text size="sm" color="muted" className="mb-2">버튼 크기</Text>
             <div className="flex flex-wrap items-center gap-3">
-              <Button size="sm">Small</Button>
-              <Button size="md">Medium</Button>
-              <Button size="lg">Large</Button>
+              <Button size="compact">Compact</Button>
+              <Button size="standard">Standard</Button>
+              <Button size="field">Field</Button>
             </div>
           </div>
 
@@ -206,7 +244,7 @@ export default function ComponentsPage() {
           <div>
             <Text size="sm" color="muted" className="mb-2">아이콘 버튼</Text>
             <div className="flex flex-wrap gap-3">
-              <Button size="sm">
+              <Button size="compact">
                 <Home className="mr-2 h-4 w-4" />
                 홈으로
               </Button>
@@ -214,7 +252,7 @@ export default function ComponentsPage() {
                 <Settings className="mr-2 h-4 w-4" />
                 설정
               </Button>
-              <Button variant="ghost" size="sm">
+              <Button variant="ghost" size="compact">
                 <Menu className="h-4 w-4" />
               </Button>
             </div>

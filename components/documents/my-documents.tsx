@@ -28,6 +28,8 @@ import {
 import { getMyDocuments, uploadDocument, deleteDocument } from '@/app/actions/documents'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
+import { useFontSize,  getTypographyClass, getFullTypographyClass } from '@/contexts/FontSizeContext'
+import { useTouchMode } from '@/contexts/TouchModeContext'
 
 interface MyDocumentsProps {
   profile: any
@@ -91,6 +93,8 @@ const documentCategories = [
 ]
 
 export function MyDocuments({ profile }: MyDocumentsProps) {
+  const { isLargeFont } = useFontSize()
+  const { touchMode } = useTouchMode()
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [documents, setDocuments] = useState<Document[]>([])
   const [loading, setLoading] = useState(false)
@@ -166,12 +170,14 @@ export function MyDocuments({ profile }: MyDocumentsProps) {
     // Category Selection View
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {documentCategories.map((category) => {
+        {documentCategories.map((category: any) => {
           const Icon = category.icon
           return (
             <Card
               key={category.id}
-              className="p-6 cursor-pointer hover:shadow-lg transition-shadow"
+              className={`${
+                touchMode === 'glove' ? 'p-8' : touchMode === 'precision' ? 'p-4' : 'p-6'
+              } cursor-pointer hover:shadow-lg transition-shadow`}
               onClick={() => setSelectedCategory(category.id)}
             >
               <div className="flex items-start gap-4">
@@ -179,9 +185,9 @@ export function MyDocuments({ profile }: MyDocumentsProps) {
                   <Icon className="h-6 w-6" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-semibold text-gray-900">{category.name}</h3>
-                  <p className="text-sm text-gray-600 mt-1">{category.description}</p>
-                  <div className="flex items-center mt-3 text-sm text-gray-500">
+                  <h3 className={`${getFullTypographyClass('body', 'base', isLargeFont)} font-semibold text-gray-900`}>{category.name}</h3>
+                  <p className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-600 mt-1`}>{category.description}</p>
+                  <div className={`flex items-center mt-3 ${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-500`}>
                     <span>문서 보기</span>
                     <ChevronRight className="h-4 w-4 ml-1" />
                   </div>
@@ -202,7 +208,7 @@ export function MyDocuments({ profile }: MyDocumentsProps) {
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
-            size="sm"
+            size={touchMode === 'glove' ? 'standard' : touchMode === 'precision' ? 'compact' : 'compact'}
             onClick={() => setSelectedCategory(null)}
           >
             ← 뒤로
@@ -212,11 +218,14 @@ export function MyDocuments({ profile }: MyDocumentsProps) {
               <div className={`p-2 rounded-lg ${selectedCategoryInfo.color}`}>
                 <selectedCategoryInfo.icon className="h-5 w-5" />
               </div>
-              <h2 className="text-xl font-semibold">{selectedCategoryInfo.name}</h2>
+              <h2 className={`${getFullTypographyClass('heading', 'xl', isLargeFont)} font-semibold`}>{selectedCategoryInfo.name}</h2>
             </div>
           )}
         </div>
-        <Button onClick={() => setUploadModalOpen(true)}>
+        <Button 
+          onClick={() => setUploadModalOpen(true)}
+          size={touchMode === 'glove' ? 'field' : touchMode === 'precision' ? 'compact' : 'standard'}
+        >
           <Upload className="h-4 w-4 mr-2" />
           문서 업로드
         </Button>
@@ -230,10 +239,17 @@ export function MyDocuments({ profile }: MyDocumentsProps) {
             placeholder="문서 검색..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+            className={`pl-10 ${
+              touchMode === 'glove' ? 'h-14 text-lg' : 
+              touchMode === 'precision' ? 'h-9 text-sm' : 
+              'h-10 text-base'
+            }`}
           />
         </div>
-        <Button variant="outline">
+        <Button 
+          variant="outline"
+          size={touchMode === 'glove' ? 'field' : touchMode === 'precision' ? 'compact' : 'standard'}
+        >
           <Filter className="h-4 w-4 mr-2" />
           필터
         </Button>
@@ -241,19 +257,22 @@ export function MyDocuments({ profile }: MyDocumentsProps) {
 
       {/* Document List */}
       {loading ? (
-        <div className="text-center py-12 text-gray-500">
+        <div className={`text-center py-12 ${getFullTypographyClass('body', 'base', isLargeFont)} text-gray-500`}>
           문서를 불러오는 중...
         </div>
       ) : filteredDocuments.length === 0 ? (
-        <Card className="p-12 text-center">
+        <Card className={`${
+          touchMode === 'glove' ? 'p-16' : touchMode === 'precision' ? 'p-8' : 'p-12'
+        } text-center`}>
           <Folder className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-500">
+          <p className={`${getFullTypographyClass('body', 'base', isLargeFont)} text-gray-500`}>
             {searchTerm ? '검색 결과가 없습니다.' : '아직 업로드된 문서가 없습니다.'}
           </p>
           {!searchTerm && (
             <Button
               className="mt-4"
               onClick={() => setUploadModalOpen(true)}
+              size={touchMode === 'glove' ? 'field' : touchMode === 'precision' ? 'compact' : 'standard'}
             >
               첫 문서 업로드하기
             </Button>
@@ -261,10 +280,12 @@ export function MyDocuments({ profile }: MyDocumentsProps) {
         </Card>
       ) : (
         <div className="space-y-2">
-          {filteredDocuments.map((doc) => (
+          {filteredDocuments.map((doc: any) => (
             <Card
               key={doc.id}
-              className="p-4 hover:shadow-md transition-shadow"
+              className={`${
+                touchMode === 'glove' ? 'p-6' : touchMode === 'precision' ? 'p-3' : 'p-4'
+              } hover:shadow-md transition-shadow`}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
@@ -272,8 +293,8 @@ export function MyDocuments({ profile }: MyDocumentsProps) {
                     <FileText className="h-6 w-6 text-gray-600" />
                   </div>
                   <div>
-                    <h4 className="font-medium text-gray-900">{doc.name}</h4>
-                    <div className="flex items-center gap-4 mt-1 text-sm text-gray-500">
+                    <h4 className={`${getFullTypographyClass('body', 'base', isLargeFont)} font-medium text-gray-900`}>{doc.name}</h4>
+                    <div className={`flex items-center gap-4 mt-1 ${getFullTypographyClass('caption', 'sm', isLargeFont)} text-gray-500`}>
                       <span className="flex items-center gap-1">
                         <Clock className="h-3.5 w-3.5" />
                         {format(new Date(doc.uploadDate), 'yyyy.MM.dd', { locale: ko })}
@@ -289,28 +310,28 @@ export function MyDocuments({ profile }: MyDocumentsProps) {
                 <div className="flex items-center gap-2">
                   <Button
                     variant="ghost"
-                    size="sm"
+                    size={touchMode === 'glove' ? 'standard' : touchMode === 'precision' ? 'compact' : 'compact'}
                     onClick={() => window.open(doc.url, '_blank')}
                   >
                     <Eye className="h-4 w-4" />
                   </Button>
                   <Button
                     variant="ghost"
-                    size="sm"
+                    size={touchMode === 'glove' ? 'standard' : touchMode === 'precision' ? 'compact' : 'compact'}
                     onClick={() => window.open(doc.url, '_blank')}
                   >
                     <Download className="h-4 w-4" />
                   </Button>
                   <Button
                     variant="ghost"
-                    size="sm"
+                    size={touchMode === 'glove' ? 'standard' : touchMode === 'precision' ? 'compact' : 'compact'}
                     onClick={() => {}}
                   >
                     <Share2 className="h-4 w-4" />
                   </Button>
                   <Button
                     variant="ghost"
-                    size="sm"
+                    size={touchMode === 'glove' ? 'standard' : touchMode === 'precision' ? 'compact' : 'compact'}
                     onClick={() => handleDelete(doc.id)}
                     className="text-red-600 hover:text-red-700"
                   >
@@ -326,26 +347,32 @@ export function MyDocuments({ profile }: MyDocumentsProps) {
       {/* Upload Modal */}
       {uploadModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <Card className="w-full max-w-md p-6">
-            <h3 className="text-lg font-semibold mb-4">문서 업로드</h3>
+          <Card className={`w-full max-w-md ${
+            touchMode === 'glove' ? 'p-8' : touchMode === 'precision' ? 'p-4' : 'p-6'
+          }`}>
+            <h3 className={`${getFullTypographyClass('heading', 'lg', isLargeFont)} font-semibold mb-4`}>문서 업로드</h3>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className={`block ${getFullTypographyClass('body', 'sm', isLargeFont)} font-medium text-gray-700 mb-2`}>
                   파일 선택
                 </label>
                 <input
                   type="file"
                   onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                  className="w-full p-2 border border-gray-300 rounded-md"
+                  className={`w-full ${
+                    touchMode === 'glove' ? 'p-3' : touchMode === 'precision' ? 'p-1.5' : 'p-2'
+                  } border border-gray-300 rounded-md`}
                   accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                 />
               </div>
               
               {selectedFile && (
-                <div className="p-3 bg-gray-50 rounded-md">
-                  <p className="text-sm font-medium">{selectedFile.name}</p>
-                  <p className="text-xs text-gray-500">
+                <div className={`${
+                  touchMode === 'glove' ? 'p-4' : touchMode === 'precision' ? 'p-2' : 'p-3'
+                } bg-gray-50 rounded-md`}>
+                  <p className={`${getFullTypographyClass('body', 'sm', isLargeFont)} font-medium`}>{selectedFile.name}</p>
+                  <p className={`${getFullTypographyClass('caption', 'xs', isLargeFont)} text-gray-500`}>
                     {formatFileSize(selectedFile.size)}
                   </p>
                 </div>
@@ -359,12 +386,14 @@ export function MyDocuments({ profile }: MyDocumentsProps) {
                   setUploadModalOpen(false)
                   setSelectedFile(null)
                 }}
+                size={touchMode === 'glove' ? 'field' : touchMode === 'precision' ? 'compact' : 'standard'}
               >
                 취소
               </Button>
               <Button
                 onClick={handleUpload}
                 disabled={!selectedFile}
+                size={touchMode === 'glove' ? 'field' : touchMode === 'precision' ? 'compact' : 'standard'}
               >
                 업로드
               </Button>

@@ -73,7 +73,7 @@ const Dropdown = React.forwardRef<HTMLDivElement, DropdownProps>(
         {isOpen && (
           <div className="absolute z-50 mt-1 w-full overflow-hidden rounded-lg border border-toss-gray-200 dark:border-toss-gray-700 bg-white dark:bg-toss-gray-800 shadow-lg">
             <div className="max-h-60 overflow-auto">
-              {options.map((option) => (
+              {options.map((option: any) => (
                 <div
                   key={option.value}
                   role="option"

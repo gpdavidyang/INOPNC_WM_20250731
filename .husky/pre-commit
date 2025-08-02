@@ -1,1 +1,28 @@
-npm test
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# 병렬 TypeScript 타입 체크 (더 빠른 피드백)
+echo "🚀 병렬 TypeScript 타입 체크 중..."
+npm run type-check:parallel
+
+# 타입 체크 실패 시 커밋 중단
+if [ $? -ne 0 ]; then
+  echo "❌ TypeScript 타입 오류가 발견되었습니다."
+  echo "💡 다음 명령어로 자동 수정을 시도해보세요:"
+  echo "   npm run fix:all"
+  exit 1
+fi
+
+echo "✅ TypeScript 타입 체크 완료"
+
+# 문서 동기화 검증
+echo "📋 문서 동기화 검증 중..."
+npm run docs:verify
+
+# 검증 실패 시 커밋 중단
+if [ $? -ne 0 ]; then
+  echo "❌ 문서 동기화 검증 실패. 커밋이 중단됩니다."
+  exit 1
+fi
+
+echo "✅ 문서 동기화 검증 완료"

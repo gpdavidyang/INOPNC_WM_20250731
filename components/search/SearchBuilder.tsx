@@ -187,7 +187,7 @@ export function SearchBuilder({ fields, onSearch, className, loading }: SearchBu
             <Button
               type="button"
               variant="outline"
-              size="sm"
+              size="compact"
               onClick={addFilter}
             >
               <Plus className="w-4 h-4 mr-1" />
@@ -197,7 +197,7 @@ export function SearchBuilder({ fields, onSearch, className, loading }: SearchBu
               <Button
                 type="button"
                 variant="outline"
-                size="sm"
+                size="compact"
                 onClick={clearAllFilters}
               >
                 <RotateCcw className="w-4 h-4 mr-1" />
@@ -270,7 +270,7 @@ export function SearchBuilder({ fields, onSearch, className, loading }: SearchBu
                   <Button
                     type="button"
                     variant="outline"
-                    size="sm"
+                    size="compact"
                     onClick={() => removeFilter(filter.id)}
                     className="h-8 w-8 p-0"
                   >

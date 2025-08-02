@@ -70,10 +70,10 @@ const NavBar = React.forwardRef<HTMLElement, NavBarProps>(
             <div className="hidden md:flex md:items-center md:space-x-4">
               {actions || (
                 <>
-                  <Button variant="ghost" size="sm">
+                  <Button variant="ghost" size="compact">
                     <Bell className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="sm">
+                  <Button variant="ghost" size="compact">
                     <UserIcon className="h-4 w-4" />
                   </Button>
                 </>
@@ -84,7 +84,7 @@ const NavBar = React.forwardRef<HTMLElement, NavBarProps>(
             <div className="flex md:hidden">
               <Button
                 variant="ghost"
-                size="sm"
+                size="compact"
                 onClick={() => setIsOpen(!isOpen)}
                 aria-label="Toggle navigation menu"
               >
@@ -123,11 +123,11 @@ const NavBar = React.forwardRef<HTMLElement, NavBarProps>(
                 <div className="flex space-x-2 px-3 py-2">
                   {actions || (
                     <>
-                      <Button variant="ghost" size="sm" className="flex-1">
+                      <Button variant="ghost" size="compact" className="flex-1">
                         <Bell className="mr-2 h-4 w-4" />
                         알림
                       </Button>
-                      <Button variant="ghost" size="sm" className="flex-1">
+                      <Button variant="ghost" size="compact" className="flex-1">
                         <UserIcon className="mr-2 h-4 w-4" />
                         프로필
                       </Button>

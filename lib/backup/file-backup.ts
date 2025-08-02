@@ -145,7 +145,7 @@ export class FileBackupService {
     }
 
     // Remove duplicates
-    return [...new Set(allFiles)]
+    return Array.from(new Set(allFiles))
   }
 
   private getFileExtension(compression: string): string {

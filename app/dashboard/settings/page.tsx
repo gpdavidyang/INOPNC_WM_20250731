@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import SettingsForm from './settings-form'
+import { SettingsPageWrapper } from './settings-page-wrapper'
 
 export default async function SettingsPage() {
   const supabase = createClient()
@@ -21,13 +21,5 @@ export default async function SettingsPage() {
     redirect('/dashboard')
   }
 
-  return (
-    <div className="max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">계정 설정</h1>
-      
-      <div className="bg-white shadow rounded-lg p-6">
-        <SettingsForm user={user} profile={profile as any} />
-      </div>
-    </div>
-  )
+  return <SettingsPageWrapper user={user} profile={profile as any} />
 }

@@ -46,7 +46,7 @@ export function QuickFilterButtons({
         {activeFilters.length > 0 && (
           <Button
             variant="outline"
-            size="sm"
+            size="compact"
             onClick={onClearAll}
             className="h-7 px-2 text-xs"
           >
@@ -57,15 +57,15 @@ export function QuickFilterButtons({
       </div>
       
       <div className="flex flex-wrap gap-2">
-        {quickFilters.map((filter) => {
+        {quickFilters.map((filter: any) => {
           const isActive = activeFilters.includes(filter.id)
           const IconComponent = filter.icon ? iconMap[filter.icon as keyof typeof iconMap] : Filter
           
           return (
             <Button
               key={filter.id}
-              variant={isActive ? "default" : "outline"}
-              size="sm"
+              variant={isActive ? "primary" : "outline"}
+              size="compact"
               onClick={() => onFilterToggle(filter.id)}
               className={cn(
                 "h-8 px-3 text-xs transition-all",

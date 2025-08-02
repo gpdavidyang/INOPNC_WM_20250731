@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import DashboardLayout from '@/components/dashboard/dashboard-layout'
+import DashboardWithNotifications from '@/components/dashboard/dashboard-with-notifications'
 import { getAuthenticatedUser } from '@/lib/auth/session'
 
 export default async function DashboardPage() {
@@ -79,9 +79,18 @@ export default async function DashboardPage() {
     }
 
     if (newProfile) {
-      return <DashboardLayout user={user} profile={newProfile as any} />
+      // Redirect admin users to admin dashboard
+      if (newProfile.role === 'admin' || newProfile.role === 'system_admin') {
+        redirect('/dashboard/admin')
+      }
+      return <DashboardWithNotifications user={user} profile={newProfile as any} />
     }
   }
 
-  return <DashboardLayout user={user} profile={profile as any} />
+  // Redirect admin users to admin dashboard
+  if (profile && (profile.role === 'admin' || profile.role === 'system_admin')) {
+    redirect('/dashboard/admin')
+  }
+
+  return <DashboardWithNotifications user={user} profile={profile as any} />
 }

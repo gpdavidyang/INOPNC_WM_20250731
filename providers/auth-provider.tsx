@@ -32,9 +32,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (newSession && !error) {
         setSession(newSession)
         setUser(newSession.user)
+      } else if (error) {
+        // Clear session on refresh error
+        setSession(null)
+        setUser(null)
       }
     } catch (error) {
       console.error('Error refreshing session:', error)
+      // Clear session on error
+      setSession(null)
+      setUser(null)
     }
   }
 
@@ -68,7 +75,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, newSession) => {
-      console.log('Auth state change:', event, newSession?.user?.email)
+      // Only log meaningful auth state changes, not empty initial sessions
+      if (event !== 'INITIAL_SESSION' || (event === 'INITIAL_SESSION' && newSession)) {
+        console.log('Auth state change:', event, newSession?.user?.email)
+      }
       
       switch (event) {
         case 'SIGNED_IN':
@@ -109,7 +119,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider value={{ user, session, loading, refreshSession }}>
-      {children}
+      {loading ? (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">로딩 중...</p>
+          </div>
+        </div>
+      ) : (
+        children
+      )}
     </AuthContext.Provider>
   )
 }

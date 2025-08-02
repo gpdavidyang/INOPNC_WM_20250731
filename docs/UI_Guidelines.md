@@ -1,5 +1,68 @@
 # UI Guidelines
 
+## Form Controls 가이드라인
+
+### Select (드롭다운) 컴포넌트
+
+#### 표준 컴포넌트
+- **필수 사용**: `/components/ui/select-new.tsx` (Radix UI 기반)
+- **금지 사항**: HTML `<select>` 요소 직접 사용 금지
+- **이유**: UI 일관성 및 사용자 경험 통일
+
+#### 사용 방법
+```tsx
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select-new'
+
+// 기본 사용
+<Select value={value} onValueChange={setValue}>
+  <SelectTrigger className="w-full">
+    <SelectValue placeholder="선택하세요" />
+  </SelectTrigger>
+  <SelectContent>
+    <SelectItem value="option1">옵션 1</SelectItem>
+    <SelectItem value="option2">옵션 2</SelectItem>
+  </SelectContent>
+</Select>
+```
+
+#### 스타일 가이드
+- **높이**: 기본 h-10, 컴팩트 모드 h-9 또는 h-8
+- **테두리**: border-toss-gray-200 (기본), focus:border-toss-blue-500
+- **배경**: bg-white (라이트모드), bg-toss-gray-800 (다크모드)
+- **텍스트**: text-toss-gray-900 (라이트모드), text-toss-gray-100 (다크모드)
+- **비활성화**: disabled:opacity-50, disabled:cursor-not-allowed
+
+#### 접근성
+- 키보드 네비게이션 완벽 지원 (↑↓ 화살표, Enter, Esc)
+- 스크린 리더 호환
+- 포커스 상태 명확히 표시
+- 터치 디바이스 최적화
+
+#### 모바일 대응
+- 터치 영역 최소 44x44px 보장
+- 네이티브 모바일 드롭다운과 유사한 UX
+- 부드러운 애니메이션 효과
+
+#### 예제: 작업일지 현장 선택
+```tsx
+<Select 
+  value={formData.site_id} 
+  onValueChange={(value) => setFormData({ ...formData, site_id: value })}
+  disabled={!!(currentUser as any).site_id}
+>
+  <SelectTrigger className="w-full h-9">
+    <SelectValue placeholder="현장 선택" />
+  </SelectTrigger>
+  <SelectContent>
+    {sites.map(site => (
+      <SelectItem key={site.id} value={site.id}>
+        {site.name}
+      </SelectItem>
+    ))}
+  </SelectContent>
+</Select>
+```
+
 ## 사이드바 메뉴 구성
 
 ### 사용자별 메뉴 구성표

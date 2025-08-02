@@ -41,9 +41,10 @@ import { ko } from 'date-fns/locale'
 
 interface MaterialTransactionsProps {
   materials: any[]
+  currentUser: any
 }
 
-export function MaterialTransactions({ materials }: MaterialTransactionsProps) {
+export function MaterialTransactions({ materials, currentUser }: MaterialTransactionsProps) {
   const [transactions, setTransactions] = useState<any[]>([])
   const [sites, setSites] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
@@ -145,7 +146,7 @@ export function MaterialTransactions({ materials }: MaterialTransactionsProps) {
       const result = await createMaterialTransaction({
         ...transactionForm,
         quantity: parseFloat(transactionForm.quantity)
-      })
+      } as any)
 
       if (result.success) {
         toast({
@@ -184,7 +185,7 @@ export function MaterialTransactions({ materials }: MaterialTransactionsProps) {
   }
 
   // Calculate summary statistics
-  const summary = transactions.reduce((acc, transaction) => {
+  const summary = transactions.reduce((acc: any, transaction: any) => {
     if (transaction.transaction_type === 'in') {
       acc.totalIn += transaction.quantity
     } else if (transaction.transaction_type === 'out') {

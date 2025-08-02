@@ -57,7 +57,7 @@ export default function AttendanceCalendar({ siteId }: AttendanceCalendarProps) 
 
       if (result.success && result.data) {
         setAttendanceData(result.data as any)
-        setSummary(result.summary)
+        setSummary(result.summary as any)
       }
     } catch (error) {
       console.error('Error fetching attendance:', error)
@@ -188,21 +188,21 @@ export default function AttendanceCalendar({ siteId }: AttendanceCalendarProps) 
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
-              size="sm"
+              size="compact"
               onClick={() => navigateMonth('prev')}
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <Button
               variant="outline"
-              size="sm"
+              size="compact"
               onClick={() => setCurrentDate(new Date())}
             >
               오늘
             </Button>
             <Button
               variant="outline"
-              size="sm"
+              size="compact"
               onClick={() => navigateMonth('next')}
             >
               <ChevronRight className="h-4 w-4" />

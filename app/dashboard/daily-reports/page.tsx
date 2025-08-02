@@ -1,8 +1,12 @@
 import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import DailyReportList from '@/components/daily-reports/daily-report-list-new'
+import { DailyReportListEnhanced } from '@/components/daily-reports/DailyReportListEnhanced'
 import { Skeleton } from '@/components/ui/skeleton'
+import { PageLayout, PageContainer, LoadingState } from '@/components/dashboard/page-layout'
+import { Button } from '@/components/ui/button'
+import { Plus } from 'lucide-react'
+import Link from 'next/link'
 
 async function DailyReportsContent() {
   const supabase = createClient()
@@ -36,43 +40,42 @@ async function DailyReportsContent() {
     .from('daily_reports')
     .select(`
       *,
-      site:sites(id, name),
-      created_by_profile:profiles!daily_reports_created_by_fkey(full_name),
-      approved_by_profile:profiles!daily_reports_approved_by_fkey(full_name)
+      sites!daily_reports_site_id_fkey(id, name)
     `)
-    .order('report_date', { ascending: false })
+    .order('work_date', { ascending: false })
     .limit(20)
 
+  // Check if user can create reports
+  const canCreateReport = ['worker', 'site_manager', 'admin'].includes(profile.role)
+
   return (
-    <DailyReportList 
+    <DailyReportListEnhanced 
+      currentUser={profile as any}
       sites={sites as any || []}
-      initialReports={reports as any || []}
-      currentUserRole={profile.role as any}
     />
   )
 }
 
 function DailyReportsLoading() {
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-10 w-32" />
-      </div>
-      <Skeleton className="h-32 w-full" />
-      <div className="space-y-3">
-        {[1, 2, 3].map((i) => (
-          <Skeleton key={i} className="h-24 w-full" />
-        ))}
-      </div>
-    </div>
+    <LoadingState 
+      title="작업일지를 불러오는 중..."
+      description="데이터를 로딩하고 있습니다."
+    />
   )
 }
 
 export default function DailyReportsPage() {
   return (
-    <Suspense fallback={<DailyReportsLoading />}>
-      <DailyReportsContent />
-    </Suspense>
+    <PageLayout
+      title="작업일지"
+      description="일일 작업 보고서 및 현장 상황을 관리합니다"
+    >
+      <PageContainer>
+        <Suspense fallback={<DailyReportsLoading />}>
+          <DailyReportsContent />
+        </Suspense>
+      </PageContainer>
+    </PageLayout>
   )
 }

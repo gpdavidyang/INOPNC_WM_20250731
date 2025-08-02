@@ -341,7 +341,7 @@ export default function DailyReportForm({
       <Card className="p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold">작업 내역</h2>
-          <Button onClick={handleAddWorkLog} variant="outline" size="sm">
+          <Button onClick={handleAddWorkLog} variant="outline" size="compact">
             <Plus className="h-4 w-4 mr-1" />
             작업 추가
           </Button>
@@ -355,7 +355,7 @@ export default function DailyReportForm({
                 <Button
                   onClick={() => handleRemoveWorkLog(workLog.id)}
                   variant="ghost"
-                  size="sm"
+                  size="compact"
                   className="text-red-600"
                 >
                   <Trash2 className="h-4 w-4" />
@@ -406,7 +406,7 @@ export default function DailyReportForm({
                   <Button
                     onClick={() => handleAddMaterial(workLog.id)}
                     variant="ghost"
-                    size="sm"
+                    size="compact"
                   >
                     <Plus className="h-3 w-3 mr-1" />
                     자재 추가
@@ -438,7 +438,7 @@ export default function DailyReportForm({
                     <Button
                       onClick={() => handleRemoveMaterial(workLog.id, matIndex)}
                       variant="ghost"
-                      size="sm"
+                      size="compact"
                       className="text-red-600"
                     >
                       <Trash2 className="h-3 w-3" />
@@ -464,7 +464,7 @@ export default function DailyReportForm({
             <Users className="inline h-5 w-5 mr-2" />
             출근 현황
           </h2>
-          <Button onClick={handleAddAttendance} variant="outline" size="sm">
+          <Button onClick={handleAddAttendance} variant="outline" size="compact">
             <Plus className="h-4 w-4 mr-1" />
             작업자 추가
           </Button>
@@ -507,7 +507,7 @@ export default function DailyReportForm({
               <Button
                 onClick={() => handleRemoveAttendance(index)}
                 variant="ghost"
-                size="sm"
+                size="compact"
                 className="text-red-600"
               >
                 <Trash2 className="h-4 w-4" />
@@ -562,7 +562,7 @@ export default function DailyReportForm({
                       <Button
                         onClick={() => handleRemoveFile(index)}
                         variant="ghost"
-                        size="sm"
+                        size="compact"
                         className="text-red-600"
                       >
                         <Trash2 className="h-3 w-3" />

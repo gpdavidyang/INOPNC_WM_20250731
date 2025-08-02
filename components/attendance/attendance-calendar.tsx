@@ -19,27 +19,17 @@ import { getSites } from '@/app/actions/sites'
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isSameMonth, isSameDay } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
-
-interface AttendanceCalendarProps {
-  profile: any
-  isPartnerView?: boolean
-}
-
-interface AttendanceRecord {
-  date: string
-  site_id: string
-  site_name: string
-  check_in_time?: string
-  check_out_time?: string
-  labor_hours?: number
-  status: 'present' | 'absent' | 'holiday' | 'scheduled'
-  totalWorkers?: number // For partner view
-}
+import { useFontSize, getTypographyClass, getFullTypographyClass } from '@/contexts/FontSizeContext'
+import { useTouchMode } from '@/contexts/TouchModeContext'
+import type { AttendanceCalendarProps, AttendanceRecord } from '@/types/attendance'
+import type { Site } from '@/types'
 
 export function AttendanceCalendar({ profile, isPartnerView }: AttendanceCalendarProps) {
+  const { isLargeFont } = useFontSize()
+  const { touchMode } = useTouchMode()
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedSite, setSelectedSite] = useState<string>('')
-  const [sites, setSites] = useState<any[]>([])
+  const [sites, setSites] = useState<Site[]>([])
   const [attendanceData, setAttendanceData] = useState<AttendanceRecord[]>([])
   const [loading, setLoading] = useState(false)
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
@@ -51,18 +41,18 @@ export function AttendanceCalendar({ profile, isPartnerView }: AttendanceCalenda
 
   useEffect(() => {
     loadSites()
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (selectedSite || (!isPartnerView && profile.site_id)) {
       loadAttendanceData()
     }
-  }, [currentDate, selectedSite])
+  }, [currentDate, selectedSite, isPartnerView, profile.site_id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadSites = async () => {
     const result = await getSites()
     if (result.success && result.data) {
-      setSites(result.data)
+      setSites(result.data as any)
       // Auto-select first site for partner view or user's assigned site
       if (isPartnerView && result.data.length > 0) {
         setSelectedSite(result.data[0].id)
@@ -99,26 +89,28 @@ export function AttendanceCalendar({ profile, isPartnerView }: AttendanceCalenda
         // Load individual attendance records
         const result = await getAttendanceRecords({
           user_id: profile.id,
-          site_id: selectedSite || profile.site_id,
+          site_id: selectedSite || (profile as any).site_id,
           date_from: format(startDate, 'yyyy-MM-dd'),
           date_to: format(endDate, 'yyyy-MM-dd')
         })
         
         if (result.success && result.data) {
           const records = result.data.map((record: any) => ({
+            id: record.id,
             date: record.attendance_date,
             site_id: record.site_id,
             site_name: record.site?.name || '',
             check_in_time: record.check_in_time,
             check_out_time: record.check_out_time,
-            labor_hours: record.labor_hours,
+            work_hours: record.labor_hours || record.work_hours,
+            overtime_hours: record.overtime_hours,
             status: record.status || 'present'
           }))
           setAttendanceData(records)
           
           // Calculate summary for individual
           const totalDays = records.filter((r: any) => r.status === 'present').length
-          const totalHours = records.reduce((sum: number, r: any) => sum + (r.labor_hours || 0), 0)
+          const totalHours = records.reduce((sum: number, r: any) => sum + (r.work_hours || 0), 0)
           setSummary({
             totalDays,
             totalHours,
@@ -163,7 +155,7 @@ export function AttendanceCalendar({ profile, isPartnerView }: AttendanceCalenda
     if (isPartnerView) {
       // Show worker count for partner view
       return (
-        <div className="text-xs">
+        <div className={getFullTypographyClass('caption', 'xs', isLargeFont)}>
           <div className="font-medium text-blue-600">{attendance.totalWorkers || 0}명</div>
         </div>
       )
@@ -171,22 +163,22 @@ export function AttendanceCalendar({ profile, isPartnerView }: AttendanceCalenda
       // Show individual attendance status
       if (attendance.status === 'present') {
         return (
-          <div className="text-xs space-y-0.5">
+          <div className={`${getFullTypographyClass('caption', 'xs', isLargeFont)} space-y-0.5`}>
             <div className="text-green-600 font-medium">출근</div>
-            {attendance.labor_hours && (
-              <div className="text-gray-600">{attendance.labor_hours}h</div>
+            {attendance.work_hours && (
+              <div className="text-gray-600">{attendance.work_hours}h</div>
             )}
           </div>
         )
       } else if (attendance.status === 'absent') {
         return (
-          <div className="text-xs">
+          <div className={getFullTypographyClass('caption', 'xs', isLargeFont)}>
             <div className="text-red-600 font-medium">결근</div>
           </div>
         )
       } else if (attendance.status === 'holiday') {
         return (
-          <div className="text-xs">
+          <div className={getFullTypographyClass('caption', 'xs', isLargeFont)}>
             <div className="text-blue-600 font-medium">휴일</div>
           </div>
         )
@@ -206,7 +198,11 @@ export function AttendanceCalendar({ profile, isPartnerView }: AttendanceCalenda
           <select
             value={selectedSite || profile.site_id || ''}
             onChange={(e) => setSelectedSite(e.target.value)}
-            className="flex-1 h-10 px-3 rounded-md border border-gray-300 bg-white"
+            className={`flex-1 rounded-md border border-gray-300 bg-white ${
+              touchMode === 'glove' ? 'h-14 px-4 text-base' : 
+              touchMode === 'precision' ? 'h-9 px-2 text-sm' : 
+              'h-10 px-3 text-base'
+            }`}
           >
             {sites.length === 0 && <option value="">현장을 불러오는 중...</option>}
             {sites.map(site => (
@@ -219,22 +215,22 @@ export function AttendanceCalendar({ profile, isPartnerView }: AttendanceCalenda
       )}
 
       {/* Calendar Header */}
-      <Card className="p-6">
+      <Card className={touchMode === 'glove' ? 'p-8' : touchMode === 'precision' ? 'p-4' : 'p-6'}>
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
             <Button
               variant="outline"
-              size="sm"
+              size={touchMode === 'glove' ? 'standard' : touchMode === 'precision' ? 'compact' : 'compact'}
               onClick={() => navigateMonth('prev')}
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <h2 className="text-xl font-semibold">
+            <h2 className={`${getFullTypographyClass('heading', 'xl', isLargeFont)} font-semibold`}>
               {format(currentDate, 'yyyy년 MM월')}
             </h2>
             <Button
               variant="outline"
-              size="sm"
+              size={touchMode === 'glove' ? 'standard' : touchMode === 'precision' ? 'compact' : 'compact'}
               onClick={() => navigateMonth('next')}
             >
               <ChevronRight className="h-4 w-4" />
@@ -242,7 +238,7 @@ export function AttendanceCalendar({ profile, isPartnerView }: AttendanceCalenda
           </div>
           
           {!isPartnerView && (
-            <div className="flex gap-4 text-sm">
+            <div className={`flex gap-4 ${getFullTypographyClass('body', 'sm', isLargeFont)}`}>
               <div className="flex items-center gap-2">
                 <CalendarDays className="h-4 w-4 text-gray-600" />
                 <span>출근일: {summary.totalDays}일</span>
@@ -255,7 +251,7 @@ export function AttendanceCalendar({ profile, isPartnerView }: AttendanceCalenda
           )}
           
           {isPartnerView && (
-            <div className="flex gap-4 text-sm">
+            <div className={`flex gap-4 ${getFullTypographyClass('body', 'sm', isLargeFont)}`}>
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4 text-gray-600" />
                 <span>총 작업자: {summary.totalWorkers}명</span>
@@ -279,7 +275,11 @@ export function AttendanceCalendar({ profile, isPartnerView }: AttendanceCalenda
             <div
               key={day}
               className={cn(
-                "bg-gray-50 p-2 text-center text-sm font-medium",
+                `bg-gray-50 text-center font-medium ${getFullTypographyClass('body', 'sm', isLargeFont)} ${
+                  touchMode === 'glove' ? 'p-3' : 
+                  touchMode === 'precision' ? 'p-1.5' : 
+                  'p-2'
+                }`,
                 i === 0 && "text-red-600",
                 i === 6 && "text-blue-600"
               )}
@@ -301,7 +301,11 @@ export function AttendanceCalendar({ profile, isPartnerView }: AttendanceCalenda
                 key={index}
                 onClick={() => day && setSelectedDate(day)}
                 className={cn(
-                  "bg-white p-2 min-h-[80px] cursor-pointer hover:bg-gray-50 transition-colors",
+                  `bg-white cursor-pointer hover:bg-gray-50 transition-colors ${
+                    touchMode === 'glove' ? 'p-3 min-h-[100px]' : 
+                    touchMode === 'precision' ? 'p-1.5 min-h-[70px]' : 
+                    'p-2 min-h-[80px]'
+                  }`,
                   !isCurrentMonth && "opacity-30",
                   isToday && "ring-2 ring-blue-500",
                   isSelected && "bg-blue-50",
@@ -311,14 +315,14 @@ export function AttendanceCalendar({ profile, isPartnerView }: AttendanceCalenda
                 {day && (
                   <>
                     <div className={cn(
-                      "text-sm font-medium mb-1",
+                      `${getFullTypographyClass('body', 'sm', isLargeFont)} font-medium mb-1`,
                       dayOfWeek === 0 && "text-red-600",
                       dayOfWeek === 6 && "text-blue-600"
                     )}>
                       {format(day, 'd')}
                     </div>
                     {loading ? (
-                      <div className="text-xs text-gray-400">...</div>
+                      <div className={`${getFullTypographyClass('caption', 'xs', isLargeFont)} text-gray-400`}>...</div>
                     ) : (
                       getDayContent(day)
                     )}
@@ -331,7 +335,7 @@ export function AttendanceCalendar({ profile, isPartnerView }: AttendanceCalenda
 
         {/* Legend */}
         {!isPartnerView && (
-          <div className="mt-4 flex items-center justify-center gap-4 text-sm">
+          <div className={`mt-4 flex items-center justify-center gap-4 ${getFullTypographyClass('body', 'sm', isLargeFont)}`}>
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 border-l-4 border-green-500"></div>
               <span>출근</span>
@@ -350,37 +354,37 @@ export function AttendanceCalendar({ profile, isPartnerView }: AttendanceCalenda
 
       {/* Site Information */}
       {selectedSiteInfo && (
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+        <Card className={touchMode === 'glove' ? 'p-8' : touchMode === 'precision' ? 'p-4' : 'p-6'}>
+          <h3 className={`${getFullTypographyClass('heading', 'lg', isLargeFont)} font-semibold mb-4 flex items-center gap-2`}>
             <Building2 className="h-5 w-5" />
             현장 정보
           </h3>
           <div className="space-y-3">
             <div>
-              <p className="text-sm text-gray-600">현장명</p>
-              <p className="font-medium">{selectedSiteInfo.name}</p>
-              {selectedSiteInfo.code && (
-                <p className="text-sm text-gray-500">({selectedSiteInfo.code})</p>
+              <p className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-600`}>현장명</p>
+              <p className={`${getFullTypographyClass('body', 'base', isLargeFont)} font-medium`}>{selectedSiteInfo.name}</p>
+              {(selectedSiteInfo as any).code && (
+                <p className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-500`}>({(selectedSiteInfo as any).code})</p>
               )}
             </div>
             
             {selectedSiteInfo.address && (
               <div>
-                <p className="text-sm text-gray-600 flex items-center gap-1 mb-1">
+                <p className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-600 flex items-center gap-1 mb-1`}>
                   <MapPin className="h-3.5 w-3.5" />
                   현장 주소
                 </p>
-                <p className="text-sm">{selectedSiteInfo.address}</p>
+                <p className={getFullTypographyClass('body', 'sm', isLargeFont)}>{selectedSiteInfo.address}</p>
               </div>
             )}
             
             {selectedSiteInfo.start_date && selectedSiteInfo.end_date && (
               <div>
-                <p className="text-sm text-gray-600 flex items-center gap-1 mb-1">
+                <p className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-600 flex items-center gap-1 mb-1`}>
                   <CalendarDays className="h-3.5 w-3.5" />
                   공사 기간
                 </p>
-                <p className="text-sm">
+                <p className={getFullTypographyClass('body', 'sm', isLargeFont)}>
                   {format(new Date(selectedSiteInfo.start_date), 'yyyy.MM.dd')} ~ 
                   {format(new Date(selectedSiteInfo.end_date), 'yyyy.MM.dd')}
                 </p>
@@ -392,15 +396,15 @@ export function AttendanceCalendar({ profile, isPartnerView }: AttendanceCalenda
 
       {/* Selected Date Details */}
       {selectedDate && !isPartnerView && (
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">
+        <Card className={touchMode === 'glove' ? 'p-8' : touchMode === 'precision' ? 'p-4' : 'p-6'}>
+          <h3 className={`${getFullTypographyClass('heading', 'lg', isLargeFont)} font-semibold mb-4`}>
             {format(selectedDate, 'yyyy년 MM월 dd일 (EEEE)', { locale: ko })} 상세
           </h3>
           {(() => {
             const attendance = getAttendanceForDate(selectedDate)
             if (!attendance) {
               return (
-                <p className="text-gray-500">해당 날짜의 출력 기록이 없습니다.</p>
+                <p className={`${getFullTypographyClass('body', 'base', isLargeFont)} text-gray-500`}>해당 날짜의 출근 기록이 없습니다.</p>
               )
             }
             
@@ -434,10 +438,10 @@ export function AttendanceCalendar({ profile, isPartnerView }: AttendanceCalenda
                   </div>
                 )}
                 
-                {attendance.labor_hours && (
+                {attendance.work_hours && (
                   <div>
                     <p className="text-sm text-gray-600">근무 시간</p>
-                    <p className="font-medium">{attendance.labor_hours}시간</p>
+                    <p className="font-medium">{attendance.work_hours}시간</p>
                   </div>
                 )}
               </div>

@@ -264,7 +264,7 @@ export default function AttendanceCheck({ site }: AttendanceCheckProps) {
             <Button
               onClick={handleCheckIn}
               disabled={loading || checkingLocation}
-              size="lg"
+              size="field"
               className="flex-1"
             >
               {loading ? (
@@ -280,7 +280,7 @@ export default function AttendanceCheck({ site }: AttendanceCheckProps) {
             <Button
               onClick={handleCheckOut}
               disabled={loading || checkingLocation}
-              size="lg"
+              size="field"
               variant="secondary"
               className="flex-1"
             >

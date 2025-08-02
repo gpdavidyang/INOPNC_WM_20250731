@@ -36,7 +36,7 @@ export default function Navbar({ user, profile }: NavbarProps) {
               <h1 className="text-xl font-bold text-gray-900">INOPNC WM</h1>
             </div>
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-              {navigation.map((item) => (
+              {navigation.map((item: any) => (
                 <Link
                   key={item.name}
                   href={item.href}

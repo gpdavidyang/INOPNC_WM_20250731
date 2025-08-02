@@ -43,6 +43,8 @@ import {
 } from 'lucide-react'
 import { Site, Profile, Material } from '@/types'
 import { cn } from '@/lib/utils'
+import { showErrorNotification } from '@/lib/error-handling'
+import { toast } from 'sonner'
 
 interface DailyReportFormProps {
   sites: Site[]
@@ -86,7 +88,7 @@ interface MaterialEntry {
   remaining: string
 }
 
-// Modern collapsible section component with dark theme
+// Compact collapsible section component
 const CollapsibleSection = ({ 
   title, 
   icon: Icon, 
@@ -105,15 +107,15 @@ const CollapsibleSection = ({
   required?: boolean
 }) => {
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
       <button
         type="button"
         onClick={onToggle}
-        className="w-full px-4 py-4 flex items-center justify-between hover:bg-gray-100/50 transition-all duration-200"
+        className="w-full px-3 py-2.5 flex items-center justify-between hover:bg-gray-50 transition-all duration-200"
       >
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-blue-50 rounded-xl">
-            <Icon className="h-5 w-5 text-blue-600" />
+        <div className="flex items-center gap-2">
+          <div className="p-1.5 bg-blue-50 rounded">
+            <Icon className="h-4 w-4 text-blue-600" />
           </div>
           <div className="flex items-center gap-2">
             <h3 className="text-sm font-semibold text-gray-900">
@@ -125,14 +127,14 @@ const CollapsibleSection = ({
         </div>
         <div className="flex items-center gap-2">
           {isExpanded ? (
-            <ChevronUp className="h-4 w-4 text-gray-600" />
+            <ChevronUp className="h-3 w-3 text-gray-600" />
           ) : (
-            <ChevronDown className="h-4 w-4 text-gray-600" />
+            <ChevronDown className="h-3 w-3 text-gray-600" />
           )}
         </div>
       </button>
       {isExpanded && (
-        <div className="px-4 pb-4 pt-2 border-t border-gray-200/50 animate-in slide-in-from-top-2 duration-200">
+        <div className="px-3 pb-3 pt-2 border-t border-gray-100 animate-in slide-in-from-top-2 duration-200">
           {children}
         </div>
       )}
@@ -199,7 +201,7 @@ export default function DailyReportFormEnhanced({
   const [drawings, setDrawings] = useState<File[]>([])
   
   // Section 8: Requests
-  const [requestText, setRequestText] = useState('')
+  const [requestText, setRequestText] = useState<string>('')
   const [requestFiles, setRequestFiles] = useState<File[]>([])
   
   // Section 9: NPC-1000 Materials
@@ -210,7 +212,7 @@ export default function DailyReportFormEnhanced({
   })
   
   // Section 10: Special Notes
-  const [specialNotes, setSpecialNotes] = useState('')
+  const [specialNotes, setSpecialNotes] = useState<string>('')
 
   // Auto-save to localStorage
   const saveToLocalStorage = useCallback(() => {
@@ -235,18 +237,43 @@ export default function DailyReportFormEnhanced({
     if (savedData) {
       try {
         const parsed = JSON.parse(savedData)
-        setFormData(parsed.formData || formData)
+        setFormData({
+          site_id: parsed.formData?.site_id || (currentUser as any).site_id || '',
+          work_date: parsed.formData?.work_date || '2025-07-30',
+          member_name: parsed.formData?.member_name || '',
+          process_type: parsed.formData?.process_type || '',
+          total_workers: parsed.formData?.total_workers || 0,
+          npc1000_incoming: parsed.formData?.npc1000_incoming || 0,
+          npc1000_used: parsed.formData?.npc1000_used || 0,
+          npc1000_remaining: parsed.formData?.npc1000_remaining || 0,
+          issues: parsed.formData?.issues || '',
+          created_by: parsed.formData?.created_by || currentUser.full_name
+        })
         setWorkContents(parsed.workContents || [])
         setWorkerEntries(parsed.workerEntries || [])
         setRequestText(parsed.requestText || '')
-        setMaterialData(parsed.materialData || materialData)
+        setMaterialData({
+          incoming: parsed.materialData?.incoming || '',
+          used: parsed.materialData?.used || '',
+          remaining: parsed.materialData?.remaining || ''
+        })
         setSpecialNotes(parsed.specialNotes || '')
-        setExpandedSections(parsed.expandedSections || expandedSections)
+        setExpandedSections(parsed.expandedSections || {
+          siteInfo: true,
+          workContent: true,
+          workers: false,
+          photos: false,
+          receipts: false,
+          drawings: false,
+          requests: false,
+          materials: false,
+          specialNotes: false
+        })
       } catch (e) {
         console.error('Failed to load saved draft', e)
       }
     }
-  }, [])
+  }, []) // Empty dependency array - only run on mount
 
   // Auto-save every 5 minutes
   useEffect(() => {
@@ -494,7 +521,8 @@ export default function DailyReportFormEnhanced({
       })
 
       if (!reportResult.success || !reportResult.data) {
-        throw new Error(reportResult.error || 'Failed to create daily report')
+        showErrorNotification(reportResult.error || '일일보고서 생성에 실패했습니다', 'handleSubmit')
+        return
       }
 
       const dailyReportId = reportResult.data.id
@@ -560,12 +588,15 @@ export default function DailyReportFormEnhanced({
 
       // Clear localStorage after successful submit
       localStorage.removeItem('dailyReportDraft')
+      
+      // Show success message
+      toast.success('일일보고서가 성공적으로 작성되었습니다.')
 
       // Redirect
       router.push('/dashboard/daily-reports')
     } catch (err) {
-      console.error('Error creating daily report:', err)
-      setError(err instanceof Error ? err.message : 'Failed to create daily report')
+      showErrorNotification(err, 'handleSubmit')
+      setError(err instanceof Error ? err.message : '일일보고서 작성에 실패했습니다')
     } finally {
       setLoading(false)
     }
@@ -573,61 +604,48 @@ export default function DailyReportFormEnhanced({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Modern Mobile Header */}
+      {/* Compact Mobile Header */}
       <div className="sticky top-0 z-50 bg-white border-b border-gray-200">
-        <div className="px-4 py-3">
+        <div className="px-3 py-2">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => router.back()}
-                className="p-2 hover:bg-white rounded-xl transition-colors"
+                className="p-1.5 hover:bg-gray-50 rounded transition-colors"
               >
-                <ArrowLeft className="h-5 w-5 text-gray-700" />
+                <ArrowLeft className="h-4 w-4 text-gray-700" />
               </button>
-              <h1 className="text-lg font-semibold text-gray-900">작업일지 작성</h1>
+              <h1 className="text-base font-semibold text-gray-900">작업일지 작성</h1>
             </div>
-            <button
-              type="button"
-              className="p-2 hover:bg-white rounded-xl transition-colors"
-            >
-              <MoreHorizontal className="h-5 w-5 text-gray-700" />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleToggleAll}
+                className="p-1.5 hover:bg-gray-50 rounded transition-colors"
+                title={allExpanded ? '모든 섹션 접기' : '모든 섹션 펼치기'}
+              >
+                {allExpanded ? (
+                  <ChevronUp className="h-4 w-4 text-gray-600" />
+                ) : (
+                  <ChevronDown className="h-4 w-4 text-gray-600" />
+                )}
+              </button>
+            </div>
           </div>
           
-          {/* Progress Bar */}
-          <div className="mt-3 bg-blue-50 rounded-xl p-3 border border-blue-100">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-medium text-gray-700">작성 진행률</span>
-              <span className="text-sm font-bold text-blue-600">{Math.round(progress)}%</span>
+          {/* Compact Progress Bar */}
+          <div className="mt-2 bg-blue-50 rounded p-2 border border-blue-100">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-gray-600">작성 진행률</span>
+              <span className="text-xs font-bold text-blue-600">{Math.round(progress)}%</span>
             </div>
-            <div className="bg-blue-100 rounded-full h-2">
+            <div className="bg-blue-100 rounded-full h-1.5 mt-1">
               <div 
-                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                className="bg-blue-600 h-1.5 rounded-full transition-all duration-300"
                 style={{ width: `${progress}%` }}
               />
             </div>
-          </div>
-
-          {/* Toggle All Sections Button */}
-          <div className="mt-3">
-            <button
-              type="button"
-              onClick={handleToggleAll}
-              className="w-full h-10 bg-white border border-gray-300 rounded-xl flex items-center justify-center gap-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-            >
-              {allExpanded ? (
-                <>
-                  <ChevronUp className="h-4 w-4" />
-                  모든 섹션 접기
-                </>
-              ) : (
-                <>
-                  <ChevronDown className="h-4 w-4" />
-                  모든 섹션 펼치기
-                </>
-              )}
-            </button>
           </div>
           
           {/* Error Message */}
@@ -640,23 +658,23 @@ export default function DailyReportFormEnhanced({
       </div>
       
       {/* Main Content */}
-      <div className="px-4 pb-20">
+      <div className="px-3 pb-20">
 
-        <form onSubmit={(e) => { e.preventDefault(); handleSubmit(true); }} className="space-y-4 mt-4 pb-6">
+        <form onSubmit={(e) => { e.preventDefault(); handleSubmit(true); }} className="space-y-3 mt-3 pb-6">
           {/* Section 1: Basic Info (Always visible, compact) */}
-          <div className="bg-white rounded-2xl p-4 border border-gray-200">
-            <h2 className="text-sm font-semibold mb-4 text-gray-900 flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-blue-400" />
+          <div className="bg-white rounded-lg p-3 border border-gray-200">
+            <h2 className="text-sm font-semibold mb-2 text-gray-900 flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-blue-500" />
               기본 정보
             </h2>
-            <div className="space-y-3">
+            <div className="space-y-2">
               <div>
-                <label className="text-xs font-medium text-gray-600 mb-1.5 block">현장 <span className="text-red-400">*</span></label>
+                <label className="text-xs font-medium text-gray-600 mb-1 block">현장 <span className="text-red-400">*</span></label>
                 <select
-                  value={formData.site_id}
+                  value={formData.site_id || ''}
                   onChange={(e) => setFormData({ ...formData, site_id: e.target.value })}
                   disabled={!!(currentUser as any).site_id}
-                  className="w-full h-12 px-4 text-sm bg-gray-100 border border-gray-300 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:bg-gray-200 text-gray-900 placeholder-gray-500 touch-manipulation"
+                  className="w-full h-9 px-3 text-sm bg-gray-50 border border-gray-200 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 text-gray-900"
                 >
                   <option value="" className="bg-gray-100">현장 선택</option>
                   {sites.map(site => (
@@ -665,82 +683,74 @@ export default function DailyReportFormEnhanced({
                 </select>
               </div>
               
-              <div>
-                <label className="text-xs font-medium text-gray-600 mb-1.5 block">작업일자 <span className="text-red-400">*</span></label>
-                <input
-                  type="date"
-                  value={formData.work_date}
-                  onChange={(e) => setFormData({ ...formData, work_date: e.target.value })}
-                  className="w-full h-11 px-3 text-sm bg-gray-100 border border-gray-300 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-gray-900"
-                  required
-                />
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs font-medium text-gray-600 mb-1 block">작업일자 <span className="text-red-400">*</span></label>
+                  <input
+                    type="date"
+                    value={formData.work_date || ''}
+                    onChange={(e) => setFormData({ ...formData, work_date: e.target.value })}
+                    className="w-full h-9 px-3 text-sm bg-gray-50 border border-gray-200 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-gray-900"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-gray-600 mb-1 block">작성자</label>
+                  <input 
+                    value={formData.created_by || ''} 
+                    disabled 
+                    className="w-full h-9 px-3 text-sm bg-gray-100 border border-gray-200 rounded text-gray-700"
+                  />
+                </div>
               </div>
 
 
-              <div>
-                <label className="text-xs font-medium text-gray-600 mb-1.5 block">담당자명 <span className="text-red-400">*</span></label>
-                <input
-                  type="text"
-                  value={formData.member_name}
-                  onChange={(e) => setFormData({ ...formData, member_name: e.target.value })}
-                  placeholder="담당자명을 입력하세요"
-                  className="w-full h-11 px-3 text-sm bg-gray-100 border border-gray-300 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-gray-900 placeholder-gray-500"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-medium text-gray-600 mb-1.5 block">공정 구분 <span className="text-red-400">*</span></label>
-                <select
-                  value={formData.process_type}
-                  onChange={(e) => setFormData({ ...formData, process_type: e.target.value })}
-                  className="w-full h-11 px-3 text-sm bg-gray-100 border border-gray-300 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-gray-900"
-                  required
-                >
-                  <option value="">공정을 선택하세요</option>
-                  <option value="토공사">토공사</option>
-                  <option value="철근공사">철근공사</option>
-                  <option value="거푸집공사">거푸집공사</option>
-                  <option value="콘크리트공사">콘크리트공사</option>
-                  <option value="조적공사">조적공사</option>
-                  <option value="방수공사">방수공사</option>
-                  <option value="타일공사">타일공사</option>
-                  <option value="도장공사">도장공사</option>
-                  <option value="기타">기타</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="text-xs font-medium text-gray-600 mb-1.5 block">작성자</label>
-                <input 
-                  value={formData.created_by} 
-                  disabled 
-                  className="w-full h-11 px-3 text-sm bg-gray-200 border border-gray-300 rounded-xl text-gray-700"
-                />
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs font-medium text-gray-600 mb-1 block">담당자명 <span className="text-red-400">*</span></label>
+                  <input
+                    type="text"
+                    value={formData.member_name || ''}
+                    onChange={(e) => setFormData({ ...formData, member_name: e.target.value })}
+                    placeholder="담당자명"
+                    className="w-full h-9 px-3 text-sm bg-gray-50 border border-gray-200 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-gray-900 placeholder-gray-400"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-gray-600 mb-1 block">공정 <span className="text-red-400">*</span></label>
+                  <select
+                    value={formData.process_type || ''}
+                    onChange={(e) => setFormData({ ...formData, process_type: e.target.value })}
+                    className="w-full h-9 px-3 text-sm bg-gray-50 border border-gray-200 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-gray-900"
+                    required
+                  >
+                    <option value="">선택</option>
+                    <option value="토공사">토공사</option>
+                    <option value="철근공사">철근공사</option>
+                    <option value="거푸집공사">거푸집공사</option>
+                    <option value="콘크리트공사">콘크리트공사</option>
+                    <option value="조적공사">조적공사</option>
+                    <option value="방수공사">방수공사</option>
+                    <option value="타일공사">타일공사</option>
+                    <option value="도장공사">도장공사</option>
+                    <option value="기타">기타</option>
+                  </select>
+                </div>
               </div>
               
-              {/* 현장 정보 (통합) */}
+              {/* 현장 정보 (컴팩트) */}
               {formData.site_id && sites.find(s => s.id === formData.site_id) && (
-                <div className="pt-3 border-t border-gray-200">
-                  <h3 className="text-sm font-semibold text-gray-800 mb-3">현장 정보</h3>
-                  <div className="space-y-3">
+                <div className="pt-2 border-t border-gray-100">
+                  <h3 className="text-xs font-semibold text-gray-700 mb-2">현장 정보</h3>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
                     <div>
-                      <label className="text-xs font-medium text-gray-600 mb-1 block">현장명</label>
-                      <p className="text-sm font-medium text-gray-800">{sites.find(s => s.id === formData.site_id)?.name}</p>
+                      <span className="text-gray-500">현장명</span>
+                      <p className="font-medium text-gray-800 truncate">{sites.find(s => s.id === formData.site_id)?.name}</p>
                     </div>
                     <div>
-                      <label className="text-xs font-medium text-gray-600 mb-1 block">현장 주소</label>
-                      <p className="text-sm text-gray-700">{sites.find(s => s.id === formData.site_id)?.address}</p>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="text-xs font-medium text-gray-600 mb-1 block">현장 관리자</label>
-                        <p className="text-sm text-gray-700">{(sites.find(s => s.id === formData.site_id) as any)?.manager_name}</p>
-                      </div>
-                      <div>
-                        <label className="text-xs font-medium text-gray-600 mb-1 block">연락처</label>
-                        <p className="text-sm text-gray-700">{(sites.find(s => s.id === formData.site_id) as any)?.manager_contact}</p>
-                      </div>
+                      <span className="text-gray-500">관리자</span>
+                      <p className="font-medium text-gray-800 truncate">{(sites.find(s => s.id === formData.site_id) as any)?.manager_name}</p>
                     </div>
                   </div>
                 </div>
@@ -759,37 +769,37 @@ export default function DailyReportFormEnhanced({
             )}
             required
           >
-            <div className="pt-3 space-y-3">
+            <div className="pt-2 space-y-2">
               <button
                 type="button"
                 onClick={addWorkContent}
-                className="w-full h-11 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-xl flex items-center justify-center gap-2 text-sm font-medium text-gray-800 transition-colors"
+                className="w-full h-9 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm font-medium text-gray-700 transition-colors"
               >
                 <Plus className="h-4 w-4" />
                 작업 추가
               </button>
 
               {workContents.map((content, index) => (
-                <div key={content.id} className="bg-gray-100/50 border border-gray-300 rounded-xl p-3">
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="text-sm font-medium text-gray-800">작업 {index + 1}</h4>
+                <div key={content.id} className="bg-gray-50 border border-gray-200 rounded p-2">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="text-xs font-medium text-gray-700">작업 {index + 1}</h4>
                     <button
                       type="button"
                       onClick={() => removeWorkContent(content.id)}
-                      className="p-1.5 hover:bg-red-500/20 rounded-lg text-red-400 transition-colors"
+                      className="p-1 hover:bg-red-100 rounded text-red-500 transition-colors"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-3 w-3" />
                     </button>
                   </div>
 
-                  <div className="space-y-3">
-                    <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="text-xs font-medium text-gray-600 mb-1.5 block">부재명 <span className="text-red-400">*</span></label>
+                        <label className="text-xs font-medium text-gray-600 mb-1 block">부재명 <span className="text-red-400">*</span></label>
                         <select
-                          value={content.memberName}
+                          value={content.memberName || ''}
                           onChange={(e) => updateWorkContent(content.id, 'memberName', e.target.value)}
-                          className="w-full h-10 px-3 text-sm bg-gray-100 border border-gray-300 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-gray-900"
+                          className="w-full h-8 px-2 text-sm bg-white border border-gray-200 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-gray-900"
                         >
                           <option value="" className="bg-gray-100">선택</option>
                           <option value="슬라브" className="bg-gray-100">슬라브</option>
@@ -799,8 +809,8 @@ export default function DailyReportFormEnhanced({
                         </select>
                         {content.memberName === '기타' && (
                           <input
-                            className="w-full h-10 px-3 mt-2 text-sm bg-gray-100 border border-gray-300 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-gray-900 placeholder-gray-500"
-                            placeholder="기타 부재명 입력"
+                            className="w-full h-8 px-2 mt-1 text-sm bg-white border border-gray-200 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-gray-900 placeholder-gray-400"
+                            placeholder="기타 부재명"
                             value={content.memberNameOther || ''}
                             onChange={(e) => updateWorkContent(content.id, 'memberNameOther', e.target.value)}
                           />
@@ -808,11 +818,11 @@ export default function DailyReportFormEnhanced({
                       </div>
 
                       <div>
-                        <label className="text-xs font-medium text-gray-600 mb-1.5 block">작업공정 <span className="text-red-400">*</span></label>
+                        <label className="text-xs font-medium text-gray-600 mb-1 block">작업공정 <span className="text-red-400">*</span></label>
                         <select
-                          value={content.processType}
+                          value={content.processType || ''}
                           onChange={(e) => updateWorkContent(content.id, 'processType', e.target.value)}
-                          className="w-full h-10 px-3 text-sm bg-gray-100 border border-gray-300 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-gray-900"
+                          className="w-full h-8 px-2 text-sm bg-white border border-gray-200 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-gray-900"
                         >
                           <option value="" className="bg-gray-100">선택</option>
                           <option value="균열" className="bg-gray-100">균열</option>
@@ -822,8 +832,8 @@ export default function DailyReportFormEnhanced({
                         </select>
                         {content.processType === '기타' && (
                           <input
-                            className="w-full h-10 px-3 mt-2 text-sm bg-gray-100 border border-gray-300 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-gray-900 placeholder-gray-500"
-                            placeholder="기타 작업공정 입력"
+                            className="w-full h-8 px-2 mt-1 text-sm bg-white border border-gray-200 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-gray-900 placeholder-gray-400"
+                            placeholder="기타 작업공정"
                             value={content.processTypeOther || ''}
                             onChange={(e) => updateWorkContent(content.id, 'processTypeOther', e.target.value)}
                           />
@@ -832,12 +842,12 @@ export default function DailyReportFormEnhanced({
                     </div>
 
                     <div>
-                      <label className="text-xs font-medium text-gray-600 mb-1.5 block">작업 구간</label>
+                      <label className="text-xs font-medium text-gray-600 mb-1 block">작업 구간</label>
                       <input
-                        value={content.workSection}
+                        value={content.workSection || ''}
                         onChange={(e) => updateWorkContent(content.id, 'workSection', e.target.value)}
                         placeholder="예: 3층 A구역"
-                        className="w-full h-10 px-3 text-sm bg-gray-100 border border-gray-300 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-gray-900 placeholder-gray-500"
+                        className="w-full h-8 px-2 text-sm bg-white border border-gray-200 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-gray-900 placeholder-gray-400"
                       />
                     </div>
                   </div>
@@ -845,7 +855,7 @@ export default function DailyReportFormEnhanced({
               ))}
 
               {workContents.length === 0 && (
-                <p className="text-center text-gray-500 py-8 text-sm">
+                <p className="text-center text-gray-500 py-6 text-xs">
                   작업 내용을 추가하려면 &quot;작업 추가&quot; 버튼을 클릭하세요
                 </p>
               )}
@@ -862,25 +872,35 @@ export default function DailyReportFormEnhanced({
               <span className="px-2 py-0.5 bg-green-500/20 text-green-400 rounded-full text-xs font-medium">{workerEntries.length}명</span>
             )}
           >
-            <div className="pt-3 space-y-3">
+            <div className="pt-2 space-y-2">
               <button
                 type="button"
                 onClick={addWorker}
-                className="w-full h-11 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-xl flex items-center justify-center gap-2 text-sm font-medium text-gray-800 transition-colors"
+                className="w-full h-9 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm font-medium text-gray-700 transition-colors"
               >
                 <Plus className="h-4 w-4" />
                 작업자 추가
               </button>
 
               {workerEntries.map((entry, index) => (
-                <div key={index} className="bg-gray-100/50 border border-gray-300 rounded-xl p-3">
-                  <div className="space-y-3">
-                    <div>
-                      <label className="text-xs font-medium text-gray-600 mb-1.5 block">작업자</label>
+                <div key={index} className="bg-gray-50 border border-gray-200 rounded p-2">
+                  <div className="flex items-center justify-between mb-1">
+                    <h4 className="text-xs font-medium text-gray-700">작업자 {index + 1}</h4>
+                    <button
+                      type="button"
+                      onClick={() => removeWorker(index)}
+                      className="p-1 hover:bg-red-100 rounded text-red-500 transition-colors"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="col-span-2">
+                      <label className="text-xs font-medium text-gray-600 mb-1 block">작업자</label>
                       <select
-                        value={entry.worker_id}
+                        value={entry.worker_id || ''}
                         onChange={(e) => updateWorker(index, 'worker_id', e.target.value)}
-                        className="w-full h-10 px-3 text-sm bg-gray-100 border border-gray-300 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-gray-900"
+                        className="w-full h-8 px-2 text-sm bg-white border border-gray-200 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-gray-900"
                       >
                         <option value="" className="bg-gray-100">선택</option>
                         {workers.map(worker => (
@@ -890,38 +910,27 @@ export default function DailyReportFormEnhanced({
                         ))}
                       </select>
                     </div>
-                    
-                    <div className="flex items-center gap-3">
-                      <div className="flex-1">
-                        <label className="text-xs font-medium text-gray-600 mb-1.5 block">공수</label>
-                        <select
-                          value={entry.labor_hours.toString()}
-                          onChange={(e) => updateWorker(index, 'labor_hours', parseFloat(e.target.value))}
-                          className="w-full h-10 px-3 text-sm bg-gray-100 border border-gray-300 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-gray-900"
-                        >
-                          <option value="0" className="bg-gray-100">0.0</option>
-                          <option value="1" className="bg-gray-100">1.0</option>
-                          <option value="1.5" className="bg-gray-100">1.5</option>
-                          <option value="2" className="bg-gray-100">2.0</option>
-                          <option value="2.5" className="bg-gray-100">2.5</option>
-                          <option value="3" className="bg-gray-100">3.0</option>
-                        </select>
-                      </div>
-                      
-                      <button
-                        type="button"
-                        onClick={() => removeWorker(index)}
-                        className="p-2 hover:bg-red-500/20 rounded-lg text-red-400 transition-colors mt-5"
+                    <div>
+                      <label className="text-xs font-medium text-gray-600 mb-1 block">공수</label>
+                      <select
+                        value={(entry.labor_hours || 0).toString()}
+                        onChange={(e) => updateWorker(index, 'labor_hours', parseFloat(e.target.value))}
+                        className="w-full h-8 px-2 text-sm bg-white border border-gray-200 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-gray-900"
                       >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                        <option value="0" className="bg-gray-100">0.0</option>
+                        <option value="1" className="bg-gray-100">1.0</option>
+                        <option value="1.5" className="bg-gray-100">1.5</option>
+                        <option value="2" className="bg-gray-100">2.0</option>
+                        <option value="2.5" className="bg-gray-100">2.5</option>
+                        <option value="3" className="bg-gray-100">3.0</option>
+                      </select>
                     </div>
                   </div>
                 </div>
               ))}
 
               {workerEntries.length === 0 && (
-                <p className="text-center text-gray-500 py-8 text-sm">
+                <p className="text-center text-gray-500 py-6 text-xs">
                   작업자를 추가하려면 &quot;작업자 추가&quot; 버튼을 클릭하세요
                 </p>
               )}
@@ -938,33 +947,33 @@ export default function DailyReportFormEnhanced({
               <span className="px-2 py-0.5 bg-purple-500/20 text-purple-400 rounded-full text-xs font-medium">{photos.length}장</span>
             )}
           >
-            <div className="pt-3 space-y-4">
+            <div className="pt-2 space-y-3">
               {/* Before Photos */}
               <div>
-                <h4 className="text-sm font-medium text-gray-800 mb-3">작업전 사진 (최대 30장)</h4>
+                <h4 className="text-xs font-medium text-gray-700 mb-2">작업전 사진 (최대 30장)</h4>
                 <button
                   type="button"
                   onClick={() => openPhotoModal('before')}
-                  className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-gray-300 rounded-xl hover:border-gray-400 hover:bg-gray-100/30 transition-all cursor-pointer"
+                  className="flex flex-col items-center justify-center w-full h-16 border-2 border-dashed border-gray-200 rounded hover:border-gray-300 hover:bg-gray-50 transition-all cursor-pointer"
                 >
-                  <Camera className="h-6 w-6 text-gray-600 mb-1" />
-                  <p className="text-xs text-gray-600">클릭하여 사진 선택</p>
+                  <Camera className="h-4 w-4 text-gray-500 mb-1" />
+                  <p className="text-xs text-gray-500">클릭하여 사진 선택</p>
                 </button>
 
-                <div className="mt-3 grid grid-cols-4 gap-2">
+                <div className="mt-2 grid grid-cols-4 gap-1.5">
                   {photos.filter(p => p.type === 'before').map(photo => (
                     <div key={photo.id} className="relative group">
                       <img 
                         src={photo.preview || ''} 
                         alt="작업전" 
-                        className="w-full h-16 object-cover rounded-lg"
+                        className="w-full h-12 object-cover rounded"
                       />
                       <button
                         type="button"
                         onClick={() => removePhoto(photo.id)}
-                        className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5 shadow-lg transition-colors"
+                        className="absolute -top-1 -right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow transition-colors"
                       >
-                        <X className="h-4 w-4" />
+                        <X className="h-3 w-3" />
                       </button>
                     </div>
                   ))}
@@ -973,30 +982,30 @@ export default function DailyReportFormEnhanced({
 
               {/* After Photos */}
               <div>
-                <h4 className="text-sm font-medium text-gray-800 mb-3">작업후 사진 (최대 30장)</h4>
+                <h4 className="text-xs font-medium text-gray-700 mb-2">작업후 사진 (최대 30장)</h4>
                 <button
                   type="button"
                   onClick={() => openPhotoModal('after')}
-                  className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-gray-300 rounded-xl hover:border-gray-400 hover:bg-gray-100/30 transition-all cursor-pointer"
+                  className="flex flex-col items-center justify-center w-full h-16 border-2 border-dashed border-gray-200 rounded hover:border-gray-300 hover:bg-gray-50 transition-all cursor-pointer"
                 >
-                  <Camera className="h-6 w-6 text-gray-600 mb-1" />
-                  <p className="text-xs text-gray-600">클릭하여 사진 선택</p>
+                  <Camera className="h-4 w-4 text-gray-500 mb-1" />
+                  <p className="text-xs text-gray-500">클릭하여 사진 선택</p>
                 </button>
 
-                <div className="mt-3 grid grid-cols-4 gap-2">
+                <div className="mt-2 grid grid-cols-4 gap-1.5">
                   {photos.filter(p => p.type === 'after').map(photo => (
                     <div key={photo.id} className="relative group">
                       <img 
                         src={photo.preview || ''} 
                         alt="작업후" 
-                        className="w-full h-16 object-cover rounded-lg"
+                        className="w-full h-12 object-cover rounded"
                       />
                       <button
                         type="button"
                         onClick={() => removePhoto(photo.id)}
-                        className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5 shadow-lg transition-colors"
+                        className="absolute -top-1 -right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow transition-colors"
                       >
-                        <X className="h-4 w-4" />
+                        <X className="h-3 w-3" />
                       </button>
                     </div>
                   ))}
@@ -1015,62 +1024,62 @@ export default function DailyReportFormEnhanced({
               <span className="px-2 py-0.5 bg-yellow-500/20 text-yellow-400 rounded-full text-xs font-medium">{receipts.length}개</span>
             )}
           >
-            <div className="pt-3 space-y-3">
+            <div className="pt-2 space-y-2">
               <button
                 type="button"
                 onClick={addReceipt}
-                className="w-full h-11 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-xl flex items-center justify-center gap-2 text-sm font-medium text-gray-800 transition-colors"
+                className="w-full h-9 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm font-medium text-gray-700 transition-colors"
               >
                 <Plus className="h-4 w-4" />
                 영수증 추가
               </button>
 
-              {receipts.map((receipt) => (
-                <div key={receipt.id} className="bg-gray-100/50 border border-gray-300 rounded-xl p-3">
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="text-sm font-medium text-gray-800">영수증</h4>
+              {receipts.map((receipt: any) => (
+                <div key={receipt.id} className="bg-gray-50 border border-gray-200 rounded p-2">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="text-xs font-medium text-gray-700">영수증</h4>
                     <button
                       type="button"
                       onClick={() => removeReceipt(receipt.id)}
-                      className="p-1.5 hover:bg-red-500/20 rounded-lg text-red-400 transition-colors"
+                      className="p-1 hover:bg-red-100 rounded text-red-500 transition-colors"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-3 w-3" />
                     </button>
                   </div>
 
-                  <div className="space-y-3">
-                    <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="text-xs font-medium text-gray-600 mb-1.5 block">구분</label>
+                        <label className="text-xs font-medium text-gray-600 mb-1 block">구분</label>
                         <input
-                          value={receipt.category}
+                          value={receipt.category || ''}
                           onChange={(e) => updateReceipt(receipt.id, 'category', e.target.value)}
                           placeholder="예: 자재비"
-                          className="w-full h-10 px-3 text-sm bg-gray-100 border border-gray-300 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-gray-900 placeholder-gray-500"
+                          className="w-full h-8 px-2 text-sm bg-white border border-gray-200 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-gray-900 placeholder-gray-400"
                         />
                       </div>
                       <div>
-                        <label className="text-xs font-medium text-gray-600 mb-1.5 block">금액</label>
+                        <label className="text-xs font-medium text-gray-600 mb-1 block">금액</label>
                         <input
                           type="number"
-                          value={receipt.amount}
+                          value={receipt.amount || ''}
                           onChange={(e) => updateReceipt(receipt.id, 'amount', e.target.value)}
                           placeholder="0"
-                          className="w-full h-10 px-3 text-sm bg-gray-100 border border-gray-300 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-gray-900 placeholder-gray-500"
+                          className="w-full h-8 px-2 text-sm bg-white border border-gray-200 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-gray-900 placeholder-gray-400"
                         />
                       </div>
                     </div>
                     <div>
-                      <label className="text-xs font-medium text-gray-600 mb-1.5 block">일자</label>
+                      <label className="text-xs font-medium text-gray-600 mb-1 block">일자</label>
                       <input
                         type="date"
-                        value={receipt.date}
+                        value={receipt.date || ''}
                         onChange={(e) => updateReceipt(receipt.id, 'date', e.target.value)}
-                        className="w-full h-10 px-3 text-sm bg-gray-100 border border-gray-300 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-gray-900"
+                        className="w-full h-8 px-2 text-sm bg-white border border-gray-200 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-gray-900"
                       />
                     </div>
                     <div>
-                      <label className="text-xs font-medium text-gray-600 mb-1.5 block">파일 첨부</label>
+                      <label className="text-xs font-medium text-gray-600 mb-1 block">파일 첨부</label>
                       <input
                         type="file"
                         accept="image/*,.pdf"
@@ -1079,7 +1088,7 @@ export default function DailyReportFormEnhanced({
                             updateReceipt(receipt.id, 'file', e.target.files[0])
                           }
                         }}
-                        className="w-full text-sm text-gray-700 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-gray-200 file:text-gray-800 hover:file:bg-gray-300"
+                        className="w-full text-xs text-gray-700 file:mr-2 file:py-1.5 file:px-2 file:rounded file:border-0 file:text-xs file:font-medium file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200"
                       />
                       {receipt.file && (
                         <p className="text-xs text-gray-600 mt-1">{receipt.file.name}</p>
@@ -1090,7 +1099,7 @@ export default function DailyReportFormEnhanced({
               ))}
 
               {receipts.length === 0 && (
-                <p className="text-center text-gray-500 py-8 text-sm">
+                <p className="text-center text-gray-500 py-6 text-xs">
                   영수증을 추가하려면 &quot;영수증 추가&quot; 버튼을 클릭하세요
                 </p>
               )}
@@ -1107,15 +1116,15 @@ export default function DailyReportFormEnhanced({
               <span className="px-2 py-0.5 bg-indigo-500/20 text-indigo-400 rounded-full text-xs font-medium">{drawings.length}개</span>
             )}
           >
-            <div className="pt-3">
-              <p className="text-xs text-gray-600 mb-3">
+            <div className="pt-2">
+              <p className="text-xs text-gray-500 mb-2">
                 도면 마킹 도구에서 생성된 마킹 도면을 첨부하세요
               </p>
               
               <label className="cursor-pointer">
-                <div className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-gray-300 rounded-xl hover:border-gray-400 hover:bg-gray-100/30 transition-all">
-                  <Map className="h-6 w-6 text-gray-600 mb-1" />
-                  <p className="text-xs text-gray-600">클릭하여 도면 파일 선택</p>
+                <div className="flex flex-col items-center justify-center w-full h-16 border-2 border-dashed border-gray-200 rounded hover:border-gray-300 hover:bg-gray-50 transition-all">
+                  <Map className="h-4 w-4 text-gray-500 mb-1" />
+                  <p className="text-xs text-gray-500">클릭하여 도면 파일 선택</p>
                 </div>
                 <input
                   type="file"
@@ -1131,14 +1140,14 @@ export default function DailyReportFormEnhanced({
               </label>
 
               {drawings.length > 0 && (
-                <div className="mt-3 space-y-2">
+                <div className="mt-2 space-y-1.5">
                   {drawings.map((file, index) => (
-                    <div key={index} className="flex items-center justify-between p-2 bg-gray-100/50 rounded-lg">
+                    <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
                       <span className="text-xs text-gray-700 truncate flex-1">{file.name}</span>
                       <button
                         type="button"
                         onClick={() => setDrawings(drawings.filter((_, i) => i !== index))}
-                        className="p-1 hover:bg-red-500/20 rounded text-red-400 transition-colors ml-2"
+                        className="p-1 hover:bg-red-100 rounded text-red-500 transition-colors ml-2"
                       >
                         <Trash2 className="h-3 w-3" />
                       </button>
@@ -1157,20 +1166,20 @@ export default function DailyReportFormEnhanced({
             onToggle={() => toggleSection('requests')}
             badge={requestText && <Check className="h-4 w-4 text-green-400" />}
           >
-            <div className="pt-3 space-y-3">
+            <div className="pt-2 space-y-2">
               <div>
-                <label className="text-xs font-medium text-gray-600 mb-1.5 block">요청 내용</label>
+                <label className="text-xs font-medium text-gray-600 mb-1 block">요청 내용</label>
                 <textarea
-                  value={requestText}
+                  value={requestText || ''}
                   onChange={(e) => setRequestText(e.target.value)}
                   placeholder="본사에게 요청하고 싶은 사항을 작성하세요"
-                  rows={4}
-                  className="w-full px-3 py-2 text-sm bg-gray-100 border border-gray-300 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-gray-900 placeholder-gray-500 resize-none"
+                  rows={3}
+                  className="w-full px-2 py-2 text-sm bg-gray-50 border border-gray-200 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-gray-900 placeholder-gray-400 resize-none"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-medium text-gray-600 mb-1.5 block">파일 첨부</label>
+                <label className="text-xs font-medium text-gray-600 mb-1 block">파일 첨부</label>
                 <input
                   type="file"
                   multiple
@@ -1179,17 +1188,17 @@ export default function DailyReportFormEnhanced({
                       setRequestFiles([...requestFiles, ...Array.from(e.target.files)])
                     }
                   }}
-                  className="w-full text-sm text-gray-700 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-gray-200 file:text-gray-800 hover:file:bg-gray-300"
+                  className="w-full text-xs text-gray-700 file:mr-2 file:py-1.5 file:px-2 file:rounded file:border-0 file:text-xs file:font-medium file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200"
                 />
                 {requestFiles.length > 0 && (
                   <div className="mt-2 space-y-1">
                     {requestFiles.map((file, index) => (
-                      <div key={index} className="flex items-center justify-between p-2 bg-gray-100/50 rounded-lg">
+                      <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
                         <span className="text-xs text-gray-700 truncate">{file.name}</span>
                         <button
                           type="button"
                           onClick={() => setRequestFiles(requestFiles.filter((_, i) => i !== index))}
-                          className="p-1 hover:bg-red-500/20 rounded text-red-400 transition-colors"
+                          className="p-1 hover:bg-red-100 rounded text-red-500 transition-colors"
                         >
                           <X className="h-3 w-3" />
                         </button>
@@ -1211,40 +1220,40 @@ export default function DailyReportFormEnhanced({
               <Check className="h-4 w-4 text-green-400" />
             )}
           >
-            <div className="pt-3">
-              <p className="text-xs text-gray-600 mb-3">
-                본사 담당자가 현장별 재고 부족 여부를 판단하여 추가 생산 및 배송 결정을 지원합니다
+            <div className="pt-2">
+              <p className="text-xs text-gray-500 mb-2">
+                현장별 재고 관리를 위한 NPC-1000 자재 현황을 입력하세요
               </p>
               
-              <div className="space-y-3">
+              <div className="grid grid-cols-3 gap-2">
                 <div>
-                  <label className="text-xs font-medium text-gray-600 mb-1.5 block">입고량</label>
+                  <label className="text-xs font-medium text-gray-600 mb-1 block">입고량</label>
                   <input
                     type="number"
-                    value={materialData.incoming}
+                    value={materialData.incoming || ''}
                     onChange={(e) => setMaterialData({ ...materialData, incoming: e.target.value })}
                     placeholder="0"
-                    className="w-full h-10 px-3 text-sm bg-gray-100 border border-gray-300 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-gray-900 placeholder-gray-500"
+                    className="w-full h-8 px-2 text-sm bg-gray-50 border border-gray-200 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-gray-900 placeholder-gray-400"
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-gray-600 mb-1.5 block">사용량</label>
+                  <label className="text-xs font-medium text-gray-600 mb-1 block">사용량</label>
                   <input
                     type="number"
-                    value={materialData.used}
+                    value={materialData.used || ''}
                     onChange={(e) => setMaterialData({ ...materialData, used: e.target.value })}
                     placeholder="0"
-                    className="w-full h-10 px-3 text-sm bg-gray-100 border border-gray-300 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-gray-900 placeholder-gray-500"
+                    className="w-full h-8 px-2 text-sm bg-gray-50 border border-gray-200 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-gray-900 placeholder-gray-400"
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-gray-600 mb-1.5 block">재고량</label>
+                  <label className="text-xs font-medium text-gray-600 mb-1 block">재고량</label>
                   <input
                     type="number"
-                    value={materialData.remaining}
+                    value={materialData.remaining || ''}
                     onChange={(e) => setMaterialData({ ...materialData, remaining: e.target.value })}
                     placeholder="0"
-                    className="w-full h-10 px-3 text-sm bg-gray-100 border border-gray-300 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-gray-900 placeholder-gray-500"
+                    className="w-full h-8 px-2 text-sm bg-gray-50 border border-gray-200 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-gray-900 placeholder-gray-400"
                   />
                 </div>
               </div>
@@ -1259,29 +1268,29 @@ export default function DailyReportFormEnhanced({
             onToggle={() => toggleSection('specialNotes')}
             badge={specialNotes && <Check className="h-4 w-4 text-green-400" />}
           >
-            <div className="pt-3">
+            <div className="pt-2">
               <textarea
-                value={specialNotes}
+                value={specialNotes || ''}
                 onChange={(e) => setSpecialNotes(e.target.value)}
                 placeholder="특이사항을 자유롭게 입력하세요"
-                rows={5}
-                className="w-full px-3 py-2 text-sm bg-gray-100 border border-gray-300 rounded-xl focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-gray-900 placeholder-gray-500 resize-none"
+                rows={4}
+                className="w-full px-2 py-2 text-sm bg-gray-50 border border-gray-200 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-gray-900 placeholder-gray-400 resize-none"
               />
             </div>
           </CollapsibleSection>
         </form>
         
-        {/* Modern Mobile Action Buttons */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 safe-area-pb">
-          <div className="flex gap-3 max-w-md mx-auto">
+        {/* Compact Mobile Action Buttons */}
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-2 safe-area-pb">
+          <div className="flex gap-2 max-w-md mx-auto">
             <button
               type="button"
               onClick={() => {
                 saveToLocalStorage()
-                alert('임시저장되었습니다')
+                toast.success('임시저장되었습니다')
               }}
               disabled={loading}
-              className="flex-1 h-14 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 border border-gray-300 rounded-xl flex items-center justify-center gap-2 text-sm font-medium text-gray-800 transition-colors disabled:opacity-50 touch-manipulation"
+              className="flex-1 h-10 bg-gray-50 hover:bg-gray-100 active:bg-gray-200 border border-gray-200 rounded flex items-center justify-center gap-2 text-sm font-medium text-gray-800 transition-colors disabled:opacity-50 touch-manipulation"
             >
               <Save className="h-4 w-4" />
               임시저장
@@ -1290,14 +1299,14 @@ export default function DailyReportFormEnhanced({
               type="button"
               onClick={() => handleSubmit(true)}
               disabled={loading || !formData.site_id || !formData.member_name || !formData.process_type || workContents.length === 0}
-              className="flex-1 h-14 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 rounded-xl flex items-center justify-center gap-2 text-sm font-medium text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
+              className="flex-1 h-10 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 rounded flex items-center justify-center gap-2 text-sm font-medium text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
             >
               {loading ? (
                 <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
               ) : (
                 <Send className="h-4 w-4" />
               )}
-              제출(저장)
+              제출
             </button>
           </div>
         </div>

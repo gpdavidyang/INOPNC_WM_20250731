@@ -32,9 +32,10 @@ interface MaterialManagementProps {
   categories: any[]
   initialInventory: any[]
   currentUser: any
+  currentSite?: any
 }
 
-export function MaterialManagement({ materials, categories, initialInventory, currentUser }: MaterialManagementProps) {
+export function MaterialManagement({ materials, categories, initialInventory, currentUser, currentSite }: MaterialManagementProps) {
   const { isLargeFont } = useFontSize()
   const { touchMode } = useTouchMode()
   const [activeTab, setActiveTab] = useState('catalog')
@@ -197,6 +198,7 @@ export function MaterialManagement({ materials, categories, initialInventory, cu
             materials={materials}
             initialInventory={initialInventory}
             currentUser={currentUser}
+            currentSite={currentSite}
             searchQuery={searchQuery}
           />
         </TabsContent>
@@ -205,6 +207,7 @@ export function MaterialManagement({ materials, categories, initialInventory, cu
           <MaterialRequests 
             materials={materials}
             currentUser={currentUser}
+            currentSite={currentSite}
           />
         </TabsContent>
 
@@ -212,6 +215,7 @@ export function MaterialManagement({ materials, categories, initialInventory, cu
           <MaterialTransactions 
             materials={materials}
             currentUser={currentUser}
+            currentSite={currentSite}
           />
         </TabsContent>
       </Tabs>

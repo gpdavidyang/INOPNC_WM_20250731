@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import {
   FileText,
@@ -12,16 +11,9 @@ import {
   Search,
   Filter,
   Folder,
-  Calendar,
-  Shield,
-  Award,
-  BookOpen,
-  Archive,
-  FileCheck,
   Eye,
   Trash2,
   Share2,
-  ChevronRight,
   Clock,
   User
 } from 'lucide-react'
@@ -47,55 +39,11 @@ interface Document {
   url?: string
 }
 
-const documentCategories = [
-  {
-    id: 'salary',
-    name: '개인 급여 명세서',
-    icon: FileCheck,
-    color: 'bg-green-100 text-green-700',
-    description: '월별 급여명세서 및 원천징수 영수증'
-  },
-  {
-    id: 'daily-reports',
-    name: '작업일지 백업',
-    icon: Calendar,
-    color: 'bg-blue-100 text-blue-700',
-    description: '제출한 작업일지 사본 보관'
-  },
-  {
-    id: 'contracts',
-    name: '계약서/협약서',
-    icon: FileText,
-    color: 'bg-purple-100 text-purple-700',
-    description: '근로계약서, 프로젝트 협약서 등'
-  },
-  {
-    id: 'certificates',
-    name: '자격증/수료증',
-    icon: Award,
-    color: 'bg-yellow-100 text-yellow-700',
-    description: '기술자격증, 교육 수료증 등'
-  },
-  {
-    id: 'safety',
-    name: '안전교육 이수증',
-    icon: Shield,
-    color: 'bg-red-100 text-red-700',
-    description: '안전교육, 특별교육 이수증'
-  },
-  {
-    id: 'others',
-    name: '기타 개인 문서',
-    icon: Archive,
-    color: 'bg-gray-100 text-gray-700',
-    description: '기타 업무 관련 개인 문서'
-  }
-]
 
 export function MyDocuments({ profile }: MyDocumentsProps) {
   const { isLargeFont } = useFontSize()
   const { touchMode } = useTouchMode()
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const [selectedCategory, setSelectedCategory] = useState<string | null>('all')
   const [documents, setDocuments] = useState<Document[]>([])
   const [loading, setLoading] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
@@ -112,7 +60,7 @@ export function MyDocuments({ profile }: MyDocumentsProps) {
     setLoading(true)
     try {
       const result = await getMyDocuments({
-        category: selectedCategory!,
+        category: selectedCategory === 'all' ? undefined : selectedCategory!,
         userId: profile.id
       })
       
@@ -125,14 +73,14 @@ export function MyDocuments({ profile }: MyDocumentsProps) {
   }
 
   const handleUpload = async () => {
-    if (!selectedFile || !selectedCategory) return
+    if (!selectedFile) return
     
     const formData = new FormData()
     formData.append('file', selectedFile)
     formData.append('title', selectedFile.name)
-    formData.append('description', `${selectedCategoryInfo?.name} - ${selectedFile.name}`)
+    formData.append('description', selectedFile.name)
     formData.append('document_type', 'other')
-    formData.append('folder_path', selectedCategory)
+    formData.append('folder_path', 'personal')
     formData.append('site_id', profile.site_id || '')
     formData.append('is_public', 'false')
     
@@ -164,70 +112,20 @@ export function MyDocuments({ profile }: MyDocumentsProps) {
     doc.name.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
-  const selectedCategoryInfo = documentCategories.find(cat => cat.id === selectedCategory)
-
-  if (!selectedCategory) {
-    // Category Selection View
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {documentCategories.map((category: any) => {
-          const Icon = category.icon
-          return (
-            <Card
-              key={category.id}
-              className={`${
-                touchMode === 'glove' ? 'p-8' : touchMode === 'precision' ? 'p-4' : 'p-6'
-              } cursor-pointer hover:shadow-lg transition-shadow`}
-              onClick={() => setSelectedCategory(category.id)}
-            >
-              <div className="flex items-start gap-4">
-                <div className={`p-3 rounded-lg ${category.color}`}>
-                  <Icon className="h-6 w-6" />
-                </div>
-                <div className="flex-1">
-                  <h3 className={`${getFullTypographyClass('body', 'base', isLargeFont)} font-semibold text-gray-900`}>{category.name}</h3>
-                  <p className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-600 mt-1`}>{category.description}</p>
-                  <div className={`flex items-center mt-3 ${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-500`}>
-                    <span>문서 보기</span>
-                    <ChevronRight className="h-4 w-4 ml-1" />
-                  </div>
-                </div>
-              </div>
-            </Card>
-          )
-        })}
-      </div>
-    )
-  }
-
-  // Document List View
+  // Document List View - 바로 보여주기
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size={touchMode === 'glove' ? 'standard' : touchMode === 'precision' ? 'compact' : 'compact'}
-            onClick={() => setSelectedCategory(null)}
-          >
-            ← 뒤로
-          </Button>
-          {selectedCategoryInfo && (
-            <div className="flex items-center gap-2">
-              <div className={`p-2 rounded-lg ${selectedCategoryInfo.color}`}>
-                <selectedCategoryInfo.icon className="h-5 w-5" />
-              </div>
-              <h2 className={`${getFullTypographyClass('heading', 'xl', isLargeFont)} font-semibold`}>{selectedCategoryInfo.name}</h2>
-            </div>
-          )}
+          <h2 className={`${getFullTypographyClass('heading', 'xl', isLargeFont)} font-semibold`}>내문서함</h2>
         </div>
         <Button 
           onClick={() => setUploadModalOpen(true)}
           size={touchMode === 'glove' ? 'field' : touchMode === 'precision' ? 'compact' : 'standard'}
         >
           <Upload className="h-4 w-4 mr-2" />
-          문서 업로드
+          파일 업로드
         </Button>
       </div>
 

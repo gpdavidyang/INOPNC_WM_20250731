@@ -1,3 +1,5 @@
+import { withSentryConfig } from '@sentry/nextjs'
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -19,9 +21,9 @@ const nextConfig = {
   
   // 실험적 기능으로 빌드 성능 향상
   experimental: {
-    // 병렬 라우트 빌드
-    parallelServerCompiles: true,
-    parallelServerBuildTraces: true,
+    // 병렬 라우트 빌드 (build worker 환경에서만 활성화)
+    // parallelServerCompiles: true,
+    // parallelServerBuildTraces: true,
     
     // 메모리 캐시 최적화
     optimizePackageImports: [
@@ -39,8 +41,51 @@ const nextConfig = {
     formats: ['image/avif', 'image/webp'],
   },
   
+  // PWA 지원을 위한 설정
+  headers: async () => {
+    return [
+      {
+        source: '/manifest.json',
+        headers: [
+          {
+            key: 'Content-Type',
+            value: 'application/manifest+json',
+          },
+        ],
+      },
+      {
+        source: '/icons/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+    ];
+  },
+  
   // 번들 크기 분석 (필요시에만 활성화)
   // bundleAnalyzer: process.env.ANALYZE === 'true',
 }
 
-export default nextConfig
+// Wrap the config with Sentry
+export default withSentryConfig(
+  nextConfig,
+  {
+    // For all available options, see:
+    // https://github.com/getsentry/sentry-webpack-plugin#options
+    silent: true,
+    org: process.env.SENTRY_ORG,
+    project: process.env.SENTRY_PROJECT,
+  },
+  {
+    // For all available options, see:
+    // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
+    widenClientFileUpload: true,
+    transpileClientSDK: true,
+    hideSourceMaps: true,
+    disableLogger: true,
+    automaticVercelMonitors: true,
+  }
+)

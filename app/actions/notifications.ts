@@ -49,8 +49,7 @@ export async function getNotifications(filter?: NotificationFilter) {
       query = query.lte('created_at', filter.end_date)
     }
 
-    // 만료되지 않은 알림만 조회
-    query = query.or('expires_at.is.null,expires_at.gt.now()')
+    // 모든 알림 조회 (만료 기능 비활성화)
 
     // 페이지네이션
     if (filter?.limit) {
@@ -97,7 +96,6 @@ export async function getNotificationStats(): Promise<{ success: boolean; data?:
       .from('notifications')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', user.id)
-      .or('expires_at.is.null,expires_at.gt.now()')
 
     // 읽지 않은 알림 수
     const { count: unread } = await supabase
@@ -105,14 +103,12 @@ export async function getNotificationStats(): Promise<{ success: boolean; data?:
       .select('*', { count: 'exact', head: true })
       .eq('user_id', user.id)
       .eq('read', false)
-      .or('expires_at.is.null,expires_at.gt.now()')
 
     // 타입별 알림 수
     const { data: typeData } = await supabase
       .from('notifications')
       .select('type')
       .eq('user_id', user.id)
-      .or('expires_at.is.null,expires_at.gt.now()')
 
     const by_type = typeData?.reduce((acc: any, item: any) => {
       acc[(item as any).type] = (acc[(item as any).type] || 0) + 1

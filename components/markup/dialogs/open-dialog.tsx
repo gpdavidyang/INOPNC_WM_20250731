@@ -10,7 +10,13 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Select, SelectItem } from '@/components/ui/select'
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select-new'
 import { MarkupDocument } from '@/types'
 import { FileText, Calendar, Edit } from 'lucide-react'
 
@@ -73,10 +79,15 @@ export function OpenDialog({ open, onOpenChange, onOpen }: OpenDialogProps) {
           <div className="mb-4">
             <Select 
               value={location} 
-              onChange={(e) => setLocation(e.target.value as 'personal' | 'shared')}
+              onValueChange={(value) => setLocation(value as 'personal' | 'shared')}
             >
-              <SelectItem value="personal">내 문서함</SelectItem>
-              <SelectItem value="shared">공유 문서함</SelectItem>
+              <SelectTrigger>
+                <SelectValue placeholder="문서함 선택" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="personal">내 문서함</SelectItem>
+                <SelectItem value="shared">공유 문서함</SelectItem>
+              </SelectContent>
             </Select>
           </div>
 

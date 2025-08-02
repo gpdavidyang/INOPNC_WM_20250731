@@ -7,6 +7,8 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useFontSize, getTypographyClass, getFullTypographyClass } from '@/contexts/FontSizeContext'
 import { useTouchMode } from '@/contexts/TouchModeContext'
+import { useContrastMode } from '@/contexts/ContrastModeContext'
+import { useKeyboardNavigation } from '@/hooks/use-keyboard-navigation'
 
 interface SettingsFormProps {
   user: User
@@ -18,6 +20,7 @@ export default function SettingsForm({ user, profile }: SettingsFormProps) {
   const supabase = createClient()
   const { isLargeFont, toggleFontSize } = useFontSize()
   const { touchMode, setTouchMode } = useTouchMode()
+  const { isHighContrast, toggleHighContrast, isSunlightMode, toggleSunlightMode } = useContrastMode()
   
   const [formData, setFormData] = useState({
     full_name: profile.full_name || '',
@@ -29,6 +32,15 @@ export default function SettingsForm({ user, profile }: SettingsFormProps) {
   
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
+  
+  // Touch mode options for keyboard navigation
+  const touchModeOptions = ['normal', 'glove', 'precision'] as const
+  const { currentIndex: touchModeIndex, handleKeyDown: handleTouchModeKeyDown } = useKeyboardNavigation({
+    items: touchModeOptions,
+    onSelect: (index) => setTouchMode(touchModeOptions[index]),
+    currentValue: touchMode,
+    orientation: 'vertical'
+  })
 
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -198,15 +210,33 @@ export default function SettingsForm({ user, profile }: SettingsFormProps) {
         </div>
 
         <div>
-          <label className={`block ${getFullTypographyClass('body', 'sm', isLargeFont)} font-medium text-gray-700 mb-2`}>
+          <label 
+            id="touch-mode-label"
+            className={`block ${getFullTypographyClass('body', 'sm', isLargeFont)} font-medium text-gray-700 mb-2`}
+          >
             터치 모드
           </label>
-          <div className="space-y-2">
+          <div 
+            className="space-y-2"
+            role="radiogroup"
+            aria-labelledby="touch-mode-label"
+            onKeyDown={handleTouchModeKeyDown}
+          >
             <div 
+              role="radio"
+              tabIndex={touchMode === 'normal' ? 0 : -1}
+              aria-checked={touchMode === 'normal'}
               onClick={() => setTouchMode('normal')}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  setTouchMode('normal')
+                }
+                handleTouchModeKeyDown(e)
+              }}
               className={`flex items-center justify-between ${
                 touchMode === 'glove' ? 'p-4' : touchMode === 'precision' ? 'p-2.5' : 'p-3'
-              } rounded-lg cursor-pointer transition-colors ${
+              } rounded-lg cursor-pointer transition-colors focus-visible:ring-2 focus-visible:ring-toss-blue-500 focus-visible:ring-offset-2 ${
                 touchMode === 'normal' ? 'bg-blue-50 border-2 border-blue-500' : 'bg-gray-50 border-2 border-transparent'
               }`}
             >
@@ -220,10 +250,20 @@ export default function SettingsForm({ user, profile }: SettingsFormProps) {
             </div>
             
             <div 
+              role="radio"
+              tabIndex={touchMode === 'glove' ? 0 : -1}
+              aria-checked={touchMode === 'glove'}
               onClick={() => setTouchMode('glove')}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  setTouchMode('glove')
+                }
+                handleTouchModeKeyDown(e)
+              }}
               className={`flex items-center justify-between ${
                 touchMode === 'glove' ? 'p-4' : touchMode === 'precision' ? 'p-2.5' : 'p-3'
-              } rounded-lg cursor-pointer transition-colors ${
+              } rounded-lg cursor-pointer transition-colors focus-visible:ring-2 focus-visible:ring-toss-blue-500 focus-visible:ring-offset-2 ${
                 touchMode === 'glove' ? 'bg-blue-50 border-2 border-blue-500' : 'bg-gray-50 border-2 border-transparent'
               }`}
             >
@@ -237,10 +277,20 @@ export default function SettingsForm({ user, profile }: SettingsFormProps) {
             </div>
             
             <div 
+              role="radio"
+              tabIndex={touchMode === 'precision' ? 0 : -1}
+              aria-checked={touchMode === 'precision'}
               onClick={() => setTouchMode('precision')}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  setTouchMode('precision')
+                }
+                handleTouchModeKeyDown(e)
+              }}
               className={`flex items-center justify-between ${
                 touchMode === 'glove' ? 'p-4' : touchMode === 'precision' ? 'p-2.5' : 'p-3'
-              } rounded-lg cursor-pointer transition-colors ${
+              } rounded-lg cursor-pointer transition-colors focus-visible:ring-2 focus-visible:ring-toss-blue-500 focus-visible:ring-offset-2 ${
                 touchMode === 'precision' ? 'bg-blue-50 border-2 border-blue-500' : 'bg-gray-50 border-2 border-transparent'
               }`}
             >
@@ -251,6 +301,57 @@ export default function SettingsForm({ user, profile }: SettingsFormProps) {
               {touchMode === 'precision' && (
                 <div className="w-4 h-4 bg-blue-500 rounded-full"></div>
               )}
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label className={`block ${getFullTypographyClass('body', 'sm', isLargeFont)} font-medium text-gray-700 mb-2`}>
+            대비 모드
+          </label>
+          <div className="space-y-2">
+            <div className={`flex items-center justify-between ${
+              touchMode === 'glove' ? 'p-4' : touchMode === 'precision' ? 'p-2.5' : 'p-3'
+            } bg-gray-50 rounded-lg`}>
+              <div>
+                <p className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-900`}>고대비 모드</p>
+                <p className={`${getFullTypographyClass('caption', 'xs', isLargeFont)} text-gray-500`}>현장의 열악한 조명 환경에서 가독성 향상</p>
+              </div>
+              <button
+                type="button"
+                onClick={toggleHighContrast}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                  isHighContrast ? 'bg-blue-600' : 'bg-gray-200'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    isHighContrast ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+            
+            <div className={`flex items-center justify-between ${
+              touchMode === 'glove' ? 'p-4' : touchMode === 'precision' ? 'p-2.5' : 'p-3'
+            } bg-gray-50 rounded-lg`}>
+              <div>
+                <p className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-900`}>햇빛 모드</p>
+                <p className={`${getFullTypographyClass('caption', 'xs', isLargeFont)} text-gray-500`}>야외 강한 햇빛 아래에서 화면 가독성 향상</p>
+              </div>
+              <button
+                type="button"
+                onClick={toggleSunlightMode}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                  isSunlightMode ? 'bg-blue-600' : 'bg-gray-200'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    isSunlightMode ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
             </div>
           </div>
         </div>

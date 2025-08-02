@@ -1,0 +1,150 @@
+name: Test Suite
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  NODE_VERSION: '18.x'
+  NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        test-suite: ['unit', 'integration', 'api']
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+    
+    - name: Cache node modules
+      uses: actions/cache@v3
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run Unit Tests
+      if: matrix.test-suite == 'unit'
+      run: |
+        npm test -- \
+          --testPathIgnorePatterns="integration|api|e2e" \
+          --coverage \
+          --coverageReporters=json \
+          --testTimeout=10000 \
+          --maxWorkers=2
+    
+    - name: Run Integration Tests
+      if: matrix.test-suite == 'integration'
+      run: |
+        npm test -- \
+          --testPathPattern="integration" \
+          --testTimeout=15000 \
+          --maxWorkers=1
+    
+    - name: Run API Tests
+      if: matrix.test-suite == 'api'
+      run: |
+        npm test -- \
+          --testPathPattern="api" \
+          --testTimeout=10000 \
+          --maxWorkers=2
+    
+    - name: Upload coverage
+      if: matrix.test-suite == 'unit'
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-report
+        path: coverage/
+    
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-results-${{ matrix.test-suite }}
+        path: |
+          jest-results.json
+          test-report.html
+
+  coverage:
+    needs: test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Download coverage
+      uses: actions/download-artifact@v3
+      with:
+        name: coverage-report
+        path: coverage/
+    
+    - name: Code Coverage Report
+      uses: codecov/codecov-action@v3
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        files: ./coverage/coverage-final.json
+        fail_ci_if_error: true
+        verbose: true
+
+  lint:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run ESLint
+      run: npm run lint -- --max-warnings=0
+    
+    - name: Check TypeScript
+      run: npm run type-check || npx tsc --noEmit
+
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Build project
+      run: npm run build
+      env:
+        SKIP_ENV_VALIDATION: true
+    
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: build-output
+        path: .next/

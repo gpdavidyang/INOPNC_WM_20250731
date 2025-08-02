@@ -31,7 +31,7 @@ export function DocumentsPageClient({ profile }: DocumentsPageClientProps) {
 
   return (
     <div className="h-full bg-white">
-      <div className={`border-b border-gray-200 bg-white ${getPadding()}`}>
+      <div className={`sticky top-0 z-20 border-b border-gray-200 bg-white ${getPadding()}`}>
         <h1 className={`${getFullTypographyClass('heading', isLargeFont ? '3xl' : '2xl', isLargeFont)} font-semibold text-gray-900`}>
           문서 관리
         </h1>

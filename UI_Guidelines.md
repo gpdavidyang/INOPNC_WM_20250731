@@ -133,10 +133,12 @@ className={cn(
 | 2xl | `p-4` | 16px | Mobile section padding | Section padding |
 
 #### High-Density Information Layout
-- **Compact Card Padding**: `p-3` (12px) mobile, `p-4` (16px) desktop  
-- **Tight Grid Gaps**: `gap-2` (8px) mobile, `gap-3` (12px) desktop
-- **Dense Stack Spacing**: `space-y-2` (8px) mobile, `space-y-3` (12px) desktop
-- **Form Field Spacing**: `space-y-1.5` (6px) mobile, `space-y-2` (8px) desktop
+- **Compact Card Padding**: `p-3` (12px) for all layouts - consistency across mobile and desktop
+- **Tight Grid Gaps**: `gap-2` (8px) for all layouts - optimized information density
+- **Dense Stack Spacing**: `space-y-2` (8px) for all layouts - minimal vertical waste
+- **Form Field Spacing**: `space-y-1.5` (6px) for all layouts - compact form design
+- **Section Headers**: `text-base` (16px) for primary sections, `text-sm` (14px) for subsections
+- **Icon Sizing**: `h-5 w-5` (20px) for section icons, `h-4 w-4` (16px) for inline icons
 
 #### Touch Target Optimization
 
@@ -1081,6 +1083,7 @@ The customizable quick menu component allows users to personalize their dashboar
 - **Persistent Storage**: User preferences saved to localStorage
 - **Dynamic Icons**: Each menu item has unique color-coded icons
 - **Grid Layout**: 2-column responsive grid optimized for mobile
+- **Compact Design**: Reduced padding and font sizes for maximum information density
 
 #### Available Menu Items
 1. **출근현황** (Attendance) - Calendar icon, blue color
@@ -1098,9 +1101,9 @@ The customizable quick menu component allows users to personalize their dashboar
 
 #### Implementation Example
 ```tsx
-// Quick Menu Section with Settings
-<div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-  <div className="flex items-center justify-between mb-4">
+// Quick Menu Section with Settings - Compact Design
+<div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-3">
+  <div className="flex items-center justify-between mb-3">
     <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">빠른메뉴</h3>
     <button
       onClick={() => setQuickMenuSettingsOpen(true)}
@@ -1113,19 +1116,19 @@ The customizable quick menu component allows users to personalize their dashboar
     </button>
   </div>
   
-  <div className="grid grid-cols-2 gap-3">
+  <div className="grid grid-cols-2 gap-2">
     {getSelectedQuickMenuItems().map((item) => (
       <button 
         key={item.id}
         onClick={() => router.push(item.path)}
-        className="flex flex-col items-center p-4 bg-gray-50 dark:bg-gray-700 
+        className="flex flex-col items-center p-3 bg-gray-50 dark:bg-gray-700 
                    hover:bg-gray-100 dark:hover:bg-gray-600 rounded-xl 
-                   transition-all duration-200 active:scale-95 touch-manipulation min-h-[80px]"
+                   transition-all duration-200 active:scale-95 touch-manipulation min-h-[60px]"
       >
-        <div className={`mb-2 ${item.color}`}>
-          {item.icon}
+        <div className={`mb-1 ${item.color}`}>
+          <Icon className="h-5 w-5" /> {/* Standardized icon size */}
         </div>
-        <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+        <span className="text-xs font-medium text-gray-900 dark:text-gray-100">
           {item.name}
         </span>
       </button>
@@ -1155,14 +1158,14 @@ The customizable quick menu component allows users to personalize their dashboar
           {availableQuickMenuItems.map((item) => (
             <div
               key={item.id}
-              className={`flex items-center p-3 rounded-lg border-2 transition-all cursor-pointer ${
+              className={`flex items-center p-2 rounded-lg border-2 transition-all cursor-pointer ${
                 selectedQuickMenuItems.includes(item.id)
                   ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
                   : 'border-gray-200 dark:border-gray-700'
               }`}
               onClick={() => toggleQuickMenuItem(item.id)}
             >
-              <div className={`mr-3 ${item.color} flex-shrink-0`}>
+              <div className={`mr-2 ${item.color} flex-shrink-0`}>
                 {item.icon}
               </div>
               <div className="flex-1 min-w-0">
@@ -1230,9 +1233,12 @@ The customizable quick menu component allows users to personalize their dashboar
 
 ### Breaking Changes
 - **Base spacing unit changed**: From 4px to 2px for mobile optimization
-- **Button minimum heights increased**: To support glove-friendly interaction
-- **Card padding reduced**: From `p-4` to `p-3` for information density
+- **Button minimum heights standardized**: `min-h-[36px]` for compact layouts, `min-h-[48px]` for standard
+- **Card padding standardized**: `p-3` (12px) across all devices for consistency
 - **New required classes**: `touch-manipulation` for iOS optimization
+- **Section spacing standardized**: `space-y-2` for all vertical layouts
+- **Header font sizes reduced**: `text-base` for primary headers, `text-sm` for secondary
+- **Icon sizes standardized**: `h-5 w-5` for section icons, `h-4 w-4` for inline icons
 
 ### New Components
 - **CollapsibleSection**: For information hierarchy management

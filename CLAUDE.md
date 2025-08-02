@@ -91,11 +91,22 @@ Key tables with RLS (Row Level Security) enabled:
 - `organizations` - Company/organization hierarchy
 - `sites` - Construction sites
 - `daily_reports` - Daily work logs
-- `attendance_records` - Worker attendance
+- `attendance_records` - Worker attendance with labor hours (공수)
 - `documents` - File management
 - `notifications` - User notifications
 - `markup_documents` - Blueprint markup documents (마킹 도면 문서)
 - `markup_document_permissions` - Markup document sharing permissions
+
+### Labor Hours (공수) System
+- 1.0 공수 = 8 hours of work
+- 0.5 공수 = 4 hours of work
+- 0.25 공수 = 2 hours of work
+- Attendance records track `labor_hours` instead of just attendance status
+- Visual indicators in calendar:
+  - Green (1.0+ 공수): Full day or overtime
+  - Yellow (0.5-0.9 공수): Half to almost full day
+  - Orange (0.1-0.4 공수): Less than half day
+  - Gray: No work/holiday
 
 ### User Roles
 - `worker` - Basic worker, can view/create own reports

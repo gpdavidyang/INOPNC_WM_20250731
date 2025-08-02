@@ -102,8 +102,9 @@ export function AttendanceCalendar({ profile, isPartnerView }: AttendanceCalenda
             site_name: record.site?.name || '',
             check_in_time: record.check_in_time,
             check_out_time: record.check_out_time,
-            work_hours: record.labor_hours || record.work_hours,
+            work_hours: record.work_hours,
             overtime_hours: record.overtime_hours,
+            labor_hours: record.labor_hours || (record.work_hours ? record.work_hours / 8.0 : null),
             status: record.status || 'present'
           }))
           setAttendanceData(records)
@@ -160,20 +161,22 @@ export function AttendanceCalendar({ profile, isPartnerView }: AttendanceCalenda
         </div>
       )
     } else {
-      // Show individual attendance status
-      if (attendance.status === 'present') {
+      // Show labor hours (공수) and site name
+      if (attendance.labor_hours !== null && attendance.labor_hours !== undefined) {
         return (
           <div className={`${getFullTypographyClass('caption', 'xs', isLargeFont)} space-y-0.5`}>
-            <div className="text-green-600 font-medium">출근</div>
-            {attendance.work_hours && (
-              <div className="text-gray-600">{attendance.work_hours}h</div>
-            )}
-          </div>
-        )
-      } else if (attendance.status === 'absent') {
-        return (
-          <div className={getFullTypographyClass('caption', 'xs', isLargeFont)}>
-            <div className="text-red-600 font-medium">결근</div>
+            <div className={`font-bold ${
+              attendance.labor_hours >= 1.0 ? 'text-green-600' :
+              attendance.labor_hours >= 0.5 ? 'text-yellow-600' :
+              attendance.labor_hours > 0 ? 'text-orange-600' :
+              'text-gray-500'
+            }`}>
+              {attendance.labor_hours}
+            </div>
+            <div className="text-gray-600 text-xs line-clamp-1">
+              {attendance.labor_hours === 0 ? '휴무' : 
+               attendance.site_name ? attendance.site_name.replace(/\s*[A-Z]?현장$/g, '') : ''}
+            </div>
           </div>
         )
       } else if (attendance.status === 'holiday') {
@@ -302,14 +305,17 @@ export function AttendanceCalendar({ profile, isPartnerView }: AttendanceCalenda
                 onClick={() => day && setSelectedDate(day)}
                 className={cn(
                   `bg-white cursor-pointer hover:bg-gray-50 transition-colors ${
-                    touchMode === 'glove' ? 'p-3 min-h-[100px]' : 
-                    touchMode === 'precision' ? 'p-1.5 min-h-[70px]' : 
-                    'p-2 min-h-[80px]'
+                    touchMode === 'glove' ? 'p-3 min-h-[120px]' : 
+                    touchMode === 'precision' ? 'p-1.5 min-h-[90px]' : 
+                    'p-2 min-h-[100px]'
                   }`,
                   !isCurrentMonth && "opacity-30",
                   isToday && "ring-2 ring-blue-500",
                   isSelected && "bg-blue-50",
-                  attendance && !isPartnerView && "border-l-4 border-green-500"
+                  attendance && !isPartnerView && attendance.labor_hours && attendance.labor_hours > 0 && 
+                    (attendance.labor_hours >= 1.0 ? "border-l-4 border-green-500" :
+                     attendance.labor_hours >= 0.5 ? "border-l-4 border-yellow-500" :
+                     "border-l-4 border-orange-500")
                 )}
               >
                 {day && (
@@ -338,11 +344,15 @@ export function AttendanceCalendar({ profile, isPartnerView }: AttendanceCalenda
           <div className={`mt-4 flex items-center justify-center gap-4 ${getFullTypographyClass('body', 'sm', isLargeFont)}`}>
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 border-l-4 border-green-500"></div>
-              <span>출근</span>
+              <span>1.0+ 공수</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-red-100"></div>
-              <span>결근</span>
+              <div className="w-4 h-4 border-l-4 border-yellow-500"></div>
+              <span>0.5-0.9 공수</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 border-l-4 border-orange-500"></div>
+              <span>0.1-0.4 공수</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 bg-blue-100"></div>
@@ -411,11 +421,16 @@ export function AttendanceCalendar({ profile, isPartnerView }: AttendanceCalenda
             return (
               <div className="space-y-3">
                 <div className="flex items-center gap-4">
-                  <Badge variant={attendance.status === 'present' ? 'success' : 'secondary'}>
-                    {attendance.status === 'present' ? '출근' : 
-                     attendance.status === 'absent' ? '결근' : 
-                     attendance.status === 'holiday' ? '휴일' : '미정'}
-                  </Badge>
+                  {attendance.labor_hours !== null && attendance.labor_hours !== undefined && (
+                    <Badge variant={
+                      attendance.labor_hours >= 1.0 ? 'success' : 
+                      attendance.labor_hours >= 0.5 ? 'warning' : 
+                      attendance.labor_hours > 0 ? 'secondary' : 
+                      'default'
+                    }>
+                      {attendance.labor_hours} 공수
+                    </Badge>
+                  )}
                   {attendance.site_name && (
                     <span className="text-sm text-gray-600">
                       현장: {attendance.site_name}
@@ -438,12 +453,20 @@ export function AttendanceCalendar({ profile, isPartnerView }: AttendanceCalenda
                   </div>
                 )}
                 
-                {attendance.work_hours && (
-                  <div>
-                    <p className="text-sm text-gray-600">근무 시간</p>
-                    <p className="font-medium">{attendance.work_hours}시간</p>
-                  </div>
-                )}
+                <div className="grid grid-cols-2 gap-4">
+                  {attendance.work_hours && (
+                    <div>
+                      <p className="text-sm text-gray-600">근무 시간</p>
+                      <p className="font-medium">{attendance.work_hours}시간</p>
+                    </div>
+                  )}
+                  {attendance.overtime_hours && attendance.overtime_hours > 0 && (
+                    <div>
+                      <p className="text-sm text-gray-600">연장 근무</p>
+                      <p className="font-medium">{attendance.overtime_hours}시간</p>
+                    </div>
+                  )}
+                </div>
               </div>
             )
           })()}

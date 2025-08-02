@@ -4,7 +4,13 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectItem } from "@/components/ui/select"
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select-new"
 import { Dropdown } from "@/components/ui/dropdown"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -374,17 +380,20 @@ export default function ComponentsPage() {
           <div className="space-y-2">
             <Label htmlFor="select-demo">작업 구분</Label>
             <Select
-              id="select-demo"
               value={selectValue}
-              onChange={(e) => setSelectValue(e.target.value)}
+              onValueChange={setSelectValue}
             >
-              <SelectItem value="">작업 구분을 선택하세요</SelectItem>
-              <SelectItem value="foundation">기초 공사</SelectItem>
-              <SelectItem value="structure">구조물 공사</SelectItem>
-              <SelectItem value="finishing">마감 공사</SelectItem>
-              <SelectItem value="electrical">전기 공사</SelectItem>
-              <SelectItem value="plumbing">배관 공사</SelectItem>
-              <SelectItem value="landscaping">조경 공사</SelectItem>
+              <SelectTrigger id="select-demo">
+                <SelectValue placeholder="작업 구분을 선택하세요" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="foundation">기초 공사</SelectItem>
+                <SelectItem value="structure">구조물 공사</SelectItem>
+                <SelectItem value="finishing">마감 공사</SelectItem>
+                <SelectItem value="electrical">전기 공사</SelectItem>
+                <SelectItem value="plumbing">배관 공사</SelectItem>
+                <SelectItem value="landscaping">조경 공사</SelectItem>
+              </SelectContent>
             </Select>
             <Text size="sm" color="muted">선택값: {selectValue || "없음"}</Text>
           </div>
@@ -392,26 +401,33 @@ export default function ComponentsPage() {
           <div className="space-y-2">
             <Label htmlFor="select-workers">작업팀 선택</Label>
             <Select
-              id="select-workers"
               defaultValue="team1"
             >
-              <SelectItem value="team1">A팀 - 철근 전문</SelectItem>
-              <SelectItem value="team2">B팀 - 콘크리트 전문</SelectItem>
-              <SelectItem value="team3">C팀 - 마감 전문</SelectItem>
-              <SelectItem value="team4">D팀 - 전기/설비</SelectItem>
+              <SelectTrigger id="select-workers">
+                <SelectValue placeholder="작업팀을 선택하세요" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="team1">A팀 - 철근 전문</SelectItem>
+                <SelectItem value="team2">B팀 - 콘크리트 전문</SelectItem>
+                <SelectItem value="team3">C팀 - 마감 전문</SelectItem>
+                <SelectItem value="team4">D팀 - 전기/설비</SelectItem>
+              </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="select-priority">우선순위</Label>
             <Select
-              id="select-priority"
               disabled
             >
-              <SelectItem value="">비활성화된 선택 박스</SelectItem>
-              <SelectItem value="high">높음</SelectItem>
-              <SelectItem value="medium">보통</SelectItem>
-              <SelectItem value="low">낮음</SelectItem>
+              <SelectTrigger id="select-priority" disabled>
+                <SelectValue placeholder="비활성화된 선택 박스" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="high">높음</SelectItem>
+                <SelectItem value="medium">보통</SelectItem>
+                <SelectItem value="low">낮음</SelectItem>
+              </SelectContent>
             </Select>
             <Text size="sm" color="muted">disabled 상태 예시</Text>
           </div>

@@ -12,7 +12,13 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select, SelectItem } from '@/components/ui/select'
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select-new'
 import { Textarea } from '@/components/ui/textarea'
 
 interface SaveDialogProps {
@@ -61,10 +67,15 @@ export function SaveDialog({ open, onOpenChange, onSave, defaultFileName = '' }:
             <Label>저장 위치</Label>
             <Select 
               value={location} 
-              onChange={(e) => setLocation(e.target.value as 'personal' | 'shared')}
+              onValueChange={(value) => setLocation(value as 'personal' | 'shared')}
             >
-              <SelectItem value="personal">내문서함</SelectItem>
-              <SelectItem value="shared">공유문서함</SelectItem>
+              <SelectTrigger>
+                <SelectValue placeholder="저장 위치 선택" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="personal">내문서함</SelectItem>
+                <SelectItem value="shared">공유문서함</SelectItem>
+              </SelectContent>
             </Select>
           </div>
           <div className="grid gap-2">

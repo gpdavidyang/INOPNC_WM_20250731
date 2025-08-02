@@ -4,6 +4,7 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { PageLayout, PageContainer } from '@/components/dashboard/page-layout'
 import { MaterialManagement } from '@/components/materials/material-management'
 import { getProfile } from '@/app/actions/profile'
+import { getCurrentUserSite } from '@/app/actions/site-info'
 import { redirect } from 'next/navigation'
 
 export default async function MaterialsPage() {
@@ -12,9 +13,10 @@ export default async function MaterialsPage() {
     redirect('/auth/login')
   }
 
-  const [materialsResult, categoriesResult] = await Promise.all([
+  const [materialsResult, categoriesResult, siteResult] = await Promise.all([
     getMaterials(),
-    getMaterialCategories()
+    getMaterialCategories(),
+    getCurrentUserSite()
   ])
 
   const materials = materialsResult.success ? materialsResult.data || [] : []
@@ -22,13 +24,10 @@ export default async function MaterialsPage() {
 
   // Get inventory for user's site if they have one
   let inventory: any[] = []
-  // TODO: Get site assignment and load inventory
-  // For now, return empty inventory
-  // const siteInfo = await getCurrentUserSite()
-  // if (siteInfo.success && siteInfo.data) {
-  //   const inventoryResult = await getMaterialInventory(siteInfo.data.site_id)
-  //   inventory = inventoryResult.success ? inventoryResult.data || [] : []
-  // }
+  if (siteResult.success && siteResult.data) {
+    const inventoryResult = await getMaterialInventory(siteResult.data.id)
+    inventory = inventoryResult.success ? inventoryResult.data || [] : []
+  }
 
   return (
     <PageLayout
@@ -42,6 +41,7 @@ export default async function MaterialsPage() {
             categories={categories}
             initialInventory={inventory}
             currentUser={profileResult.data}
+            currentSite={siteResult.success ? siteResult.data : null}
           />
         </Suspense>
       </PageContainer>

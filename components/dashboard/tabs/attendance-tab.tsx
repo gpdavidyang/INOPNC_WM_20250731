@@ -15,8 +15,12 @@ import {
   Download,
   Filter,
   Search,
-  Building2
+  Building2,
+  ChevronUp,
+  ChevronDown
 } from 'lucide-react'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
 
 interface AttendanceTabProps {
   profile: Profile
@@ -31,6 +35,7 @@ interface AttendanceRecord {
   status: 'present' | 'absent' | 'late' | 'half_day'
   hours_worked?: number
   overtime_hours?: number
+  labor_hours?: number  // 공수 (1.0 = 8 hours)
   notes?: string
 }
 
@@ -60,6 +65,7 @@ export default function AttendanceTab({ profile }: AttendanceTabProps) {
   const [salaryInfo, setSalaryInfo] = useState<SalaryInfo[]>([])
   const [sites, setSites] = useState<Site[]>([])
   const [loading, setLoading] = useState(true)
+  const [sortConfig, setSortConfig] = useState<{key: 'work_date' | 'site_name' | 'labor_hours', direction: 'asc' | 'desc'} | null>(null)
   
   const supabase = createClient()
 
@@ -68,7 +74,7 @@ export default function AttendanceTab({ profile }: AttendanceTabProps) {
   
   useEffect(() => {
     loadData()
-  }, [selectedDate, selectedSite])
+  }, [selectedDate, selectedSite, activeTab])
 
   const loadData = async () => {
     setLoading(true)
@@ -121,29 +127,68 @@ export default function AttendanceTab({ profile }: AttendanceTabProps) {
       const mockData: AttendanceRecord[] = [
         {
           id: '1',
-          work_date: '2024-08-01',
+          work_date: '2025-08-01',
           check_in_time: '08:00',
           check_out_time: '17:00',
           site_name: '강남 A현장',
           status: 'present',
           hours_worked: 8,
-          overtime_hours: 0
+          overtime_hours: 0,
+          labor_hours: 1.0  // 1.0 공수 = 8시간
         },
         {
           id: '2',
-          work_date: '2024-07-31',
+          work_date: '2025-08-02',
           check_in_time: '08:15',
-          check_out_time: '18:00',
-          site_name: '강남 A현장',
-          status: 'late',
-          hours_worked: 8.75,
-          overtime_hours: 1
+          check_out_time: '19:00',
+          site_name: '송파 B현장',
+          status: 'present',
+          hours_worked: 10,
+          overtime_hours: 2,
+          labor_hours: 1.5  // 1.5 공수로 수정
         },
         {
           id: '3',
-          work_date: '2024-07-30',
-          site_name: '강남 A현장',
-          status: 'absent'
+          work_date: '2025-08-05',
+          check_in_time: '08:00',
+          check_out_time: '12:00',
+          site_name: '반포 C현장',
+          status: 'present',
+          hours_worked: 4,
+          labor_hours: 0.5  // 0.5 공수 = 4시간
+        },
+        {
+          id: '4',
+          work_date: '2025-08-06',
+          check_in_time: '08:00',
+          check_out_time: '17:00',
+          site_name: '방배 현장',
+          status: 'present',
+          hours_worked: 8,
+          overtime_hours: 0,
+          labor_hours: 1.0
+        },
+        {
+          id: '5',
+          work_date: '2025-08-13',
+          check_in_time: null,
+          check_out_time: null,
+          site_name: '',
+          status: 'holiday',
+          hours_worked: 0,
+          overtime_hours: 0,
+          labor_hours: null  // 휴무일은 null로 처리
+        },
+        {
+          id: '6',
+          work_date: '2025-08-27',
+          check_in_time: '08:00',
+          check_out_time: '17:00',
+          site_name: '방배 현장',
+          status: 'present',
+          hours_worked: 8,
+          overtime_hours: 0,
+          labor_hours: 1.0
         }
       ]
       
@@ -159,7 +204,7 @@ export default function AttendanceTab({ profile }: AttendanceTabProps) {
       const mockSalaryData: SalaryInfo[] = [
         {
           id: '1',
-          month: '2024-07',
+          month: '2025-07',
           basic_salary: 3000000,
           overtime_pay: 400000,
           allowances: 200000,
@@ -170,7 +215,7 @@ export default function AttendanceTab({ profile }: AttendanceTabProps) {
         },
         {
           id: '2',
-          month: '2024-06',
+          month: '2025-06',
           basic_salary: 3000000,
           overtime_pay: 350000,
           allowances: 200000,
@@ -178,6 +223,17 @@ export default function AttendanceTab({ profile }: AttendanceTabProps) {
           total_pay: 3370000,
           work_days: 21,
           site_name: '강남 A현장'
+        },
+        {
+          id: '3',
+          month: '2025-05',
+          basic_salary: 2800000,
+          overtime_pay: 320000,
+          allowances: 200000,
+          deductions: 160000,
+          total_pay: 3160000,
+          work_days: 20,
+          site_name: '송파 B현장'
         }
       ]
       
@@ -229,6 +285,74 @@ export default function AttendanceTab({ profile }: AttendanceTabProps) {
     }).format(amount)
   }
 
+  const downloadSalaryPDF = (salary: SalaryInfo) => {
+    try {
+      // Create new PDF document
+      const doc = new jsPDF()
+      
+      // Title
+      doc.setFontSize(18)
+      doc.text('Salary Statement', 105, 30, { align: 'center' })
+      
+      // Date
+      const [year, month] = salary.month.split('-')
+      doc.setFontSize(14)
+      doc.text(`${year}/${month}`, 105, 45, { align: 'center' })
+      
+      // Company and employee info
+      doc.setFontSize(12)
+      doc.text('INOPNC Construction', 20, 65)
+      doc.text(`Employee: ${profile.name || 'N/A'}`, 20, 75)
+      doc.text(`Site: ${salary.site_name}`, 20, 85)
+      doc.text(`Work Days: ${salary.work_days}`, 20, 95)
+      
+      // Simple table without autoTable
+      let yPos = 120
+      const lineHeight = 15
+      
+      // Table header
+      doc.setFontSize(12)
+      doc.text('Item', 20, yPos)
+      doc.text('Amount', 150, yPos)
+      
+      // Draw line under header
+      doc.line(20, yPos + 3, 190, yPos + 3)
+      yPos += lineHeight
+      
+      // Table rows
+      doc.setFontSize(10)
+      const salaryItems = [
+        ['Basic Salary', formatCurrency(salary.basic_salary)],
+        ['Overtime Pay', formatCurrency(salary.overtime_pay)],
+        ['Allowances', formatCurrency(salary.allowances)],
+        ['Deductions', `-${formatCurrency(salary.deductions)}`],
+        ['Total Pay', formatCurrency(salary.total_pay)]
+      ]
+      
+      salaryItems.forEach(([item, amount]) => {
+        doc.text(item, 20, yPos)
+        doc.text(amount, 150, yPos)
+        yPos += lineHeight
+      })
+      
+      // Draw line above total
+      doc.line(20, yPos - lineHeight - 3, 190, yPos - lineHeight - 3)
+      
+      // Footer
+      doc.setFontSize(8)
+      doc.text('Generated by INOPNC Work Management System', 105, yPos + 20, { align: 'center' })
+      doc.text(`Generated: ${new Date().toLocaleDateString()}`, 105, yPos + 30, { align: 'center' })
+      
+      // Download PDF
+      const fileName = `salary_${year}_${month}_${salary.site_name.replace(/\s+/g, '_')}.pdf`
+      doc.save(fileName)
+      
+    } catch (error) {
+      console.error('PDF generation error:', error)
+      alert('PDF 생성 중 오류가 발생했습니다.')
+    }
+  }
+
   const getDaysInMonth = (date: Date) => {
     return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate()
   }
@@ -255,6 +379,80 @@ export default function AttendanceTab({ profile }: AttendanceTabProps) {
     setSelectedDate(today)
   }
 
+  // Sorting functions
+  const handleSort = (key: 'work_date' | 'site_name' | 'labor_hours') => {
+    let direction: 'asc' | 'desc' = 'asc'
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc'
+    }
+    setSortConfig({ key, direction })
+  }
+
+  const getSortedRecords = () => {
+    if (!sortConfig) return attendanceRecords
+
+    return [...attendanceRecords].sort((a, b) => {
+      const { key, direction } = sortConfig
+      let aValue: any, bValue: any
+
+      switch (key) {
+        case 'work_date':
+          aValue = new Date(a.work_date)
+          bValue = new Date(b.work_date)
+          break
+        case 'site_name':
+          aValue = a.site_name || ''
+          bValue = b.site_name || ''
+          break
+        case 'labor_hours':
+          aValue = a.labor_hours || 0
+          bValue = b.labor_hours || 0
+          break
+        default:
+          return 0
+      }
+
+      if (direction === 'asc') {
+        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0
+      } else {
+        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0
+      }
+    })
+  }
+
+  const getSortIcon = (key: 'work_date' | 'site_name' | 'labor_hours') => {
+    if (!sortConfig || sortConfig.key !== key) {
+      return <ChevronUp className="h-3 w-3 text-gray-400" />
+    }
+    return sortConfig.direction === 'asc' 
+      ? <ChevronUp className="h-3 w-3 text-blue-600" />
+      : <ChevronDown className="h-3 w-3 text-blue-600" />
+  }
+
+  // Calculate statistics
+  const getStatistics = () => {
+    const workDays = attendanceRecords.filter(record => 
+      record.labor_hours !== null && record.labor_hours !== undefined && record.labor_hours > 0
+    ).length
+    
+    const uniqueSites = new Set(
+      attendanceRecords
+        .filter(record => record.site_name && record.labor_hours !== null && record.labor_hours !== undefined && record.labor_hours > 0)
+        .map(record => record.site_name)
+    ).size
+    
+    const totalLaborHours = attendanceRecords
+      .filter(record => record.labor_hours !== null && record.labor_hours !== undefined)
+      .reduce((sum, record) => sum + (record.labor_hours || 0), 0)
+
+    return {
+      workDays,
+      uniqueSites,
+      totalLaborHours,
+      totalDays: attendanceRecords.length
+    }
+  }
+
   const renderCalendar = () => {
     const daysInMonth = getDaysInMonth(currentMonth)
     const firstDay = getFirstDayOfMonth(currentMonth)
@@ -276,29 +474,51 @@ export default function AttendanceTab({ profile }: AttendanceTabProps) {
         new Date(record.work_date).toDateString() === dayDate.toDateString()
       )
       
+      // Simple background without color coding
+      const getDayBackground = (laborHours: number | undefined) => {
+        if (!laborHours || laborHours === 0) return 'bg-gray-50 text-gray-700 dark:bg-gray-800 dark:text-gray-300';
+        return 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300';
+      }
+      
       days.push(
         <button
           key={day}
           onClick={() => setSelectedDate(dayDate)}
-          className={`h-8 w-8 rounded-full text-sm font-medium transition-colors touch-manipulation ${
+          className={`h-20 w-full rounded-lg text-xs font-medium transition-colors touch-manipulation relative flex flex-col items-center justify-start p-1 ${
             isSelected
               ? 'bg-blue-600 text-white'
+              : dayRecord && dayRecord.labor_hours !== undefined
+              ? getDayBackground(dayRecord.labor_hours)
               : isToday
               ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
               : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
-          } ${
-            dayRecord ? 'relative' : ''
           }`}
         >
-          {day}
-          {dayRecord && (
-            <div className={`absolute -bottom-1 -right-1 h-2 w-2 rounded-full ${
-              dayRecord.status === 'present' ? 'bg-green-500' :
-              dayRecord.status === 'absent' ? 'bg-red-500' :
-              dayRecord.status === 'late' ? 'bg-yellow-500' :
-              'bg-blue-500'
-            }`}></div>
+          {/* 날짜 숫자 */}
+          <div className="text-lg font-bold">{day}</div>
+          
+          {/* 공수 정보 */}
+          {dayRecord && dayRecord.labor_hours !== undefined && dayRecord.labor_hours !== null && (
+            <div className={`text-xs font-bold mt-1 ${
+              isSelected ? 'text-white' : 'text-gray-800 dark:text-gray-200'
+            }`}>
+              {dayRecord.labor_hours.toFixed(1)}
+            </div>
           )}
+          
+          {/* 현장명 정보 */}
+          {dayRecord && dayRecord.labor_hours !== undefined && dayRecord.labor_hours !== null && (
+            <div className={`text-xs text-center leading-tight mt-0.5 px-1 max-w-full ${
+              isSelected ? 'text-white' : 'text-blue-600 dark:text-blue-400'
+            }`}>
+              {dayRecord.site_name ? (
+                <div className="truncate">
+                  {dayRecord.site_name.replace(/\s*[A-Z]?현장$/g, '')}
+                </div>
+              ) : ''}
+            </div>
+          )}
+          
         </button>
       )
     }
@@ -358,15 +578,6 @@ export default function AttendanceTab({ profile }: AttendanceTabProps) {
               </div>
             </div>
 
-            {/* Today Button */}
-            <div className="flex items-end">
-              <button
-                onClick={goToToday}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors touch-manipulation"
-              >
-                오늘
-              </button>
-            </div>
           </div>
 
           {activeTab === 'print' ? (
@@ -392,6 +603,14 @@ export default function AttendanceTab({ profile }: AttendanceTabProps) {
                     <ChevronRight className="h-5 w-5 text-gray-600 dark:text-gray-400" />
                   </button>
                 </div>
+                
+                {/* Legend for calendar */}
+                <div className="flex items-center justify-center gap-4 mb-4 text-xs">
+                  <div className="flex items-center gap-1">
+                    <div className="w-4 h-4 bg-blue-50 border border-blue-200 rounded"></div>
+                    <span className="text-gray-600 dark:text-gray-400">근무일</span>
+                  </div>
+                </div>
 
                 {/* Calendar Header */}
                 <div className="grid grid-cols-7 gap-1 mb-2">
@@ -408,61 +627,101 @@ export default function AttendanceTab({ profile }: AttendanceTabProps) {
                 </div>
               </div>
 
-              {/* Selected Date Information */}
-              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
-                  선택된 날짜: {selectedDate.toLocaleDateString('ko-KR')}
-                </h4>
-                
-                {/* Site Information Summary */}
-                <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-                  <p><span className="font-medium">현장명:</span> {sites.find(s => s.id === selectedSite)?.name || '전체 현장'}</p>
-                  {sites.find(s => s.id === selectedSite) && (
-                    <p><span className="font-medium">위치:</span> {sites.find(s => s.id === selectedSite)?.address}</p>
-                  )}
+              {/* Statistics Summary - Compact */}
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg p-3 border border-blue-200 dark:border-blue-800">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">통계 요약</h3>
+                </div>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="text-center">
+                    <div className="text-xl font-bold text-blue-600 dark:text-blue-400">
+                      {getStatistics().workDays}
+                    </div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400">작업일수</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-xl font-bold text-green-600 dark:text-green-400">
+                      {getStatistics().uniqueSites}
+                    </div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400">참여현장</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-xl font-bold text-purple-600 dark:text-purple-400">
+                      {getStatistics().totalLaborHours.toFixed(1)}
+                    </div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400">총 공수</div>
+                  </div>
                 </div>
               </div>
 
-              {/* Attendance Records */}
-              <div className="space-y-3">
+              {/* Attendance Records - Table Layout */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 overflow-hidden">
                 {loading ? (
                   <div className="text-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
                     <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">데이터를 불러오는 중...</p>
                   </div>
                 ) : (
-                  attendanceRecords.map((record: any) => (
-                    <div key={record.id} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          {getStatusIcon(record.status)}
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(record.status)}`}>
-                            {getStatusText(record.status)}
-                          </span>
-                        </div>
-                        <span className="text-sm text-gray-500 dark:text-gray-400">
-                          {new Date(record.work_date).toLocaleDateString('ko-KR')}
-                        </span>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                          <p className="text-gray-600 dark:text-gray-400">현장: {record.site_name}</p>
-                          {record.check_in_time && (
-                            <p className="text-gray-600 dark:text-gray-400">출근: {record.check_in_time}</p>
-                          )}
-                        </div>
-                        <div>
-                          {record.check_out_time && (
-                            <p className="text-gray-600 dark:text-gray-400">퇴근: {record.check_out_time}</p>
-                          )}
-                          {record.hours_worked && (
-                            <p className="text-gray-600 dark:text-gray-400">근무시간: {record.hours_worked}h</p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                      <thead className="bg-gray-50 dark:bg-gray-700">
+                        <tr>
+                          <th 
+                            onClick={() => handleSort('work_date')}
+                            className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                          >
+                            <div className="flex items-center gap-1">
+                              <span>날짜</span>
+                              {getSortIcon('work_date')}
+                            </div>
+                          </th>
+                          <th 
+                            onClick={() => handleSort('site_name')}
+                            className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                          >
+                            <div className="flex items-center gap-1">
+                              <span>현장</span>
+                              {getSortIcon('site_name')}
+                            </div>
+                          </th>
+                          <th 
+                            onClick={() => handleSort('labor_hours')}
+                            className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                          >
+                            <div className="flex items-center gap-1">
+                              <span>공수</span>
+                              {getSortIcon('labor_hours')}
+                            </div>
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                        {getSortedRecords().map((record: any) => (
+                          <tr key={record.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                              {new Date(record.work_date).toLocaleDateString('ko-KR', {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric'
+                              })}
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
+                              {record.site_name || '미지정'}
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
+                              {record.labor_hours !== null && record.labor_hours !== undefined && record.labor_hours > 0 ? (
+                                <span className="inline-flex items-center px-2 py-1 rounded text-xs font-bold bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
+                                  {record.labor_hours.toFixed(1)} 공수
+                                </span>
+                              ) : (
+                                <span className="text-gray-400 dark:text-gray-500">-</span>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 )}
               </div>
             </div>
@@ -481,7 +740,10 @@ export default function AttendanceTab({ profile }: AttendanceTabProps) {
                       <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                         {salary.month} 급여명세서
                       </h4>
-                      <button className="flex items-center gap-2 px-3 py-1 text-sm text-blue-600 hover:text-blue-700 transition-colors">
+                      <button 
+                        onClick={() => downloadSalaryPDF(salary)}
+                        className="flex items-center gap-2 px-3 py-1 text-sm text-blue-600 hover:text-blue-700 transition-colors hover:bg-blue-50 rounded-lg"
+                      >
                         <Download className="h-4 w-4" />
                         다운로드
                       </button>

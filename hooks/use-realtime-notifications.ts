@@ -67,30 +67,35 @@ export function useRealtimeNotifications({
   useEffect(() => {
     // Get current user
     const setupSubscription = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
 
-      // Subscribe to new notifications for the current user
-      const channel = supabase
-        .channel('notifications')
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'notifications',
-            filter: `user_id=eq.${user.id}`
-          },
-          (payload) => {
-            const notification = payload.new as NotificationExtended
-            handleNewNotification(notification)
-          }
-        )
-        .subscribe()
+        // Subscribe to new notifications for the current user
+        const channel = supabase
+          .channel('notifications')
+          .on(
+            'postgres_changes',
+            {
+              event: 'INSERT',
+              schema: 'public',
+              table: 'notifications',
+              filter: `user_id=eq.${user.id}`
+            },
+            (payload) => {
+              const notification = payload.new as NotificationExtended
+              handleNewNotification(notification)
+            }
+          )
+          .subscribe()
 
-      // Cleanup subscription on unmount
-      return () => {
-        channel.unsubscribe()
+        // Cleanup subscription on unmount
+        return () => {
+          channel.unsubscribe()
+        }
+      } catch (error) {
+        console.error('Error setting up realtime subscription:', error)
+        return undefined
       }
     }
 
@@ -101,6 +106,8 @@ export function useRealtimeNotifications({
         if (unsubscribe) {
           unsubscribe()
         }
+      }).catch(error => {
+        console.error('Error cleaning up subscription:', error)
       })
     }
   }, [supabase, handleNewNotification])

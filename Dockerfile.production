@@ -1,0 +1,136 @@
+# Production Dockerfile for INOPNC Work Management System
+# Multi-stage build for optimized production image
+
+# ==========================================
+# Stage 1: Dependencies Installation
+# ==========================================
+FROM node:18-alpine AS deps
+LABEL stage=deps
+
+# Install system dependencies required for node-gyp
+RUN apk add --no-cache libc6-compat
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package.json package-lock.json ./
+
+# Install production dependencies only
+RUN npm ci --only=production --frozen-lockfile && \
+    npm cache clean --force
+
+# ==========================================
+# Stage 2: Build Stage
+# ==========================================
+FROM node:18-alpine AS builder
+LABEL stage=builder
+
+# Install system dependencies
+RUN apk add --no-cache libc6-compat
+
+WORKDIR /app
+
+# Copy package files
+COPY package.json package-lock.json ./
+
+# Install all dependencies (including dev dependencies)
+RUN npm ci --frozen-lockfile
+
+# Copy source code
+COPY . .
+
+# Create build arguments
+ARG NODE_ENV=production
+ARG BUILD_ID
+ARG NEXT_PUBLIC_SUPABASE_URL
+ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+# Set environment variables for build
+ENV NODE_ENV=${NODE_ENV}
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV BUILD_ID=${BUILD_ID}
+
+# Build the application
+RUN npm run build
+
+# ==========================================
+# Stage 3: Production Runtime
+# ==========================================
+FROM node:18-alpine AS runner
+LABEL stage=runner
+
+# Create app directory and user
+WORKDIR /app
+
+# Create non-root user for security
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs
+
+# Install runtime dependencies
+RUN apk add --no-cache \
+    dumb-init \
+    curl \
+    postgresql-client
+
+# Set environment variables
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+
+# Copy production dependencies from deps stage
+COPY --from=deps --chown=nextjs:nodejs /app/node_modules ./node_modules
+
+# Copy built application from builder stage
+COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
+COPY --from=builder --chown=nextjs:nodejs /app/next.config.mjs ./next.config.mjs
+
+# Copy necessary runtime files
+COPY --from=builder --chown=nextjs:nodejs /app/lib ./lib
+COPY --from=builder --chown=nextjs:nodejs /app/components ./components
+COPY --from=builder --chown=nextjs:nodejs /app/app ./app
+COPY --from=builder --chown=nextjs:nodejs /app/types ./types
+COPY --from=builder --chown=nextjs:nodejs /app/middleware.ts ./middleware.ts
+
+# Copy database migration files
+COPY --from=builder --chown=nextjs:nodejs /app/supabase ./supabase
+
+# Copy startup scripts
+COPY --chown=nextjs:nodejs scripts/docker-entrypoint.sh ./docker-entrypoint.sh
+COPY --chown=nextjs:nodejs scripts/health-check.sh ./health-check.sh
+
+# Make scripts executable
+RUN chmod +x ./docker-entrypoint.sh ./health-check.sh
+
+# Create cache and logs directories
+RUN mkdir -p /app/.next/cache /app/logs && \
+    chown -R nextjs:nodejs /app/.next/cache /app/logs
+
+# Switch to non-root user
+USER nextjs
+
+# Expose port
+EXPOSE 3000
+
+# Add health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD ./health-check.sh
+
+# Add labels for better observability
+LABEL \
+    org.opencontainers.image.title="INOPNC Work Management System" \
+    org.opencontainers.image.description="Construction work log management system" \
+    org.opencontainers.image.version="${BUILD_ID}" \
+    org.opencontainers.image.created="$(date -Iseconds)" \
+    org.opencontainers.image.source="https://github.com/your-org/inopnc-wm" \
+    org.opencontainers.image.licenses="MIT" \
+    maintainer="DevOps Team <devops@your-company.com>"
+
+# Use dumb-init to handle signals properly
+ENTRYPOINT ["dumb-init", "--"]
+
+# Start the application
+CMD ["./docker-entrypoint.sh"]

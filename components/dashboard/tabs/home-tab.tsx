@@ -11,7 +11,7 @@ import {
   Calendar, FileText, MapPin, FolderOpen, 
   Share2, Edit3, ChevronDown, ChevronUp, Phone, Copy, Navigation,
   Building2, Megaphone, Settings, X, Check, Users, BarChart3,
-  ClipboardList, Bell, MessageSquare, DollarSign, Truck, HardHat
+  ClipboardList, Bell, MessageSquare, DollarSign, Truck, HardHat, Plus
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 interface HomeTabProps {
@@ -38,11 +38,18 @@ interface QuickMenuItem {
   description: string
 }
 
-export default function HomeTab({ profile }: HomeTabProps) {
+interface HomeTabProps {
+  profile: Profile
+  onTabChange?: (tabId: string) => void
+}
+
+export default function HomeTab({ profile, onTabChange }: HomeTabProps) {
   const { isLargeFont } = useFontSize()
   const { touchMode } = useTouchMode()
   const [siteInfoExpanded, setSiteInfoExpanded] = useState(false)
   const [announcementExpanded, setAnnouncementExpanded] = useState(false)
+  const [siteHistoryExpanded, setSiteHistoryExpanded] = useState(true)
+  const [recentActivitiesExpanded, setRecentActivitiesExpanded] = useState(true)
   const [quickMenuSettingsOpen, setQuickMenuSettingsOpen] = useState(false)
   const [selectedQuickMenuItems, setSelectedQuickMenuItems] = useState<string[]>([
     'attendance', 'documents', 'site-info', 'shared-documents'
@@ -58,16 +65,16 @@ export default function HomeTab({ profile }: HomeTabProps) {
   const availableQuickMenuItems: QuickMenuItem[] = [
     {
       id: 'attendance',
-      name: '출근현황',
-      icon: <Calendar className="h-6 w-6" />,
+      name: '출력현황',
+      icon: <Calendar className="h-5 w-5" />,
       path: '/dashboard/attendance',
       color: 'text-blue-600 dark:text-blue-400',
-      description: '출근 및 근무 현황 확인'
+      description: '출력 및 근무 현황 확인'
     },
     {
       id: 'documents',
       name: '내문서함',
-      icon: <FolderOpen className="h-6 w-6" />,
+      icon: <FolderOpen className="h-5 w-5" />,
       path: '/dashboard/documents',
       color: 'text-green-600 dark:text-green-400',
       description: '개인 문서 관리'
@@ -75,7 +82,7 @@ export default function HomeTab({ profile }: HomeTabProps) {
     {
       id: 'site-info',
       name: '현장정보',
-      icon: <MapPin className="h-6 w-6" />,
+      icon: <MapPin className="h-5 w-5" />,
       path: '/dashboard/site-info',
       color: 'text-purple-600 dark:text-purple-400',
       description: '현장 세부 정보'
@@ -83,7 +90,7 @@ export default function HomeTab({ profile }: HomeTabProps) {
     {
       id: 'shared-documents',
       name: '공도면',
-      icon: <Share2 className="h-6 w-6" />,
+      icon: <Share2 className="h-5 w-5" />,
       path: '/dashboard/shared-documents',
       color: 'text-orange-600 dark:text-orange-400',
       description: '공유 도면 및 문서'
@@ -91,7 +98,7 @@ export default function HomeTab({ profile }: HomeTabProps) {
     {
       id: 'daily-reports',
       name: '작업일지',
-      icon: <FileText className="h-6 w-6" />,
+      icon: <FileText className="h-5 w-5" />,
       path: '/dashboard/daily-reports',
       color: 'text-indigo-600 dark:text-indigo-400',
       description: '일일 작업 보고서'
@@ -99,7 +106,7 @@ export default function HomeTab({ profile }: HomeTabProps) {
     {
       id: 'workers',
       name: '작업자관리',
-      icon: <Users className="h-6 w-6" />,
+      icon: <Users className="h-5 w-5" />,
       path: '/dashboard/workers',
       color: 'text-emerald-600 dark:text-emerald-400',
       description: '작업자 정보 관리'
@@ -107,7 +114,7 @@ export default function HomeTab({ profile }: HomeTabProps) {
     {
       id: 'statistics',
       name: '통계현황',
-      icon: <BarChart3 className="h-6 w-6" />,
+      icon: <BarChart3 className="h-5 w-5" />,
       path: '/dashboard/statistics',
       color: 'text-cyan-600 dark:text-cyan-400',
       description: '작업 통계 및 분석'
@@ -115,7 +122,7 @@ export default function HomeTab({ profile }: HomeTabProps) {
     {
       id: 'materials',
       name: '자재관리',
-      icon: <Truck className="h-6 w-6" />,
+      icon: <Truck className="h-5 w-5" />,
       path: '/dashboard/materials',
       color: 'text-amber-600 dark:text-amber-400',
       description: '자재 현황 및 관리'
@@ -123,7 +130,7 @@ export default function HomeTab({ profile }: HomeTabProps) {
     {
       id: 'safety',
       name: '안전관리',
-      icon: <HardHat className="h-6 w-6" />,
+      icon: <HardHat className="h-5 w-5" />,
       path: '/dashboard/safety',
       color: 'text-red-600 dark:text-red-400',
       description: '안전 점검 및 관리'
@@ -131,7 +138,7 @@ export default function HomeTab({ profile }: HomeTabProps) {
     {
       id: 'notifications',
       name: '알림',
-      icon: <Bell className="h-6 w-6" />,
+      icon: <Bell className="h-5 w-5" />,
       path: '/dashboard/notifications',
       color: 'text-violet-600 dark:text-violet-400',
       description: '알림 및 메시지'
@@ -139,7 +146,7 @@ export default function HomeTab({ profile }: HomeTabProps) {
     {
       id: 'tasks',
       name: '업무목록',
-      icon: <ClipboardList className="h-6 w-6" />,
+      icon: <ClipboardList className="h-5 w-5" />,
       path: '/dashboard/tasks',
       color: 'text-teal-600 dark:text-teal-400',
       description: '할 일 및 업무 관리'
@@ -147,7 +154,7 @@ export default function HomeTab({ profile }: HomeTabProps) {
     {
       id: 'messages',
       name: '메시지',
-      icon: <MessageSquare className="h-6 w-6" />,
+      icon: <MessageSquare className="h-5 w-5" />,
       path: '/dashboard/messages',
       color: 'text-pink-600 dark:text-pink-400',
       description: '메시지 및 소통'
@@ -326,63 +333,80 @@ export default function HomeTab({ profile }: HomeTabProps) {
   }
 
   return (
-    <div className="space-y-3 md:space-y-4">
+    <div className="space-y-2">
       {/* Work Log Creation Button - Primary CTA */}
       {(profile.role === 'worker' || profile.role === 'site_manager') && (
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-700 dark:to-blue-800 rounded-xl p-4 shadow-lg">
+        <section 
+          className="bg-gradient-to-r from-blue-600 to-blue-700 dark:from-blue-700 dark:to-blue-800 rounded-xl p-3 shadow-lg"
+          aria-labelledby="work-log-section"
+        >
           <div className="flex items-center justify-between">
             <div>
-              <h3 className={`text-white font-semibold ${getFullTypographyClass('heading', 'base', isLargeFont)}`}>작업일지 작성</h3>
+              <h2 id="work-log-section" className="text-white font-semibold text-base">
+                작업일지 작성
+              </h2>
               <p className="text-blue-100 text-xs mt-1">오늘의 작업 내용을 기록하세요</p>
             </div>
             <button
               onClick={() => router.push('/dashboard/daily-reports/new')}
-              className={`bg-white/20 hover:bg-white/30 text-white rounded-lg font-medium text-sm transition-all duration-200 active:scale-95 touch-manipulation flex items-center gap-2 ${
-                touchMode === 'glove' ? 'px-6 py-3 min-h-[56px]' : 
-                touchMode === 'precision' ? 'px-3 py-1.5 min-h-[44px]' : 
-                'px-4 py-2 min-h-[48px]'
-              }`}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white text-xs font-medium rounded-md transition-colors touch-manipulation focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-blue-600"
+              aria-label="새 작업일지 작성하기"
             >
-              <FileText className="h-4 w-4" />
-              작성하기
+              <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+              <span>새 작업일지</span>
             </button>
           </div>
-        </div>
+        </section>
       )}
 
       {/* Quick Menu Section - 2 Column Grid */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className={`${getFullTypographyClass('heading', 'lg', isLargeFont)} text-gray-900 dark:text-gray-100`}>빠른메뉴</h3>
+      <section 
+        className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-3"
+        aria-labelledby="quick-menu-section"
+      >
+        <header className="flex items-center justify-between mb-3">
+          <h2 id="quick-menu-section" className="text-base font-semibold text-gray-900 dark:text-gray-100">
+            빠른메뉴
+          </h2>
           <button
             onClick={() => setQuickMenuSettingsOpen(true)}
-            className="flex items-center gap-1 px-2 py-1 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            className="flex items-center gap-1 px-2 py-1 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+            aria-label="빠른메뉴 설정"
           >
-            <Settings className="h-3 w-3" />
-            설정
+            <Settings className="h-3 w-3" aria-hidden="true" />
+            <span>설정</span>
           </button>
-        </div>
+        </header>
         
         {/* Dynamic Quick Menu Items */}
-        <div className="grid grid-cols-2 gap-3">
-          {getSelectedQuickMenuItems().map((item: any) => (
-            <button 
-              key={item.id}
-              onClick={() => router.push(item.path)}
-              className={`flex flex-col items-center p-4 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-xl transition-all duration-200 active:scale-95 touch-manipulation ${
-                touchMode === 'glove' ? 'min-h-[88px] p-5' : 
-                touchMode === 'precision' ? 'min-h-[72px] p-3' : 
-                'min-h-[80px] p-4'
-              }`}
-            >
-              <div className={`mb-2 ${item.color}`}>
-                {item.icon}
-              </div>
-              <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{item.name}</span>
-            </button>
-          ))}
-        </div>
-      </div>
+        <nav aria-label="빠른메뉴 항목">
+          <ul className="grid grid-cols-2 gap-2" role="list">
+            {getSelectedQuickMenuItems().map((item: any) => (
+              <li key={item.id} role="none">
+                <button 
+                  onClick={() => {
+                    if (onTabChange) {
+                      // Use tab change for integrated dashboard navigation
+                      onTabChange(item.id)
+                    } else {
+                      // Fallback to router push if no onTabChange provided
+                      router.push(item.path)
+                    }
+                  }}
+                  className="w-full flex flex-col items-center p-3 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-xl transition-all duration-200 active:scale-95 touch-manipulation focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 min-h-[60px]"
+                  aria-label={`${item.name} - ${item.description}`}
+                  role="menuitem"
+                >
+                  <div className={`mb-1 ${item.color}`} aria-hidden="true">
+                    {item.icon}
+                  </div>
+                  <span className="text-xs font-medium text-gray-900 dark:text-gray-100">{item.name}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      </section>
 
       {/* Today's Site Information - Using TodaySiteInfo Component */}
       <TodaySiteInfo 
@@ -394,17 +418,25 @@ export default function HomeTab({ profile }: HomeTabProps) {
       {/* Site History Section */}
       {siteHistory.length > 0 && (
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-          <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
+          <button
+            onClick={() => setSiteHistoryExpanded(!siteHistoryExpanded)}
+            className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+          >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-                <h3 className={`${getFullTypographyClass('heading', 'lg', isLargeFont)} text-gray-900 dark:text-gray-100`}>현장 참여 이력</h3>
+                <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">현장 참여 이력</h3>
+                <span className="text-xs text-gray-500 dark:text-gray-400">{siteHistory.length}개 현장</span>
               </div>
-              <span className="text-xs text-gray-500 dark:text-gray-400">{siteHistory.length}개 현장</span>
+              {siteHistoryExpanded ? (
+                <ChevronUp className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+              ) : (
+                <ChevronDown className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+              )}
             </div>
-          </div>
+          </button>
           
-          <div className="divide-y divide-gray-100 dark:divide-gray-700 max-h-64 overflow-y-auto">
+          {siteHistoryExpanded && (
+            <div className="divide-y divide-gray-100 dark:divide-gray-700 max-h-64 overflow-y-auto">
             {siteHistory.map((site, index) => (
               <div key={`${site.site_id}-${index}`} className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                 <div className="flex items-start justify-between mb-2">
@@ -472,7 +504,8 @@ export default function HomeTab({ profile }: HomeTabProps) {
                 </div>
               </div>
             ))}
-          </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -484,8 +517,7 @@ export default function HomeTab({ profile }: HomeTabProps) {
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Megaphone className="h-4 w-4 text-orange-600 dark:text-orange-400" />
-              <h3 className={`${getFullTypographyClass('heading', 'sm', isLargeFont)} text-gray-900 dark:text-gray-100`}>공지사항</h3>
+              <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">공지사항</h3>
               {announcements.filter(a => !a.isRead).length > 0 && (
                 <span className="px-2 py-0.5 bg-red-500 text-white text-xs rounded-full">
                   {announcements.filter(a => !a.isRead).length}
@@ -532,13 +564,25 @@ export default function HomeTab({ profile }: HomeTabProps) {
 
       {/* Recent Activities - High-Density List */}
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-        <div className="px-3 py-2 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
+        <button
+          onClick={() => setRecentActivitiesExpanded(!recentActivitiesExpanded)}
+          className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+        >
           <div className="flex items-center justify-between">
-            <h3 className={`${getFullTypographyClass('heading', 'sm', isLargeFont)} text-gray-900 dark:text-gray-100`}>최근 활동</h3>
-            <span className="text-xs text-gray-500 dark:text-gray-400">실시간</span>
+            <div className="flex items-center gap-2">
+              <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">최근 활동</h3>
+              <span className="text-xs text-gray-500 dark:text-gray-400">실시간</span>
+            </div>
+            {recentActivitiesExpanded ? (
+              <ChevronUp className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+            ) : (
+              <ChevronDown className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+            )}
           </div>
-        </div>
-        <div className="divide-y divide-gray-100 dark:divide-gray-700">
+        </button>
+        
+        {recentActivitiesExpanded && (
+          <div className="divide-y divide-gray-100 dark:divide-gray-700">
           <div className="p-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center flex-shrink-0">
@@ -581,7 +625,8 @@ export default function HomeTab({ profile }: HomeTabProps) {
               </div>
             </div>
           </div>
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Quick Menu Settings Modal */}
@@ -609,7 +654,7 @@ export default function HomeTab({ profile }: HomeTabProps) {
                 {availableQuickMenuItems.map((item: any) => (
                   <div
                     key={item.id}
-                    className={`flex items-center p-3 rounded-lg border-2 transition-all cursor-pointer ${
+                    className={`flex items-center p-2 rounded-lg border-2 transition-all cursor-pointer ${
                       selectedQuickMenuItems.includes(item.id)
                         ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
                         : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
@@ -620,7 +665,7 @@ export default function HomeTab({ profile }: HomeTabProps) {
                       }
                     }}
                   >
-                    <div className={`mr-3 ${item.color} flex-shrink-0`}>
+                    <div className={`mr-2 ${item.color} flex-shrink-0`}>
                       {item.icon}
                     </div>
                     <div className="flex-1 min-w-0">

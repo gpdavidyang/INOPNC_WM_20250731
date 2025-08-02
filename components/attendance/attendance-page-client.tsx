@@ -19,14 +19,14 @@ export function AttendancePageClient({ profile, isPartnerCompany }: AttendancePa
 
   return (
     <div className="h-full bg-white">
-      <div className="border-b border-gray-200 bg-white px-6 py-4">
+      <div className="sticky top-0 z-20 border-b border-gray-200 bg-white px-6 py-4">
         <h1 className={`${getFullTypographyClass('heading', '2xl', isLargeFont)} font-semibold text-gray-900`}>
-          출근현황
+          출력현황
         </h1>
         <p className={`mt-1 ${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-600`}>
           {isPartnerCompany 
-            ? '소속 회사 작업자들의 출근 현황을 확인합니다'
-            : '나의 출근 및 급여 정보를 확인합니다'
+            ? '소속 회사 작업자들의 출력 현황을 확인합니다'
+            : '나의 출력 및 급여 정보를 확인합니다'
           }
         </p>
       </div>

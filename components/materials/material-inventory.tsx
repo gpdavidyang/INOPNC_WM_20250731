@@ -37,13 +37,14 @@ interface MaterialInventoryProps {
   materials: any[]
   initialInventory: any[]
   currentUser: any
+  currentSite?: any
   searchQuery: string
 }
 
-export function MaterialInventory({ materials, initialInventory, currentUser, searchQuery }: MaterialInventoryProps) {
+export function MaterialInventory({ materials, initialInventory, currentUser, currentSite, searchQuery }: MaterialInventoryProps) {
   const { isLargeFont } = useFontSize()
   const { touchMode } = useTouchMode()
-  const [selectedSite, setSelectedSite] = useState<string>('')
+  const [selectedSite, setSelectedSite] = useState<string>(currentSite?.id || '')
   const [sites, setSites] = useState<any[]>([])
   const [inventory, setInventory] = useState<any[]>([])
   const [loading, setLoading] = useState(false)

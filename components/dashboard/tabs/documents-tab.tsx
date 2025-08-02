@@ -4,10 +4,9 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { Profile } from '@/types'
 import { createClient } from '@/lib/supabase/client'
 import { 
-  Upload, File, Folder, Search, Filter, Download, Eye, 
-  Trash2, MoreHorizontal, FolderOpen, FileText, Image, 
-  Archive, Grid, List, ChevronRight, ChevronDown, Plus,
-  HardDrive, AlertCircle, CheckCircle, X
+  Upload, File, Folder, Search, Download, Eye, 
+  Trash2, FileText, Image, 
+  Grid, List, CheckCircle, X
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
@@ -27,14 +26,6 @@ interface Document {
   thumbnail?: string
 }
 
-interface Category {
-  id: string
-  name: string
-  icon: any
-  count: number
-  expanded?: boolean
-}
-
 interface UploadProgress {
   fileName: string
   progress: number
@@ -42,16 +33,6 @@ interface UploadProgress {
   error?: string
 }
 
-const CATEGORIES: Category[] = [
-  { id: 'work-reports', name: '작업일지', icon: FileText, count: 0 },
-  { id: 'safety-docs', name: '안전관리', icon: AlertCircle, count: 0 },
-  { id: 'construction-docs', name: '시공문서', icon: File, count: 0 },
-  { id: 'photos', name: '현장사진', icon: Image, count: 0 },
-  { id: 'certificates', name: '자격증명서', icon: CheckCircle, count: 0 },
-  { id: 'misc', name: '기타문서', icon: Archive, count: 0 }
-]
-
-const MAX_STORAGE_GB = 1
 const MAX_FILE_SIZE_MB = 10
 const ALLOWED_FILE_TYPES = [
   'application/pdf',
@@ -66,8 +47,7 @@ const ALLOWED_FILE_TYPES = [
 
 export default function DocumentsTab({ profile }: DocumentsTabProps) {
   const [documents, setDocuments] = useState<Document[]>([])
-  const [categories, setCategories] = useState<Category[]>(CATEGORIES)
-  const [selectedCategory, setSelectedCategory] = useState<string>('all')
+  const [selectedCategory] = useState<string>('all')
   const [searchTerm, setSearchTerm] = useState('')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list')
   const [sortBy, setSortBy] = useState<'name' | 'date' | 'size'>('date')
@@ -75,7 +55,6 @@ export default function DocumentsTab({ profile }: DocumentsTabProps) {
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState<UploadProgress[]>([])
-  const [storageUsed, setStorageUsed] = useState(0) // in bytes
   const [isDragOver, setIsDragOver] = useState(false)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -165,17 +144,6 @@ export default function DocumentsTab({ profile }: DocumentsTabProps) {
       const allDocuments = [...markupDocuments, ...mockDocuments]
       
       setDocuments(allDocuments)
-      
-      // Calculate storage usage
-      const totalSize = allDocuments.reduce((sum: any, doc: any) => sum + doc.size, 0)
-      setStorageUsed(totalSize)
-      
-      // Update category counts
-      const updatedCategories = categories.map(category => ({
-        ...category,
-        count: allDocuments.filter(doc => doc.category === category.id).length
-      }))
-      setCategories(updatedCategories)
     } catch (error) {
       console.error('Error loading documents:', error)
     } finally {
@@ -239,9 +207,6 @@ export default function DocumentsTab({ profile }: DocumentsTabProps) {
     if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
       return `파일 크기가 ${MAX_FILE_SIZE_MB}MB를 초과합니다.`
     }
-    if (storageUsed + file.size > MAX_STORAGE_GB * 1024 * 1024 * 1024) {
-      return '저장 공간이 부족합니다.'
-    }
     return null
   }
 
@@ -290,16 +255,6 @@ export default function DocumentsTab({ profile }: DocumentsTabProps) {
       }
 
       setDocuments(prev => [newDocument, ...prev])
-      setStorageUsed(prev => prev + file.size)
-      
-      // Update category count
-      setCategories(prev => 
-        prev.map(cat => 
-          cat.id === category 
-            ? { ...cat, count: cat.count + 1 }
-            : cat
-        )
-      )
 
       setUploadProgress(prev => 
         prev.map(item => 
@@ -358,16 +313,6 @@ export default function DocumentsTab({ profile }: DocumentsTabProps) {
     if (!doc) return
 
     setDocuments(prev => prev.filter(d => d.id !== documentId))
-    setStorageUsed(prev => prev - doc.size)
-    
-    // Update category count
-    setCategories(prev => 
-      prev.map(cat => 
-        cat.id === doc.category 
-          ? { ...cat, count: Math.max(0, cat.count - 1) }
-          : cat
-      )
-    )
   }
 
   const handleViewDocument = (document: Document) => {
@@ -380,7 +325,32 @@ export default function DocumentsTab({ profile }: DocumentsTabProps) {
     }
   }
 
-  const storagePercentage = (storageUsed / (MAX_STORAGE_GB * 1024 * 1024 * 1024)) * 100
+  const handleDownloadDocument = async (document: Document) => {
+    try {
+      if (document.type === 'markup-document') {
+        // For markup documents, we could export as PDF or image
+        alert('마킹 도면 다운로드 기능은 준비 중입니다.')
+        return
+      }
+
+      if (document.url) {
+        // Create a temporary link and click it to download
+        const link = document.createElement('a')
+        link.href = document.url
+        link.download = document.name
+        link.style.display = 'none'
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+      } else {
+        // For mock documents without actual URLs
+        alert('다운로드할 수 있는 파일이 없습니다.')
+      }
+    } catch (error) {
+      console.error('Download failed:', error)
+      alert('다운로드 중 오류가 발생했습니다.')
+    }
+  }
 
   if (loading) {
     return (
@@ -398,9 +368,6 @@ export default function DocumentsTab({ profile }: DocumentsTabProps) {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">내문서함</h2>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              개인 문서 저장소 | {documents.length}개 파일
-            </p>
           </div>
           <button
             onClick={() => fileInputRef.current?.click()}
@@ -411,27 +378,6 @@ export default function DocumentsTab({ profile }: DocumentsTabProps) {
           </button>
         </div>
 
-        {/* Storage Usage */}
-        <div className="mb-4">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <HardDrive className="h-4 w-4 text-gray-500" />
-              <span className="text-sm text-gray-600 dark:text-gray-400">저장 공간</span>
-            </div>
-            <span className="text-sm text-gray-600 dark:text-gray-400">
-              {formatFileSize(storageUsed)} / {MAX_STORAGE_GB}GB
-            </span>
-          </div>
-          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-            <div
-              className={`h-2 rounded-full transition-all duration-300 ${
-                storagePercentage > 90 ? 'bg-red-500' :
-                storagePercentage > 70 ? 'bg-yellow-500' : 'bg-green-500'
-              }`}
-              style={{ width: `${Math.min(storagePercentage, 100)}%` }}
-            />
-          </div>
-        </div>
 
         {/* Search and Filters */}
         <div className="flex flex-col sm:flex-row gap-3">
@@ -480,55 +426,9 @@ export default function DocumentsTab({ profile }: DocumentsTabProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-        {/* Categories Sidebar */}
-        <div className="lg:col-span-1">
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">카테고리</h3>
-            <ul className="space-y-1">
-              <li>
-                <button
-                  onClick={() => setSelectedCategory('all')}
-                  className={`w-full flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-colors text-left ${
-                    selectedCategory === 'all'
-                      ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300'
-                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <FolderOpen className="h-4 w-4" />
-                    전체 문서
-                  </div>
-                  <span className="text-xs">{documents.length}</span>
-                </button>
-              </li>
-              {categories.map((category: any) => {
-                const IconComponent = category.icon
-                return (
-                  <li key={category.id}>
-                    <button
-                      onClick={() => setSelectedCategory(category.id)}
-                      className={`w-full flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-colors text-left ${
-                        selectedCategory === category.id
-                          ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300'
-                          : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <IconComponent className="h-4 w-4" />
-                        {category.name}
-                      </div>
-                      <span className="text-xs">{category.count}</span>
-                    </button>
-                  </li>
-                )
-              })}
-            </ul>
-          </div>
-        </div>
-
+      <div>
         {/* Main Content */}
-        <div className="lg:col-span-3">
+        <div>
           {/* Upload Progress */}
           {uploadProgress.length > 0 && (
             <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 mb-4">
@@ -608,48 +508,65 @@ export default function DocumentsTab({ profile }: DocumentsTabProps) {
             ) : viewMode === 'grid' ? (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
                 {filteredAndSortedDocuments.map((document: any) => {
-                  const FileIcon = getFileIcon(document.type)
+                  const getFileTypeDisplay = (type: string) => {
+                    if (type === 'markup-document') return '도면'
+                    if (type.includes('pdf')) return 'PDF'
+                    if (type.includes('word')) return 'DOC'
+                    if (type.includes('excel')) return 'XLS'
+                    if (type.startsWith('image/')) return 'IMG'
+                    return 'FILE'
+                  }
+                  
+                  const getFileTypeColor = (type: string) => {
+                    if (type === 'markup-document') return 'bg-purple-100 text-purple-700 border-purple-200'
+                    if (type.includes('pdf')) return 'bg-red-100 text-red-700 border-red-200'
+                    if (type.includes('word')) return 'bg-blue-100 text-blue-700 border-blue-200'
+                    if (type.includes('excel')) return 'bg-green-100 text-green-700 border-green-200'
+                    if (type.startsWith('image/')) return 'bg-orange-100 text-orange-700 border-orange-200'
+                    return 'bg-gray-100 text-gray-700 border-gray-200'
+                  }
+
                   return (
                     <div
                       key={document.id}
                       className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
                     >
                       <div className="flex flex-col items-center text-center">
-                        {document.thumbnail ? (
-                          <img
-                            src={document.thumbnail}
-                            alt={document.name}
-                            className="w-12 h-12 object-cover rounded mb-2"
-                          />
-                        ) : (
-                          <FileIcon className="h-12 w-12 text-gray-400 mb-2" />
-                        )}
-                        <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 line-clamp-2 mb-1">
+                        {/* File Type Badge */}
+                        <div className="mb-3">
+                          <span className={`inline-block px-1.5 py-0.5 text-xs font-medium rounded-md ${getFileTypeColor(document.type)}`}>
+                            {getFileTypeDisplay(document.type)}
+                          </span>
+                        </div>
+                        
+                        <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 line-clamp-2 mb-2">
                           {document.name}
                         </h4>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
                           {formatFileSize(document.size)}
                         </p>
-                        <p className="text-xs text-gray-400 dark:text-gray-500">
+                        <p className="text-xs text-gray-400 dark:text-gray-500 mb-3">
                           {formatDate(document.uploadedAt)}
                         </p>
-                        <div className="flex gap-1 mt-2">
+                        
+                        <div className="flex gap-1">
                           <button
                             onClick={() => handleViewDocument(document)}
-                            className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                            className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
                             title="보기"
                           >
                             <Eye className="h-4 w-4" />
                           </button>
                           <button
-                            className="p-1 text-gray-400 hover:text-green-600 transition-colors"
+                            onClick={() => handleDownloadDocument(document)}
+                            className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors"
                             title="다운로드"
                           >
                             <Download className="h-4 w-4" />
                           </button>
                           <button
                             onClick={() => deleteDocument(document.id)}
-                            className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                             title="삭제"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -661,63 +578,80 @@ export default function DocumentsTab({ profile }: DocumentsTabProps) {
                 })}
               </div>
             ) : (
-              <div className="divide-y divide-gray-200 dark:divide-gray-700">
+              <div className="space-y-2">
                 {filteredAndSortedDocuments.map((document: any) => {
                   const FileIcon = getFileIcon(document.type)
+                  const getFileTypeDisplay = (type: string) => {
+                    if (type === 'markup-document') return '도면'
+                    if (type.includes('pdf')) return 'PDF'
+                    if (type.includes('word')) return 'DOC'
+                    if (type.includes('excel')) return 'XLS'
+                    if (type.startsWith('image/')) return 'IMG'
+                    return 'FILE'
+                  }
+                  
+                  const getFileTypeColor = (type: string) => {
+                    if (type === 'markup-document') return 'bg-purple-100 text-purple-700 border-purple-200'
+                    if (type.includes('pdf')) return 'bg-red-100 text-red-700 border-red-200'
+                    if (type.includes('word')) return 'bg-blue-100 text-blue-700 border-blue-200'
+                    if (type.includes('excel')) return 'bg-green-100 text-green-700 border-green-200'
+                    if (type.startsWith('image/')) return 'bg-orange-100 text-orange-700 border-orange-200'
+                    return 'bg-gray-100 text-gray-700 border-gray-200'
+                  }
+
                   return (
                     <div
                       key={document.id}
-                      className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                      className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 hover:shadow-md hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-200"
                     >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3 flex-1 min-w-0">
-                          {document.thumbnail ? (
-                            <img
-                              src={document.thumbnail}
-                              alt={document.name}
-                              className="w-10 h-10 object-cover rounded flex-shrink-0"
-                            />
-                          ) : (
-                            <FileIcon className="h-10 w-10 text-gray-400 flex-shrink-0" />
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                              {document.name}
-                            </h4>
-                            <div className="flex items-center gap-4 mt-1">
-                              <span className="text-xs text-gray-500 dark:text-gray-400">
-                                {formatFileSize(document.size)}
-                              </span>
-                              <span className="text-xs text-gray-500 dark:text-gray-400">
-                                {formatDate(document.uploadedAt)}
-                              </span>
-                              <span className="text-xs text-gray-500 dark:text-gray-400">
-                                {document.uploadedBy}
-                              </span>
+                      <div className="flex items-center gap-3">
+                        {/* Badge Only */}
+                        <div className="flex-shrink-0">
+                          <span className={`inline-block px-1.5 py-0.5 text-xs font-medium rounded-md ${getFileTypeColor(document.type)}`}>
+                            {getFileTypeDisplay(document.type)}
+                          </span>
+                        </div>
+                        
+                        {/* File Info - Simplified Layout */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1 min-w-0">
+                              <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate mb-1">
+                                {document.name}
+                              </h4>
+                              <div className="text-xs text-gray-500 dark:text-gray-400">
+                                {new Date(document.uploadedAt).toLocaleDateString('ko-KR', {
+                                  month: 'short',
+                                  day: 'numeric'
+                                })}
+                              </div>
+                            </div>
+                            
+                            {/* Action Buttons - Compact */}
+                            <div className="flex items-center gap-1 ml-3">
+                              <button
+                                onClick={() => handleViewDocument(document)}
+                                className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                                title="보기"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </button>
+                              <button
+                                onClick={() => handleDownloadDocument(document)}
+                                className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors"
+                                title="다운로드"
+                              >
+                                <Download className="h-4 w-4" />
+                              </button>
+                              <button
+                                onClick={() => deleteDocument(document.id)}
+                                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                title="삭제"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
                             </div>
                           </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => handleViewDocument(document)}
-                            className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
-                            title="보기"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </button>
-                          <button
-                            className="p-2 text-gray-400 hover:text-green-600 transition-colors"
-                            title="다운로드"
-                          >
-                            <Download className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => deleteDocument(document.id)}
-                            className="p-2 text-gray-400 hover:text-red-600 transition-colors"
-                            title="삭제"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
                         </div>
                       </div>
                     </div>

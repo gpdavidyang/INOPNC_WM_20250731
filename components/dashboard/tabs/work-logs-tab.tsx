@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { Profile } from '@/types'
 import { createClient } from '@/lib/supabase/client'
+import { CustomSelect } from '@/components/ui/custom-select'
 import { 
   Plus, Eye, Edit, Trash2, Search, Filter, Calendar,
   ChevronLeft, ChevronRight, ChevronDown, ChevronUp,
@@ -20,7 +21,7 @@ interface WorkLog {
   work_date: string
   site_name: string
   work_content: string
-  status: 'draft' | 'submitted' | 'approved' | 'rejected'
+  status: 'draft' | 'submitted'
   created_at: string
   updated_at: string
   created_by_name: string
@@ -41,7 +42,6 @@ export default function WorkLogsTab({ profile }: WorkLogsTabProps) {
   const [workLogs, setWorkLogs] = useState<WorkLog[]>([])
   const [sites, setSites] = useState<Site[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedLogs, setSelectedLogs] = useState<string[]>([])
   
   // Filters
   const [searchTerm, setSearchTerm] = useState('')
@@ -61,29 +61,39 @@ export default function WorkLogsTab({ profile }: WorkLogsTabProps) {
   const router = useRouter()
   
   const canCreate = ['worker', 'site_manager'].includes(profile.role)
-  const canBulkEdit = ['site_manager', 'admin', 'system_admin'].includes(profile.role)
 
   useEffect(() => {
-    loadData()
+    let isMounted = true
+    
+    const initializeData = async () => {
+      if (!isMounted) return
+      
+      setLoading(true)
+      try {
+        await Promise.all([loadWorkLogs(), loadSites()])
+      } catch (error) {
+        console.error('Error loading data:', error)
+      } finally {
+        if (isMounted) {
+          setLoading(false)
+        }
+      }
+    }
+    
+    initializeData()
+    
+    return () => {
+      isMounted = false
+    }
   }, [])
 
-  const loadData = async () => {
-    setLoading(true)
-    try {
-      await Promise.all([loadWorkLogs(), loadSites()])
-    } catch (error) {
-      console.error('Error loading data:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const loadWorkLogs = async () => {
     try {
       // Mock data for demo - in real implementation, this would fetch from Supabase
       const mockData: WorkLog[] = [
         {
-          id: '1',
+          id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
           work_date: '2024-08-01',
           site_name: '강남 A현장',
           work_content: '슬라브 타설 작업 진행, 3층 구조체 완료',
@@ -94,7 +104,7 @@ export default function WorkLogsTab({ profile }: WorkLogsTabProps) {
           site_id: '1'
         },
         {
-          id: '2',
+          id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
           work_date: '2024-07-31',
           site_name: '강남 A현장',
           work_content: '기둥 거푸집 설치 및 철근 배근 작업',
@@ -105,18 +115,18 @@ export default function WorkLogsTab({ profile }: WorkLogsTabProps) {
           site_id: '1'
         },
         {
-          id: '3',
+          id: '6ba7b811-9dad-11d1-80b4-00c04fd430c8',
           work_date: '2024-07-30',
           site_name: '송파 B현장',
           work_content: '외벽 단열재 시공 및 방수 작업 완료',
-          status: 'approved',
+          status: 'submitted',
           created_at: '2024-07-30T08:00:00Z',
           updated_at: '2024-07-30T16:00:00Z',
           created_by_name: '이작업',
           site_id: '2'
         },
         {
-          id: '4',
+          id: '6ba7b812-9dad-11d1-80b4-00c04fd430c8',
           work_date: '2024-07-29',
           site_name: '서초 C현장',
           work_content: '지하층 굴착 작업 및 토공사',
@@ -127,11 +137,11 @@ export default function WorkLogsTab({ profile }: WorkLogsTabProps) {
           site_id: '3'
         },
         {
-          id: '5',
+          id: '6ba7b813-9dad-11d1-80b4-00c04fd430c8',
           work_date: '2024-07-28',
           site_name: '강남 A현장',
           work_content: '안전점검 및 품질관리 업무',
-          status: 'approved',
+          status: 'submitted',
           created_at: '2024-07-28T08:00:00Z',
           updated_at: '2024-07-28T15:30:00Z',
           created_by_name: '정안전',
@@ -194,12 +204,10 @@ export default function WorkLogsTab({ profile }: WorkLogsTabProps) {
 
     // Primary sort by status (drafts first), secondary by date (newest first)
     filtered.sort((a, b) => {
-      // Status priority: draft > submitted > approved > rejected
+      // Status priority: draft > submitted
       const statusPriority = {
         'draft': 1,
-        'submitted': 2,
-        'approved': 3,
-        'rejected': 4
+        'submitted': 2
       }
       
       const statusComparison = statusPriority[a.status] - statusPriority[b.status]
@@ -248,11 +256,7 @@ export default function WorkLogsTab({ profile }: WorkLogsTabProps) {
       case 'draft':
         return <Clock className="h-4 w-4 text-gray-500" />
       case 'submitted':
-        return <AlertTriangle className="h-4 w-4 text-blue-500" />
-      case 'approved':
-        return <CheckCircle className="h-4 w-4 text-green-500" />
-      case 'rejected':
-        return <XCircle className="h-4 w-4 text-red-500" />
+        return <CheckCircle className="h-4 w-4 text-blue-500" />
       default:
         return null
     }
@@ -260,10 +264,8 @@ export default function WorkLogsTab({ profile }: WorkLogsTabProps) {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'draft': return '작성중'
+      case 'draft': return '임시저장'
       case 'submitted': return '제출됨'
-      case 'approved': return '승인됨'
-      case 'rejected': return '반려됨'
       default: return status
     }
   }
@@ -272,33 +274,10 @@ export default function WorkLogsTab({ profile }: WorkLogsTabProps) {
     switch (status) {
       case 'draft': return 'bg-gray-50 text-gray-700 border-gray-200'
       case 'submitted': return 'bg-blue-50 text-blue-700 border-blue-200'
-      case 'approved': return 'bg-green-50 text-green-700 border-green-200'
-      case 'rejected': return 'bg-red-50 text-red-700 border-red-200'
       default: return 'bg-gray-50 text-gray-700 border-gray-200'
     }
   }
 
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedLogs(paginatedLogs.map(log => log.id))
-    } else {
-      setSelectedLogs([])
-    }
-  }
-
-  const handleSelectLog = (logId: string, checked: boolean) => {
-    if (checked) {
-      setSelectedLogs(prev => [...prev, logId])
-    } else {
-      setSelectedLogs(prev => prev.filter(id => id !== logId))
-    }
-  }
-
-  const handleBulkAction = (action: string) => {
-    console.log(`Bulk action ${action} for logs:`, selectedLogs)
-    // TODO: Implement bulk actions
-    setSelectedLogs([])
-  }
 
   const truncateText = (text: string, maxLength: number = 60) => {
     return text.length > maxLength ? text.substring(0, maxLength) + '...' : text
@@ -322,135 +301,167 @@ export default function WorkLogsTab({ profile }: WorkLogsTabProps) {
   }
 
   return (
-    <div className="space-y-4">
-      {/* Header */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-        <div className="flex items-center justify-between mb-4">
+    <div className="space-y-3">
+      {/* Header Section */}
+      <section 
+        className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-3"
+        aria-labelledby="work-logs-heading"
+      >
+        <header className="flex items-center justify-between mb-3">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">작업일지 관리</h2>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              전체 {filteredAndSortedLogs.length}건 | 작성중 {filteredAndSortedLogs.filter(l => l.status === 'draft').length}건
+            <h1 id="work-logs-heading" className="text-base font-semibold text-gray-900 dark:text-gray-100">
+              작업일지 관리
+            </h1>
+            <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5" aria-live="polite">
+              전체 {filteredAndSortedLogs.length}건 | 임시저장 {filteredAndSortedLogs.filter(l => l.status === 'draft').length}건
             </p>
           </div>
           {canCreate && (
             <button
               onClick={() => router.push('/dashboard/daily-reports/new')}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors touch-manipulation"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-md transition-colors touch-manipulation focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-blue-600"
+              aria-label="새 작업일지 작성하기"
             >
-              <Plus className="h-4 w-4" />
-              새 작업일지
+              <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+              <span>새 작업일지</span>
             </button>
           )}
-        </div>
+        </header>
 
         {/* Search and Quick Filters - Mobile Optimized */}
-        <div className="flex flex-col sm:flex-row gap-3 mb-4">
+        <div className="flex flex-col sm:flex-row gap-2 mb-3" role="search" aria-label="검색 및 필터">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+            <label htmlFor="search-input" className="sr-only">작업일지 검색</label>
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" aria-hidden="true" />
             <input
+              id="search-input"
               type="text"
               placeholder="검색..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm sm:text-base"
+              className="w-full pl-9 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm min-h-[36px]"
+              aria-describedby="search-help"
             />
+            <div id="search-help" className="sr-only">
+              작업일지 내용, 현장명, 작성자명으로 검색할 수 있습니다
+            </div>
           </div>
           <button
             onClick={() => setFiltersExpanded(!filtersExpanded)}
-            className="flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            className="flex items-center justify-center gap-1.5 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 min-h-[36px] text-xs"
+            aria-expanded={filtersExpanded}
+            aria-controls="filter-panel"
+            aria-label={filtersExpanded ? "상세 필터 숨기기" : "상세 필터 표시"}
           >
-            <Filter className="h-4 w-4" />
-            <span className="sm:inline">필터</span>
-            {filtersExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            <Filter className="h-4 w-4" aria-hidden="true" />
+            <span>필터</span>
+            {filtersExpanded ? 
+              <ChevronUp className="h-4 w-4" aria-hidden="true" /> : 
+              <ChevronDown className="h-4 w-4" aria-hidden="true" />
+            }
           </button>
         </div>
 
         {/* Expanded Filters */}
         {filtersExpanded && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg animate-in slide-in-from-top-1 duration-200">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">현장</label>
-              <div className="relative">
-                <select
+          <div 
+            id="filter-panel"
+            className="space-y-2 p-3 sm:p-2 bg-gray-50 dark:bg-gray-700 rounded-lg animate-in slide-in-from-top-1 duration-200"
+            role="region"
+            aria-label="필터 옵션"
+          >
+            {/* 첫 번째 행: 현장과 상태 */}
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              <div>
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">현장</label>
+                <CustomSelect
+                  options={[
+                    { value: 'all', label: '전체 현장' },
+                    ...sites.map((site: any) => ({
+                      value: site.id,
+                      label: site.name
+                    }))
+                  ]}
                   value={selectedSite}
-                  onChange={(e) => setSelectedSite(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="all">전체 현장</option>
-                  {sites.map((site: any) => (
-                    <option key={site.id} value={site.id}>{site.name}</option>
-                  ))}
-                </select>
-                <Building2 className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                  onChange={setSelectedSite}
+                  placeholder="현장 선택"
+                  icon={<Building2 className="h-4 w-4" />}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">상태</label>
+                <div className="flex gap-1 p-1 bg-gray-100 dark:bg-gray-600 rounded-md">
+                  <button
+                    onClick={() => setSelectedStatus('all')}
+                    className={`flex-1 px-2 py-1 text-xs font-medium rounded transition-colors ${
+                      selectedStatus === 'all' 
+                        ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm' 
+                        : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100'
+                    }`}
+                  >
+                    전체
+                  </button>
+                  <button
+                    onClick={() => setSelectedStatus('draft')}
+                    className={`flex-1 px-2 py-1 text-xs font-medium rounded transition-colors ${
+                      selectedStatus === 'draft' 
+                        ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm' 
+                        : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100'
+                    }`}
+                  >
+                    임시저장
+                  </button>
+                  <button
+                    onClick={() => setSelectedStatus('submitted')}
+                    className={`flex-1 px-2 py-1 text-xs font-medium rounded transition-colors ${
+                      selectedStatus === 'submitted' 
+                        ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm' 
+                        : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100'
+                    }`}
+                  >
+                    제출됨
+                  </button>
+                </div>
               </div>
             </div>
 
+            {/* 두 번째 행: 기간 선택 */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">상태</label>
-              <select
-                value={selectedStatus}
-                onChange={(e) => setSelectedStatus(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="all">전체 상태</option>
-                <option value="draft">작성중</option>
-                <option value="submitted">제출됨</option>
-                <option value="approved">승인됨</option>
-                <option value="rejected">반려됨</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">기간</label>
-              <div className="flex gap-2">
-                <input
-                  type="date"
-                  value={dateRange.start}
-                  onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
-                  className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500"
-                />
-                <input
-                  type="date"
-                  value={dateRange.end}
-                  onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
-                  className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500"
-                />
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">기간</label>
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 max-w-lg">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs text-gray-500 min-w-[26px]">시작</span>
+                  <input
+                    type="date"
+                    value={dateRange.start}
+                    onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
+                    className="flex-1 px-2 py-2 sm:py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 min-h-[36px] sm:min-h-[32px]"
+                  />
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs text-gray-500 min-w-[26px]">종료</span>
+                  <input
+                    type="date"
+                    value={dateRange.end}
+                    onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
+                    className="flex-1 px-2 py-2 sm:py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 min-h-[36px] sm:min-h-[32px]"
+                  />
+                </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* Bulk Actions - Mobile Optimized */}
-        {canBulkEdit && selectedLogs.length > 0 && (
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-            <span className="text-sm text-blue-700 dark:text-blue-300">
-              {selectedLogs.length}개 항목 선택됨
-            </span>
-            <div className="flex gap-2 sm:ml-auto">
-              <button
-                onClick={() => handleBulkAction('approve')}
-                className="px-3 py-1 text-sm text-green-700 hover:text-green-800 transition-colors"
-              >
-                일괄 승인
-              </button>
-              <button
-                onClick={() => handleBulkAction('export')}
-                className="px-3 py-1 text-sm text-blue-700 hover:text-blue-800 transition-colors"
-              >
-                내보내기
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
+      </section>
 
       {/* Work Log Table - Mobile Optimized */}
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
         {/* Mobile Card View */}
         <div className="block sm:hidden">
           {paginatedLogs.map((log: any) => (
-            <div key={log.id} className="p-4 border-b border-gray-200 dark:border-gray-700">
-              <div className="flex justify-between items-start mb-2">
+            <div key={log.id} className="p-3 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex justify-between items-start mb-1.5">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
@@ -458,33 +469,47 @@ export default function WorkLogsTab({ profile }: WorkLogsTabProps) {
                     </span>
                     <div className="flex items-center gap-1">
                       {getStatusIcon(log.status)}
-                      <span className={`px-2 py-0.5 text-xs font-medium rounded-full border ${getStatusColor(log.status)}`}>
+                      <span className={`px-1.5 py-0.5 text-xs font-medium rounded-full border ${getStatusColor(log.status)}`}>
                         {getStatusText(log.status)}
                       </span>
                     </div>
                   </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">
                     {log.site_name}
                   </p>
                   <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">
                     {log.work_content}
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                     작성자: {log.created_by_name}
                   </p>
                 </div>
-                <div className="flex items-center gap-1 ml-2">
+                <div className="flex items-center gap-0.5 ml-2">
                   <button
-                    onClick={() => router.push(`/dashboard/daily-reports/${log.id}`)}
-                    className="p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                    onClick={() => {
+                      // 목업 데이터인 경우 alert 표시
+                      if (log.id.startsWith('f47ac10b') || log.id.startsWith('6ba7b8')) {
+                        alert('이것은 데모 데이터입니다. 실제 데이터가 있을 때 상세 페이지로 이동합니다.')
+                      } else {
+                        router.push(`/dashboard/daily-reports/${log.id}`)
+                      }
+                    }}
+                    className="p-1.5 text-gray-400 hover:text-blue-600 transition-colors"
                     title="보기"
                   >
                     <Eye className="h-4 w-4" />
                   </button>
                   {log.status === 'draft' && (
                     <button
-                      onClick={() => router.push(`/dashboard/daily-reports/${log.id}/edit`)}
-                      className="p-2 text-gray-400 hover:text-green-600 transition-colors"
+                      onClick={() => {
+                        // 목업 데이터인 경우 alert 표시
+                        if (log.id.startsWith('f47ac10b') || log.id.startsWith('6ba7b8')) {
+                          alert('이것은 데모 데이터입니다. 실제 데이터가 있을 때 편집 페이지로 이동합니다.')
+                        } else {
+                          router.push(`/dashboard/daily-reports/${log.id}/edit`)
+                        }
+                      }}
+                      className="p-1.5 text-gray-400 hover:text-green-600 transition-colors"
                       title="편집"
                     >
                       <Edit className="h-4 w-4" />
@@ -492,19 +517,6 @@ export default function WorkLogsTab({ profile }: WorkLogsTabProps) {
                   )}
                 </div>
               </div>
-              {canBulkEdit && (
-                <div className="mt-2 pt-2 border-t border-gray-100 dark:border-gray-700">
-                  <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                    <input
-                      type="checkbox"
-                      checked={selectedLogs.includes(log.id)}
-                      onChange={(e) => handleSelectLog(log.id, e.target.checked)}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                    />
-                    선택
-                  </label>
-                </div>
-              )}
             </div>
           ))}
         </div>
@@ -514,54 +526,80 @@ export default function WorkLogsTab({ profile }: WorkLogsTabProps) {
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
-                {canBulkEdit && (
-                  <th className="px-4 py-3 text-left">
-                    <input
-                      type="checkbox"
-                      checked={selectedLogs.length === paginatedLogs.length && paginatedLogs.length > 0}
-                      onChange={(e) => handleSelectAll(e.target.checked)}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                    />
-                  </th>
-                )}
                 <th 
-                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
-                  onClick={() => handleSort('work_date')}
+                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                 >
-                  <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => handleSort('work_date')}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        handleSort('work_date')
+                      }
+                    }}
+                    className="flex items-center gap-1 w-full text-left hover:bg-gray-100 dark:hover:bg-gray-600 focus-visible:ring-2 focus-visible:ring-toss-blue-500 focus-visible:ring-offset-2 rounded px-2 py-1 -mx-2 -my-1 transition-colors"
+                    aria-label="작업 날짜별 정렬"
+                  >
                     날짜
                     {getSortIcon('work_date')}
-                  </div>
+                  </button>
                 </th>
                 <th 
-                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
-                  onClick={() => handleSort('site_name')}
+                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                 >
-                  <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => handleSort('site_name')}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        handleSort('site_name')
+                      }
+                    }}
+                    className="flex items-center gap-1 w-full text-left hover:bg-gray-100 dark:hover:bg-gray-600 focus-visible:ring-2 focus-visible:ring-toss-blue-500 focus-visible:ring-offset-2 rounded px-2 py-1 -mx-2 -my-1 transition-colors"
+                    aria-label="현장명별 정렬"
+                  >
                     현장명
                     {getSortIcon('site_name')}
-                  </div>
+                  </button>
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   작업내용
                 </th>
                 <th 
-                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 hidden lg:table-cell"
-                  onClick={() => handleSort('status')}
+                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden lg:table-cell"
                 >
-                  <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => handleSort('status')}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        handleSort('status')
+                      }
+                    }}
+                    className="flex items-center gap-1 w-full text-left hover:bg-gray-100 dark:hover:bg-gray-600 focus-visible:ring-2 focus-visible:ring-toss-blue-500 focus-visible:ring-offset-2 rounded px-2 py-1 -mx-2 -my-1 transition-colors"
+                    aria-label="상태별 정렬"
+                  >
                     상태
                     {getSortIcon('status')}
-                  </div>
+                  </button>
                 </th>
                 <th 
-                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 hidden xl:table-cell"
-                  onClick={() => handleSort('created_by_name')}
+                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden xl:table-cell"
                 >
-                  <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => handleSort('created_by_name')}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        handleSort('created_by_name')
+                      }
+                    }}
+                    className="flex items-center gap-1 w-full text-left hover:bg-gray-100 dark:hover:bg-gray-600 focus-visible:ring-2 focus-visible:ring-toss-blue-500 focus-visible:ring-offset-2 rounded px-2 py-1 -mx-2 -my-1 transition-colors"
+                    aria-label="작성자별 정렬"
+                  >
                     작성자
                     {getSortIcon('created_by_name')}
-                  </div>
+                  </button>
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   작업
@@ -571,16 +609,6 @@ export default function WorkLogsTab({ profile }: WorkLogsTabProps) {
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               {paginatedLogs.map((log: any) => (
                 <tr key={log.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                  {canBulkEdit && (
-                    <td className="px-4 py-4">
-                      <input
-                        type="checkbox"
-                        checked={selectedLogs.includes(log.id)}
-                        onChange={(e) => handleSelectLog(log.id, e.target.checked)}
-                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                      />
-                    </td>
-                  )}
                   <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
                     {formatDate(log.work_date)}
                   </td>
@@ -608,7 +636,14 @@ export default function WorkLogsTab({ profile }: WorkLogsTabProps) {
                   <td className="px-4 py-4 whitespace-nowrap text-sm">
                     <div className="flex items-center gap-1">
                       <button
-                        onClick={() => router.push(`/dashboard/daily-reports/${log.id}`)}
+                        onClick={() => {
+                          // 목업 데이터인 경우 alert 표시
+                          if (log.id.startsWith('f47ac10b') || log.id.startsWith('6ba7b8')) {
+                            alert('이것은 데모 데이터입니다. 실제 데이터가 있을 때 상세 페이지로 이동합니다.')
+                          } else {
+                            router.push(`/dashboard/daily-reports/${log.id}`)
+                          }
+                        }}
                         className="p-1.5 text-gray-400 hover:text-blue-600 transition-colors"
                         title="보기"
                       >
@@ -617,7 +652,14 @@ export default function WorkLogsTab({ profile }: WorkLogsTabProps) {
                       {log.status === 'draft' && (
                         <>
                           <button
-                            onClick={() => router.push(`/dashboard/daily-reports/${log.id}/edit`)}
+                            onClick={() => {
+                              // 목업 데이터인 경우 alert 표시
+                              if (log.id.startsWith('f47ac10b') || log.id.startsWith('6ba7b8')) {
+                                alert('이것은 데모 데이터입니다. 실제 데이터가 있을 때 편집 페이지로 이동합니다.')
+                              } else {
+                                router.push(`/dashboard/daily-reports/${log.id}/edit`)
+                              }
+                            }}
                             className="p-1.5 text-gray-400 hover:text-green-600 transition-colors"
                             title="편집"
                           >
@@ -674,7 +716,8 @@ export default function WorkLogsTab({ profile }: WorkLogsTabProps) {
                 <button
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1}
-                  className="p-2 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="p-2 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus-visible:ring-2 focus-visible:ring-toss-blue-500 focus-visible:ring-offset-2 rounded"
+                  aria-label="이전 페이지"
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </button>
@@ -684,7 +727,8 @@ export default function WorkLogsTab({ profile }: WorkLogsTabProps) {
                 <button
                   onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                   disabled={currentPage === totalPages}
-                  className="p-2 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="p-2 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus-visible:ring-2 focus-visible:ring-toss-blue-500 focus-visible:ring-offset-2 rounded"
+                  aria-label="다음 페이지"
                 >
                   <ChevronRight className="h-4 w-4" />
                 </button>

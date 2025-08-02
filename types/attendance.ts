@@ -21,6 +21,7 @@ export interface AttendanceRecord {
   check_out_time?: string | null
   work_hours?: number | null
   overtime_hours?: number | null
+  labor_hours?: number | null  // 공수 (1.0 = 8 hours)
   status: AttendanceStatus
   totalWorkers?: number // For partner view
 }
@@ -56,6 +57,7 @@ export interface AttendanceCheckData {
   check_out_time?: string | null
   work_hours?: number | null
   overtime_hours?: number | null
+  labor_hours?: number | null  // 공수 (1.0 = 8 hours)
   status: AttendanceStatus
   notes?: string | null
 }

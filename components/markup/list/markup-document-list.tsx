@@ -4,7 +4,13 @@ import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { Select, SelectItem } from '@/components/ui/select'
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select-new'
 import { getFullTypographyClass } from '@/contexts/FontSizeContext'
 import { MarkupDocument } from '@/types'
 import { 
@@ -167,13 +173,17 @@ export function MarkupDocumentList({
           </div>
           <Select 
             value={location} 
-            onChange={(e) => setLocation(e.target.value as 'personal' | 'shared')}
-            className={`${
-              touchMode === 'glove' ? 'min-h-[60px]' : touchMode === 'precision' ? 'min-h-[40px]' : 'min-h-[48px]'
-            } w-full md:w-48`}
+            onValueChange={(value) => setLocation(value as 'personal' | 'shared')}
           >
-            <SelectItem value="personal">내 문서함</SelectItem>
-            <SelectItem value="shared">공유 문서함</SelectItem>
+            <SelectTrigger className={`${
+              touchMode === 'glove' ? 'min-h-[60px]' : touchMode === 'precision' ? 'min-h-[40px]' : 'min-h-[48px]'
+            } w-full md:w-48`}>
+              <SelectValue placeholder="문서함 선택" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="personal">내 문서함</SelectItem>
+              <SelectItem value="shared">공유 문서함</SelectItem>
+            </SelectContent>
           </Select>
         </div>
       </div>

@@ -9,9 +9,8 @@ import Header from './header'
 import HomeTab from './tabs/home-tab'
 import DailyReportTab from './tabs/daily-report-tab'
 import AttendanceTab from './tabs/attendance-tab'
-import DocumentsTab from './tabs/documents-tab'
+import DocumentsTabUnified from './tabs/documents-tab-unified'
 import SiteInfoTab from './tabs/site-info-tab'
-import SharedDocumentsTab from './tabs/shared-documents-tab'
 import { BottomNavigation, BottomNavItem } from '@/components/ui/bottom-navigation'
 import { MarkupEditor } from '@/components/markup/markup-editor'
 
@@ -61,8 +60,8 @@ export default function DashboardLayout({ user, profile }: DashboardLayoutProps)
       specialAction: 'filter-blueprint' as const
     },
     { 
-      label: "내문서함", 
-      href: "#documents", 
+      label: "문서함", 
+      href: "#documents-unified", 
       icon: <FolderOpen /> 
     }
   ]
@@ -71,7 +70,7 @@ export default function DashboardLayout({ user, profile }: DashboardLayoutProps)
   const handleBottomNavClick = (tabId: string) => {
     // specialAction이 있는 경우는 BottomNavigation 컴포넌트에서 처리
     if (tabId === '#shared-documents-blueprint') {
-      setActiveTab('shared-documents')
+      setActiveTab('shared-documents') // 공유문서함 탭으로 이동
     } else {
       const cleanTabId = tabId.replace('#', '')
       setActiveTab(cleanTabId)
@@ -81,17 +80,19 @@ export default function DashboardLayout({ user, profile }: DashboardLayoutProps)
   const renderContent = () => {
     switch (activeTab) {
       case 'home':
-        return <HomeTab profile={profile} />
+        return <HomeTab profile={profile} onTabChange={setActiveTab} />
       case 'daily-reports':
         return <DailyReportTab profile={profile} />
       case 'attendance':
         return <AttendanceTab profile={profile} />
+      case 'documents-unified':
+        return <DocumentsTabUnified profile={profile} />
       case 'documents':
-        return <DocumentsTab profile={profile} />
+        return <DocumentsTabUnified profile={profile} />
+      case 'shared-documents':
+        return <DocumentsTabUnified profile={profile} initialTab="shared" />
       case 'site-info':
         return <SiteInfoTab profile={profile} />
-      case 'shared-documents':
-        return <SharedDocumentsTab profile={profile} />
       case 'blueprint-markup':
         return <MarkupEditor profile={profile} />
       case 'profile':
@@ -188,53 +189,70 @@ export default function DashboardLayout({ user, profile }: DashboardLayoutProps)
           </div>
         )
       default:
-        return <HomeTab profile={profile} />
+        return <HomeTab profile={profile} onTabChange={setActiveTab} />
     }
   }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* Skip link for keyboard users */}
+      <a 
+        href="#main-content" 
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 z-50 bg-blue-600 text-white px-4 py-2 rounded-md shadow-lg focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2"
+      >
+        메인 콘텐츠로 이동
+      </a>
+
       {/* Mobile sidebar backdrop */}
       {isSidebarOpen && (
         <div
           className="fixed inset-0 bg-gray-600 dark:bg-gray-900 bg-opacity-75 dark:bg-opacity-75 z-40 lg:hidden"
           onClick={() => setIsSidebarOpen(false)}
+          aria-hidden="true"
         />
       )}
 
-      {/* Sidebar */}
-      <Sidebar
-        profile={profile}
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        isOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
-      />
+      {/* Sidebar Navigation */}
+      <aside aria-label="메인 네비게이션">
+        <Sidebar
+          profile={profile}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+        />
+      </aside>
 
-      {/* Main content */}
+      {/* Main content area */}
       <div className="lg:pl-64">
+        {/* Page header */}
         <Header
           profile={profile}
           onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)}
         />
         
-        <main className="py-6 pb-16 md:pb-6">
+        {/* Main content */}
+        <main id="main-content" className="py-6 pb-16 md:pb-6">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            {renderContent()}
+            <div role="region" aria-live="polite" aria-label="페이지 콘텐츠">
+              {renderContent()}
+            </div>
           </div>
         </main>
       </div>
 
-      {/* Mobile Bottom Navigation - PRD 사양 적용 */}
-      <BottomNavigation 
-        items={bottomNavItems}
-        currentUser={{ 
-          id: profile.id, 
-          active_site_id: (profile as any).site_id || undefined 
-        }}
-        onTabChange={setActiveTab}
-        activeTab={activeTab}
-      />
+      {/* Mobile Bottom Navigation */}
+      <nav aria-label="모바일 하단 네비게이션" className="md:hidden">
+        <BottomNavigation 
+          items={bottomNavItems}
+          currentUser={{ 
+            id: profile.id, 
+            active_site_id: (profile as any).site_id || undefined 
+          }}
+          onTabChange={setActiveTab}
+          activeTab={activeTab}
+        />
+      </nav>
     </div>
   )
 }

@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation'
 import { getDailyReports } from '@/app/actions/daily-reports'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Select } from '@/components/ui/select'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { CustomSelect } from '@/components/ui/custom-select'
 import { 
   Calendar,
   Filter,
@@ -20,7 +20,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Download,
-  Eye
+  Eye,
+  Building2
 } from 'lucide-react'
 import { DailyReport, DailyReportStatus, Site } from '@/types'
 
@@ -85,10 +86,8 @@ export default function DailyReportList({
 
   const getStatusBadge = (status: DailyReportStatus) => {
     const statusConfig = {
-      draft: { label: '작성중', variant: 'secondary' as const, icon: Clock },
-      submitted: { label: '제출됨', variant: 'outline' as const, icon: FileText },
-      approved: { label: '승인됨', variant: 'success' as const, icon: CheckCircle },
-      rejected: { label: '반려됨', variant: 'error' as const, icon: XCircle }
+      draft: { label: '임시저장', variant: 'secondary' as const, icon: Clock },
+      submitted: { label: '제출됨', variant: 'outline' as const, icon: CheckCircle }
     }
 
     const config = statusConfig[status]
@@ -120,56 +119,100 @@ export default function DailyReportList({
       </div>
 
       {/* Filters */}
-      <Card className="p-4">
-        <div className="flex items-center gap-2 mb-3">
+      <Card className="p-3">
+        <div className="flex items-center gap-2 mb-2">
           <Filter className="h-4 w-4 text-gray-500" />
-          <span className="text-sm font-medium">필터</span>
+          <span className="text-xs font-medium">필터</span>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
-          <Select
-            value={filters.site_id}
-            onChange={(e) => handleFilterChange('site_id', e.target.value)}
-          >
-            <option value="">모든 현장</option>
-            {sites.map(site => (
-              <option key={site.id} value={site.id}>{site.name}</option>
-            ))}
-          </Select>
-
-          <Select
-            value={filters.status}
-            onChange={(e) => handleFilterChange('status', e.target.value)}
-          >
-            <option value="">모든 상태</option>
-            <option value="draft">작성중</option>
-            <option value="submitted">제출됨</option>
-            <option value="approved">승인됨</option>
-            <option value="rejected">반려됨</option>
-          </Select>
-
-          <Input
-            type="date"
-            value={filters.start_date}
-            onChange={(e) => handleFilterChange('start_date', e.target.value)}
-            placeholder="시작일"
-          />
-
-          <Input
-            type="date"
-            value={filters.end_date}
-            onChange={(e) => handleFilterChange('end_date', e.target.value)}
-            placeholder="종료일"
-          />
-
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
-            <Input
-              value={filters.search}
-              onChange={(e) => handleFilterChange('search', e.target.value)}
-              placeholder="검색..."
-              className="pl-10"
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
+          {/* 현장 선택 */}
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-gray-600 dark:text-gray-400">현장</label>
+            <CustomSelect
+              options={[
+                { value: '', label: '전체 현장' },
+                ...sites.map(site => ({
+                  value: site.id,
+                  label: site.name
+                }))
+              ]}
+              value={filters.site_id}
+              onChange={(value) => handleFilterChange('site_id', value)}
+              placeholder="현장 선택"
+              icon={<Building2 className="h-4 w-4" />}
             />
+          </div>
+
+          {/* 상태 선택 */}
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-gray-600 dark:text-gray-400">상태</label>
+            <div className="flex gap-1 p-1 bg-gray-100 dark:bg-gray-700 rounded-md">
+              <button
+                onClick={() => handleFilterChange('status', '')}
+                className={`flex-1 px-2 py-1 text-xs font-medium rounded transition-colors ${
+                  filters.status === '' 
+                    ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-sm' 
+                    : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100'
+                }`}
+              >
+                전체
+              </button>
+              <button
+                onClick={() => handleFilterChange('status', 'draft')}
+                className={`flex-1 px-2 py-1 text-xs font-medium rounded transition-colors ${
+                  filters.status === 'draft' 
+                    ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-sm' 
+                    : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100'
+                }`}
+              >
+                임시저장
+              </button>
+              <button
+                onClick={() => handleFilterChange('status', 'submitted')}
+                className={`flex-1 px-2 py-1 text-xs font-medium rounded transition-colors ${
+                  filters.status === 'submitted' 
+                    ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-sm' 
+                    : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100'
+                }`}
+              >
+                제출됨
+              </button>
+            </div>
+          </div>
+
+          {/* 기간 선택 */}
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-gray-600 dark:text-gray-400">기간</label>
+            <div className="flex items-center gap-1.5">
+              <Input
+                type="date"
+                value={filters.start_date}
+                onChange={(e) => handleFilterChange('start_date', e.target.value)}
+                className="text-xs h-8"
+              />
+              <span className="text-gray-400 text-xs">~</span>
+              <Input
+                type="date"
+                value={filters.end_date}
+                onChange={(e) => handleFilterChange('end_date', e.target.value)}
+                className="text-xs h-8"
+              />
+            </div>
+          </div>
+
+          {/* 검색 */}
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-gray-600 dark:text-gray-400">검색</label>
+            <div className="relative">
+              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-500" />
+              <Input
+                value={filters.search}
+                onChange={(e) => handleFilterChange('search', e.target.value)}
+                placeholder="검색..."
+                className="pl-8 text-sm h-8"
+              />
+            </div>
           </div>
         </div>
       </Card>

@@ -1,0 +1,482 @@
+name: Test Monitoring & Analytics
+
+on:
+  schedule:
+    # Run daily at 6 AM UTC to analyze test trends
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+    inputs:
+      days-back:
+        description: 'Days to analyze (default: 7)'
+        default: '7'
+        type: string
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  # Analyze test execution patterns
+  test-analytics:
+    name: 📈 Test Analytics
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Analyze workflow runs
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const daysBack = parseInt('${{ github.event.inputs.days-back }}') || 7;
+            const since = new Date(Date.now() - daysBack * 24 * 60 * 60 * 1000).toISOString();
+            
+            console.log(`Analyzing workflows since ${since}`);
+            
+            // Get workflow runs for the last N days
+            const { data: workflows } = await github.rest.actions.listWorkflowRuns({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'ci.yml',
+              created: `>=${since}`,
+              per_page: 100
+            });
+            
+            console.log(`Found ${workflows.total_count} workflow runs`);
+            
+            // Analyze success/failure rates
+            const stats = {
+              total: workflows.total_count,
+              success: 0,
+              failure: 0,
+              cancelled: 0,
+              avgDuration: 0,
+              runs: []
+            };
+            
+            let totalDuration = 0;
+            
+            for (const run of workflows.workflow_runs) {
+              stats.runs.push({
+                id: run.id,
+                status: run.status,
+                conclusion: run.conclusion,
+                created_at: run.created_at,
+                duration: run.updated_at ? 
+                  Math.round((new Date(run.updated_at) - new Date(run.created_at)) / 1000 / 60) : 0
+              });
+              
+              if (run.conclusion === 'success') stats.success++;
+              else if (run.conclusion === 'failure') stats.failure++;
+              else if (run.conclusion === 'cancelled') stats.cancelled++;
+              
+              if (run.updated_at) {
+                totalDuration += Math.round((new Date(run.updated_at) - new Date(run.created_at)) / 1000 / 60);
+              }
+            }
+            
+            stats.avgDuration = stats.total > 0 ? Math.round(totalDuration / stats.total) : 0;
+            stats.successRate = stats.total > 0 ? Math.round((stats.success / stats.total) * 100) : 0;
+            
+            console.log('Test Analytics:', JSON.stringify(stats, null, 2));
+            
+            // Create report
+            const report = `# Test Analytics Report - ${new Date().toISOString().split('T')[0]}
+            
+            ## Summary (Last ${daysBack} days)
+            - **Total Runs:** ${stats.total}
+            - **Success Rate:** ${stats.successRate}%
+            - **Average Duration:** ${stats.avgDuration} minutes
+            
+            ## Breakdown
+            - ✅ Successful: ${stats.success}
+            - ❌ Failed: ${stats.failure}
+            - ⏹️ Cancelled: ${stats.cancelled}
+            
+            ## Trends
+            ${stats.successRate < 80 ? '⚠️ **Low success rate detected!**' : '✅ Success rate is healthy'}
+            ${stats.avgDuration > 30 ? '⚠️ **Long execution times detected!**' : '✅ Execution times are reasonable'}
+            `;
+            
+            require('fs').writeFileSync('test-analytics-report.md', report);
+            
+            // Set outputs for alerting
+            core.setOutput('success-rate', stats.successRate);
+            core.setOutput('avg-duration', stats.avgDuration);
+            core.setOutput('total-runs', stats.total);
+            
+      - name: Upload analytics report
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-analytics-report
+          path: test-analytics-report.md
+          retention-days: 30
+
+  # Detect flaky tests
+  flaky-test-detection:
+    name: 🎲 Flaky Test Detection
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Create flaky test detector
+        run: |
+          cat > flaky-test-detector.js << 'EOF'
+          const fs = require('fs');
+          const path = require('path');
+          
+          // Simulate flaky test analysis by checking test patterns
+          function analyzeTestFiles() {
+            const testFiles = [];
+            const testDirs = ['__tests__', 'e2e'];
+            
+            function scanDirectory(dir) {
+              if (!fs.existsSync(dir)) return;
+              
+              const files = fs.readdirSync(dir);
+              for (const file of files) {
+                const filePath = path.join(dir, file);
+                const stat = fs.statSync(filePath);
+                
+                if (stat.isDirectory()) {
+                  scanDirectory(filePath);
+                } else if (file.endsWith('.test.ts') || file.endsWith('.test.tsx') || file.endsWith('.spec.ts')) {
+                  testFiles.push(filePath);
+                }
+              }
+            }
+            
+            testDirs.forEach(scanDirectory);
+            return testFiles;
+          }
+          
+          function analyzeTestForFlakiness(filePath) {
+            const content = fs.readFileSync(filePath, 'utf8');
+            const flakyIndicators = [
+              { pattern: /setTimeout|setInterval/g, reason: 'Contains timing dependencies' },
+              { pattern: /Math\.random/g, reason: 'Contains random values' },
+              { pattern: /Date\.now|new Date/g, reason: 'Contains time dependencies' },
+              { pattern: /waitFor.*timeout/g, reason: 'Contains timeout waits' },
+              { pattern: /\.retry\(/g, reason: 'Contains retry logic' },
+              { pattern: /sleep|delay/g, reason: 'Contains sleep/delay calls' }
+            ];
+            
+            const issues = [];
+            for (const indicator of flakyIndicators) {
+              const matches = content.match(indicator.pattern);
+              if (matches && matches.length > 0) {
+                issues.push({
+                  pattern: indicator.pattern.source,
+                  reason: indicator.reason,
+                  occurrences: matches.length
+                });
+              }
+            }
+            
+            return issues;
+          }
+          
+          function generateReport() {
+            const testFiles = analyzeTestFiles();
+            console.log(`Analyzing ${testFiles.length} test files for flaky patterns...`);
+            
+            const flakyTests = [];
+            
+            for (const file of testFiles) {
+              const issues = analyzeTestForFlakiness(file);
+              if (issues.length > 0) {
+                flakyTests.push({
+                  file,
+                  riskScore: issues.reduce((sum, issue) => sum + issue.occurrences, 0),
+                  issues
+                });
+              }
+            }
+            
+            // Sort by risk score
+            flakyTests.sort((a, b) => b.riskScore - a.riskScore);
+            
+            let report = `# Flaky Test Detection Report - ${new Date().toISOString().split('T')[0]}\n\n`;
+            
+            if (flakyTests.length === 0) {
+              report += '✅ No potential flaky test patterns detected!\n\n';
+            } else {
+              report += `⚠️ Found ${flakyTests.length} test files with potential flaky patterns:\n\n`;
+              
+              for (const test of flakyTests.slice(0, 10)) { // Top 10 risky tests
+                report += `## ${test.file} (Risk Score: ${test.riskScore})\n\n`;
+                for (const issue of test.issues) {
+                  report += `- **${issue.reason}** (${issue.occurrences} occurrences)\n`;
+                }
+                report += '\n';
+              }
+              
+              report += '\n## Recommendations\n\n';
+              report += '1. Review tests with high risk scores\n';
+              report += '2. Replace timing dependencies with deterministic waits\n';
+              report += '3. Mock random values and dates\n';
+              report += '4. Use proper test cleanup and isolation\n';
+              report += '5. Consider using test retries sparingly\n';
+            }
+            
+            report += '\n---\n*This analysis is based on static code patterns and should be combined with actual test run data.*\n';
+            
+            fs.writeFileSync('flaky-test-report.md', report);
+            console.log('Flaky test analysis complete.');
+            
+            return flakyTests.length;
+          }
+          
+          const flakyCount = generateReport();
+          process.exit(0);
+          EOF
+          
+          node flaky-test-detector.js
+          
+      - name: Upload flaky test report
+        uses: actions/upload-artifact@v4
+        with:
+          name: flaky-test-report
+          path: flaky-test-report.md
+          retention-days: 30
+
+  # Monitor test execution times
+  performance-monitoring:
+    name: ⏱️ Test Performance Monitoring
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Run performance benchmarks
+        run: |
+          echo "# Test Performance Benchmark - $(date)" > performance-report.md
+          echo "" >> performance-report.md
+          
+          # Measure different test suite execution times
+          echo "## Unit Test Performance" >> performance-report.md
+          echo "\`\`\`" >> performance-report.md
+          time npm test -- --testPathPattern="__tests__/(components|hooks|lib)" --passWithNoTests 2>&1 | tee -a performance-report.md || true
+          echo "\`\`\`" >> performance-report.md
+          echo "" >> performance-report.md
+          
+          echo "## Integration Test Performance" >> performance-report.md
+          echo "\`\`\`" >> performance-report.md
+          time npm test -- --testPathPattern="__tests__/integration" --passWithNoTests 2>&1 | tee -a performance-report.md || true
+          echo "\`\`\`" >> performance-report.md
+          echo "" >> performance-report.md
+          
+          echo "## Build Performance" >> performance-report.md
+          echo "\`\`\`" >> performance-report.md
+          time npm run build 2>&1 | tee -a performance-report.md || true
+          echo "\`\`\`" >> performance-report.md
+          echo "" >> performance-report.md
+          
+          echo "## Recommendations" >> performance-report.md
+          echo "- Monitor for trends in execution time increases" >> performance-report.md
+          echo "- Consider test parallelization if times exceed thresholds" >> performance-report.md
+          echo "- Optimize slow tests identified in the benchmark" >> performance-report.md
+          
+      - name: Upload performance report
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-monitoring-report
+          path: performance-report.md
+          retention-days: 30
+
+  # Test coverage trends
+  coverage-trends:
+    name: 📊 Coverage Trends
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Generate coverage report
+        run: |
+          # Run tests with coverage
+          npm test -- --coverage --watchAll=false --passWithNoTests
+          
+          # Extract coverage summary
+          echo "# Coverage Trends Report - $(date)" > coverage-trends.md
+          echo "" >> coverage-trends.md
+          
+          if [ -f coverage/coverage-summary.json ]; then
+            echo "## Current Coverage" >> coverage-trends.md
+            echo "\`\`\`json" >> coverage-trends.md
+            cat coverage/coverage-summary.json >> coverage-trends.md
+            echo "\`\`\`" >> coverage-trends.md
+            echo "" >> coverage-trends.md
+          fi
+          
+          echo "## Coverage Analysis" >> coverage-trends.md
+          if [ -f coverage/lcov-report/index.html ]; then
+            echo "✅ Coverage report generated successfully" >> coverage-trends.md
+          else
+            echo "❌ No coverage report found" >> coverage-trends.md
+          fi
+          
+          echo "" >> coverage-trends.md
+          echo "## Recommendations" >> coverage-trends.md
+          echo "- Maintain coverage above 70% threshold" >> coverage-trends.md
+          echo "- Focus on critical path coverage" >> coverage-trends.md
+          echo "- Add tests for uncovered code" >> coverage-trends.md
+          
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-trends-report
+          path: |
+            coverage-trends.md
+            coverage/
+          retention-days: 30
+
+  # Generate comprehensive monitoring report
+  generate-monitoring-report:
+    name: 📋 Generate Monitoring Report
+    runs-on: ubuntu-latest
+    needs: [test-analytics, flaky-test-detection, performance-monitoring, coverage-trends]
+    if: always()
+    
+    steps:
+      - name: Download all reports
+        uses: actions/download-artifact@v4
+        with:
+          pattern: '*-report*'
+          merge-multiple: true
+          
+      - name: Create comprehensive report
+        run: |
+          echo "# 🔍 Comprehensive Test Monitoring Report" > monitoring-dashboard.md
+          echo "Generated: $(date -u '+%Y-%m-%d %H:%M UTC')" >> monitoring-dashboard.md
+          echo "" >> monitoring-dashboard.md
+          
+          echo "## 📈 Analytics Summary" >> monitoring-dashboard.md
+          if [ -f test-analytics-report.md ]; then
+            tail -n +3 test-analytics-report.md >> monitoring-dashboard.md
+          else
+            echo "❌ Analytics report not available" >> monitoring-dashboard.md
+          fi
+          echo "" >> monitoring-dashboard.md
+          
+          echo "## 🎲 Flaky Test Analysis" >> monitoring-dashboard.md
+          if [ -f flaky-test-report.md ]; then
+            tail -n +3 flaky-test-report.md >> monitoring-dashboard.md
+          else
+            echo "❌ Flaky test report not available" >> monitoring-dashboard.md
+          fi
+          echo "" >> monitoring-dashboard.md
+          
+          echo "## ⏱️ Performance Monitoring" >> monitoring-dashboard.md
+          if [ -f performance-report.md ]; then
+            tail -n +3 performance-report.md >> monitoring-dashboard.md
+          else
+            echo "❌ Performance report not available" >> monitoring-dashboard.md
+          fi
+          echo "" >> monitoring-dashboard.md
+          
+          echo "## 📊 Coverage Trends" >> monitoring-dashboard.md
+          if [ -f coverage-trends.md ]; then
+            tail -n +3 coverage-trends.md >> monitoring-dashboard.md
+          else
+            echo "❌ Coverage trends report not available" >> monitoring-dashboard.md
+          fi
+          echo "" >> monitoring-dashboard.md
+          
+          echo "## 🎯 Action Items" >> monitoring-dashboard.md
+          echo "Based on this monitoring cycle:" >> monitoring-dashboard.md
+          echo "" >> monitoring-dashboard.md
+          
+          # Generate action items based on available data
+          echo "1. **Review Analytics**: Check success rates and execution times" >> monitoring-dashboard.md
+          echo "2. **Address Flaky Tests**: Prioritize high-risk score tests" >> monitoring-dashboard.md
+          echo "3. **Optimize Performance**: Focus on slow-running test suites" >> monitoring-dashboard.md
+          echo "4. **Maintain Coverage**: Ensure coverage thresholds are met" >> monitoring-dashboard.md
+          echo "" >> monitoring-dashboard.md
+          
+          echo "---" >> monitoring-dashboard.md
+          echo "*Monitoring reports are generated daily to track test health trends.*" >> monitoring-dashboard.md
+          
+      - name: Upload comprehensive monitoring report
+        uses: actions/upload-artifact@v4
+        with:
+          name: comprehensive-monitoring-dashboard
+          path: monitoring-dashboard.md
+          retention-days: 90
+          
+      - name: Check for alerts
+        run: |
+          echo "Checking for monitoring alerts..."
+          
+          # Check for conditions that should trigger alerts
+          ALERT_CONDITIONS=""
+          
+          # Add alert logic here based on reports
+          if [ -f test-analytics-report.md ]; then
+            if grep -q "Low success rate" test-analytics-report.md; then
+              ALERT_CONDITIONS="${ALERT_CONDITIONS}🚨 Low test success rate detected\n"
+            fi
+            if grep -q "Long execution times" test-analytics-report.md; then
+              ALERT_CONDITIONS="${ALERT_CONDITIONS}🚨 Long test execution times detected\n"
+            fi
+          fi
+          
+          if [ -n "$ALERT_CONDITIONS" ]; then
+            echo "⚠️ ALERTS TRIGGERED:"
+            echo -e "$ALERT_CONDITIONS"
+            echo "MONITORING_ALERTS=true" >> $GITHUB_ENV
+          else
+            echo "✅ No alerts triggered"
+            echo "MONITORING_ALERTS=false" >> $GITHUB_ENV
+          fi
+          
+      - name: Send alert notification
+        if: env.MONITORING_ALERTS == 'true'
+        run: |
+          echo "🚨 Test monitoring alerts have been triggered!"
+          echo "Please review the comprehensive monitoring dashboard for details."
+          echo "Consider taking immediate action to address test health issues."

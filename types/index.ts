@@ -120,7 +120,7 @@ export interface UserSiteHistory {
 }
 
 // 작업일지 상태
-export type DailyReportStatus = 'draft' | 'submitted' | 'approved' | 'rejected'
+export type DailyReportStatus = 'draft' | 'submitted'
 
 // 작업일지
 export interface DailyReport {

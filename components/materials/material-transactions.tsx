@@ -42,9 +42,10 @@ import { ko } from 'date-fns/locale'
 interface MaterialTransactionsProps {
   materials: any[]
   currentUser: any
+  currentSite?: any
 }
 
-export function MaterialTransactions({ materials, currentUser }: MaterialTransactionsProps) {
+export function MaterialTransactions({ materials, currentUser, currentSite }: MaterialTransactionsProps) {
   const [transactions, setTransactions] = useState<any[]>([])
   const [sites, setSites] = useState<any[]>([])
   const [loading, setLoading] = useState(false)

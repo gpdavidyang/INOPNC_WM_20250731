@@ -1,0 +1,415 @@
+name: Nightly Comprehensive Testing
+
+on:
+  schedule:
+    # Run every night at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      run-load-tests:
+        description: 'Run load testing'
+        type: boolean
+        default: false
+      run-security-scan:
+        description: 'Run extended security scan'
+        type: boolean
+        default: true
+
+env:
+  NODE_VERSION: '18'
+  HUSKY: 0
+
+jobs:
+  # Extended test suite with all browsers and devices
+  comprehensive-e2e:
+    name: 🎭 Comprehensive E2E Testing
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+        device: [desktop, mobile, tablet]
+        
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps ${{ matrix.browser }}
+        
+      - name: Build application
+        run: npm run build
+        
+      - name: Start application
+        run: npm start &
+        env:
+          NODE_ENV: test
+          
+      - name: Wait for application
+        run: |
+          timeout 60 bash -c 'until curl -f http://localhost:3000/api/health 2>/dev/null; do sleep 2; done'
+          
+      - name: Run comprehensive E2E tests
+        run: |
+          # Set device-specific viewport
+          case "${{ matrix.device }}" in
+            mobile)
+              export VIEWPORT_WIDTH=375
+              export VIEWPORT_HEIGHT=667
+              ;;
+            tablet)
+              export VIEWPORT_WIDTH=768
+              export VIEWPORT_HEIGHT=1024
+              ;;
+            *)
+              export VIEWPORT_WIDTH=1280
+              export VIEWPORT_HEIGHT=720
+              ;;
+          esac
+          
+          npx playwright test --project=${{ matrix.browser }} --grep=".*"
+        env:
+          CI: true
+          DEVICE_TYPE: ${{ matrix.device }}
+          
+      - name: Upload comprehensive test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nightly-e2e-${{ matrix.browser }}-${{ matrix.device }}
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 14
+
+  # Load testing simulation
+  load-testing:
+    name: 🏋️ Load Testing
+    runs-on: ubuntu-latest
+    if: github.event.inputs.run-load-tests == 'true' || github.event_name == 'schedule'
+    timeout-minutes: 30
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Build application
+        run: npm run build
+        
+      - name: Start application
+        run: npm start &
+        env:
+          NODE_ENV: test
+          
+      - name: Wait for application
+        run: |
+          timeout 60 bash -c 'until curl -f http://localhost:3000/api/health 2>/dev/null; do sleep 2; done'
+          
+      - name: Install load testing tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y apache2-utils
+          
+      - name: Run load tests
+        run: |
+          echo "Running load tests against local server..."
+          
+          # Test homepage
+          echo "Testing homepage..."
+          ab -n 1000 -c 10 -g homepage.dat http://localhost:3000/ || true
+          
+          # Test API health endpoint
+          echo "Testing health endpoint..."
+          ab -n 2000 -c 20 -g health.dat http://localhost:3000/api/health || true
+          
+          # Test login page
+          echo "Testing login page..."
+          ab -n 500 -c 5 -g login.dat http://localhost:3000/auth/login || true
+          
+          echo "Load testing completed"
+          
+      - name: Analyze load test results
+        run: |
+          echo "## Load Test Results" > load-test-results.md
+          echo "" >> load-test-results.md
+          
+          if [ -f homepage.dat ]; then
+            echo "### Homepage Load Test" >> load-test-results.md
+            echo "\`\`\`" >> load-test-results.md
+            tail -n 20 homepage.dat >> load-test-results.md
+            echo "\`\`\`" >> load-test-results.md
+            echo "" >> load-test-results.md
+          fi
+          
+          if [ -f health.dat ]; then
+            echo "### Health Endpoint Load Test" >> load-test-results.md
+            echo "\`\`\`" >> load-test-results.md
+            tail -n 20 health.dat >> load-test-results.md
+            echo "\`\`\`" >> load-test-results.md
+          fi
+          
+      - name: Upload load test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: load-test-results
+          path: |
+            *.dat
+            load-test-results.md
+          retention-days: 30
+
+  # Extended security scanning
+  security-deep-scan:
+    name: 🔒 Extended Security Scan
+    runs-on: ubuntu-latest
+    if: github.event.inputs.run-security-scan == 'true' || github.event_name == 'schedule'
+    timeout-minutes: 20
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Run npm audit
+        run: |
+          echo "## Security Audit Report" > security-report.md
+          echo "" >> security-report.md
+          echo "### NPM Audit Results" >> security-report.md
+          echo "\`\`\`" >> security-report.md
+          npm audit >> security-report.md || true
+          echo "\`\`\`" >> security-report.md
+          echo "" >> security-report.md
+          
+      - name: Check for hardcoded secrets
+        run: |
+          echo "### Secret Detection" >> security-report.md
+          echo "\`\`\`" >> security-report.md
+          
+          # Look for potential secrets in code
+          grep -r -i "password\|secret\|key\|token" --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" . | \
+            grep -v node_modules | \
+            grep -v ".git" | \
+            head -50 >> security-report.md || echo "No potential secrets found" >> security-report.md
+            
+          echo "\`\`\`" >> security-report.md
+          echo "" >> security-report.md
+          
+      - name: Check file permissions
+        run: |
+          echo "### File Permissions Check" >> security-report.md
+          echo "\`\`\`" >> security-report.md
+          
+          # Check for overly permissive files
+          find . -type f -perm -002 ! -path "./node_modules/*" ! -path "./.git/*" | \
+            head -20 >> security-report.md || echo "No world-writable files found" >> security-report.md
+            
+          echo "\`\`\`" >> security-report.md
+          
+      - name: Upload security report
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-scan-report
+          path: security-report.md
+          retention-days: 30
+
+  # Database integrity check (if applicable)
+  database-integrity:
+    name: 🗄️ Database Integrity Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Check database migrations
+        run: |
+          echo "## Database Integrity Report" > db-integrity-report.md
+          echo "" >> db-integrity-report.md
+          
+          echo "### Migration Files Check" >> db-integrity-report.md
+          echo "\`\`\`" >> db-integrity-report.md
+          
+          # Check if migration files exist and are properly named
+          if [ -d "supabase/migrations" ]; then
+            ls -la supabase/migrations/ >> db-integrity-report.md
+            echo "" >> db-integrity-report.md
+            echo "Migration files found: $(ls supabase/migrations/*.sql | wc -l)" >> db-integrity-report.md
+          else
+            echo "No migration directory found" >> db-integrity-report.md
+          fi
+          
+          echo "\`\`\`" >> db-integrity-report.md
+          
+      - name: Validate SQL syntax
+        run: |
+          echo "### SQL Syntax Validation" >> db-integrity-report.md
+          echo "\`\`\`" >> db-integrity-report.md
+          
+          # Basic SQL syntax check
+          for file in supabase/migrations/*.sql; do
+            if [ -f "$file" ]; then
+              echo "Checking $file..." >> db-integrity-report.md
+              # Simple syntax check - look for common issues
+              if grep -q ";" "$file"; then
+                echo "✅ $file: Contains SQL statements" >> db-integrity-report.md
+              else
+                echo "⚠️  $file: No SQL statements found" >> db-integrity-report.md
+              fi
+            fi
+          done
+          
+          echo "\`\`\`" >> db-integrity-report.md
+          
+      - name: Upload database report
+        uses: actions/upload-artifact@v4
+        with:
+          name: database-integrity-report
+          path: db-integrity-report.md
+          retention-days: 30
+
+  # Dependency analysis
+  dependency-analysis:
+    name: 📦 Dependency Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Analyze dependencies
+        run: |
+          echo "## Dependency Analysis Report" > dependency-report.md
+          echo "" >> dependency-report.md
+          
+          echo "### Package Information" >> dependency-report.md
+          echo "\`\`\`json" >> dependency-report.md
+          cat package.json | jq '{name, version, dependencies: (.dependencies | keys | length), devDependencies: (.devDependencies | keys | length)}' >> dependency-report.md
+          echo "\`\`\`" >> dependency-report.md
+          echo "" >> dependency-report.md
+          
+          echo "### Outdated Packages" >> dependency-report.md
+          echo "\`\`\`" >> dependency-report.md
+          npm outdated || true >> dependency-report.md
+          echo "\`\`\`" >> dependency-report.md
+          echo "" >> dependency-report.md
+          
+          echo "### License Check" >> dependency-report.md
+          echo "\`\`\`" >> dependency-report.md
+          npx license-checker --summary >> dependency-report.md || echo "License checker not available" >> dependency-report.md
+          echo "\`\`\`" >> dependency-report.md
+          
+      - name: Upload dependency report
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-analysis-report
+          path: dependency-report.md
+          retention-days: 30
+
+  # Generate comprehensive report
+  generate-nightly-report:
+    name: 📊 Generate Nightly Report
+    runs-on: ubuntu-latest
+    needs: [comprehensive-e2e, load-testing, security-deep-scan, database-integrity, dependency-analysis]
+    if: always()
+    
+    steps:
+      - name: Create comprehensive report
+        run: |
+          echo "# 🌙 Nightly Testing Report - $(date -u '+%Y-%m-%d %H:%M UTC')" > nightly-report.md
+          echo "" >> nightly-report.md
+          
+          echo "## Test Results Summary" >> nightly-report.md
+          echo "" >> nightly-report.md
+          echo "| Test Suite | Status | Notes |" >> nightly-report.md
+          echo "|------------|--------|--------|" >> nightly-report.md
+          echo "| Comprehensive E2E | ${{ needs.comprehensive-e2e.result }} | Cross-browser and device testing |" >> nightly-report.md
+          echo "| Load Testing | ${{ needs.load-testing.result }} | Performance under load |" >> nightly-report.md
+          echo "| Security Scan | ${{ needs.security-deep-scan.result }} | Extended security analysis |" >> nightly-report.md
+          echo "| Database Integrity | ${{ needs.database-integrity.result }} | Migration and schema validation |" >> nightly-report.md
+          echo "| Dependency Analysis | ${{ needs.dependency-analysis.result }} | Package security and updates |" >> nightly-report.md
+          echo "" >> nightly-report.md
+          
+          echo "## Repository Status" >> nightly-report.md
+          echo "- **Branch:** main" >> nightly-report.md
+          echo "- **Commit:** ${{ github.sha }}" >> nightly-report.md
+          echo "- **Trigger:** ${{ github.event_name }}" >> nightly-report.md
+          echo "- **Workflow:** ${{ github.workflow }}" >> nightly-report.md
+          echo "" >> nightly-report.md
+          
+          echo "## Recommendations" >> nightly-report.md
+          echo "" >> nightly-report.md
+          
+          # Add conditional recommendations based on test results
+          if [[ "${{ needs.comprehensive-e2e.result }}" == "failure" ]]; then
+            echo "⚠️ E2E tests failed - investigate browser compatibility issues" >> nightly-report.md
+          fi
+          
+          if [[ "${{ needs.security-deep-scan.result }}" == "failure" ]]; then
+            echo "🔒 Security issues detected - review security scan results immediately" >> nightly-report.md
+          fi
+          
+          if [[ "${{ needs.load-testing.result }}" == "failure" ]]; then
+            echo "⚡ Performance issues detected - optimize application performance" >> nightly-report.md
+          fi
+          
+          echo "" >> nightly-report.md
+          echo "---" >> nightly-report.md
+          echo "*This report was generated automatically by the nightly testing pipeline.*" >> nightly-report.md
+          
+      - name: Upload nightly report
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-comprehensive-report
+          path: nightly-report.md
+          retention-days: 90
+          
+      - name: Notify on failures
+        if: contains(needs.*.result, 'failure')
+        run: |
+          echo "🚨 Nightly tests detected failures!"
+          echo "Check the comprehensive report for details."
+          echo "Failed jobs: $(echo '${{ toJson(needs) }}' | jq -r 'to_entries | map(select(.value.result == "failure")) | map(.key) | join(", ")')"

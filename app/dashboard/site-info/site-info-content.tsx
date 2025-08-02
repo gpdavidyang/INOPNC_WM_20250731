@@ -159,9 +159,9 @@ export default function SiteInfoContent({
   }
 
   return (
-    <div className={`space-y-6 ${getPadding()} max-w-7xl mx-auto`}>
-      {/* Header - Mobile Optimized */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="max-w-7xl mx-auto">
+      {/* Header - Mobile Optimized - Sticky */}
+      <div className={`sticky top-0 z-20 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 ${getPadding()} flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4`}>
         <div>
           <h1 className={`${getFullTypographyClass('heading', isLargeFont ? '3xl' : '2xl', isLargeFont)} font-bold text-gray-900 dark:text-gray-100`}>
             현장정보
@@ -199,26 +199,28 @@ export default function SiteInfoContent({
         </div>
       </div>
 
-      {/* Error State */}
-      {error && (
-        <div className={`bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg ${
-          touchMode === 'glove' ? 'p-6' : touchMode === 'precision' ? 'p-3' : 'p-4'
-        }`}>
-          <p className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-red-800 dark:text-red-200`}>
-            {error}
-          </p>
-        </div>
-      )}
+      {/* Content wrapper with padding */}
+      <div className={`space-y-6 ${getPadding()}`}>
+        {/* Error State */}
+        {error && (
+          <div className={`bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg ${
+            touchMode === 'glove' ? 'p-6' : touchMode === 'precision' ? 'p-3' : 'p-4'
+          }`}>
+            <p className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-red-800 dark:text-red-200`}>
+              {error}
+            </p>
+          </div>
+        )}
 
-      {/* Current Site Information - Using TodaySiteInfo Component */}
-      <TodaySiteInfo 
+        {/* Current Site Information - Using TodaySiteInfo Component */}
+        <TodaySiteInfo 
         siteInfo={siteInfo}
         loading={loading}
         error={error ? new Error(error) : null}
       />
 
-      {/* Site History - Mobile Optimized - Always Show */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+        {/* Site History - Mobile Optimized - Always Show */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
         <div className={`${
           touchMode === 'glove' ? 'px-6 sm:px-8 py-4 sm:py-5' : 
           touchMode === 'precision' ? 'px-3 sm:px-4 py-2 sm:py-3' : 
@@ -356,15 +358,16 @@ export default function SiteInfoContent({
             )}
           </div>
         )}
-      </div>
+        </div>
 
-      {/* Site Search Modal */}
-      <SiteSearchModal
-        isOpen={showSearchModal}
-        onClose={() => setShowSearchModal(false)}
-        onSelectSite={handleSelectSite}
-        currentSiteId={siteInfo?.id}
-      />
+        {/* Site Search Modal */}
+        <SiteSearchModal
+          isOpen={showSearchModal}
+          onClose={() => setShowSearchModal(false)}
+          onSelectSite={handleSelectSite}
+          currentSiteId={siteInfo?.id}
+        />
+      </div>
     </div>
   )
 }

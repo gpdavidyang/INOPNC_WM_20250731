@@ -24,7 +24,7 @@ export function PageLayout({
     <div className={cn("min-h-screen bg-gray-50", className)}>
       {/* Page Header */}
       <div className={cn(
-        "border-b border-gray-200 bg-white px-4 sm:px-6 py-4 sm:py-6",
+        "sticky top-0 z-20 border-b border-gray-200 bg-white px-4 sm:px-6 py-4 sm:py-6",
         headerClassName
       )}>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">

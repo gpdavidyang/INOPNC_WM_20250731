@@ -24,7 +24,6 @@ export interface NotificationExtended {
   related_entity_type?: NotificationEntityType | null
   related_entity_id?: string | null
   action_url?: string | null
-  expires_at?: string | null
 }
 
 // 알림 템플릿

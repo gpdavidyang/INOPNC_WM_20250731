@@ -125,10 +125,10 @@ Provide a unified platform that eliminates paper-based workflows, improves data 
 - **Quick Menu Section**: 
   - 2-column grid layout (2x1, 2x2, 2x3 expandable)
   - Customizable menu items (add/remove functionality)
-  - Default items: 출력현황, 내문서함, 현장정보, 공도면
+  - Default items: 출력현황, 내문서함, 현장정보, 도면
 - **Today's Site Info**: Collapsible section with:
-  - Site address: Full address with copy icon and T-Map navigation icon
-  - Accommodation address: Full address with copy icon and T-Map navigation icon
+  - Site address: Full address with copy icon and T맵 navigation icon
+  - Accommodation address: Full address with copy icon and T맵 navigation icon
   - Process information:
     - 부재명 (Member name): e.g., 슬라브, 기둥, 거더
     - 작업공정 (Work process): e.g., 철근, 거푸집, 콘크리트
@@ -141,12 +141,20 @@ Provide a unified platform that eliminates paper-based workflows, improves data 
 
 #### 2.2 Navigation System
 
-##### Desktop Navigation
+##### Desktop Navigation (Enhanced - 2025-08-03)
 - **Responsive Sidebar**: Collapsible navigation with role-filtered menu items
   - General users (worker, site_manager, customer_manager): 홈, 출력현황, 작업일지, 현장정보, 내문서함, 공유문서함, **도면 마킹 도구** ✅, 내정보
   - Admin users: 홈, 현장 관리, 사용자 관리, 공유 문서함 관리, 급여 관리, NPC-1000 자재 관리, **도면 마킹 관리** ✅, 그 외 관리자 메뉴, 시스템 관리, 내정보
+- **URL-Based Tab Management**: Dynamic activeTab detection based on current pathname
+  - Automatic tab activation when navigating via direct URLs
+  - Support for browser back/forward navigation
+  - Persistent tab state across page refreshes
 - **Tab-Based Content**: Clean organization of functional areas
 - **Breadcrumb Navigation**: Clear navigation hierarchy
+- **Enhanced Accessibility** (2025-08-03):
+  - Replaced `aria-hidden` with `inert` attribute for proper focus management
+  - Mobile sidebar prevents focus on hidden elements when closed
+  - Improved screen reader support with semantic navigation landmarks
 
 ##### Mobile Navigation - Bottom Navigation Bar
 **Purpose**: Fixed bottom navigation for mobile devices providing quick access to primary functions
@@ -157,7 +165,7 @@ Provide a unified platform that eliminates paper-based workflows, improves data 
 | 1 | 홈(빠른메뉴) | Home | 홈 화면으로 이동, 빠른메뉴 섹션 표시 |
 | 2 | 출력현황 | Calendar | 출력현황 메뉴로 직접 이동 |
 | 3 | 작업일지 | FileText | 작업일지 목록 화면으로 이동 |
-| 4 | 공도면 | FileImage | 공유문서함의 공도면 필터링 결과 표시 |
+| 4 | 도면 | FileImage | 공유문서함의 도면 필터링 결과 표시 |
 | 5 | 내문서함 | FolderOpen | 내문서함 메뉴로 직접 이동 |
 
 **Design Specifications**:
@@ -171,7 +179,7 @@ Provide a unified platform that eliminates paper-based workflows, improves data 
   - 활성: Primary Color (#007AFF 또는 브랜드 컬러)
 
 **Special Features**:
-- **공도면 Auto-Filter**: 현재 사용자의 활성 현장으로 자동 필터링 + '공도면' badge 검색
+- **도면 Auto-Filter**: 현재 사용자의 활성 현장으로 자동 필터링 + '도면' badge 검색
 - **Safe Area Support**: iOS Home Indicator와 충돌 방지
 - **Touch Optimization**: 44x44px 최소 터치 영역
 - **Accessibility**: 스크린 리더 지원, 키보드 네비게이션
@@ -429,12 +437,22 @@ Provide a unified platform that eliminates paper-based workflows, improves data 
   - Location and project period
   - Additional site information
 
-##### Salary Info Tab  
-- **Site-based Salary View**: View salary by construction site
-- **Monthly Salary View**: View salary by month
-- **Payslip Access**: View detailed pay statements
-- **Payslip Download**: Download pay statements for records
+##### Salary Info Tab (Enhanced - 2025-08-03)
+- **Compact Table View**: Monthly salary overview in optimized table format
+  - Columns: Month, Site, Work Days, Basic Salary, Overtime Pay, Total Pay, PDF Download
+  - Simplified monetary units (만원) for better readability
+  - Site names abbreviated for compact display
+- **Detailed Calculation Formula**: Interactive calculation breakdown below table
+  - **Step-by-step calculation**: Basic salary + Overtime + Allowances - Deductions = Total
+  - **Work-based analysis**: Daily/hourly average calculations
+  - **Visual formula presentation**: Color-coded calculation steps with clear mathematical flow
+- **Monthly Detail Section**: 
+  - Most recent month's detailed breakdown
+  - All salary components with full amounts
+  - Enhanced visual design with proper spacing and typography
+- **Payslip Download**: Direct PDF download from table rows
 - **Access Restriction**: Users can only view their own attendance and salary information
+- **Mobile Optimization**: Responsive design with horizontal scrolling for table
 
 #### 4.2 Partner Company View (C2)
 ##### Attendance Info Tab
@@ -508,7 +526,7 @@ Provide a unified platform that eliminates paper-based workflows, improves data 
 
 ### 6. Site and Project Information (현장정보)
 
-#### 6.1 Today's Site Information
+#### 6.1 Today's Site Information ✅ **Updated 2025-08-03**
 ##### Site Address Section
 - **Components**:
   - Full address display
@@ -533,7 +551,27 @@ Provide a unified platform that eliminates paper-based workflows, improves data 
   - 작업공정 (Work process): e.g., 철근, 거푸집, 콘크리트
   - 작업구간 정보 (Work section): e.g., 3층 A구역
 - **Functions**:
-  - View drawing icon: Display related drawings in popup/new window
+  - **Blueprint View Button** ✅: "도면" button next to work details
+    - Opens modal with actual blueprint image
+    - Displays site construction drawings
+    - Download functionality for blueprint files
+    - Mobile-optimized modal with slide-up animation
+
+##### PTW Document Section ✅ **New**
+- **Location**: Below Process Information Section
+- **Components**:
+  - Document type label: "PTW (작업허가서)"
+  - Preview button with eye icon
+- **Modal Features**:
+  - PTW document information display
+  - Auto-generated document number: PTW-2025-[site-id]
+  - Work location, date, content, and worker information
+  - PDF preview in iframe
+  - Download functionality for PTW documents
+- **Mobile Optimization**:
+  - Bottom sheet style modal for mobile
+  - Full-width buttons for easy touch
+  - Proper z-index to avoid NavBar overlap
 
 ##### Manager Contacts Section
 - **Construction Manager**:
@@ -546,6 +584,21 @@ Provide a unified platform that eliminates paper-based workflows, improves data 
   - Phone number
   - Copy icon for number copy
   - Phone icon for direct calling
+
+##### UI/UX Enhancements ✅
+- **Modal Design**:
+  - Responsive modals with mobile-first approach
+  - Slide-up animation on mobile devices
+  - Center positioning on desktop
+  - Dark mode support
+  - Smooth transitions and hover effects
+- **File Integration**:
+  - Blueprint image: `/docs/샘플도면5.png`
+  - PTW document: `/docs/[양식]PTW양식_이노피앤씨.pdf`
+- **Accessibility**:
+  - Touch-friendly button sizes
+  - Clear visual feedback
+  - Proper contrast ratios
 
 ### 6A. Blueprint Markup Management System (도면 마킹 관리 시스템) ✅ **구현완료**
 
@@ -1290,6 +1343,84 @@ Supabase real-time subscriptions enable:
 }
 ```
 
+## Admin Dashboard Enhancements (Phase 1 - August 2025)
+
+### 1. Analytics Dashboard
+**Purpose**: Comprehensive analytics and reporting for administrators
+**Features**:
+- **Real-time KPI Monitoring**: Live dashboard with key performance indicators
+- **Site Productivity Analysis**: Comparison of productivity across different sites
+- **Cost Analysis**: Budget vs. actual cost tracking and analysis
+- **Worker Performance Metrics**: Individual and team performance tracking
+- **Trend Analysis**: Historical data trends and forecasting
+- **Custom Date Range Selection**: Flexible reporting periods
+- **Export Capabilities**: Download reports in PDF, Excel formats
+
+**Implementation**:
+- Utilize existing analytics API endpoints
+- Interactive charts using recharts library
+- Real-time data updates via WebSocket
+- Responsive design for mobile and desktop
+
+### 2. Unified Notification Center
+**Purpose**: Centralized notification management for administrators
+**Features**:
+- **Notification Management**: 
+  - View all system notifications in one place
+  - Filter by type, status, and recipient
+  - Mark as read/unread functionality
+  - Bulk actions for notification management
+- **Push Notification Settings**:
+  - Configure push notification preferences
+  - User group targeting
+  - Schedule notifications
+  - Template management
+- **Emergency Alerts**:
+  - Send urgent notifications to specific users or groups
+  - Real-time delivery tracking
+  - Read receipt confirmation
+- **Notification History**:
+  - Complete audit trail of all notifications
+  - Search and filter capabilities
+  - Analytics on notification effectiveness
+
+**Implementation**:
+- Extend existing push notification system
+- Add notification management API endpoints
+- Create admin interface for notification control
+- Implement notification analytics
+
+### 3. Unified Search System
+**Purpose**: System-wide search functionality for administrators
+**Features**:
+- **Global Search Bar**: Accessible from all admin pages
+- **Multi-Entity Search**:
+  - Users (name, email, phone)
+  - Sites (name, location, status)
+  - Documents (title, content, metadata)
+  - Reports (daily reports, materials, attendance)
+  - System logs and activities
+- **Advanced Filters**:
+  - Date range filtering
+  - Entity type selection
+  - Status filtering
+  - Custom field search
+- **Search Results**:
+  - Grouped by entity type
+  - Quick preview on hover
+  - Direct navigation to details
+  - Recent search history
+- **Smart Suggestions**:
+  - Auto-complete functionality
+  - Popular searches
+  - Related results
+
+**Implementation**:
+- PostgreSQL full-text search
+- Elasticsearch integration for advanced search (optional)
+- Debounced search input
+- Cached search results for performance
+
 ## Future Considerations
 
 ### Phase 2 Enhancements
@@ -1373,7 +1504,17 @@ The system's role-based architecture ensures appropriate access control while en
 
 Future enhancements will focus on advanced analytics, mobile capabilities, and broader industry integration, positioning INOPNC WMS as a leading construction management platform.
 
-**Document Version**: 1.0  
-**Last Updated**: July 31, 2025  
+## Recent Updates
+
+### 2025-08-03: Terminology Updates for Mobile UX Optimization
+- **UI Text Simplification**: Simplified terminology for better mobile user experience
+  - "T맵지도" → "T맵" (Navigation links in site information)
+  - "공사도면" → "도면" (Blueprint button and modal title)
+  - "공도면" → "도면" (Quick menu item name)
+- **Rationale**: Shorter terms improve readability on mobile devices and maintain consistency across the interface
+- **Impact**: Enhanced mobile UX with cleaner, more concise interface labels
+
+**Document Version**: 1.1  
+**Last Updated**: August 3, 2025  
 **Status**: Active Development  
 **Next Review**: August 31, 2025

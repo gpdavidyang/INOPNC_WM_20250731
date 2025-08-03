@@ -11,7 +11,7 @@ import {
   Calendar, FileText, MapPin, FolderOpen, 
   Share2, Edit3, ChevronDown, ChevronUp, Phone, Copy, Navigation,
   Building2, Megaphone, Settings, X, Check, Users, BarChart3,
-  ClipboardList, Bell, MessageSquare, DollarSign, Truck, HardHat, Plus
+  ClipboardList, Bell, MessageSquare, DollarSign, HardHat, Plus
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 interface HomeTabProps {
@@ -89,7 +89,7 @@ export default function HomeTab({ profile, onTabChange }: HomeTabProps) {
     },
     {
       id: 'shared-documents',
-      name: '공도면',
+      name: '도면',
       icon: <Share2 className="h-5 w-5" />,
       path: '/dashboard/shared-documents',
       color: 'text-orange-600 dark:text-orange-400',
@@ -118,14 +118,6 @@ export default function HomeTab({ profile, onTabChange }: HomeTabProps) {
       path: '/dashboard/statistics',
       color: 'text-cyan-600 dark:text-cyan-400',
       description: '작업 통계 및 분석'
-    },
-    {
-      id: 'materials',
-      name: '자재관리',
-      icon: <Truck className="h-5 w-5" />,
-      path: '/dashboard/materials',
-      color: 'text-amber-600 dark:text-amber-400',
-      description: '자재 현황 및 관리'
     },
     {
       id: 'safety',
@@ -385,7 +377,10 @@ export default function HomeTab({ profile, onTabChange }: HomeTabProps) {
               <li key={item.id} role="none">
                 <button 
                   onClick={() => {
-                    if (onTabChange) {
+                    // For site-info and other dedicated pages, always use router navigation
+                    if (item.id === 'site-info' || item.path.includes('/dashboard/site-info')) {
+                      router.push(item.path)
+                    } else if (onTabChange) {
                       // Use tab change for integrated dashboard navigation
                       onTabChange(item.id)
                     } else {

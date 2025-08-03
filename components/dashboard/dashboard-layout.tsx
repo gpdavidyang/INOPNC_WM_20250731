@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
 import { User } from '@supabase/supabase-js'
 import { Profile } from '@/types'
 import { Home, Calendar, FileText, FileImage, FolderOpen } from 'lucide-react'
@@ -10,18 +11,93 @@ import HomeTab from './tabs/home-tab'
 import DailyReportTab from './tabs/daily-report-tab'
 import AttendanceTab from './tabs/attendance-tab'
 import DocumentsTabUnified from './tabs/documents-tab-unified'
-import SiteInfoTab from './tabs/site-info-tab'
+// import SiteInfoTab from './tabs/site-info-tab' // Moved to dedicated page: /dashboard/site-info
 import { BottomNavigation, BottomNavItem } from '@/components/ui/bottom-navigation'
-import { MarkupEditor } from '@/components/markup/markup-editor'
 
 interface DashboardLayoutProps {
   user: User
   profile: Profile
+  children?: React.ReactNode
+  initialActiveTab?: string
 }
 
-export default function DashboardLayout({ user, profile }: DashboardLayoutProps) {
-  const [activeTab, setActiveTab] = useState('home')
+export default function DashboardLayout({ user, profile, children, initialActiveTab = 'home' }: DashboardLayoutProps) {
+  const pathname = usePathname()
+  const router = useRouter()
+  const [activeTab, setActiveTab] = useState(initialActiveTab)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const [documentsInitialSearch, setDocumentsInitialSearch] = useState<string | undefined>()
+
+  // Update activeTab based on current pathname
+  useEffect(() => {
+    // Don't update activeTab for sub-pages
+    if (pathname === '/dashboard/daily-reports/new') {
+      // Keep current tab, don't change
+      return
+    }
+    
+    if (pathname.includes('/dashboard/site-info')) {
+      setActiveTab('site-info')
+    } else if (pathname.includes('/dashboard/daily-reports')) {
+      setActiveTab('daily-reports')
+    } else if (pathname.includes('/dashboard/attendance')) {
+      setActiveTab('attendance')
+    } else if (pathname.includes('/dashboard/documents')) {
+      setActiveTab('documents-unified')
+    } else if (pathname.includes('/dashboard/markup')) {
+      setActiveTab('documents-unified')
+    } else if (pathname === '/dashboard') {
+      setActiveTab('home')
+    }
+  }, [pathname, children])
+
+  // Handle tab changes when children are provided (dedicated pages)
+  useEffect(() => {
+    if (children && activeTab !== initialActiveTab) {
+      // When activeTab changes and we have children (dedicated page), navigate to appropriate route
+      // But don't navigate if we're already on the correct page
+      switch (activeTab) {
+        case 'home':
+          if (pathname !== '/dashboard') {
+            router.push('/dashboard')
+          }
+          break
+        case 'daily-reports':
+          // Don't navigate if we're on a daily-reports sub-page (like /new)
+          if (!pathname.includes('/dashboard/daily-reports')) {
+            router.push('/dashboard/daily-reports')
+          }
+          break
+        case 'attendance':
+          if (pathname !== '/dashboard/attendance') {
+            router.push('/dashboard/attendance')
+          }
+          break
+        case 'documents-unified':
+        case 'documents':
+          if (!pathname.includes('/dashboard/documents')) {
+            router.push('/dashboard/documents')
+          }
+          break
+        case 'shared-documents':
+          if (pathname !== '/dashboard/documents' || !window.location.search.includes('tab=shared')) {
+            router.push('/dashboard/documents?tab=shared')
+          }
+          break
+        case 'site-info':
+          // Don't navigate if we're already on site-info page
+          if (!pathname.includes('/dashboard/site-info')) {
+            router.push('/dashboard/site-info')
+          }
+          break
+        case 'blueprint-markup':
+          if (!window.location.search.includes('tab=markup')) {
+            router.push('/dashboard/documents?tab=markup')
+          }
+          break
+      }
+    }
+  }, [activeTab, children, initialActiveTab, router, pathname])
 
   // Handle case where profile is not loaded yet
   if (!profile) {
@@ -68,33 +144,44 @@ export default function DashboardLayout({ user, profile }: DashboardLayoutProps)
 
   // 하단 네비게이션 클릭 처리
   const handleBottomNavClick = (tabId: string) => {
-    // specialAction이 있는 경우는 BottomNavigation 컴포넌트에서 처리
-    if (tabId === '#shared-documents-blueprint') {
-      setActiveTab('shared-documents') // 공유문서함 탭으로 이동
-    } else {
-      const cleanTabId = tabId.replace('#', '')
-      setActiveTab(cleanTabId)
-    }
+    const cleanTabId = tabId.replace('#', '')
+    setActiveTab(cleanTabId)
   }
 
   const renderContent = () => {
+    // If children are provided (e.g., from dedicated pages), render them instead
+    if (children) {
+      console.log('DashboardLayout: Rendering children (dedicated page)', { pathname, activeTab })
+      return children
+    }
+    
+    console.log('DashboardLayout: Rendering tab content', { pathname, activeTab })
+    
     switch (activeTab) {
       case 'home':
-        return <HomeTab profile={profile} onTabChange={setActiveTab} />
+        return <HomeTab 
+          profile={profile} 
+          onTabChange={setActiveTab}
+          onDocumentsSearch={setDocumentsInitialSearch}
+        />
       case 'daily-reports':
         return <DailyReportTab profile={profile} />
       case 'attendance':
         return <AttendanceTab profile={profile} />
       case 'documents-unified':
-        return <DocumentsTabUnified profile={profile} />
       case 'documents':
-        return <DocumentsTabUnified profile={profile} />
-      case 'shared-documents':
-        return <DocumentsTabUnified profile={profile} initialTab="shared" />
+        return <DocumentsTabUnified profile={profile} initialSearch={documentsInitialSearch} />
       case 'site-info':
-        return <SiteInfoTab profile={profile} />
+        // Site info has its own dedicated page at /dashboard/site-info
+        // This case shouldn't normally be reached when using the dedicated page
+        return <HomeTab 
+          profile={profile} 
+          onTabChange={setActiveTab}
+          onDocumentsSearch={setDocumentsInitialSearch}
+        />
       case 'blueprint-markup':
-        return <MarkupEditor profile={profile} />
+        // Should not reach here - dedicated page at /dashboard/markup
+        return <div className="p-4">Loading markup editor...</div>
       case 'profile':
         return (
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">

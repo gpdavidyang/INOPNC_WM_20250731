@@ -32,6 +32,7 @@ import { useTouchMode } from '@/contexts/TouchModeContext'
 
 interface SharedDocumentsProps {
   profile: any
+  initialSearch?: string
 }
 
 interface SharedDocument {
@@ -100,13 +101,20 @@ const sharedCategories = [
   }
 ]
 
-export function SharedDocuments({ profile }: SharedDocumentsProps) {
+export function SharedDocuments({ profile, initialSearch }: SharedDocumentsProps) {
   const { isLargeFont } = useFontSize()
   const { touchMode } = useTouchMode()
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  
+  console.log('SharedDocuments - initialSearch:', initialSearch)
+  console.log('SharedDocuments - auto-selected category:', initialSearch === '공도면' ? 'site-docs' : null)
+  
+  // Auto-select appropriate category based on initial search
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(
+    initialSearch === '공도면' ? 'site-docs' : null
+  )
   const [documents, setDocuments] = useState<SharedDocument[]>([])
   const [loading, setLoading] = useState(false)
-  const [searchTerm, setSearchTerm] = useState('')
+  const [searchTerm, setSearchTerm] = useState(initialSearch || '')
   const [filterRole, setFilterRole] = useState<string>('all')
 
   useEffect(() => {

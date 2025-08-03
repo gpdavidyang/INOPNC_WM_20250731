@@ -4,17 +4,24 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { MyDocuments } from '@/components/documents/my-documents'
 import { SharedDocuments } from '@/components/documents/shared-documents'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
-import { Suspense } from 'react'
+import { Suspense, useState, useEffect } from 'react'
 import { useFontSize, getFullTypographyClass } from '@/contexts/FontSizeContext'
 import { useTouchMode } from '@/contexts/TouchModeContext'
 
 interface DocumentsPageClientProps {
   profile: any
+  searchParams?: { [key: string]: string | string[] | undefined }
 }
 
-export function DocumentsPageClient({ profile }: DocumentsPageClientProps) {
+export function DocumentsPageClient({ profile, searchParams }: DocumentsPageClientProps) {
   const { isLargeFont } = useFontSize()
   const { touchMode } = useTouchMode()
+
+  // Get initial values from URL parameters
+  const initialTab = searchParams?.tab === 'shared' ? 'shared-documents' : (searchParams?.tab as string) || 'my-documents'
+  const initialSearch = (searchParams?.search as string) || ''
+  
+  console.log('DocumentsPageClient - initialTab:', initialTab, 'initialSearch:', initialSearch)
 
   // Touch-responsive padding
   const getPadding = () => {
@@ -41,7 +48,7 @@ export function DocumentsPageClient({ profile }: DocumentsPageClientProps) {
       </div>
 
       <div className={getContentPadding()}>
-        <Tabs defaultValue="my-documents" className="space-y-4">
+        <Tabs value={initialTab} defaultValue={initialTab} className="space-y-4">
           <TabsList className={`grid w-full grid-cols-2 ${
             touchMode === 'glove' ? 'h-14' : touchMode === 'precision' ? 'h-10' : 'h-12'
           }`}>
@@ -71,7 +78,7 @@ export function DocumentsPageClient({ profile }: DocumentsPageClientProps) {
 
           <TabsContent value="shared-documents" className="space-y-4">
             <Suspense fallback={<LoadingSpinner />}>
-              <SharedDocuments profile={profile} />
+              <SharedDocuments profile={profile} initialSearch={initialSearch} />
             </Suspense>
           </TabsContent>
         </Tabs>

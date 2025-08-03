@@ -1,19 +1,28 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { Profile } from '@/types'
 import { createClient } from '@/lib/supabase/client'
 import { 
   Upload, File, Folder, Search, Filter, Download, Eye, 
   Share2, MoreHorizontal, FolderOpen, FileText, Image, 
-  Archive, Grid, List, ChevronRight, ChevronDown, Plus,
+  Archive, Grid, List, ChevronRight, ChevronDown, ChevronUp, Plus,
   Users, Clock, Star, Bell, Activity, Shield, Lock,
-  AlertCircle, CheckCircle, Settings, History, X, Pen, Trash2
+  AlertCircle, CheckCircle, Settings, History, X, Pen, Trash2,
+  Mail, MessageSquare, Link2, AlertTriangle, RefreshCw, WifiOff
 } from 'lucide-react'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { useRouter } from 'next/navigation'
 
 interface SharedDocumentsTabProps {
   profile: Profile
+  initialSearch?: string
 }
 
 interface SharedDocument {
@@ -32,6 +41,8 @@ interface SharedDocument {
   thumbnail?: string
   sharedWith: string[]
   versionHistory: DocumentVersion[]
+  site_id?: string
+  site_name?: string
 }
 
 interface DocumentVersion {
@@ -121,19 +132,35 @@ const DOCUMENT_CATEGORIES: DocumentCategory[] = [
   }
 ]
 
-export default function SharedDocumentsTab({ profile }: SharedDocumentsTabProps) {
+export default function SharedDocumentsTab({ profile, initialSearch }: SharedDocumentsTabProps) {
   const [documents, setDocuments] = useState<SharedDocument[]>([])
   const [categories, setCategories] = useState<DocumentCategory[]>(DOCUMENT_CATEGORIES)
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
-  const [searchTerm, setSearchTerm] = useState('')
+  const [selectedSite, setSelectedSite] = useState<string>('all')
+  const [searchTerm, setSearchTerm] = useState(initialSearch || '')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list')
-  const [sortBy, setSortBy] = useState<'name' | 'date' | 'size'>('date')
+  const [sortBy, setSortBy] = useState<'name' | 'date'>('date')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [loading, setLoading] = useState(true)
   const [selectedDocument, setSelectedDocument] = useState<SharedDocument | null>(null)
   const [showVersionHistory, setShowVersionHistory] = useState(false)
   const [showActivityLog, setShowActivityLog] = useState(false)
   const [activityLog, setActivityLog] = useState<ActivityItem[]>([])
+  const [uploading, setUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState<any[]>([])
+  const [isDragOver, setIsDragOver] = useState(false)
+  const [selectedDocuments, setSelectedDocuments] = useState<string[]>([])
+  const [showShareModal, setShowShareModal] = useState(false)
+  const [isSelectionMode, setIsSelectionMode] = useState(false)
+
+  // 현장 목록 (실제로는 Supabase에서 가져와야 함)
+  const sites = [
+    { id: 'all', name: '전체 현장' },
+    { id: 'site1', name: '서울 아파트 신축공사' },
+    { id: 'site2', name: '부산 오피스텔 건설' },
+    { id: 'site3', name: '대구 상가 리모델링' },
+    { id: 'site4', name: '인천 공장 신축' }
+  ]
 
   const supabase = createClient()
   const router = useRouter()
@@ -161,6 +188,8 @@ export default function SharedDocumentsTab({ profile }: SharedDocumentsTabProps)
           permissions: 'read',
           isStarred: true,
           sharedWith: ['전체 사용자'],
+          site_id: 'site1',
+          site_name: '서울 아파트 신축공사',
           versionHistory: [
             {
               version: 2,
@@ -191,6 +220,8 @@ export default function SharedDocumentsTab({ profile }: SharedDocumentsTabProps)
           permissions: 'read',
           isStarred: false,
           sharedWith: ['작업자', '현장관리자'],
+          site_id: 'site2',
+          site_name: '부산 오피스텔 건설',
           versionHistory: [
             {
               version: 1,
@@ -214,6 +245,8 @@ export default function SharedDocumentsTab({ profile }: SharedDocumentsTabProps)
           permissions: 'read',
           isStarred: false,
           sharedWith: ['전체 사용자'],
+          site_id: 'all',
+          site_name: '전체 현장',
           versionHistory: [
             {
               version: 3,
@@ -244,6 +277,8 @@ export default function SharedDocumentsTab({ profile }: SharedDocumentsTabProps)
           permissions: 'read',
           isStarred: true,
           sharedWith: ['작업자', '현장관리자'],
+          site_id: 'site3',
+          site_name: '대구 상가 리모델링',
           versionHistory: [
             {
               version: 1,
@@ -251,6 +286,31 @@ export default function SharedDocumentsTab({ profile }: SharedDocumentsTabProps)
               uploadedBy: '교육담당자',
               changes: '2024년 교육과정 제작',
               size: 10485760
+            }
+          ]
+        },
+        {
+          id: '5',
+          name: '현장 안전점검표_인천공장.xlsx',
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          size: 2097152, // 2MB
+          category: 'safety',
+          uploadedAt: '2024-07-15T08:00:00Z',
+          uploadedBy: '현장안전관리자',
+          lastModified: '2024-07-15T08:00:00Z',
+          version: 1,
+          permissions: 'read',
+          isStarred: false,
+          sharedWith: ['현장관리자'],
+          site_id: 'site4',
+          site_name: '인천 공장 신축',
+          versionHistory: [
+            {
+              version: 1,
+              uploadedAt: '2024-07-15T08:00:00Z',
+              uploadedBy: '현장안전관리자',
+              changes: '인천공장 전용 안전점검표',
+              size: 2097152
             }
           ]
         }
@@ -323,8 +383,9 @@ export default function SharedDocumentsTab({ profile }: SharedDocumentsTabProps)
   const filteredAndSortedDocuments = documents
     .filter(doc => {
       const matchesCategory = selectedCategory === 'all' || doc.category === selectedCategory
+      const matchesSite = selectedSite === 'all' || doc.site_id === selectedSite || doc.site_id === 'all'
       const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase())
-      return matchesCategory && matchesSearch
+      return matchesCategory && matchesSite && matchesSearch
     })
     .sort((a, b) => {
       let comparison = 0
@@ -334,9 +395,6 @@ export default function SharedDocumentsTab({ profile }: SharedDocumentsTabProps)
           break
         case 'date':
           comparison = new Date(a.lastModified).getTime() - new Date(b.lastModified).getTime()
-          break
-        case 'size':
-          comparison = a.size - b.size
           break
       }
       return sortOrder === 'asc' ? comparison : -comparison
@@ -435,13 +493,13 @@ export default function SharedDocumentsTab({ profile }: SharedDocumentsTabProps)
       }
 
       if (document.url) {
-        const link = document.createElement('a')
+        const link = window.document.createElement('a')
         link.href = document.url
         link.download = document.name
         link.style.display = 'none'
-        document.body.appendChild(link)
+        window.document.body.appendChild(link)
         link.click()
-        document.body.removeChild(link)
+        window.document.body.removeChild(link)
       } else {
         alert('다운로드할 수 있는 파일이 없습니다.')
       }
@@ -475,10 +533,184 @@ export default function SharedDocumentsTab({ profile }: SharedDocumentsTabProps)
     }
   }
 
+  // File upload constants and handlers
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  
+  const MAX_FILE_SIZE_MB = 10
+  const ALLOWED_FILE_TYPES = [
+    'application/pdf',
+    'image/jpeg',
+    'image/png',
+    'image/gif',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  ]
+
+  const validateFile = (file: File): string | null => {
+    if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+      return '지원하지 않는 파일 형식입니다.'
+    }
+    if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+      return `파일 크기가 ${MAX_FILE_SIZE_MB}MB를 초과합니다.`
+    }
+    return null
+  }
+
+  const uploadFile = async (file: File, category: string = 'misc') => {
+    const validation = validateFile(file)
+    if (validation) {
+      setUploadProgress(prev => [...prev, {
+        fileName: file.name,
+        progress: 0,
+        status: 'error',
+        error: validation
+      }])
+      return
+    }
+
+    const progressItem = {
+      fileName: file.name,
+      progress: 0,
+      status: 'uploading'
+    }
+    
+    setUploadProgress(prev => [...prev, progressItem])
+
+    try {
+      // Simulate upload progress
+      for (let progress = 0; progress <= 100; progress += 10) {
+        await new Promise(resolve => setTimeout(resolve, 100))
+        setUploadProgress(prev => 
+          prev.map(item => 
+            item.fileName === file.name 
+              ? { ...item, progress }
+              : item
+          )
+        )
+      }
+
+      // Mock successful upload
+      const newDocument: SharedDocument = {
+        id: Date.now().toString(),
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        category: category,
+        uploadedAt: new Date().toISOString(),
+        uploadedBy: profile.full_name,
+        lastModified: new Date().toISOString(),
+        version: 1,
+        permissions: 'admin',
+        isStarred: false,
+        sharedWith: ['전체 사용자'],
+        versionHistory: [{
+          version: 1,
+          uploadedAt: new Date().toISOString(),
+          uploadedBy: profile.full_name,
+          changes: '초기 업로드',
+          size: file.size
+        }]
+      }
+
+      setDocuments(prev => [newDocument, ...prev])
+
+      setUploadProgress(prev => 
+        prev.map(item => 
+          item.fileName === file.name 
+            ? { ...item, progress: 100, status: 'completed' }
+            : item
+        )
+      )
+
+      // Remove completed upload after 3 seconds
+      setTimeout(() => {
+        setUploadProgress(prev => prev.filter(item => item.fileName !== file.name))
+      }, 3000)
+
+    } catch (error) {
+      setUploadProgress(prev => 
+        prev.map(item => 
+          item.fileName === file.name 
+            ? { ...item, status: 'error', error: '업로드 실패' }
+            : item
+        )
+      )
+    }
+  }
+
+  const handleFileSelect = (files: FileList | null) => {
+    if (!files) return
+    
+    setUploading(true)
+    Array.from(files).forEach(file => {
+      uploadFile(file, selectedCategory === 'all' ? 'misc' : selectedCategory)
+    })
+    setUploading(false)
+  }
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragOver(true)
+  }, [])
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragOver(false)
+  }, [])
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragOver(false)
+    handleFileSelect(e.dataTransfer.files)
+  }, [selectedCategory])
+
   const isBlueprint = (document: SharedDocument) => {
     const blueprintExtensions = ['.dwg', '.dxf', '.pdf']
     const extension = document.name.toLowerCase().substr(document.name.lastIndexOf('.'))
     return document.category === 'drawings' || blueprintExtensions.includes(extension)
+  }
+
+  // 문서 선택 토글
+  const toggleDocumentSelection = (docId: string) => {
+    setSelectedDocuments(prev => 
+      prev.includes(docId) 
+        ? prev.filter(id => id !== docId)
+        : [...prev, docId]
+    )
+  }
+
+  // 선택된 문서 공유 함수
+  const handleShare = (method: 'sms' | 'email' | 'kakao' | 'link') => {
+    if (selectedDocuments.length === 0) {
+      alert('공유할 문서를 선택해주세요.')
+      return
+    }
+
+    const selectedDocs = documents.filter(doc => selectedDocuments.includes(doc.id))
+    const shareText = `선택한 문서 ${selectedDocs.length}개:\n${selectedDocs.map(doc => doc.name).join('\n')}`
+
+    switch (method) {
+      case 'sms':
+        window.location.href = `sms:?body=${encodeURIComponent(shareText)}`
+        break
+      case 'email':
+        window.location.href = `mailto:?subject=문서 공유&body=${encodeURIComponent(shareText)}`
+        break
+      case 'kakao':
+        // 카카오톡 공유 API 연동 필요
+        alert('카카오톡 공유 기능은 준비 중입니다.')
+        break
+      case 'link':
+        // 공유 링크 생성 로직
+        navigator.clipboard.writeText(shareText)
+        alert('링크가 클립보드에 복사되었습니다.')
+        break
+    }
+    setShowShareModal(false)
+    setIsSelectionMode(false)
+    setSelectedDocuments([])
   }
 
   if (loading) {
@@ -495,15 +727,54 @@ export default function SharedDocumentsTab({ profile }: SharedDocumentsTabProps)
       {/* Header */}
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
         <div className="flex items-center justify-between mb-4">
-          <div>
+          <div className="flex items-center gap-3">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">공유문서함</h2>
+            {isSelectionMode && (
+              <span className="text-sm text-blue-600 dark:text-blue-400">
+                {selectedDocuments.length}개 선택됨
+              </span>
+            )}
           </div>
-          {(profile.role === 'admin' || profile.role === 'system_admin') && (
-            <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors touch-manipulation">
-              <Upload className="h-4 w-4" />
-              파일 업로드
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            {isSelectionMode ? (
+              <>
+                <button
+                  onClick={() => {
+                    setIsSelectionMode(false)
+                    setSelectedDocuments([])
+                  }}
+                  className="px-3 py-2 text-sm text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+                >
+                  취소
+                </button>
+                <button
+                  onClick={() => setShowShareModal(true)}
+                  disabled={selectedDocuments.length === 0}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
+                >
+                  <Share2 className="h-4 w-4" />
+                  공유하기
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => setIsSelectionMode(true)}
+                  className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-lg"
+                >
+                  <CheckCircle className="h-4 w-4" />
+                  선택
+                </button>
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors touch-manipulation"
+                >
+                  <Upload className="h-4 w-4" />
+                  파일 업로드
+                </button>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Search and Filters */}
@@ -515,36 +786,76 @@ export default function SharedDocumentsTab({ profile }: SharedDocumentsTabProps)
               placeholder="파일명으로 검색..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
-          <div className="flex gap-2">
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
-              className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="date">날짜순</option>
-              <option value="name">이름순</option>
-              <option value="size">크기순</option>
-            </select>
+          <div className="flex flex-wrap gap-2">
+            {/* 현장 필터 */}
+            <Select value={selectedSite} onValueChange={setSelectedSite}>
+              <SelectTrigger className="w-[140px] h-10 px-4 py-2.5 text-sm font-medium bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                <SelectValue placeholder="현장 선택" />
+              </SelectTrigger>
+              <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
+                {sites.map(site => (
+                  <SelectItem 
+                    key={site.id} 
+                    value={site.id}
+                    className="text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-blue-50 dark:focus:bg-blue-900/20 focus:text-blue-600 dark:focus:text-blue-400 cursor-pointer"
+                  >
+                    {site.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <div className="flex border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
+              <button
+                onClick={() => setSortBy('date')}
+                className={`px-4 py-2.5 text-sm font-medium transition-colors ${
+                  sortBy === 'date' 
+                    ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400' 
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
+                }`}
+              >
+                날짜순
+              </button>
+              <button
+                onClick={() => setSortBy('name')}
+                className={`px-4 py-2.5 text-sm font-medium transition-colors ${
+                  sortBy === 'name' 
+                    ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400' 
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
+                }`}
+              >
+                이름순
+              </button>
+            </div>
             <button
               onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
-              className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+              className="p-2.5 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
               title={sortOrder === 'asc' ? '오름차순' : '내림차순'}
             >
-              {sortOrder === 'asc' ? '↑' : '↓'}
+              <ChevronUp className={`h-4 w-4 transition-transform text-gray-700 dark:text-gray-300 ${sortOrder === 'desc' ? 'rotate-180' : ''}`} />
             </button>
             <div className="flex border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
               <button
                 onClick={() => setViewMode('list')}
-                className={`p-2 ${viewMode === 'list' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-50 dark:hover:bg-gray-600'}`}
+                className={`p-2.5 transition-colors ${
+                  viewMode === 'list' 
+                    ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400' 
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
+                }`}
+                title="리스트 보기"
               >
                 <List className="h-4 w-4" />
               </button>
               <button
                 onClick={() => setViewMode('grid')}
-                className={`p-2 ${viewMode === 'grid' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-50 dark:hover:bg-gray-600'}`}
+                className={`p-2.5 transition-colors ${
+                  viewMode === 'grid' 
+                    ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400' 
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
+                }`}
+                title="그리드 보기"
               >
                 <Grid className="h-4 w-4" />
               </button>
@@ -554,6 +865,71 @@ export default function SharedDocumentsTab({ profile }: SharedDocumentsTabProps)
       </div>
 
       <div>
+        {/* Upload Progress */}
+        {uploadProgress.length > 0 && (
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 mb-4">
+            <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">업로드 진행상황</h4>
+            <div className="space-y-2">
+              {uploadProgress.map((item, index) => (
+                <div key={index} className="flex items-center justify-between">
+                  <div className="flex-1 mr-3">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm text-gray-600 dark:text-gray-400 truncate">
+                        {item.fileName}
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        {item.status === 'completed' ? '완료' : 
+                         item.status === 'error' ? '실패' : 
+                         `${item.progress}%`}
+                      </span>
+                    </div>
+                    {item.status === 'uploading' && (
+                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1">
+                        <div
+                          className="bg-blue-500 h-1 rounded-full transition-all duration-300"
+                          style={{ width: `${item.progress}%` }}
+                        />
+                      </div>
+                    )}
+                    {item.error && (
+                      <p className="text-xs text-red-600 dark:text-red-400 mt-1">{item.error}</p>
+                    )}
+                  </div>
+                  {item.status === 'completed' && <CheckCircle className="h-4 w-4 text-green-500" />}
+                  {item.status === 'error' && <X className="h-4 w-4 text-red-500" />}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Drop Zone */}
+        <div
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          className={`bg-white dark:bg-gray-800 rounded-xl border-2 border-dashed transition-colors ${
+            isDragOver 
+              ? 'border-blue-400 bg-blue-50 dark:bg-blue-900/20' 
+              : 'border-gray-300 dark:border-gray-600'
+          } p-6 mb-4`}
+        >
+          <div className="text-center">
+            <Upload className={`mx-auto h-8 w-8 mb-3 ${isDragOver ? 'text-blue-500' : 'text-gray-400'}`} />
+            <p className={`text-sm ${isDragOver ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400'}`}>
+              파일을 드래그하여 업로드하거나{' '}
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="text-blue-600 hover:text-blue-700 underline"
+              >
+                파일 선택
+              </button>
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              PDF, DOC, XLS, JPG, PNG 파일 지원 (최대 {MAX_FILE_SIZE_MB}MB)
+            </p>
+          </div>
+        </div>
           {/* Documents Grid/List - Mobile Optimized */}
           <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
             {filteredAndSortedDocuments.length === 0 ? (
@@ -570,8 +946,26 @@ export default function SharedDocumentsTab({ profile }: SharedDocumentsTabProps)
                   return (
                     <div
                       key={document.id}
-                      className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+                      className={`relative border rounded-lg p-4 hover:shadow-md transition-all cursor-pointer ${
+                        isSelectionMode && selectedDocuments.includes(document.id)
+                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                          : 'border-gray-200 dark:border-gray-600'
+                      }`}
+                      onClick={() => isSelectionMode && toggleDocumentSelection(document.id)}
                     >
+                      {/* Selection Checkbox */}
+                      {isSelectionMode && (
+                        <div className="absolute top-2 left-2">
+                          <input
+                            type="checkbox"
+                            checked={selectedDocuments.includes(document.id)}
+                            onChange={() => toggleDocumentSelection(document.id)}
+                            className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        </div>
+                      )}
+                      
                       <div className="flex flex-col items-center text-center">
                         {/* File Type Badge */}
                         <div className="mb-3">
@@ -624,9 +1018,27 @@ export default function SharedDocumentsTab({ profile }: SharedDocumentsTabProps)
                   return (
                     <div
                       key={document.id}
-                      className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 hover:shadow-md hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-200"
+                      className={`bg-white dark:bg-gray-800 border rounded-lg p-3 hover:shadow-md transition-all duration-200 cursor-pointer ${
+                        isSelectionMode && selectedDocuments.includes(document.id)
+                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                          : 'border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600'
+                      }`}
+                      onClick={() => isSelectionMode && toggleDocumentSelection(document.id)}
                     >
                       <div className="flex items-center gap-3">
+                        {/* Selection Checkbox */}
+                        {isSelectionMode && (
+                          <div className="flex-shrink-0">
+                            <input
+                              type="checkbox"
+                              checked={selectedDocuments.includes(document.id)}
+                              onChange={() => toggleDocumentSelection(document.id)}
+                              className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                          </div>
+                        )}
+                        
                         {/* Badge Only */}
                         <div className="flex-shrink-0">
                           <span className={`inline-block px-1.5 py-0.5 text-xs font-medium rounded-md ${getFileTypeColor(document.type)}`}>
@@ -736,6 +1148,84 @@ export default function SharedDocumentsTab({ profile }: SharedDocumentsTabProps)
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Hidden File Input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        multiple
+        accept={ALLOWED_FILE_TYPES.join(',')}
+        onChange={(e) => handleFileSelect(e.target.files)}
+        className="hidden"
+      />
+
+      {/* Share Modal */}
+      {showShareModal && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            {/* Background overlay */}
+            <div 
+              className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+              onClick={() => setShowShareModal(false)}
+            />
+
+            {/* Modal panel */}
+            <div className="inline-block align-bottom bg-white dark:bg-gray-800 rounded-t-2xl sm:rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-sm sm:w-full">
+              <div className="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                    문서 공유하기
+                  </h3>
+                  <button
+                    onClick={() => setShowShareModal(false)}
+                    className="text-gray-400 hover:text-gray-500"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                  선택한 {selectedDocuments.length}개의 문서를 공유합니다
+                </p>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() => handleShare('sms')}
+                    className="flex flex-col items-center justify-center p-4 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors"
+                  >
+                    <MessageSquare className="h-6 w-6 mb-2 text-gray-600 dark:text-gray-300" />
+                    <span className="text-sm text-gray-700 dark:text-gray-200">문자</span>
+                  </button>
+
+                  <button
+                    onClick={() => handleShare('email')}
+                    className="flex flex-col items-center justify-center p-4 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors"
+                  >
+                    <Mail className="h-6 w-6 mb-2 text-gray-600 dark:text-gray-300" />
+                    <span className="text-sm text-gray-700 dark:text-gray-200">이메일</span>
+                  </button>
+
+                  <button
+                    onClick={() => handleShare('kakao')}
+                    className="flex flex-col items-center justify-center p-4 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors"
+                  >
+                    <MessageSquare className="h-6 w-6 mb-2 text-yellow-600" />
+                    <span className="text-sm text-gray-700 dark:text-gray-200">카카오톡</span>
+                  </button>
+
+                  <button
+                    onClick={() => handleShare('link')}
+                    className="flex flex-col items-center justify-center p-4 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors"
+                  >
+                    <Link2 className="h-6 w-6 mb-2 text-gray-600 dark:text-gray-300" />
+                    <span className="text-sm text-gray-700 dark:text-gray-200">링크 복사</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>

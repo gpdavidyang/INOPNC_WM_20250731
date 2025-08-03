@@ -16,6 +16,8 @@ import {
 import { useRouter } from 'next/navigation'
 interface HomeTabProps {
   profile: Profile
+  onTabChange?: (tabId: string) => void
+  onDocumentsSearch?: (searchTerm: string) => void
 }
 
 // Remove old SiteInfo interface - using CurrentUserSite type instead
@@ -43,7 +45,7 @@ interface HomeTabProps {
   onTabChange?: (tabId: string) => void
 }
 
-export default function HomeTab({ profile, onTabChange }: HomeTabProps) {
+export default function HomeTab({ profile, onTabChange, onDocumentsSearch }: HomeTabProps) {
   const { isLargeFont } = useFontSize()
   const { touchMode } = useTouchMode()
   const [siteInfoExpanded, setSiteInfoExpanded] = useState(false)
@@ -89,9 +91,9 @@ export default function HomeTab({ profile, onTabChange }: HomeTabProps) {
     },
     {
       id: 'shared-documents',
-      name: '도면',
+      name: '공도면',
       icon: <Share2 className="h-5 w-5" />,
-      path: '/dashboard/shared-documents',
+      path: '/dashboard/documents?tab=shared&search=공도면',
       color: 'text-orange-600 dark:text-orange-400',
       description: '공유 도면 및 문서'
     },
@@ -377,9 +379,17 @@ export default function HomeTab({ profile, onTabChange }: HomeTabProps) {
               <li key={item.id} role="none">
                 <button 
                   onClick={() => {
-                    // For site-info and other dedicated pages, always use router navigation
-                    if (item.id === 'site-info' || item.path.includes('/dashboard/site-info')) {
+                    if (item.id === 'site-info') {
+                      // Site info uses dedicated page
                       router.push(item.path)
+                    } else if (item.id === 'shared-documents') {
+                      // For shared documents (공도면), switch to documents tab with search
+                      if (onTabChange) {
+                        onTabChange('documents-unified')
+                      }
+                      if (onDocumentsSearch) {
+                        onDocumentsSearch('공도면')
+                      }
                     } else if (onTabChange) {
                       // Use tab change for integrated dashboard navigation
                       onTabChange(item.id)

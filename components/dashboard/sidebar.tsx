@@ -2,12 +2,12 @@
 
 import { Profile, UserRole } from '@/types'
 import { 
-  Home, FileText, Calendar, FolderOpen, MapPin, Share2, Edit3, User, Users, 
+  Home, FileText, Calendar, FolderOpen, MapPin, Share2, User, Users, 
   BarChart3, Settings, X, Bell, Building2, FolderCheck, DollarSign, 
-  Package, Layers, MoreHorizontal, Hammer, Activity 
+  Package, Layers, MoreHorizontal, Activity 
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { signOut } from '@/app/auth/actions'
 import { useRovingTabIndex } from '@/hooks/use-keyboard-navigation'
 
@@ -34,57 +34,43 @@ const generalUserMenuItems: MenuItem[] = [
     id: 'home',
     label: '홈',
     icon: Home,
-    roles: ['worker', 'site_manager', 'customer_manager']
+    roles: ['worker', 'site_manager', 'customer_manager'],
+    href: '/dashboard'
   },
   {
     id: 'attendance',
     label: '출력현황',
     icon: Calendar,
-    roles: ['worker', 'site_manager', 'customer_manager']
+    roles: ['worker', 'site_manager', 'customer_manager'],
+    href: '/dashboard/attendance'
   },
   {
     id: 'daily-reports',
     label: '작업일지',
     icon: FileText,
-    roles: ['worker', 'site_manager', 'customer_manager']
+    roles: ['worker', 'site_manager', 'customer_manager'],
+    href: '/dashboard/daily-reports'
   },
   {
     id: 'site-info',
     label: '현장정보',
     icon: MapPin,
-    roles: ['worker', 'site_manager', 'customer_manager']
+    roles: ['worker', 'site_manager', 'customer_manager'],
+    href: '/dashboard/site-info'
   },
   {
-    id: 'documents-unified',
+    id: 'documents',
     label: '문서함',
     icon: FolderOpen,
-    roles: ['worker', 'site_manager', 'customer_manager']
-  },
-  {
-    id: 'materials',
-    label: '자재 관리',
-    icon: Package,
     roles: ['worker', 'site_manager', 'customer_manager'],
-    href: '/dashboard/materials'
-  },
-  {
-    id: 'equipment',
-    label: '장비 & 자원',
-    icon: Hammer,
-    roles: ['worker', 'site_manager', 'customer_manager'],
-    href: '/dashboard/equipment'
-  },
-  {
-    id: 'blueprint-markup',
-    label: '도면 마킹 도구',
-    icon: Edit3,
-    roles: ['worker', 'site_manager', 'customer_manager']
+    href: '/dashboard/documents'
   },
   {
     id: 'profile',
     label: '내정보',
     icon: User,
-    roles: ['worker', 'site_manager', 'customer_manager']
+    roles: ['worker', 'site_manager', 'customer_manager'],
+    href: '/dashboard/profile'
   }
 ]
 
@@ -161,6 +147,13 @@ const adminMenuItems: MenuItem[] = [
     roles: ['admin', 'system_admin'],
     href: '/dashboard/performance',
     isAdminPage: true
+  },
+  {
+    id: 'profile',
+    label: '내정보',
+    icon: User,
+    roles: ['admin', 'system_admin'],
+    href: '/dashboard/profile'
   }
 ]
 
@@ -173,12 +166,6 @@ const systemAdminMenuItems: MenuItem[] = [
     roles: ['system_admin'],
     href: '/dashboard/admin/system',
     isAdminPage: true
-  },
-  {
-    id: 'profile',
-    label: '내정보',
-    icon: User,
-    roles: ['admin', 'system_admin']
   }
 ]
 
@@ -230,28 +217,33 @@ export default function Sidebar({ profile, activeTab, onTabChange, isOpen, onClo
   }
 
   const { mainMenuItems, systemMenuItems } = getMenuItemsForRole()
+  
+  console.log('Sidebar: Menu items for role', profile.role, {
+    mainMenuItems: mainMenuItems.map(item => ({ id: item.id, label: item.label, href: item.href })),
+    systemMenuItems: systemMenuItems.map(item => ({ id: item.id, label: item.label, href: item.href }))
+  })
 
   return (
     <>
       {/* Mobile sidebar */}
       <nav 
-        className={`fixed inset-y-0 left-0 z-50 w-72 sm:w-64 bg-white dark:bg-gray-800 shadow-lg transform transition-transform duration-200 ease-in-out lg:hidden ${
+        className={`fixed inset-y-0 left-0 z-50 w-72 sm:w-64 bg-white dark:bg-gray-800 shadow-xl border-r border-gray-200 dark:border-gray-700 theme-transition transform transition-transform duration-300 ease-in-out lg:hidden ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
         aria-label="사이드바 네비게이션"
-        aria-hidden={!isOpen}
+        {...(!isOpen && { inert: "true" })}
       >
         <div className="flex h-full flex-col relative">
-          <header className="flex items-center justify-between px-4 py-4 border-b border-gray-200 dark:border-gray-700">
+          <header className="flex items-center justify-between px-4 py-4 border-b border-gray-200 dark:border-gray-700 bg-premium-light dark:bg-premium-dark">
             <div className="flex items-center">
-              <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center" role="img" aria-label="INOPNC 로고">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center elevation-sm" role="img" aria-label="INOPNC 로고">
                 <span className="text-white font-bold" aria-hidden="true">IN</span>
               </div>
               <h1 className="ml-3 text-lg font-semibold text-gray-900 dark:text-gray-100">INOPNC</h1>
             </div>
             <button 
               onClick={onClose} 
-              className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+              className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 theme-transition focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
               aria-label="사이드바 닫기"
             >
               <X className="h-6 w-6" aria-hidden="true" />
@@ -271,12 +263,12 @@ export default function Sidebar({ profile, activeTab, onTabChange, isOpen, onClo
 
       {/* Desktop sidebar */}
       <nav 
-        className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-50 lg:block lg:w-64 lg:bg-white lg:dark:bg-gray-800 lg:shadow-lg"
+        className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-50 lg:block lg:w-64 lg:bg-white lg:dark:bg-gray-800 lg:elevation-lg theme-transition"
         aria-label="데스크톱 사이드바 네비게이션"
       >
         <div className="flex h-full flex-col">
-          <header className="flex items-center px-4 py-4 border-b border-gray-200 dark:border-gray-700">
-            <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center" role="img" aria-label="INOPNC 로고">
+          <header className="flex items-center px-4 py-4 border-b border-gray-200 dark:border-gray-700 bg-premium-light dark:bg-premium-dark">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center elevation-sm" role="img" aria-label="INOPNC 로고">
               <span className="text-white font-bold" aria-hidden="true">IN</span>
             </div>
             <h1 className="ml-3 text-lg font-semibold text-gray-900 dark:text-gray-100">INOPNC</h1>
@@ -306,6 +298,33 @@ function SidebarContent({
   handleLogout 
 }: any) {
   const router = useRouter()
+  const pathname = usePathname()
+  
+  // Determine active tab based on current pathname
+  const getActiveTabFromPath = () => {
+    if (pathname === '/dashboard' || pathname === '/dashboard/') return 'home'
+    if (pathname.includes('/dashboard/attendance')) return 'attendance'
+    if (pathname.includes('/dashboard/daily-reports')) return 'daily-reports'
+    if (pathname.includes('/dashboard/site-info')) return 'site-info'
+    if (pathname.includes('/dashboard/documents')) return 'documents'
+    if (pathname.includes('/dashboard/profile')) return 'profile'
+    if (pathname.includes('/dashboard/admin')) {
+      // Check for specific admin pages
+      if (pathname.includes('/dashboard/admin/sites')) return 'site-management'
+      if (pathname.includes('/dashboard/admin/users')) return 'user-management'
+      if (pathname.includes('/dashboard/admin/shared-documents')) return 'shared-documents-management'
+      if (pathname.includes('/dashboard/admin/salary')) return 'payroll-management'
+      if (pathname.includes('/dashboard/admin/materials')) return 'npc1000-management'
+      if (pathname.includes('/dashboard/admin/markup')) return 'blueprint-markup-management'
+      if (pathname.includes('/dashboard/admin/system')) return 'system-management'
+      return 'home' // Default admin home
+    }
+    if (pathname.includes('/dashboard/analytics')) return 'analytics'
+    if (pathname.includes('/dashboard/performance')) return 'performance-monitoring'
+    return activeTab
+  }
+  
+  const currentActiveTab = getActiveTabFromPath()
   
   // Total number of menu items for roving tabindex
   const totalItems = mainMenuItems.length + systemMenuItems.length + 1 // +1 for logout
@@ -313,10 +332,21 @@ function SidebarContent({
 
   // 메뉴 클릭 시 탭 변경과 모바일에서 사이드바 닫기를 동시에 처리
   const handleMenuClick = (item: MenuItem) => {
-    // Admin pages should navigate to separate routes
-    if (item.isAdminPage && item.href) {
+    console.log('Sidebar: Menu click detected', {
+      label: item.label,
+      id: item.id,
+      href: item.href,
+      currentPathname: pathname
+    })
+    
+    // Admin pages or items with href should navigate to separate routes
+    if (item.href) {
+      // For items with href, just navigate to the route
+      console.log('Sidebar: Calling router.push with', item.href)
       router.push(item.href)
     } else {
+      // For tab-based items, only call onTabChange
+      console.log('Sidebar: Calling onTabChange with', item.id)
       onTabChange(item.id)
     }
     
@@ -330,7 +360,7 @@ function SidebarContent({
     <div className="flex-1 flex flex-col overflow-y-auto">
       <div className="flex-1 px-3 py-4 pb-20 md:pb-4">
         {/* User info */}
-        <section className="mb-6 px-4 py-3 bg-gray-50 dark:bg-gray-700 rounded-lg mx-3" aria-labelledby="user-info-heading">
+        <section className="mb-6 px-4 py-3 bg-gray-50 dark:bg-gray-700 rounded-lg mx-3 elevation-sm theme-transition" aria-labelledby="user-info-heading">
           <h2 id="user-info-heading" className="sr-only">사용자 정보</h2>
           <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate" aria-label={`사용자명: ${profile.full_name}`}>
             {profile.full_name}
@@ -357,18 +387,26 @@ function SidebarContent({
         <nav className="space-y-1" aria-label="주요 메뉴" role="navigation">
           <ul role="list">
             {mainMenuItems.map((item: MenuItem, index: number) => {
+              console.log('Sidebar: Rendering menu item', {
+                label: item.label,
+                id: item.id,
+                href: item.href
+              })
               const Icon = item.icon
               return (
                 <li key={item.id} role="none">
                   <button
-                    onClick={() => handleMenuClick(item)}
+                    onClick={() => {
+                      console.log('Sidebar: Button clicked!', item.label)
+                      handleMenuClick(item)
+                    }}
                     {...getRovingProps(index)}
-                    className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors touch-manipulation min-h-[48px] focus-visible:ring-2 focus-visible:ring-toss-blue-500 focus-visible:ring-offset-2 ${
-                      activeTab === item.id
-                        ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
+                    className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-md theme-transition touch-manipulation min-h-[48px] focus-visible:ring-2 focus-visible:ring-toss-blue-500 focus-visible:ring-offset-2 ${
+                      currentActiveTab === item.id
+                        ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 elevation-sm'
                         : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700'
                     }`}
-                    aria-current={activeTab === item.id ? 'page' : false}
+                    aria-current={currentActiveTab === item.id ? 'page' : false}
                     aria-label={`${item.label} 메뉴로 이동`}
                     role="menuitem"
                   >
@@ -398,12 +436,12 @@ function SidebarContent({
                       <button
                         onClick={() => handleMenuClick(item)}
                         {...getRovingProps(itemIndex)}
-                        className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-md transition-colors touch-manipulation min-h-[48px] focus-visible:ring-2 focus-visible:ring-toss-blue-500 focus-visible:ring-offset-2 ${
-                          activeTab === item.id
-                            ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
+                        className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-md theme-transition touch-manipulation min-h-[48px] focus-visible:ring-2 focus-visible:ring-toss-blue-500 focus-visible:ring-offset-2 ${
+                          currentActiveTab === item.id
+                            ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 elevation-sm'
                             : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700'
                         }`}
-                        aria-current={activeTab === item.id ? 'page' : false}
+                        aria-current={currentActiveTab === item.id ? 'page' : false}
                         aria-label={`${item.label} 메뉴로 이동`}
                         role="menuitem"
                       >
@@ -420,11 +458,11 @@ function SidebarContent({
       </div>
 
       {/* Logout section */}
-      <footer className="p-4 pb-20 md:pb-4 border-t border-gray-200 dark:border-gray-700">
+      <footer className="p-4 pb-20 md:pb-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
         <button
           onClick={handleLogout}
           {...getRovingProps(totalItems - 1)}
-          className="w-full flex items-center justify-center px-4 py-3 min-h-[48px] border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 touch-manipulation transition-colors focus-visible:ring-2 focus-visible:ring-toss-blue-500 focus-visible:ring-offset-2"
+          className="w-full flex items-center justify-center px-4 py-3 min-h-[48px] border border-gray-300 dark:border-gray-600 rounded-md elevation-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 touch-manipulation theme-transition focus-visible:ring-2 focus-visible:ring-toss-blue-500 focus-visible:ring-offset-2"
           aria-label="시스템에서 로그아웃"
           aria-describedby="logout-description"
         >

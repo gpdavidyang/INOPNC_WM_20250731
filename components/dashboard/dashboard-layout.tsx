@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { User } from '@supabase/supabase-js'
 import { Profile } from '@/types'
-import { Home, Calendar, FileText, FileImage, FolderOpen } from 'lucide-react'
+import { Home, Calendar, FileText, FolderOpen, User as UserIcon, MapPin } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import Sidebar from './sidebar'
 import Header from './header'
 import HomeTab from './tabs/home-tab'
@@ -46,6 +47,8 @@ export default function DashboardLayout({ user, profile, children, initialActive
       setActiveTab('documents-unified')
     } else if (pathname.includes('/dashboard/markup')) {
       setActiveTab('documents-unified')
+    } else if (pathname.includes('/dashboard/profile')) {
+      setActiveTab('profile')
     } else if (pathname === '/dashboard') {
       setActiveTab('home')
     }
@@ -114,37 +117,54 @@ export default function DashboardLayout({ user, profile, children, initialActive
   // PRD 사양에 맞는 하단 네비게이션 아이템 구성
   const bottomNavItems: BottomNavItem[] = [
     { 
-      label: "홈(빠른메뉴)", 
+      label: "홈(빠른화면)", 
       href: "#home", 
       icon: <Home /> 
     },
     { 
       label: "출력현황", 
-      href: "#attendance", 
+      href: "/dashboard/attendance", 
       icon: <Calendar /> 
     },
     { 
       label: "작업일지", 
-      href: "#daily-reports", 
+      href: "/dashboard/daily-reports", 
       icon: <FileText />, 
       badge: 3 // TODO: 실제 미완성 보고서 수로 동적 설정
     },
     { 
-      label: "공도면", 
-      href: "#shared-documents-blueprint", 
-      icon: <FileImage />,
-      specialAction: 'filter-blueprint' as const
+      label: "현장정보", 
+      href: "/dashboard/site-info", 
+      icon: <MapPin /> 
     },
     { 
       label: "문서함", 
-      href: "#documents-unified", 
+      href: "/dashboard/documents", 
       icon: <FolderOpen /> 
     }
   ]
+  
+  console.log('DashboardLayout: Bottom nav items configured', {
+    items: bottomNavItems.map(item => ({ label: item.label, href: item.href })),
+    profile: { role: profile.role, id: profile.id, full_name: profile.full_name, email: profile.email }
+  })
 
   // 하단 네비게이션 클릭 처리
   const handleBottomNavClick = (tabId: string) => {
+    console.log('DashboardLayout: handleBottomNavClick called', {
+      tabId,
+      currentPathname: pathname,
+      currentActiveTab: activeTab
+    })
+    
+    // Check if it's a direct link (starts with /)
+    if (tabId.startsWith('/')) {
+      console.log('DashboardLayout: Direct link detected, calling router.push', tabId)
+      router.push(tabId)
+      return
+    }
     const cleanTabId = tabId.replace('#', '')
+    console.log('DashboardLayout: Setting activeTab to', cleanTabId)
     setActiveTab(cleanTabId)
   }
 
@@ -167,7 +187,16 @@ export default function DashboardLayout({ user, profile, children, initialActive
       case 'daily-reports':
         return <DailyReportTab profile={profile} />
       case 'attendance':
-        return <AttendanceTab profile={profile} />
+        // Navigate to dedicated attendance page instead of rendering inline
+        console.log('DashboardLayout: Navigating to attendance page')
+        if (pathname !== '/dashboard/attendance') {
+          router.push('/dashboard/attendance')
+        }
+        return <HomeTab 
+          profile={profile} 
+          onTabChange={setActiveTab}
+          onDocumentsSearch={setDocumentsInitialSearch}
+        />
       case 'documents-unified':
       case 'documents':
         return <DocumentsTabUnified profile={profile} initialSearch={documentsInitialSearch} />
@@ -184,9 +213,11 @@ export default function DashboardLayout({ user, profile, children, initialActive
         return <div className="p-4">Loading markup editor...</div>
       case 'profile':
         return (
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-            <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">내정보</h2>
-            <div className="space-y-4">
+          <Card elevation="sm" className="theme-transition">
+            <CardHeader>
+              <CardTitle className="text-2xl">내정보</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
               <div>
                 <label className="text-sm font-medium text-gray-500 dark:text-gray-400">이름</label>
                 <p className="text-lg text-gray-900 dark:text-gray-100">{profile.full_name}</p>
@@ -205,65 +236,97 @@ export default function DashboardLayout({ user, profile, children, initialActive
                   {profile.role === 'system_admin' && '시스템관리자'}
                 </p>
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         )
       // 관리자 전용 메뉴들
       case 'site-management':
         return (
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-            <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">현장 관리</h2>
-            <p className="text-gray-600 dark:text-gray-400">현장 관리 기능이 구현될 예정입니다.</p>
-          </div>
+          <Card elevation="sm" className="theme-transition">
+            <CardHeader>
+              <CardTitle className="text-2xl">현장 관리</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 dark:text-gray-400">현장 관리 기능이 구현될 예정입니다.</p>
+            </CardContent>
+          </Card>
         )
       case 'user-management':
         return (
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-            <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">사용자 관리</h2>
-            <p className="text-gray-600 dark:text-gray-400">사용자 관리 기능이 구현될 예정입니다.</p>
-          </div>
+          <Card elevation="sm" className="theme-transition">
+            <CardHeader>
+              <CardTitle className="text-2xl">사용자 관리</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 dark:text-gray-400">사용자 관리 기능이 구현될 예정입니다.</p>
+            </CardContent>
+          </Card>
         )
       case 'shared-documents-management':
         return (
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-            <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">공유 문서함 관리</h2>
-            <p className="text-gray-600 dark:text-gray-400">공유 문서함 관리 기능이 구현될 예정입니다.</p>
-          </div>
+          <Card elevation="sm" className="theme-transition">
+            <CardHeader>
+              <CardTitle className="text-2xl">공유 문서함 관리</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 dark:text-gray-400">공유 문서함 관리 기능이 구현될 예정입니다.</p>
+            </CardContent>
+          </Card>
         )
       case 'payroll-management':
         return (
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-            <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">급여 관리</h2>
-            <p className="text-gray-600 dark:text-gray-400">급여 관리 기능이 구현될 예정입니다.</p>
-          </div>
+          <Card elevation="sm" className="theme-transition">
+            <CardHeader>
+              <CardTitle className="text-2xl">급여 관리</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 dark:text-gray-400">급여 관리 기능이 구현될 예정입니다.</p>
+            </CardContent>
+          </Card>
         )
       case 'npc1000-management':
         return (
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-            <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">NPC-1000 자재 관리</h2>
-            <p className="text-gray-600 dark:text-gray-400">NPC-1000 자재 관리 기능이 구현될 예정입니다.</p>
-          </div>
+          <Card elevation="sm" className="theme-transition">
+            <CardHeader>
+              <CardTitle className="text-2xl">NPC-1000 자재 관리</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 dark:text-gray-400">NPC-1000 자재 관리 기능이 구현될 예정입니다.</p>
+            </CardContent>
+          </Card>
         )
       case 'blueprint-markup-management':
         return (
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-            <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">도면 마킹 관리</h2>
-            <p className="text-gray-600 dark:text-gray-400">도면 마킹 관리 기능이 구현될 예정입니다.</p>
-          </div>
+          <Card elevation="sm" className="theme-transition">
+            <CardHeader>
+              <CardTitle className="text-2xl">도면 마킹 관리</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 dark:text-gray-400">도면 마킹 관리 기능이 구현될 예정입니다.</p>
+            </CardContent>
+          </Card>
         )
       case 'other-admin-menu':
         return (
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-            <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">그 외 관리자 메뉴</h2>
-            <p className="text-gray-600 dark:text-gray-400">추가 관리자 기능이 구현될 예정입니다.</p>
-          </div>
+          <Card elevation="sm" className="theme-transition">
+            <CardHeader>
+              <CardTitle className="text-2xl">그 외 관리자 메뉴</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 dark:text-gray-400">추가 관리자 기능이 구현될 예정입니다.</p>
+            </CardContent>
+          </Card>
         )
       case 'system-management':
         return (
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-            <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">시스템 관리</h2>
-            <p className="text-gray-600 dark:text-gray-400">시스템 관리 기능이 구현될 예정입니다.</p>
-          </div>
+          <Card elevation="sm" className="theme-transition">
+            <CardHeader>
+              <CardTitle className="text-2xl">시스템 관리</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 dark:text-gray-400">시스템 관리 기능이 구현될 예정입니다.</p>
+            </CardContent>
+          </Card>
         )
       case 'settings':
         return (
@@ -281,7 +344,7 @@ export default function DashboardLayout({ user, profile, children, initialActive
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 theme-transition">
       {/* Skip link for keyboard users */}
       <a 
         href="#main-content" 
@@ -293,7 +356,7 @@ export default function DashboardLayout({ user, profile, children, initialActive
       {/* Mobile sidebar backdrop */}
       {isSidebarOpen && (
         <div
-          className="fixed inset-0 bg-gray-600 dark:bg-gray-900 bg-opacity-75 dark:bg-opacity-75 z-40 lg:hidden"
+          className="fixed inset-0 bg-gray-600 dark:bg-gray-900 bg-opacity-75 dark:bg-opacity-75 z-40 lg:hidden transition-opacity duration-200"
           onClick={() => setIsSidebarOpen(false)}
           aria-hidden="true"
         />
@@ -315,6 +378,7 @@ export default function DashboardLayout({ user, profile, children, initialActive
         {/* Page header */}
         <Header
           profile={profile}
+          isSidebarOpen={isSidebarOpen}
           onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)}
         />
         
@@ -336,7 +400,7 @@ export default function DashboardLayout({ user, profile, children, initialActive
             id: profile.id, 
             active_site_id: (profile as any).site_id || undefined 
           }}
-          onTabChange={setActiveTab}
+          onTabChange={handleBottomNavClick}
           activeTab={activeTab}
         />
       </nav>

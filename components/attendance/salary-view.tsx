@@ -268,348 +268,206 @@ export function SalaryView({ profile }: SalaryViewProps) {
 
   return (
     <div className="space-y-2">
-      {/* Filter Controls - UI Guidelines Compliant */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5">
-        {/* Site Selection */}
-        <Card className="p-2">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-gray-100 dark:bg-gray-700 rounded flex items-center justify-center shrink-0">
-              <FileText className="h-3 w-3 text-gray-600" />
-            </div>
-            <CustomSelect value={selectedSite} onValueChange={setSelectedSite}>
-              <CustomSelectTrigger className={cn(
-                "flex-1",
-                touchMode === 'glove' && "min-h-[60px] text-base",
-                touchMode === 'precision' && "min-h-[44px] text-sm",
-                touchMode !== 'precision' && touchMode !== 'glove' && "min-h-[40px] text-sm"
-              )}>
-                <CustomSelectValue placeholder="현장 선택" />
-              </CustomSelectTrigger>
-              <CustomSelectContent>
-                {sites.map(site => (
-                  <CustomSelectItem key={site.id} value={site.name}>
-                    {site.name}
-                  </CustomSelectItem>
-                ))}
-              </CustomSelectContent>
-            </CustomSelect>
-          </div>
-        </Card>
+      {/* Single Site Selection - Exactly like Image 1 */}
+      <Card className="p-3 border-2 border-blue-300 rounded-xl">
+        <div className="flex items-center gap-2">
+          <FileText className="h-5 w-5 text-gray-500" />
+          <CustomSelect value={selectedSite} onValueChange={setSelectedSite}>
+            <CustomSelectTrigger className="flex-1 border-0 bg-transparent p-0 text-base font-medium">
+              <CustomSelectValue placeholder="전체 현장" />
+            </CustomSelectTrigger>
+            <CustomSelectContent>
+              {sites.map(site => (
+                <CustomSelectItem key={site.id} value={site.name}>
+                  {site.name}
+                </CustomSelectItem>
+              ))}
+            </CustomSelectContent>
+          </CustomSelect>
+        </div>
+      </Card>
 
-        {/* Date Range Selection */}
-        <Card className="p-2">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-gray-100 dark:bg-gray-700 rounded flex items-center justify-center shrink-0">
-              <Calendar className="h-3 w-3 text-gray-600" />
-            </div>
-            <CustomSelect value={selectedDateRange} onValueChange={setSelectedDateRange}>
-              <CustomSelectTrigger className={cn(
-                "flex-1",
-                touchMode === 'glove' && "min-h-[60px] text-base",
-                touchMode === 'precision' && "min-h-[44px] text-sm",
-                touchMode !== 'precision' && touchMode !== 'glove' && "min-h-[40px] text-sm"
-              )}>
-                <CustomSelectValue placeholder="기간 선택" />
-              </CustomSelectTrigger>
-              <CustomSelectContent>
-                {dateRangeOptions.map(option => (
-                  <CustomSelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </CustomSelectItem>
-                ))}
-              </CustomSelectContent>
-            </CustomSelect>
-          </div>
-        </Card>
-      </div>
-
-      {/* Monthly Salary List Table - UI Guidelines Compliant */}
-      <Card className="p-0 overflow-hidden">
+      {/* Simple Salary Table - Exactly like Image 1 */}
+      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg overflow-hidden">
         {/* Table Header */}
-        <div className="bg-toss-blue-50 dark:bg-toss-blue-900/30 px-2 py-2 border-b border-gray-200 dark:border-gray-700">
-          <div className={cn(
-            "grid grid-cols-7 gap-1.5 font-medium text-toss-blue-700 dark:text-toss-blue-300",
-            touchMode === 'glove' ? 'text-sm' : 'text-xs'
-          )}>
-            <div>월</div>
-            <div>현장</div>
-            <div className="text-center">근무일</div>
-            <div className="text-right">기본급</div>
-            <div className="text-right">연장수당</div>
-            <div className="text-right">실지급액</div>
-            <div className="text-center">PDF</div>
+        <div className="bg-gray-100 dark:bg-gray-700 px-3 py-2 border-b">
+          <div className="grid grid-cols-7 gap-1 font-medium text-gray-700 dark:text-gray-300 text-xs">
+            <div className="whitespace-nowrap">월</div>
+            <div className="whitespace-nowrap">현장</div>
+            <div className="text-center whitespace-nowrap">근무일</div>
+            <div className="text-right whitespace-nowrap">기본급</div>
+            <div className="text-right whitespace-nowrap">연장수당</div>
+            <div className="text-right whitespace-nowrap">실지급액</div>
+            <div className="text-center whitespace-nowrap">PDF</div>
           </div>
         </div>
         
         {/* Table Body */}
-        <div className="divide-y divide-gray-200 dark:divide-gray-700">
+        <div className="divide-y divide-gray-200 dark:divide-gray-600">
           {loading ? (
-            <div className="px-2 py-4 text-center">
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-toss-blue-600 mx-auto mb-2"></div>
-              <p className="text-gray-500 dark:text-gray-400 text-xs">급여 데이터를 불러오는 중...</p>
+            <div className="px-3 py-4 text-center">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto mb-2"></div>
+              <p className="text-gray-500 dark:text-gray-400 text-sm">급여 데이터를 불러오는 중...</p>
             </div>
           ) : monthlyHistoryList.length === 0 ? (
-            <div className="px-2 py-4 text-center">
-              <p className="text-gray-500 dark:text-gray-400 text-xs">선택한 기간에 급여 데이터가 없습니다.</p>
+            <div className="px-3 py-4 text-center">
+              <p className="text-gray-500 dark:text-gray-400 text-sm">급여 데이터가 없습니다.</p>
             </div>
           ) : (
             monthlyHistoryList.map((salary, index) => (
-            <div 
-              key={index} 
-              className={cn(
-                "px-2 py-2 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-all duration-200",
-                "active:bg-gray-100 dark:active:bg-gray-700",
-                touchMode === 'glove' && "py-3 min-h-[48px]"
-              )}
-              onClick={() => handleRowClick(salary)}
-            >
-              <div className={cn(
-                "grid grid-cols-7 gap-1.5 items-center",
-                touchMode === 'glove' ? 'text-sm' : 'text-xs'
-              )}>
-                <div className="font-medium text-gray-900 dark:text-gray-100">{salary.month}</div>
-                <div className="text-gray-600 dark:text-gray-400">{salary.site}</div>
-                <div className="text-center">{salary.workDays}일</div>
-                <div className="text-right">{(salary.basicPay / 10000).toFixed(0)}만</div>
-                <div className="text-right">{(salary.overtimePay / 10000).toFixed(0)}만</div>
-                <div className="text-right font-semibold text-toss-blue-600 dark:text-toss-blue-400">
-                  {Math.floor(salary.netPay / 10000)}만
-                </div>
-                <div className="text-center">
-                  <Button 
-                    size="sm" 
-                    variant="ghost"
-                    className={cn(
-                      "p-0.5 rounded-lg transition-all duration-200 hover:bg-toss-blue-100",
-                      touchMode === 'glove' && "h-7 w-7 p-0",
-                      touchMode !== 'glove' && "h-5 w-5 p-0"
-                    )}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDownloadPDF(salary);
-                    }}
-                  >
-                    <Download className={cn(
-                      "text-toss-blue-600",
-                      touchMode === 'glove' ? "h-3 w-3" : "h-2.5 w-2.5"
-                    )} />
-                  </Button>
+              <div 
+                key={index}
+                className={cn(
+                  "px-3 py-2 hover:bg-blue-50 dark:hover:bg-blue-900/20 cursor-pointer transition-colors",
+                  selectedMonthDetails === salary.fullData && "bg-blue-50 dark:bg-blue-900/20"
+                )}
+                onClick={() => handleRowClick(salary)}
+              >
+                <div className="grid grid-cols-7 gap-1 items-center text-sm">
+                  <div className="font-medium text-gray-900 dark:text-gray-100 whitespace-nowrap">{salary.month}</div>
+                  <div className="text-gray-600 dark:text-gray-400 whitespace-nowrap">{salary.site}</div>
+                  <div className="text-center whitespace-nowrap">{salary.workDays}일</div>
+                  <div className="text-right whitespace-nowrap">{Math.floor(salary.basicPay / 10000)}만</div>
+                  <div className="text-right whitespace-nowrap">{Math.floor(salary.overtimePay / 10000)}만</div>
+                  <div className="text-right font-bold text-blue-600 dark:text-blue-400 whitespace-nowrap">
+                    {Math.floor(salary.netPay / 10000)}만
+                  </div>
+                  <div className="text-center">
+                    <Button 
+                      size="sm" 
+                      variant="ghost"
+                      className="p-1 h-6 w-6 rounded hover:bg-blue-100"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDownloadPDF(salary);
+                      }}
+                    >
+                      <Download className="h-3 w-3 text-blue-600" />
+                    </Button>
+                  </div>
                 </div>
               </div>
-            </div>
-          )))}
+            ))
+          )}
         </div>
-      </Card>
+      </div>
 
-      {/* Selected Month Detail - UI Guidelines Compliant */}
+      {/* Selected Month Details - Exactly like Image 1 */}
       {selectedMonthDetails && (
-        <Card className="p-2 bg-toss-blue-50 dark:bg-toss-blue-900/20 border border-toss-blue-200 dark:border-toss-blue-800">
-          <h3 className={cn(
-            "font-medium text-toss-blue-700 dark:text-toss-blue-300 mb-2 flex items-center gap-2",
-            touchMode === 'glove' ? 'text-sm' : 'text-xs'
-          )}>
-            <div className="w-4 h-4 bg-toss-blue-100 dark:bg-toss-blue-800 rounded flex items-center justify-center">
-              <FileText className="h-2.5 w-2.5" />
-            </div>
-            선택된 급여내역 ({monthlyHistoryList.find(m => m.fullData === selectedMonthDetails)?.year}-{monthlyHistoryList.find(m => m.fullData === selectedMonthDetails)?.monthNum.toString().padStart(2, '0')})
-          </h3>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-1.5">
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-2 space-y-0.5">
-              <div className={cn(
-                "text-gray-600 dark:text-gray-400",
-                touchMode === 'glove' ? 'text-xs' : 'text-xs'
-              )}>기본급</div>
-              <div className={cn(
-                "font-semibold text-gray-900 dark:text-gray-100",
-                touchMode === 'glove' ? 'text-sm' : 'text-xs'
-              )}>{formatCurrency(selectedMonthDetails.base_salary)}</div>
-            </div>
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-2 space-y-0.5">
-              <div className={cn(
-                "text-gray-600 dark:text-gray-400",
-                touchMode === 'glove' ? 'text-xs' : 'text-xs'
-              )}>공제액</div>
-              <div className={cn(
-                "font-semibold text-red-600",
-                touchMode === 'glove' ? 'text-sm' : 'text-xs'
-              )}>-{formatCurrency(selectedMonthDetails.total_deductions)}</div>
-            </div>
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-2 space-y-0.5">
-              <div className={cn(
-                "text-gray-600 dark:text-gray-400",
-                touchMode === 'glove' ? 'text-xs' : 'text-xs'
-              )}>연장수당</div>
-              <div className={cn(
-                "font-semibold text-gray-900 dark:text-gray-100",
-                touchMode === 'glove' ? 'text-sm' : 'text-xs'
-              )}>{formatCurrency(selectedMonthDetails.overtime_pay)}</div>
-            </div>
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-2 space-y-0.5">
-              <div className={cn(
-                "text-gray-600 dark:text-gray-400",
-                touchMode === 'glove' ? 'text-xs' : 'text-xs'
-              )}>실지급액</div>
-              <div className={cn(
-                "font-bold text-toss-blue-600 dark:text-toss-blue-400",
-                touchMode === 'glove' ? 'text-sm' : 'text-sm'
-              )}>{formatCurrency(selectedMonthDetails.net_pay)}</div>
-            </div>
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+          <div className="mb-3">
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              선택된 급여내역 ({monthlyHistoryList.find(m => m.fullData === selectedMonthDetails)?.year}-{monthlyHistoryList.find(m => m.fullData === selectedMonthDetails)?.monthNum.toString().padStart(2, '0')})
+            </span>
           </div>
           
-          <div className="mt-2 pt-2 border-t border-toss-blue-200 dark:border-toss-blue-700">
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-1.5">
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-2 space-y-0.5">
-                <div className={cn(
-                  "text-gray-600 dark:text-gray-400",
-                  touchMode === 'glove' ? 'text-xs' : 'text-xs'
-                )}>제수당</div>
-                <div className={cn(
-                  "font-semibold text-gray-900 dark:text-gray-100",
-                  touchMode === 'glove' ? 'text-sm' : 'text-xs'
-                )}>{formatCurrency(selectedMonthDetails.bonus_pay)}</div>
+          {/* Two Column Layout - Optimized for Mobile */}
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            {/* Left Column */}
+            <div className="space-y-1">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">기본급</span>
+                <span className="text-sm font-bold text-gray-900 dark:text-gray-100 whitespace-nowrap text-right">
+                  ₩{selectedMonthDetails.base_salary.toLocaleString()}
+                </span>
               </div>
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-2 space-y-0.5">
-                <div className={cn(
-                  "text-gray-600 dark:text-gray-400",
-                  touchMode === 'glove' ? 'text-xs' : 'text-xs'
-                )}>근무일수</div>
-                <div className={cn(
-                  "font-semibold text-gray-900 dark:text-gray-100",
-                  touchMode === 'glove' ? 'text-sm' : 'text-xs'
-                )}>{selectedMonthDetails.work_days}일</div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">연장수당</span>
+                <span className="text-sm font-bold text-gray-900 dark:text-gray-100 whitespace-nowrap text-right">
+                  ₩{selectedMonthDetails.overtime_pay.toLocaleString()}
+                </span>
               </div>
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-2 space-y-0.5">
-                <div className={cn(
-                  "text-gray-600 dark:text-gray-400",
-                  touchMode === 'glove' ? 'text-xs' : 'text-xs'
-                )}>총공수</div>
-                <div className={cn(
-                  "font-semibold text-gray-900 dark:text-gray-100",
-                  touchMode === 'glove' ? 'text-sm' : 'text-xs'
-                )}>{selectedMonthDetails.total_labor_hours.toFixed(2)}</div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">제수당</span>
+                <span className="text-sm font-bold text-gray-900 dark:text-gray-100 whitespace-nowrap text-right">
+                  ₩{selectedMonthDetails.bonus_pay.toLocaleString()}
+                </span>
+              </div>
+            </div>
+            
+            {/* Right Column */}
+            <div className="space-y-1">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">공제액</span>
+                <span className="text-sm font-bold text-red-600 whitespace-nowrap text-right">
+                  -₩{selectedMonthDetails.total_deductions.toLocaleString()}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">실지급액</span>
+                <span className="text-sm font-bold text-blue-600 dark:text-blue-400 whitespace-nowrap text-right">
+                  ₩{selectedMonthDetails.net_pay.toLocaleString()}
+                </span>
               </div>
             </div>
           </div>
-
-          {/* PDF Download Button for selected month */}
-          <div className="mt-2 pt-2 border-t border-toss-blue-200 dark:border-toss-blue-700">
-            <Button
-              onClick={() => {
-                const salaryItem = monthlyHistoryList.find(m => m.fullData === selectedMonthDetails);
-                if (salaryItem) handleDownloadPDF(salaryItem);
-              }}
-              className={cn(
-                "w-full bg-toss-blue-600 hover:bg-toss-blue-700 text-white transition-all duration-200",
-                touchMode === 'glove' && "min-h-[56px] text-base",
-                touchMode === 'precision' && "min-h-[44px] text-sm",
-                touchMode !== 'precision' && touchMode !== 'glove' && "min-h-[48px] text-sm"
-              )}
-              variant="default"
-            >
-              <Download className="h-4 w-4 mr-2" />
-              급여명세서 PDF 다운로드
-            </Button>
-          </div>
-        </Card>
+        </div>
       )}
 
-      {/* Salary Calculation - UI Guidelines Compliant */}
+      {/* Salary Calculation - Exactly like Image 1 */}
       {selectedMonthDetails && (
-        <Card className="p-2">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-5 h-5 bg-orange-100 dark:bg-orange-800 rounded flex items-center justify-center">
-              <Calculator className="h-3 w-3 text-orange-600" />
+        <Card className="p-3">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-6 h-6 bg-orange-100 dark:bg-orange-800 rounded-full flex items-center justify-center">
+              <Calculator className="h-4 w-4 text-orange-600" />
             </div>
-            <h4 className={cn(
-              "font-semibold text-gray-900 dark:text-gray-100",
-              touchMode === 'glove' ? 'text-sm' : 'text-xs'
-            )}>급여 계산식</h4>
+            <h4 className="font-bold text-gray-900 dark:text-gray-100">급여 계산식</h4>
           </div>
 
-          {/* 총 지급액 */}
-          <div className="bg-toss-blue-50 dark:bg-toss-blue-900/20 p-2 rounded-lg mb-2">
+          {/* Total Amount */}
+          <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg mb-3">
             <div className="flex justify-between items-center">
-              <span className={cn(
-                "font-medium text-gray-700 dark:text-gray-300",
-                touchMode === 'glove' ? 'text-sm' : 'text-xs'
-              )}>총 지급액</span>
-              <span className={cn(
-                "font-bold text-toss-blue-600 dark:text-toss-blue-400",
-                touchMode === 'glove' ? 'text-base' : 'text-sm'
-              )}>{formatCurrency(selectedMonthDetails.total_gross_pay)}</span>
+              <span className="font-medium text-gray-700 dark:text-gray-300">총 지급액</span>
+              <span className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                ₩{selectedMonthDetails.total_gross_pay.toLocaleString()}
+              </span>
             </div>
           </div>
 
-          {/* 계산 과정 */}
-          <div className={cn(
-            "space-y-1",
-            touchMode === 'glove' ? 'text-sm' : 'text-xs'
-          )}>
-            <div className="flex justify-between py-1">
-              <span className="text-gray-700 dark:text-gray-300">기본급</span>
-              <span className="font-medium">{Math.floor(selectedMonthDetails.base_salary / 10000)}만원</span>
+          {/* Calculation Process */}
+          <div className="space-y-2 mb-4">
+            <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">계산과정:</div>
+            <div className="flex justify-between">
+              <span className="text-sm text-gray-700 dark:text-gray-300">기본급</span>
+              <span className="text-sm font-medium">{Math.floor(selectedMonthDetails.base_salary / 10000)}만원</span>
             </div>
-            <div className="flex justify-between py-1">
-              <span className="text-gray-700 dark:text-gray-300">+ 연장수당</span>
-              <span className="font-medium">{Math.floor(selectedMonthDetails.overtime_pay / 10000)}만원</span>
+            <div className="flex justify-between">
+              <span className="text-sm text-gray-700 dark:text-gray-300">+ 연장수당</span>
+              <span className="text-sm font-medium">{Math.floor(selectedMonthDetails.overtime_pay / 10000)}만원</span>
             </div>
-            <div className="flex justify-between py-1">
-              <span className="text-gray-700 dark:text-gray-300">+ 제수당</span>
-              <span className="font-medium">{Math.floor(selectedMonthDetails.bonus_pay / 10000)}만원</span>
+            <div className="flex justify-between">
+              <span className="text-sm text-gray-700 dark:text-gray-300">+ 제수당</span>
+              <span className="text-sm font-medium">{Math.floor(selectedMonthDetails.bonus_pay / 10000)}만원</span>
             </div>
-            <div className="flex justify-between py-1 text-red-600 dark:text-red-400">
-              <span>- 공제액</span>
-              <span className="font-medium">{Math.floor(selectedMonthDetails.total_deductions / 10000)}만원</span>
+            <div className="flex justify-between text-red-600">
+              <span className="text-sm">- 공제액</span>
+              <span className="text-sm font-medium">{Math.floor(selectedMonthDetails.total_deductions / 10000)}만원</span>
             </div>
-            <div className="border-t pt-2 flex justify-between font-semibold text-toss-blue-600 dark:text-toss-blue-400">
-              <span>= 실지급액</span>
-              <span>{Math.floor(selectedMonthDetails.net_pay / 10000)}만원</span>
+            <div className="border-t pt-2 flex justify-between font-bold text-blue-600">
+              <span className="text-sm">= 실지급액</span>
+              <span className="text-sm">{Math.floor(selectedMonthDetails.net_pay / 10000)}만원</span>
             </div>
           </div>
 
-          {/* 근무일 기준 */}
-          <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
-            <h5 className={cn(
-              "font-medium text-orange-600 mb-1 flex items-center gap-1",
-              touchMode === 'glove' ? 'text-sm' : 'text-xs'
-            )}>
-              <span>근무일 기준</span>
-            </h5>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-1.5">
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-2">
-                <div className={cn(
-                  "text-gray-600 dark:text-gray-400 mb-0.5",
-                  touchMode === 'glove' ? 'text-xs' : 'text-xs'
-                )}>총 근무일</div>
-                <div className={cn(
-                  "font-semibold text-gray-900 dark:text-gray-100",
-                  touchMode === 'glove' ? 'text-sm' : 'text-xs'
-                )}>{selectedMonthDetails.work_days}일</div>
+          {/* Work Days Info */}
+          <div className="border-t pt-3">
+            <div className="text-sm font-medium text-orange-600 mb-2">근무일 기준:</div>
+            <div className="space-y-1">
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-700 dark:text-gray-300">총 근무일</span>
+                <span className="text-sm font-medium">{selectedMonthDetails.work_days}일</span>
               </div>
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-2">
-                <div className={cn(
-                  "text-gray-600 dark:text-gray-400 mb-0.5",
-                  touchMode === 'glove' ? 'text-xs' : 'text-xs'
-                )}>일당 평균</div>
-                <div className={cn(
-                  "font-semibold text-gray-900 dark:text-gray-100",
-                  touchMode === 'glove' ? 'text-sm' : 'text-xs'
-                )}>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-700 dark:text-gray-300">일당 평균</span>
+                <span className="text-sm font-medium">
                   {selectedMonthDetails.work_days > 0 ? Math.floor((selectedMonthDetails.net_pay / selectedMonthDetails.work_days) / 1000) : 0}천원
-                </div>
+                </span>
               </div>
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-2">
-                <div className={cn(
-                  "text-gray-600 dark:text-gray-400 mb-0.5",
-                  touchMode === 'glove' ? 'text-xs' : 'text-xs'
-                )}>시급 평균 (8시간 기준)</div>
-                <div className={cn(
-                  "font-semibold text-gray-900 dark:text-gray-100",
-                  touchMode === 'glove' ? 'text-sm' : 'text-xs'
-                )}>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-700 dark:text-gray-300">시급 평균 (8시간 기준)</span>
+                <span className="text-sm font-medium">
                   {selectedMonthDetails.total_work_hours > 0 ? Math.floor((selectedMonthDetails.net_pay / selectedMonthDetails.total_work_hours) / 100) : 0}백원
-                </div>
+                </span>
               </div>
             </div>
           </div>

@@ -129,7 +129,7 @@ export function DailyReportListMobile({ currentUser, sites = [] }: DailyReportLi
   }
 
   return (
-    <div className="space-y-3 px-3 py-3">
+    <div className="space-y-px px-px sm:px-6 lg:px-8">
       {/* Header */}
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-3">
         <div className="flex items-center justify-between">

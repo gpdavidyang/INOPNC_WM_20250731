@@ -28,7 +28,7 @@ export function AttendancePageClient({ profile, isPartnerCompany }: AttendancePa
 
   return (
     <div className="h-full bg-white dark:bg-gray-900">
-      <div className="p-3">
+      <div className="space-y-px px-px sm:px-6 lg:px-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           {/* UI Guidelines에 맞는 탭 디자인 */}
           <div className="flex gap-2 mb-3">

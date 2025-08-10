@@ -63,9 +63,9 @@ export function DocumentsPageWithTabs({ profile, searchParams }: DocumentsPageWi
   const currentTab = tabs.find(tab => tab.id === activeTab)
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col space-y-px px-px sm:px-6 lg:px-8">
       {/* Compact Page Header - Mobile Optimized */}
-      <div className="flex items-center justify-between p-3 mb-2 bg-white dark:bg-gray-800 rounded-lg border">
+      <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border">
         <div>
           <h1 className="text-base font-semibold text-gray-900 dark:text-gray-100">
             문서함

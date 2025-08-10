@@ -793,7 +793,7 @@
               "20.2"
             ],
             "details": "Create SiteDocumentManagement component that displays all documents for a site in a organized list/grid view. Implement DocumentList component showing document thumbnails, metadata (type, size, upload date, uploader), and action buttons. Add functionality to set documents as active/inactive, delete documents (with confirmation dialog), and preview documents in modal. Implement proper loading states, error handling, and empty states. Ensure the UI updates in real-time when documents are added or modified.",
-            "status": "pending",
+            "status": "in-progress",
             "testStrategy": "Test CRUD operations for documents including upload, list, delete, and status updates. Verify UI updates correctly after each operation. Test error scenarios like network failures or permission errors. Validate that document previews work for all supported file types."
           },
           {
@@ -823,7 +823,7 @@
     ],
     "metadata": {
       "created": "2025-08-02T09:20:48.397Z",
-      "updated": "2025-08-07T08:16:02.674Z",
+      "updated": "2025-08-10T22:44:38.616Z",
       "description": "Tasks for master context"
     }
   }

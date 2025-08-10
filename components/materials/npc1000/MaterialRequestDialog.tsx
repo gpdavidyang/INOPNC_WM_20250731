@@ -67,9 +67,9 @@ export default function MaterialRequestDialog({
 
   // Touch-responsive sizing
   const getButtonSize = () => {
-    if (touchMode === 'glove') return 'lg'
-    if (touchMode === 'precision') return 'sm'
-    return 'default'
+    if (touchMode === 'glove') return 'full'
+    if (touchMode === 'precision') return 'compact'
+    return 'standard'
   }
 
   const getIconSize = () => {
@@ -173,34 +173,14 @@ export default function MaterialRequestDialog({
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('로그인이 필요합니다.')
 
-      // Create material request
-      const requestData = {
-        site_id: siteId,
-        title: requestTitle.trim(),
-        description: requestNotes.trim() || null,
-        status: 'pending',
-        priority: requestItems.some(item => item.urgencyLevel === 'emergency') ? 'high' : 
-                 requestItems.some(item => item.urgencyLevel === 'urgent') ? 'medium' : 'normal',
-        requested_by: user.id,
-        requested_at: new Date().toISOString(),
-        items: requestItems.map(item => ({
-          material_id: item.materialId,
-          material_name: item.materialName,
-          category: item.category,
-          unit: item.unit,
-          requested_quantity: item.requestedQuantity,
-          urgency_level: item.urgencyLevel,
-          notes: item.notes || null
-        }))
-      }
 
       // Insert request using server action
       const result = await createMaterialRequest({
         site_id: siteId,
-        priority: urgencyLevel as 'low' | 'normal' | 'high' | 'urgent',
-        needed_by: neededBy,
-        notes: notes || undefined,
-        items: items.map(item => ({
+        priority: requestItems.some(item => item.urgencyLevel === 'emergency') ? 'urgent' : 
+                 requestItems.some(item => item.urgencyLevel === 'urgent') ? 'high' : 'normal',
+        notes: requestNotes || undefined,
+        items: requestItems.map(item => ({
           material_id: item.materialId,
           requested_quantity: item.requestedQuantity,
           notes: item.notes || undefined
@@ -211,10 +191,9 @@ export default function MaterialRequestDialog({
         toast.success('자재 요청이 성공적으로 제출되었습니다.')
         onSuccess?.()
         onOpenChange(false)
-        setItems([])
-        setNotes('')
-        setNeededBy('')
-        setUrgencyLevel('normal')
+        setRequestItems([])
+        setRequestTitle('')
+        setRequestNotes('')
       } else {
         throw new Error(result.error || '요청 제출에 실패했습니다.')
       }
@@ -376,7 +355,7 @@ export default function MaterialRequestDialog({
               </h3>
               
               <div className="space-y-2">
-                {requestItems.map((item, index) => (
+                {requestItems.map((item) => (
                   <Card key={item.id} className="p-3">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
@@ -404,7 +383,7 @@ export default function MaterialRequestDialog({
                       
                       <Button
                         variant="ghost"
-                        size="sm"
+                        size="compact"
                         onClick={() => removeRequestItem(item.id)}
                         className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
                       >

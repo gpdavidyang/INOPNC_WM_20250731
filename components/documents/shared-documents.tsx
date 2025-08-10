@@ -328,7 +328,7 @@ export function SharedDocuments({ profile, initialSearch }: SharedDocumentsProps
             placeholder="파일명으로 검색..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9 h-12 text-sm bg-gray-50 dark:bg-gray-700/50"
+            className="pl-9 h-10 text-sm bg-gray-50 dark:bg-gray-700/50"
           />
         </div>
         
@@ -351,7 +351,7 @@ export function SharedDocuments({ profile, initialSearch }: SharedDocumentsProps
             </CustomSelectContent>
           </CustomSelect>
           
-          <Button variant="outline" size="sm" className="h-12 px-3 min-w-[80px]">
+          <Button variant="outline" size="sm" className="h-10 px-3 min-w-[80px]">
             <Filter className="h-4 w-4 mr-1" />
             필터
           </Button>

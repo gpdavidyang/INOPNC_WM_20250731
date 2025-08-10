@@ -220,69 +220,67 @@ export default function NPC1000DailyDashboard({ currentSiteId, currentSiteName }
   })
   
   return (
-    <div className="space-y-6">
-      {/* Site Selection */}
-      <div className="mb-6">
-        <h2 className={`${getFullTypographyClass('heading', isLargeFont ? 'xl' : 'lg', isLargeFont)} font-semibold text-gray-900 dark:text-gray-100 mb-3`}>
-          현장별 통합 관리 시스템
-        </h2>
-        <Select value={selectedSiteId} onValueChange={setSelectedSiteId}>
-          <SelectTrigger className="w-full sm:w-[300px]">
-            <SelectValue placeholder="현장을 선택하세요" />
-          </SelectTrigger>
-          <SelectContent>
-            {availableSites.map((site) => (
-              <SelectItem key={site.id} value={site.id}>
-                {site.name} 현재
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+    <div className="space-y-3">
+      {/* NPC-1000 Management Header */}
+      <div className="mb-4">
+        <div className="flex items-center gap-2 mb-3">
+          <Package className={`${getIconSize()} text-blue-600 dark:text-blue-400`} />
+          <h1 className={`${getFullTypographyClass('heading', isLargeFont ? 'lg' : 'md', isLargeFont)} font-bold text-gray-900 dark:text-gray-100`}>
+            NPC-1000 관리
+          </h1>
+        </div>
+        {currentSiteName && (
+          <div className="mb-2">
+            <span className={`${getFullTypographyClass('body', 'xs', isLargeFont)} text-gray-600 dark:text-gray-400`}>
+              현재 현장: <span className="font-medium text-gray-900 dark:text-gray-100">{currentSiteName}</span>
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Today's Status */}
       <div>
-        <h3 className={`${getFullTypographyClass('heading', 'md', isLargeFont)} font-medium text-gray-900 dark:text-gray-100 mb-3`}>
+        <h3 className={`${getFullTypographyClass('heading', 'sm', isLargeFont)} font-medium text-gray-900 dark:text-gray-100 mb-2`}>
           금일 현황
         </h3>
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-3 gap-2">
           <Card>
-            <div className="p-4 text-center">
-              <div className="flex items-center justify-center mb-2">
-                <ArrowDown className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            <div className="p-3 text-center">
+              <div className="flex items-center justify-center mb-1">
+                <ArrowDown className="h-4 w-4 text-blue-600 dark:text-blue-400" />
               </div>
-              <p className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-600 dark:text-gray-400 mb-1`}>
+              <p className={`${getFullTypographyClass('body', 'xs', isLargeFont)} text-gray-600 dark:text-gray-400 mb-0.5`}>
                 입고
               </p>
-              <p className={`${getFullTypographyClass('heading', 'xl', isLargeFont)} font-bold text-gray-900 dark:text-gray-100`}>
+              <p className={`${getFullTypographyClass('heading', 'lg', isLargeFont)} font-bold text-gray-900 dark:text-gray-100`}>
                 {dailyStatus.incoming}
               </p>
             </div>
           </Card>
           
           <Card>
-            <div className="p-4 text-center">
-              <div className="flex items-center justify-center mb-2">
-                <ArrowUp className="h-5 w-5 text-red-600 dark:text-red-400" />
+            <div className="p-3 text-center">
+              <div className="flex items-center justify-center mb-1">
+                <ArrowUp className="h-4 w-4 text-red-600 dark:text-red-400" />
               </div>
-              <p className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-600 dark:text-gray-400 mb-1`}>
+              <p className={`${getFullTypographyClass('body', 'xs', isLargeFont)} text-gray-600 dark:text-gray-400 mb-0.5`}>
                 사용
               </p>
-              <p className={`${getFullTypographyClass('heading', 'xl', isLargeFont)} font-bold text-gray-900 dark:text-gray-100`}>
+              <p className={`${getFullTypographyClass('heading', 'lg', isLargeFont)} font-bold text-gray-900 dark:text-gray-100`}>
                 {dailyStatus.used}
               </p>
             </div>
           </Card>
           
           <Card>
-            <div className="p-4 text-center">
-              <div className="flex items-center justify-center mb-2">
-                <Archive className="h-5 w-5 text-green-600 dark:text-green-400" />
+            <div className="p-3 text-center">
+              <div className="flex items-center justify-center mb-1">
+                <Archive className="h-4 w-4 text-green-600 dark:text-green-400" />
               </div>
-              <p className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-600 dark:text-gray-400 mb-1`}>
+              <p className={`${getFullTypographyClass('body', 'xs', isLargeFont)} text-gray-600 dark:text-gray-400 mb-0.5`}>
                 재고
               </p>
-              <p className={`${getFullTypographyClass('heading', 'xl', isLargeFont)} font-bold text-blue-600 dark:text-blue-400`}>
+              <p className={`${getFullTypographyClass('heading', 'lg', isLargeFont)} font-bold text-blue-600 dark:text-blue-400`}>
                 {dailyStatus.inventory}
               </p>
             </div>
@@ -292,47 +290,47 @@ export default function NPC1000DailyDashboard({ currentSiteId, currentSiteName }
 
       {/* Cumulative Status */}
       <div>
-        <h3 className={`${getFullTypographyClass('heading', 'md', isLargeFont)} font-medium text-gray-900 dark:text-gray-100 mb-3`}>
+        <h3 className={`${getFullTypographyClass('heading', 'sm', isLargeFont)} font-medium text-gray-900 dark:text-gray-100 mb-2`}>
           누적 현황
         </h3>
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-3 gap-2">
           <Card>
-            <div className="p-4 text-center">
-              <div className="flex items-center justify-center mb-2">
-                <ArrowDown className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            <div className="p-3 text-center">
+              <div className="flex items-center justify-center mb-1">
+                <ArrowDown className="h-4 w-4 text-blue-600 dark:text-blue-400" />
               </div>
-              <p className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-600 dark:text-gray-400 mb-1`}>
+              <p className={`${getFullTypographyClass('body', 'xs', isLargeFont)} text-gray-600 dark:text-gray-400 mb-0.5`}>
                 총입고
               </p>
-              <p className={`${getFullTypographyClass('heading', 'xl', isLargeFont)} font-bold text-gray-900 dark:text-gray-100`}>
+              <p className={`${getFullTypographyClass('heading', 'lg', isLargeFont)} font-bold text-gray-900 dark:text-gray-100`}>
                 {cumulativeStatus.totalIncoming}
               </p>
             </div>
           </Card>
           
           <Card>
-            <div className="p-4 text-center">
-              <div className="flex items-center justify-center mb-2">
-                <ArrowUp className="h-5 w-5 text-red-600 dark:text-red-400" />
+            <div className="p-3 text-center">
+              <div className="flex items-center justify-center mb-1">
+                <ArrowUp className="h-4 w-4 text-red-600 dark:text-red-400" />
               </div>
-              <p className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-600 dark:text-gray-400 mb-1`}>
+              <p className={`${getFullTypographyClass('body', 'xs', isLargeFont)} text-gray-600 dark:text-gray-400 mb-0.5`}>
                 총사용
               </p>
-              <p className={`${getFullTypographyClass('heading', 'xl', isLargeFont)} font-bold text-gray-900 dark:text-gray-100`}>
+              <p className={`${getFullTypographyClass('heading', 'lg', isLargeFont)} font-bold text-gray-900 dark:text-gray-100`}>
                 {cumulativeStatus.totalUsed}
               </p>
             </div>
           </Card>
           
           <Card>
-            <div className="p-4 text-center">
-              <div className="flex items-center justify-center mb-2">
-                <Archive className="h-5 w-5 text-green-600 dark:text-green-400" />
+            <div className="p-3 text-center">
+              <div className="flex items-center justify-center mb-1">
+                <Archive className="h-4 w-4 text-green-600 dark:text-green-400" />
               </div>
-              <p className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-600 dark:text-gray-400 mb-1`}>
+              <p className={`${getFullTypographyClass('body', 'xs', isLargeFont)} text-gray-600 dark:text-gray-400 mb-0.5`}>
                 현재고
               </p>
-              <p className={`${getFullTypographyClass('heading', 'xl', isLargeFont)} font-bold text-green-600 dark:text-green-400`}>
+              <p className={`${getFullTypographyClass('heading', 'lg', isLargeFont)} font-bold text-green-600 dark:text-green-400`}>
                 {cumulativeStatus.totalInventory}
               </p>
             </div>

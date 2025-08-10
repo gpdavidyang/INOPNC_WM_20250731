@@ -35,7 +35,7 @@ export default async function SiteInfoPage() {
       profile={profileResult.data}
       initialActiveTab="site-info"
     >
-      <div className="p-3 sm:px-4">
+      <div className="space-y-3 px-3 sm:px-4 lg:px-6">
         <SiteInfoPageNew 
           initialCurrentSite={currentSite}
           initialSiteHistory={siteHistory}

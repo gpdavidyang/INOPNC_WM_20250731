@@ -86,6 +86,12 @@ export default async function DailyReportDetailPage({
     <>
       {/* Mobile View - UI Guidelines 최적화 */}
       <div className="lg:hidden">
+        {/* Header 섹션 추가 */}
+        <Header 
+          profile={profile as any} 
+          onMenuClick={() => {}} 
+          isSidebarOpen={false}
+        />
         <DailyReportDetailMobile
           report={report as any}
           currentUser={profile as any}

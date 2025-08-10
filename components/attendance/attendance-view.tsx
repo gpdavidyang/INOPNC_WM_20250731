@@ -401,17 +401,9 @@ export function AttendanceView({ profile }: AttendanceViewProps) {
                       {/* Labor Hours and Site - Minimal Design */}
                       {!loading && hasAttendance && (
                         <div className="space-y-1">
-                          {/* Labor Hours with subtle dot indicator */}
-                          <div className="flex items-center gap-1">
-                            <div className={cn(
-                              "w-1.5 h-1.5 rounded-full flex-shrink-0",
-                              attendance.labor_hours >= 1.0 ? "bg-gray-700 dark:bg-gray-300" :
-                              attendance.labor_hours >= 0.5 ? "bg-gray-500 dark:bg-gray-400" :
-                              "bg-gray-400 dark:bg-gray-500"
-                            )}></div>
-                            <div className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                              {attendance.labor_hours}
-                            </div>
+                          {/* Labor Hours - Bold without dot */}
+                          <div className="text-xs font-bold text-gray-700 dark:text-gray-300">
+                            {attendance.labor_hours}
                           </div>
                           {/* Site Abbreviation - Subtle */}
                           {attendance.sites?.name && (

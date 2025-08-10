@@ -180,6 +180,20 @@ npm run protect:check          # Verify critical features are working
   - All authenticated users can now view necessary data for proper UI functionality
   - Created migration files to persist these policies
 
+### 2025-08-10: Home Screen Layout Spacing Documentation
+- **Header to First Section Gap**: `py-6` = 24px top padding
+  - Location: `/components/dashboard/dashboard-layout.tsx` line 386
+  - Applied to main content container: `<main id="main-content" className="py-6 pb-16 md:pb-6">`
+- **Left/Right Edge to Section Gap**: Responsive horizontal padding
+  - Location: `/components/dashboard/dashboard-layout.tsx` line 387  
+  - Mobile: `px-4` = 16px (each side)
+  - Small screens: `sm:px-6` = 24px (each side)
+  - Large screens: `lg:px-8` = 32px (each side)
+  - Applied to content wrapper: `<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">`
+- **Header Height**: `h-16` = 64px
+  - Location: `/components/dashboard/header.tsx` line 26
+  - Applied to header container: `<div className="flex h-16 items-center justify-between">`
+
 ### 2025-08-03: Today's Site Information Enhancements
 - **Blueprint View Button**: Added "공사도면" button next to work details
   - Opens modal with actual construction blueprint image

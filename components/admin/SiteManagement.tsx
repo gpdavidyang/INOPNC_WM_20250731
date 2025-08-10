@@ -236,100 +236,104 @@ export default function SiteManagement({ profile }: SiteManagementProps) {
   ]
 
   return (
-    <div className="space-y-6">
-      {/* Header with search and filters */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="flex-1">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <input
-              type="text"
-              placeholder="현장명 또는 주소로 검색..."
-              value={searchTerm}
-              onChange={(e) => handleSearch(e.target.value)}
-              className="pl-10 pr-4 py-2 w-full border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
+    <div className="py-6">
+      <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-12">
+        <div className="space-y-6">
+          {/* Header with search and filters */}
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <input
+                  type="text"
+                  placeholder="현장명 또는 주소로 검색..."
+                  value={searchTerm}
+                  onChange={(e) => handleSearch(e.target.value)}
+                  className="pl-10 pr-4 py-2 w-full border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+            
+            <div className="flex gap-2">
+              <select
+                value={statusFilter}
+                onChange={(e) => handleStatusFilter(e.target.value as SiteStatus | '')}
+                className="w-full px-3 py-1.5 text-sm font-medium border border-gray-200 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+              >
+                <option value="">모든 상태</option>
+                <option value="active">활성</option>
+                <option value="inactive">비활성</option>
+                <option value="completed">완료</option>
+              </select>
+              
+              <button
+                onClick={handleCreateSite}
+                className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                새 현장
+              </button>
+            </div>
           </div>
-        </div>
-        
-        <div className="flex gap-2">
-          <select
-            value={statusFilter}
-            onChange={(e) => handleStatusFilter(e.target.value as SiteStatus | '')}
-            className="w-full px-3 py-1.5 text-sm font-medium border border-gray-200 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-          >
-            <option value="">모든 상태</option>
-            <option value="active">활성</option>
-            <option value="inactive">비활성</option>
-            <option value="completed">완료</option>
-          </select>
+
+          {/* Sites table */}
+          <AdminDataTable
+            data={sites}
+            columns={columns}
+            loading={loading}
+            error={error}
+            selectable={true}
+            selectedIds={selectedIds}
+            onSelectionChange={setSelectedIds}
+            getRowId={(site: Site) => site.id}
+            onView={handleViewSite}
+            onEdit={handleEditSite}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            pageSize={pageSize}
+            totalCount={totalCount}
+            emptyMessage="현장이 없습니다"
+            emptyDescription="새 현장을 추가하여 시작하세요."
+          />
+
+          {/* Bulk action bar */}
+          <BulkActionBar
+            selectedIds={selectedIds}
+            totalCount={totalCount}
+            actions={bulkActions}
+            onClearSelection={() => setSelectedIds([])}
+          />
+
+          {/* Modals */}
+          {showCreateModal && (
+            <SiteCreateEditModal
+              isOpen={showCreateModal}
+              onClose={() => setShowCreateModal(false)}
+              onSuccess={() => {
+                setShowCreateModal(false)
+                loadSites()
+              }}
+            />
+          )}
           
-          <button
-            onClick={handleCreateSite}
-            className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            새 현장
-          </button>
+          {showEditModal && editingSite && (
+            <SiteCreateEditModal
+              isOpen={showEditModal}
+              onClose={() => {
+                setShowEditModal(false)
+                setEditingSite(null)
+              }}
+              onSuccess={() => {
+                setShowEditModal(false)
+                setEditingSite(null)
+                loadSites()
+              }}
+              site={editingSite}
+            />
+          )}
         </div>
       </div>
-
-      {/* Sites table */}
-      <AdminDataTable
-        data={sites}
-        columns={columns}
-        loading={loading}
-        error={error}
-        selectable={true}
-        selectedIds={selectedIds}
-        onSelectionChange={setSelectedIds}
-        getRowId={(site: Site) => site.id}
-        onView={handleViewSite}
-        onEdit={handleEditSite}
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={setCurrentPage}
-        pageSize={pageSize}
-        totalCount={totalCount}
-        emptyMessage="현장이 없습니다"
-        emptyDescription="새 현장을 추가하여 시작하세요."
-      />
-
-      {/* Bulk action bar */}
-      <BulkActionBar
-        selectedIds={selectedIds}
-        totalCount={totalCount}
-        actions={bulkActions}
-        onClearSelection={() => setSelectedIds([])}
-      />
-
-      {/* Modals */}
-      {showCreateModal && (
-        <SiteCreateEditModal
-          isOpen={showCreateModal}
-          onClose={() => setShowCreateModal(false)}
-          onSuccess={() => {
-            setShowCreateModal(false)
-            loadSites()
-          }}
-        />
-      )}
-      
-      {showEditModal && editingSite && (
-        <SiteCreateEditModal
-          isOpen={showEditModal}
-          onClose={() => {
-            setShowEditModal(false)
-            setEditingSite(null)
-          }}
-          onSuccess={() => {
-            setShowEditModal(false)
-            setEditingSite(null)
-            loadSites()
-          }}
-          site={editingSite}
-        />
-      )}
     </div>
   )
 }
@@ -427,7 +431,7 @@ function SiteCreateEditModal({ isOpen, onClose, onSuccess, site }: SiteCreateEdi
             {isEditing ? '현장 편집' : '새 현장 추가'}
           </h2>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-2">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Basic Information */}
               <div className="md:col-span-2">

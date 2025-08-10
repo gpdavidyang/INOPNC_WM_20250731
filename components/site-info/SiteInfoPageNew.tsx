@@ -201,64 +201,11 @@ export default function SiteInfoPageNew({
 
 
   return (
-    <PageContainer>
+    <PageContainer className="px-px sm:px-6 lg:px-8">
       
-      {/* Site Selection Dropdown */}
-      <div className="mb-6">
-        <Select value={selectedSite?.site_id || ''} onValueChange={handleSiteSelect}>
-          <SelectTrigger className={`
-            w-full sm:w-[300px] 
-            ${touchMode === 'glove' ? 'min-h-[60px]' : 
-              touchMode === 'precision' ? 'min-h-[44px]' : 
-              'min-h-[48px]'
-            }
-            ${getFullTypographyClass('body', 'sm', isLargeFont)}
-          `}>
-            <SelectValue placeholder="현장을 선택하세요" />
-          </SelectTrigger>
-          <SelectContent 
-            className={`
-              ${touchMode === 'glove' ? 'p-2' : 'p-1'}
-              max-w-[90vw] sm:max-w-none
-              bg-white dark:bg-gray-800 
-              border border-gray-200 dark:border-gray-700
-              shadow-lg backdrop-blur-sm
-              z-50
-            `}
-            sideOffset={4}
-          >
-            {siteHistory.map((site) => (
-              <SelectItem 
-                key={site.site_id} 
-                value={site.site_id}
-                className={`
-                  ${touchMode === 'glove' ? 'min-h-[56px] px-4 py-3' : 
-                    touchMode === 'precision' ? 'min-h-[40px] px-3 py-2' : 
-                    'min-h-[44px] px-3 py-2'
-                  }
-                  ${getFullTypographyClass('body', 'sm', isLargeFont)}
-                `}
-              >
-                <div className="flex items-center gap-2 w-full">
-                  <span className="flex-1 truncate">{site.site_name}</span>
-                  {site.is_active && (
-                    <span className={`
-                      px-1.5 py-0.5 bg-green-100 text-green-700 rounded
-                      ${getFullTypographyClass('caption', 'xs', isLargeFont)}
-                    `}>
-                      현재
-                    </span>
-                  )}
-                </div>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Tabs - Compact Layout */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-3">
-        <TabsList className={`grid w-full grid-cols-2 ${getTabHeight()} gap-1`}>
+      {/* Tabs - Compact Layout - Moved to top */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-1">
+        <TabsList className={`grid w-full grid-cols-2 ${getTabHeight()} gap-1 mb-4`}>
           <TabsTrigger 
             value="overview" 
             className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-2 py-2 ${getTabHeight()}`}
@@ -279,8 +226,61 @@ export default function SiteInfoPageNew({
           </TabsTrigger>
         </TabsList>
 
+        {/* Site Selection Dropdown - Moved below tabs */}
+        <div className="mb-20">
+          <Select value={selectedSite?.site_id || ''} onValueChange={handleSiteSelect}>
+            <SelectTrigger className={`
+              w-full sm:w-[300px] 
+              ${touchMode === 'glove' ? 'min-h-[60px]' : 
+                touchMode === 'precision' ? 'min-h-[44px]' : 
+                'min-h-[48px]'
+              }
+              ${getFullTypographyClass('body', 'sm', isLargeFont)}
+            `}>
+              <SelectValue placeholder="현장을 선택하세요" />
+            </SelectTrigger>
+            <SelectContent 
+              className={`
+                ${touchMode === 'glove' ? 'p-2' : 'p-1'}
+                max-w-[90vw] sm:max-w-none
+                bg-white dark:bg-gray-800 
+                border border-gray-200 dark:border-gray-700
+                shadow-lg backdrop-blur-sm
+                z-50
+              `}
+              sideOffset={4}
+            >
+              {siteHistory.map((site) => (
+                <SelectItem 
+                  key={site.site_id} 
+                  value={site.site_id}
+                  className={`
+                    ${touchMode === 'glove' ? 'min-h-[56px] px-4 py-3' : 
+                      touchMode === 'precision' ? 'min-h-[40px] px-3 py-2' : 
+                      'min-h-[44px] px-3 py-2'
+                    }
+                    ${getFullTypographyClass('body', 'sm', isLargeFont)}
+                  `}
+                >
+                  <div className="flex items-center gap-2 w-full">
+                    <span className="flex-1 truncate">{site.site_name}</span>
+                    {site.is_active && (
+                      <span className={`
+                        px-1.5 py-0.5 bg-green-100 text-green-700 rounded
+                        ${getFullTypographyClass('caption', 'xs', isLargeFont)}
+                      `}>
+                        현재
+                      </span>
+                    )}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
         {/* Tab Contents */}
-        <TabsContent value="overview" className="space-y-4">
+        <TabsContent value="overview" className="space-y-3 mt-6">
           {selectedSite ? (
             <>
               {/* 오늘의 현장 정보 - 1번 이미지 스타일로 개선 */}
@@ -305,7 +305,7 @@ export default function SiteInfoPageNew({
                 {siteHistoryExpanded && (
                   <div className="p-3 bg-white dark:bg-gray-800">
                     {/* 현장 기본 정보 - 컴팩트한 레이아웃 */}
-                    <div className="space-y-3">
+                    <div className="space-y-1">
                       
                       {/* 현장 주소 */}
                       <div className="flex items-start gap-3">
@@ -342,12 +342,12 @@ export default function SiteInfoPageNew({
 
                       {/* 담당자 연락처 */}
                       {(selectedSite.construction_manager_phone || selectedSite.safety_manager_phone) && (
-                        <div className="space-y-2">
+                        <div className="space-y-1">
                           <div className="flex items-center gap-2">
                             <Users className="h-4 w-4 text-blue-500" />
                             <span className="text-xs text-gray-500 dark:text-gray-400">담당자 연락처</span>
                           </div>
-                          <div className="space-y-1.5 pl-6">
+                          <div className="space-y-1 pl-6">
                             {selectedSite.construction_manager_phone && (
                               <div className="flex items-center justify-between bg-gray-50 dark:bg-gray-700/50 rounded-lg px-2 py-1.5">
                                 <div className="flex-1">
@@ -539,7 +539,7 @@ export default function SiteInfoPageNew({
           )}
         </TabsContent>
 
-        <TabsContent value="materials" className="space-y-4">
+        <TabsContent value="materials" className="space-y-3 mt-6">
           {selectedSite ? (
             materialsLoading ? (
               <LoadingState message="자재 정보를 불러오는 중..." />

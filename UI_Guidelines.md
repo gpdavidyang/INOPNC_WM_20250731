@@ -146,6 +146,39 @@ className={cn(
 
 ## Spacing System
 
+### 헤더-섹션 간격 표준 (Header-Section Spacing Standards) ⚡️ v3.1.0 업데이트
+
+#### 표준 간격 규칙 (개정: 2025-08-10)
+- **기본 간격**: `space-y-px` (1px) - 페이지 헤더와 첫 번째 섹션 간의 표준 간격 
+- **적용 위치**: 페이지 헤더 다음 첫 번째 섹션
+- **CSS 클래스**: `space-y-px` 또는 `mt-px` (1px)
+- **좌우 가장자리 간격**: `px-px` (1px) - 모바일 최소 패딩 유지
+- **섹션-섹션 간격**: `space-y-px` (1px) - 모든 섹션 간 표준 간격
+
+#### 실제 적용 예시
+```jsx
+// 페이지 구조 (업데이트된 표준 - v3.1.1)
+<div className="space-y-px px-px sm:px-6 lg:px-8"> {/* 헤더-섹션간 1px, 섹션-섹션간 4px */}
+  <PageHeader />
+  <FirstSection />      {/* 헤더와 1px 간격 */}
+  
+  {/* 섹션 내부에서는 4px 간격 */}
+  <Tabs className="space-y-1">           {/* 4px 섹션 간격 */}
+    <TabsContent className="space-y-1">  {/* 4px 내부 섹션 간격 */}
+      <Section />
+      <Section />
+    </TabsContent>
+  </Tabs>
+</div>
+```
+
+#### 간격 시스템 일관성 (v3.1.1 - 2025-08-10 업데이트)
+- **헤더-첫번째섹션**: `space-y-px` (1px) - 페이지 헤더와 첫 번째 섹션만
+- **섹션-섹션 간격**: `space-y-1` (4px) - 모든 섹션 간 표준 간격 (업데이트됨)
+- **좌우 가장자리**: `px-px` (1px) - 모바일 최소 패딩 (유지)
+- **컨테이너 내부**: `p-3` (12px) - 카드 및 컨테이너 내부 패딩 (유지)
+- **조밀한 레이아웃**: `gap-1` (4px) - 그리드 및 플렉스 간격 (업데이트됨)
+
 ### Mobile-First Field Worker Spacing
 
 #### Base Unit: 2px (Compact Mobile)

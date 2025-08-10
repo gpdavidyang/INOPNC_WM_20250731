@@ -14,7 +14,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Building2,
-  BarChart3
+  BarChart3,
+  Calendar
 } from 'lucide-react'
 import { getAttendanceRecords } from '@/app/actions/attendance'
 import { getSites } from '@/app/actions/sites'
@@ -63,6 +64,7 @@ export function AttendanceView({ profile }: AttendanceViewProps) {
   })
   const [loading, setLoading] = useState(false)
   const [activeTab, setActiveTab] = useState<'personal' | 'company'>('personal')
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
 
   // Load sites on mount
   useEffect(() => {
@@ -81,12 +83,8 @@ export function AttendanceView({ profile }: AttendanceViewProps) {
       const result = await getSites()
       if (result.success && result.data) {
         setSites(result.data as Site[])
-        // Auto-select user's site if available
-        if (profile?.site_id) {
-          setSelectedSite(profile.site_id)
-        } else if (result.data.length > 0) {
-          setSelectedSite(result.data[0].id)
-        }
+        // Keep default selection as 'all' instead of auto-selecting user's site
+        // This ensures the "전체 현장" (All Sites) option is selected by default
       }
     } catch (error) {
       console.error('Failed to load sites:', error)
@@ -152,6 +150,29 @@ export function AttendanceView({ profile }: AttendanceViewProps) {
   const getAttendanceForDate = (date: Date): AttendanceData | undefined => {
     const dateStr = format(date, 'yyyy-MM-dd')
     return attendanceData.find(record => record.work_date === dateStr)
+  }
+
+  const handleDateClick = (date: Date) => {
+    const attendance = getAttendanceForDate(date)
+    if (attendance && attendance.labor_hours && attendance.labor_hours > 0) {
+      setSelectedDate(date)
+    } else {
+      setSelectedDate(null)
+    }
+  }
+
+  const getSelectedDateDetails = () => {
+    if (!selectedDate) return null
+    const attendance = getAttendanceForDate(selectedDate)
+    if (!attendance) return null
+    
+    return {
+      date: selectedDate,
+      attendance,
+      formattedDate: format(selectedDate, 'M월 d일 (E)', { locale: ko }),
+      siteName: attendance.sites?.name || '현장 정보 없음',
+      siteAbbrev: attendance.sites?.name ? getSiteShortName(attendance.sites.name) : '미상'
+    }
   }
 
   // Calendar generation
@@ -315,95 +336,28 @@ export function AttendanceView({ profile }: AttendanceViewProps) {
           </Button>
         </div>
 
-        {/* Calendar Grid - Quantum Holographic */}
-        <div className="relative overflow-hidden">
-          {/* Weekday Headers - Quantum Field */}
-          <div className="grid grid-cols-7 mb-[4px] relative">
+        {/* Calendar Grid - Simple & Modern */}
+        <div className="relative">
+          {/* Weekday Headers */}
+          <div className="grid grid-cols-7 mb-2">
             {['일', '월', '화', '수', '목', '금', '토'].map((day, i) => (
               <div
                 key={day}
                 className={cn(
-                  "text-center relative group cursor-default z-20",
-                  touchMode === 'glove' ? 'py-3.5 text-[12px]' : 'py-3 text-[10px]',
-                  "font-extralight tracking-[0.2em] uppercase opacity-25",
-                  "transition-all duration-1500 ease-out hover:opacity-90 hover:scale-125 hover:translate-y-[-3px]",
-                  i === 0 && "text-red-400/80 dark:text-red-300/60",
-                  i === 6 && "text-blue-400/80 dark:text-blue-300/60",
-                  i !== 0 && i !== 6 && "text-gray-500/70 dark:text-gray-400/50"
+                  "text-center",
+                  touchMode === 'glove' ? 'py-3 text-sm' : 'py-2 text-xs',
+                  "font-medium text-gray-600 dark:text-gray-400",
+                  i === 0 && "text-red-500 dark:text-red-400",
+                  i === 6 && "text-blue-500 dark:text-blue-400"
                 )}
               >
-                <div className="relative transform transition-all duration-1500 group-hover:rotate-6 group-hover:scale-110">
-                  {day}
-                  {/* Quantum field distortion */}
-                  <div className="absolute inset-[-12px] bg-gradient-radial from-violet-200/20 via-cyan-200/15 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-2000 rounded-full blur-xl animate-pulse" />
-                  {/* Holographic projection beams */}
-                  <div className="absolute top-1/2 left-full w-8 h-[0.5px] bg-gradient-to-r from-cyan-400/30 via-violet-400/40 to-transparent opacity-0 group-hover:opacity-80 transition-all duration-1500 animate-pulse" />
-                  <div className="absolute top-1/2 right-full w-8 h-[0.5px] bg-gradient-to-l from-cyan-400/30 via-violet-400/40 to-transparent opacity-0 group-hover:opacity-80 transition-all duration-1500 animate-pulse" />
-                  {/* Quantum interference */}
-                  <div className="absolute top-[-2px] left-1/2 w-[0.5px] h-6 bg-gradient-to-b from-violet-400/25 to-transparent opacity-0 group-hover:opacity-60 transition-all duration-1200" />
-                </div>
+                {day}
               </div>
             ))}
-            {/* Quantum field background */}
-            <div className="absolute inset-0 opacity-15 dark:opacity-10 pointer-events-none">
-              <svg className="w-full h-full" viewBox="0 0 100 10">
-                <defs>
-                  <linearGradient id="quantumGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="rgb(168 85 247)" stopOpacity="0.25" />
-                    <stop offset="25%" stopColor="rgb(6 182 212)" stopOpacity="0.35" />
-                    <stop offset="50%" stopColor="rgb(139 92 246)" stopOpacity="0.3" />
-                    <stop offset="75%" stopColor="rgb(34 211 238)" stopOpacity="0.35" />
-                    <stop offset="100%" stopColor="rgb(168 85 247)" stopOpacity="0.25" />
-                  </linearGradient>
-                  <filter id="quantumGlow">
-                    <feGaussianBlur stdDeviation="0.8" result="coloredBlur"/>
-                    <feMerge>
-                      <feMergeNode in="coloredBlur"/>
-                      <feMergeNode in="SourceGraphic"/>
-                    </feMerge>
-                  </filter>
-                </defs>
-                <path d="M 0,5 Q 20,1 40,5 Q 60,9 80,5 Q 90,2 100,5" stroke="url(#quantumGradient)" strokeWidth="0.8" fill="none" filter="url(#quantumGlow)" />
-                {/* Quantum particles */}
-                <circle cx="12" cy="4" r="1.2" fill="rgb(168 85 247)" fillOpacity="0.4" className="animate-pulse" />
-                <circle cx="28" cy="6" r="0.8" fill="rgb(6 182 212)" fillOpacity="0.5" className="animate-pulse" style={{ animationDelay: '0.3s' }} />
-                <circle cx="45" cy="3.5" r="1" fill="rgb(139 92 246)" fillOpacity="0.4" className="animate-pulse" style={{ animationDelay: '0.6s' }} />
-                <circle cx="62" cy="6.5" r="0.9" fill="rgb(34 211 238)" fillOpacity="0.45" className="animate-pulse" style={{ animationDelay: '0.9s' }} />
-                <circle cx="78" cy="4.2" r="1.1" fill="rgb(168 85 247)" fillOpacity="0.4" className="animate-pulse" style={{ animationDelay: '1.2s' }} />
-                <circle cx="88" cy="5.8" r="0.7" fill="rgb(6 182 212)" fillOpacity="0.5" className="animate-pulse" style={{ animationDelay: '1.5s' }} />
-              </svg>
-            </div>
           </div>
           
-          {/* Calendar Days - Holographic Matrix */}
-          <div className="grid grid-cols-7 gap-[3px] bg-gradient-to-br from-violet-50/30 via-cyan-25/25 to-purple-50/30 dark:from-violet-950/25 dark:via-cyan-950/20 dark:to-purple-950/25 p-3 rounded-[2rem] overflow-hidden backdrop-blur-[40px] border border-violet-200/25 dark:border-violet-800/15 relative">
-            {/* Holographic interference pattern */}
-            <div className="absolute inset-0 opacity-15 dark:opacity-8 pointer-events-none">
-              <svg className="w-full h-full" viewBox="0 0 100 50">
-                <defs>
-                  <radialGradient id="holoField" cx="50%" cy="50%" r="50%">
-                    <stop offset="0%" stopColor="rgb(139 92 246)" stopOpacity="0.2" />
-                    <stop offset="30%" stopColor="rgb(6 182 212)" stopOpacity="0.3" />
-                    <stop offset="60%" stopColor="rgb(168 85 247)" stopOpacity="0.25" />
-                    <stop offset="100%" stopColor="transparent" />
-                  </radialGradient>
-                  <pattern id="quantumGrid" x="0" y="0" width="15" height="12" patternUnits="userSpaceOnUse">
-                    <circle cx="7.5" cy="6" r="1" fill="url(#holoField)" />
-                    <path d="M 0,6 L 15,6 M 7.5,0 L 7.5,12" stroke="rgb(139 92 246)" strokeOpacity="0.15" strokeWidth="0.3" />
-                    <path d="M 7.5,6 Q 11,3 15,6 Q 11,9 7.5,6" stroke="rgb(6 182 212)" strokeOpacity="0.2" strokeWidth="0.4" fill="none" />
-                  </pattern>
-                </defs>
-                <rect width="100%" height="100%" fill="url(#quantumGrid)" />
-                <ellipse cx="50" cy="25" rx="30" ry="15" fill="url(#holoField)" opacity="0.6" className="animate-pulse" />
-              </svg>
-            </div>
-            
-            {/* Quantum field waves */}
-            <div className="absolute inset-0 pointer-events-none opacity-20 dark:opacity-10">
-              <div className="absolute top-1/4 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-400/60 to-transparent animate-pulse" style={{ animationDuration: '4s' }} />
-              <div className="absolute top-2/4 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-violet-400/60 to-transparent animate-pulse" style={{ animationDuration: '6s', animationDelay: '1s' }} />
-              <div className="absolute top-3/4 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-purple-400/60 to-transparent animate-pulse" style={{ animationDuration: '5s', animationDelay: '2s' }} />
-            </div>
+          {/* Calendar Days - Simple & Modern Design */}
+          <div className="grid grid-cols-7 gap-1">
             
             {fullCalendarDays.map((day, index) => {
               const attendance = day ? getAttendanceForDate(day) : undefined
@@ -413,188 +367,65 @@ export function AttendanceView({ profile }: AttendanceViewProps) {
               const isTodayDate = day && isToday(day)
               const hasAttendance = attendance && attendance.labor_hours && attendance.labor_hours > 0
               
-              // Quantum entanglement calculations
-              const quantumConnections = []
-              if (hasAttendance && isCurrentMonth) {
-                for (let i = 0; i < fullCalendarDays.length; i++) {
-                  if (i !== index && fullCalendarDays[i] && getAttendanceForDate(fullCalendarDays[i])?.labor_hours > 0) {
-                    const distance = Math.abs(i - index)
-                    if (distance <= 14 && Math.random() > 0.7) { // Quantum probability
-                      quantumConnections.push(i)
-                    }
-                  }
-                }
-              }
-              
               return (
                 <div
                   key={index}
+                  onClick={() => day && isCurrentMonth && handleDateClick(day)}
                   className={cn(
-                    "relative group overflow-visible",
-                    "bg-white/85 dark:bg-gray-950/75 backdrop-blur-[60px]",
-                    "transition-all duration-1500 ease-out",
-                    "border-0 hover:scale-[1.08] hover:z-50 rounded-[2rem]",
-                    "hover:shadow-[0_0_30px_rgba(139,92,246,0.4)] dark:hover:shadow-[0_0_35px_rgba(139,92,246,0.6)]",
-                    "hover:bg-white/95 dark:hover:bg-gray-900/90",
-                    touchMode === 'glove' ? 'h-[80px]' : 
-                    touchMode === 'precision' ? 'h-[58px]' : 
-                    'h-[62px]',
+                    "relative min-h-16 p-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg",
+                    "transition-colors duration-200",
+                    touchMode === 'glove' ? 'min-h-20' : 
+                    touchMode === 'precision' ? 'min-h-14' : 
+                    'min-h-16',
                     !day && "invisible",
-                    !isCurrentMonth && "opacity-10 scale-[0.92] saturate-0 blur-[0.5px]",
-                    // Today - quantum resonance
-                    isTodayDate && [
-                      "bg-gradient-to-br from-violet-50/90 via-white/85 to-cyan-50/80",
-                      "dark:from-violet-950/50 dark:via-gray-900/75 dark:to-cyan-950/45",
-                      "shadow-[0_0_20px_rgba(139,92,246,0.6)] dark:shadow-[0_0_25px_rgba(139,92,246,0.8)]",
-                      "ring-2 ring-violet-300/70 dark:ring-violet-500/60",
-                      "before:absolute before:inset-[-3px] before:bg-gradient-conic before:from-violet-400/20 before:via-cyan-400/15 before:to-violet-400/20 before:rounded-[2rem] before:animate-spin before:duration-[12000ms]",
-                      "after:absolute after:inset-[-6px] after:bg-gradient-conic after:from-violet-300/10 after:via-cyan-300/8 after:to-violet-300/10 after:rounded-[2rem] after:animate-spin after:duration-[18000ms] after:opacity-60"
-                    ],
-                    // Hover - quantum field activation
-                    day && isCurrentMonth && [
-                      "cursor-pointer",
-                      "hover:before:absolute hover:before:inset-[-5px] hover:before:bg-gradient-conic hover:before:from-violet-400/30 hover:before:via-cyan-400/20 hover:before:to-violet-400/30 hover:before:rounded-[2rem] hover:before:animate-pulse hover:before:duration-[3000ms]"
-                    ],
-                    // Quantum field presence
-                    hasAttendance && [
-                      "shadow-[0_0_15px_rgba(139,92,246,0.3)] dark:shadow-[0_0_20px_rgba(139,92,246,0.5)]",
-                      "ring-1 ring-violet-200/60 dark:ring-violet-700/50"
-                    ]
+                    !isCurrentMonth && "opacity-30 text-gray-400",
+                    isTodayDate && "ring-1 ring-blue-500",
+                    hasAttendance && "cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50",
+                    selectedDate && day && isSameDay(selectedDate, day) && "ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/20"
                   )}
                 >
-                  {/* Quantum entanglement beams */}
-                  {hasAttendance && isCurrentMonth && quantumConnections.length > 0 && (
-                    <div className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-2000">
-                      {quantumConnections.slice(0, 2).map((targetIndex, connIndex) => {
-                        const targetRow = Math.floor(targetIndex / 7)
-                        const targetCol = targetIndex % 7
-                        const currentRow = Math.floor(index / 7)
-                        const currentCol = index % 7
-                        
-                        const deltaX = (targetCol - currentCol) * 65 // Approximate cell width
-                        const deltaY = (targetRow - currentRow) * 65 // Approximate cell height
-                        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY)
-                        
-                        return (
-                          <div
-                            key={connIndex}
-                            className="absolute top-1/2 left-1/2 pointer-events-none"
-                            style={{
-                              transform: `translate(-50%, -50%) rotate(${Math.atan2(deltaY, deltaX)}rad)`,
-                              width: `${distance}px`,
-                              height: '2px'
-                            }}
-                          >
-                            <div className="w-full h-[3px] bg-gradient-to-r from-violet-500/40 via-cyan-400/60 to-violet-500/40 animate-pulse opacity-70 blur-[0.5px]" />
-                            <div className="absolute right-0 top-[-3px] w-2 h-2 bg-cyan-400/70 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
-                            <div className="absolute left-0 top-[-3px] w-2 h-2 bg-violet-400/70 rounded-full animate-pulse shadow-[0_0_8px_rgba(139,92,246,0.8)]" />
-                            {/* Quantum particles traveling along the beam */}
-                            <div className="absolute top-[-1px] left-0 w-1 h-1 bg-white rounded-full animate-pulse opacity-80" 
-                                 style={{ 
-                                   animation: `quantum-particle-${connIndex} 3s linear infinite`,
-                                   animationDelay: `${connIndex * 0.5}s`
-                                 }} />
-                          </div>
-                        )
-                      })}
-                    </div>
-                  )}
-                  
                   {day && (
                     <>
-                      {/* Date number - quantum projection */}
+                      {/* Date number */}
                       <div className={cn(
-                        "absolute top-2 left-3 z-30",
-                        touchMode === 'glove' ? 'text-[14px]' : 'text-[12px]',
-                        "font-extralight tracking-wider",
-                        "transition-all duration-1000 group-hover:scale-150 group-hover:translate-y-[-2px] group-hover:rotate-6",
-                        dayOfWeek === 0 && "text-red-600/95 dark:text-red-300/85",
-                        dayOfWeek === 6 && "text-blue-600/95 dark:text-blue-300/85",
-                        dayOfWeek !== 0 && dayOfWeek !== 6 && "text-gray-800/100 dark:text-gray-100/100",
-                        isTodayDate && "text-violet-700/100 dark:text-violet-200/100 font-normal drop-shadow-[0_0_4px_rgba(139,92,246,0.8)]",
-                        !isCurrentMonth && "text-gray-400/20 dark:text-gray-600/15"
+                        "text-sm font-medium mb-1",
+                        dayOfWeek === 0 && "text-red-500 dark:text-red-400",
+                        dayOfWeek === 6 && "text-blue-500 dark:text-blue-400", 
+                        dayOfWeek !== 0 && dayOfWeek !== 6 && "text-gray-900 dark:text-gray-100",
+                        isTodayDate && "text-blue-600 dark:text-blue-400 font-bold",
+                        !isCurrentMonth && "text-gray-400 dark:text-gray-600"
                       )}>
                         {dayNum}
-                        {/* Quantum field oscillation */}
-                        {hasAttendance && (
-                          <div className="absolute inset-[-8px] bg-gradient-radial from-violet-300/25 to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-all duration-1500 animate-pulse" />
-                        )}
-                        {/* Holographic projection lines */}
-                        <div className="absolute top-1/2 left-full w-4 h-[0.5px] bg-gradient-to-r from-violet-400/30 to-transparent opacity-0 group-hover:opacity-70 transition-all duration-1000" />
                       </div>
                       
-                      {/* Labor Hours - Quantum Crystal */}
+                      {/* Labor Hours and Site - Minimal Design */}
                       {!loading && hasAttendance && (
-                        <div className="absolute inset-0 flex items-center justify-center pt-1.5">
-                          <div className={cn(
-                            "flex items-center justify-center relative overflow-visible",
-                            "bg-gradient-to-br from-violet-600/98 via-cyan-500/96 to-purple-600/98",
-                            "dark:from-violet-700/98 dark:via-cyan-600/96 dark:to-purple-700/98",
-                            "text-white rounded-full backdrop-blur-[60px]",
-                            "border-2 border-white/90 dark:border-violet-100/70",
-                            touchMode === 'glove' ? 'w-10 h-10 text-[12px]' : 'w-9 h-9 text-[10px]',
-                            "font-medium tracking-tight",
-                            "transform transition-all duration-1000 ease-out",
-                            "hover:scale-[1.4] hover:rotate-[15deg]",
-                            "shadow-[0_0_20px_rgba(139,92,246,0.8)] dark:shadow-[0_0_25px_rgba(139,92,246,0.9)]",
-                            // Quantum crystal structure
-                            "before:absolute before:inset-[-6px] before:rounded-full",
-                            "before:bg-gradient-conic before:from-violet-400/35 before:via-cyan-300/25 before:to-purple-400/35",
-                            "before:opacity-0 hover:before:opacity-100 before:transition-all before:duration-1000",
-                            "before:animate-spin before:duration-[8000ms] hover:before:duration-[3000ms]",
-                            // Inner quantum field
-                            "after:absolute after:inset-[4px] after:rounded-full",
-                            "after:bg-gradient-to-tr after:from-white/50 after:via-white/20 after:to-transparent after:pointer-events-none",
-                            // Holographic shimmer
-                            "animate-pulse hover:animate-none"
-                          )}>
-                            <span className="relative z-50 drop-shadow-[0_0_3px_rgba(255,255,255,0.8)] font-semibold">{attendance.labor_hours}</span>
-                            {/* Quantum energy discharge */}
-                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1500 skew-x-12 opacity-90 rounded-full" />
-                            {/* Crystal facets */}
-                            <div className="absolute top-[8px] right-[10px] w-1.5 h-1.5 bg-white/70 rounded-full opacity-85 shadow-[0_0_3px_rgba(255,255,255,0.8)]" />
-                            <div className="absolute bottom-[9px] left-[11px] w-1 h-1 bg-white/60 rounded-full opacity-75" />
-                            <div className="absolute top-[12px] left-[6px] w-0.5 h-0.5 bg-white/80 rounded-full opacity-80" />
-                            {/* Quantum field resonance rings */}
-                            <div className="absolute inset-[-10px] border border-violet-300/50 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-1200 animate-ping" />
-                            <div className="absolute inset-[-15px] border border-cyan-300/40 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-1500 animate-ping" style={{ animationDelay: '0.3s' }} />
-                            <div className="absolute inset-[-20px] border border-purple-300/30 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-1800 animate-ping" style={{ animationDelay: '0.6s' }} />
-                            {/* Quantum probability cloud */}
-                            <div className="absolute inset-[-12px] bg-gradient-radial from-violet-400/20 via-cyan-400/15 to-transparent rounded-full opacity-0 group-hover:opacity-100 transition-all duration-2000 animate-pulse" />
+                        <div className="space-y-1">
+                          {/* Labor Hours with subtle dot indicator */}
+                          <div className="flex items-center gap-1">
+                            <div className={cn(
+                              "w-1.5 h-1.5 rounded-full flex-shrink-0",
+                              attendance.labor_hours >= 1.0 ? "bg-gray-700 dark:bg-gray-300" :
+                              attendance.labor_hours >= 0.5 ? "bg-gray-500 dark:bg-gray-400" :
+                              "bg-gray-400 dark:bg-gray-500"
+                            )}></div>
+                            <div className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                              {attendance.labor_hours}
+                            </div>
                           </div>
+                          {/* Site Abbreviation - Subtle */}
+                          {attendance.sites?.name && (
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                              {getSiteShortName(attendance.sites.name)}
+                            </div>
+                          )}
                         </div>
                       )}
                       
-                      {/* Loading state - quantum processing */}
+                      {/* Loading state */}
                       {loading && (
                         <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="relative">
-                            <div className="w-4 h-4 bg-gradient-conic from-violet-400 via-cyan-400 to-purple-400 dark:from-violet-500 dark:via-cyan-500 dark:to-purple-500 rounded-full animate-spin opacity-80 shadow-[0_0_8px_rgba(139,92,246,0.6)]" />
-                            <div className="absolute inset-[-4px] w-4 h-4 bg-gradient-conic from-violet-300 via-cyan-300 to-purple-300 dark:from-violet-400 dark:via-cyan-400 dark:to-purple-400 rounded-full animate-ping opacity-40 scale-150" />
-                            <div className="absolute inset-[-8px] w-4 h-4 border border-violet-300/50 rounded-full animate-pulse opacity-50" />
-                          </div>
-                        </div>
-                      )}
-                      
-                      {/* Holographic surface */}
-                      <div className="absolute inset-0 bg-gradient-to-br from-violet-400/0 via-cyan-300/0 to-purple-400/0 group-hover:from-violet-400/15 group-hover:via-cyan-300/10 group-hover:to-purple-400/15 transition-all duration-1500 rounded-[2rem] pointer-events-none" />
-                      
-                      {/* Quantum field particles */}
-                      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-1500">
-                        <div className="absolute top-[15%] left-[75%] w-2 h-2 bg-violet-400/70 rounded-full animate-pulse shadow-[0_0_6px_rgba(139,92,246,0.8)]" style={{ animationDelay: '0s' }} />
-                        <div className="absolute bottom-[25%] right-[15%] w-1.5 h-1.5 bg-cyan-400/60 rounded-full animate-pulse shadow-[0_0_4px_rgba(6,182,212,0.8)]" style={{ animationDelay: '0.4s' }} />
-                        <div className="absolute top-[65%] left-[20%] w-1 h-1 bg-purple-400/50 rounded-full animate-pulse shadow-[0_0_3px_rgba(147,51,234,0.8)]" style={{ animationDelay: '0.8s' }} />
-                        <div className="absolute top-[40%] right-[30%] w-0.5 h-0.5 bg-white/90 rounded-full animate-pulse" style={{ animationDelay: '1.2s' }} />
-                      </div>
-                      
-                      {/* Quantum interference patterns */}
-                      {hasAttendance && (
-                        <div className="absolute inset-3 opacity-8 group-hover:opacity-15 transition-opacity duration-1000 pointer-events-none">
-                          <div className="absolute top-1/4 left-0 right-0 h-[0.5px] bg-gradient-to-r from-transparent via-violet-300/60 to-transparent" />
-                          <div className="absolute top-2/4 left-0 right-0 h-[0.5px] bg-gradient-to-r from-transparent via-cyan-300/60 to-transparent" />
-                          <div className="absolute top-3/4 left-0 right-0 h-[0.5px] bg-gradient-to-r from-transparent via-purple-300/60 to-transparent" />
-                          <div className="absolute left-1/4 top-0 bottom-0 w-[0.5px] bg-gradient-to-b from-transparent via-violet-300/60 to-transparent" />
-                          <div className="absolute left-3/4 top-0 bottom-0 w-[0.5px] bg-gradient-to-b from-transparent via-cyan-300/60 to-transparent" />
+                          <div className="w-3 h-3 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
                         </div>
                       )}
                     </>
@@ -605,62 +436,68 @@ export function AttendanceView({ profile }: AttendanceViewProps) {
           </div>
         </div>
 
-        {/* Monthly Statistics - UI Guidelines Compliant */}
+        {/* Monthly Statistics - Improved UI Consistency */}
         <div className={cn(
           "border-t border-gray-200 dark:border-gray-700",
-          touchMode === 'glove' ? 'mt-3 pt-3' : 'mt-2 pt-2'
+          touchMode === 'glove' ? 'mt-4 pt-4' : 'mt-3 pt-3'
         )}>
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-5 h-5 bg-gray-100 dark:bg-gray-700 rounded flex items-center justify-center">
-              <BarChart3 className="h-3 w-3 text-gray-600" />
+          <div className="flex items-center gap-3 mb-3">
+            <div className={cn(
+              "bg-blue-100 dark:bg-blue-900/30 rounded-lg p-2 flex items-center justify-center",
+              touchMode === 'glove' ? 'w-10 h-10' : 'w-8 h-8'
+            )}>
+              <BarChart3 className={cn(
+                "text-blue-600 dark:text-blue-400",
+                touchMode === 'glove' ? 'h-5 w-5' : 'h-4 w-4'
+              )} />
             </div>
             <span className={cn(
-              "font-medium text-gray-700 dark:text-gray-300",
-              touchMode === 'glove' ? 'text-sm' : 'text-xs'
+              "font-semibold text-gray-800 dark:text-gray-200",
+              touchMode === 'glove' ? 'text-base' : 'text-sm'
             )}>
               월간 통계
             </span>
           </div>
           
-          <div className="grid grid-cols-3 gap-1.5">
-            <div className="bg-toss-blue-50 dark:bg-toss-blue-900/20 rounded-lg p-2 text-center">
+          <div className="grid grid-cols-3 gap-3">
+            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-3 text-center border border-blue-100 dark:border-blue-800/30">
               <div className={cn(
-                "font-bold text-toss-blue-600 dark:text-toss-blue-400 mb-0.5",
-                touchMode === 'glove' ? 'text-lg' : 'text-base'
+                "font-bold text-blue-600 dark:text-blue-400 mb-1",
+                touchMode === 'glove' ? 'text-2xl' : 'text-xl'
               )}>
                 {monthlyStats.totalDays}
               </div>
               <div className={cn(
-                "text-toss-blue-700 dark:text-toss-blue-300",
-                touchMode === 'glove' ? 'text-xs' : 'text-xs'
+                "text-blue-700 dark:text-blue-300 font-medium",
+                touchMode === 'glove' ? 'text-sm' : 'text-xs'
               )}>
                 작업일
               </div>
             </div>
-            <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-2 text-center">
+            <div className="bg-green-50 dark:bg-green-900/20 rounded-xl p-3 text-center border border-green-100 dark:border-green-800/30">
               <div className={cn(
-                "font-bold text-green-600 dark:text-green-400 mb-0.5",
-                touchMode === 'glove' ? 'text-lg' : 'text-base'
+                "font-bold text-green-600 dark:text-green-400 mb-1",
+                touchMode === 'glove' ? 'text-2xl' : 'text-xl'
               )}>
                 {attendanceData.filter(a => a.sites?.name).length || 1}
               </div>
               <div className={cn(
-                "text-green-700 dark:text-green-300",
-                touchMode === 'glove' ? 'text-xs' : 'text-xs'
+                "text-green-700 dark:text-green-300 font-medium",
+                touchMode === 'glove' ? 'text-sm' : 'text-xs'
               )}>
                 현장수
               </div>
             </div>
-            <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-2 text-center">
+            <div className="bg-orange-50 dark:bg-orange-900/20 rounded-xl p-3 text-center border border-orange-100 dark:border-orange-800/30">
               <div className={cn(
-                "font-bold text-orange-600 dark:text-orange-400 mb-0.5",
-                touchMode === 'glove' ? 'text-lg' : 'text-base'
+                "font-bold text-orange-600 dark:text-orange-400 mb-1",
+                touchMode === 'glove' ? 'text-2xl' : 'text-xl'
               )}>
                 {monthlyStats.totalLaborHours}
               </div>
               <div className={cn(
-                "text-orange-700 dark:text-orange-300",
-                touchMode === 'glove' ? 'text-xs' : 'text-xs'
+                "text-orange-700 dark:text-orange-300 font-medium",
+                touchMode === 'glove' ? 'text-sm' : 'text-xs'
               )}>
                 총공수
               </div>
@@ -668,6 +505,113 @@ export function AttendanceView({ profile }: AttendanceViewProps) {
           </div>
         </div>
       </Card>
+
+      {/* Selected Date Details - Simple & Modern Design with High Density */}
+      {selectedDate && getSelectedDateDetails() && (
+        <Card className={cn(
+          "border border-gray-200 dark:border-gray-700",
+          touchMode === 'glove' ? 'p-3 mt-4' : 'p-2 mt-3'
+        )}>
+          {/* Header - Compact Design */}
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <Calendar className={cn(
+                "text-gray-600 dark:text-gray-400",
+                touchMode === 'glove' ? 'h-4 w-4' : 'h-3.5 w-3.5'
+              )} />
+              <h3 className={cn(
+                "font-semibold text-gray-900 dark:text-gray-100",
+                touchMode === 'glove' ? 'text-base' : 'text-sm'
+              )}>
+                {getSelectedDateDetails()?.formattedDate}
+              </h3>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSelectedDate(null)}
+              className={cn(
+                "h-6 w-6 p-0 text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-700",
+                touchMode === 'glove' && 'h-8 w-8'
+              )}
+            >
+              ✕
+            </Button>
+          </div>
+          
+          {/* Compact Information Grid */}
+          <div className="space-y-3">
+            {/* Site and Work Info Combined Row */}
+            <div className="grid grid-cols-2 gap-3">
+              {/* Site Information - Compact */}
+              <div className="space-y-1">
+                <div className="flex items-center gap-1 mb-1">
+                  <Building2 className="h-3 w-3 text-gray-500 dark:text-gray-400" />
+                  <span className="text-xs font-medium text-gray-600 dark:text-gray-400">현장</span>
+                </div>
+                <p className="text-xs font-medium text-gray-900 dark:text-gray-100">
+                  {getSelectedDateDetails()?.siteName}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  약어: {getSelectedDateDetails()?.siteAbbrev}
+                </p>
+              </div>
+
+              {/* Work Information - Compact */}
+              <div className="space-y-1">
+                <div className="flex items-center gap-1 mb-1">
+                  <BarChart3 className="h-3 w-3 text-gray-500 dark:text-gray-400" />
+                  <span className="text-xs font-medium text-gray-600 dark:text-gray-400">작업</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                    {getSelectedDateDetails()?.attendance.labor_hours}
+                  </span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">공수</span>
+                </div>
+                <div className="flex gap-3 text-xs">
+                  <span className="text-gray-600 dark:text-gray-400">
+                    근무: {getSelectedDateDetails()?.attendance.work_hours || 0}h
+                  </span>
+                  <span className="text-gray-600 dark:text-gray-400">
+                    연장: {getSelectedDateDetails()?.attendance.overtime_hours || 0}h
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Status Row - Simplified */}
+            <div className="flex items-center justify-between pt-2 border-t border-gray-200 dark:border-gray-700">
+              <div className="flex items-center gap-2">
+                <div className={cn(
+                  "w-2 h-2 rounded-full",
+                  (getSelectedDateDetails()?.attendance.labor_hours || 0) >= 1.0 ? "bg-gray-700 dark:bg-gray-300" :
+                  (getSelectedDateDetails()?.attendance.labor_hours || 0) >= 0.5 ? "bg-gray-500 dark:bg-gray-400" :
+                  "bg-gray-400 dark:bg-gray-500"
+                )}></div>
+                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                  {getSelectedDateDetails()?.attendance.status === 'present' ? '출근' : '기타'}
+                </span>
+              </div>
+              
+              <span className="text-xs px-2 py-1 rounded bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+                {(getSelectedDateDetails()?.attendance.labor_hours || 0) >= 1.0 ? '완전근무' :
+                 (getSelectedDateDetails()?.attendance.labor_hours || 0) >= 0.5 ? '반일근무' : '단시간근무'}
+              </span>
+            </div>
+
+            {/* Work Notes if available - Compact */}
+            {getSelectedDateDetails()?.attendance.notes && (
+              <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+                <span className="text-xs text-gray-500 dark:text-gray-400">작업내용</span>
+                <p className="text-xs text-gray-700 dark:text-gray-300 mt-1 leading-relaxed">
+                  {getSelectedDateDetails()?.attendance.notes}
+                </p>
+              </div>
+            )}
+          </div>
+        </Card>
+      )}
     </div>
   )
 }

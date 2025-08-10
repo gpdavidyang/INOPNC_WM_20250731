@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import Image from 'next/image'
 import { AttendanceView } from './attendance-view'
 import { SalaryView } from './salary-view'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -30,25 +29,6 @@ export function AttendancePageClient({ profile, isPartnerCompany }: AttendancePa
   return (
     <div className="h-full bg-white dark:bg-gray-900">
       <div className="p-3">
-        {/* INOPNC 로고 헤더 */}
-        <div className="flex items-center justify-center mb-4 pb-3 border-b border-gray-200 dark:border-gray-700">
-          <div className="flex items-center gap-3">
-            <Image
-              src="/INOPNC_logo.png"
-              alt="INOPNC 로고"
-              width={32}
-              height={32}
-              className="object-contain"
-            />
-            <h1 className={cn(
-              "font-semibold text-gray-900 dark:text-white",
-              isLargeFont ? "text-lg" : "text-base"
-            )}>
-              INOPNC
-            </h1>
-          </div>
-        </div>
-        
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           {/* UI Guidelines에 맞는 탭 디자인 */}
           <div className="flex gap-2 mb-3">

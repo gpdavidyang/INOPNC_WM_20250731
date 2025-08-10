@@ -26,6 +26,7 @@ import { CurrentUserSite, UserSiteHistory, Profile } from '@/types'
 import { selectUserSite } from '@/app/actions/site-info'
 import { MaterialManagementSimplified } from '@/components/materials/material-management-simplified'
 import { getMaterials, getMaterialCategories, getMaterialInventory } from '@/app/actions/materials'
+import { PageContainer, LoadingState, EmptyState } from '@/components/dashboard/page-layout'
 
 interface SiteInfoPageNewProps {
   initialCurrentSite: CurrentUserSite | null
@@ -192,91 +193,67 @@ export default function SiteInfoPageNew({
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">현장 정보를 불러오는 중...</p>
-        </div>
-      </div>
+      <PageContainer>
+        <LoadingState message="현장 정보를 불러오는 중..." />
+      </PageContainer>
     )
   }
 
+
   return (
-    <div className="w-full">
-      {/* Header - Compact Layout */}
-      <div className="sticky top-0 z-20 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-0 py-3 mb-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
-            <h1 className={`${getFullTypographyClass('heading', isLargeFont ? '2xl' : 'xl', isLargeFont)} font-bold text-gray-900 dark:text-gray-100`}>
-              현장정보
-            </h1>
-            <p className={`mt-0.5 ${getFullTypographyClass('body', 'xs', isLargeFont)} text-gray-600 dark:text-gray-400`}>
-              현장별 통합 관리 시스템
-            </p>
-          </div>
-          
-          <div className="flex items-center gap-3">
-            {/* Site Selection Dropdown - Compact */}
-            <Select value={selectedSite?.site_id || ''} onValueChange={handleSiteSelect}>
-              <SelectTrigger className={`
-                w-full sm:w-[180px] 
-                ${touchMode === 'glove' ? 'min-h-[60px]' : 
-                  touchMode === 'precision' ? 'min-h-[44px]' : 
-                  'min-h-[48px]'
-                }
-                ${getFullTypographyClass('body', 'sm', isLargeFont)}
-              `}>
-                <SelectValue placeholder="현장을 선택하세요" />
-              </SelectTrigger>
-              <SelectContent 
+    <PageContainer>
+      
+      {/* Site Selection Dropdown */}
+      <div className="mb-6">
+        <Select value={selectedSite?.site_id || ''} onValueChange={handleSiteSelect}>
+          <SelectTrigger className={`
+            w-full sm:w-[300px] 
+            ${touchMode === 'glove' ? 'min-h-[60px]' : 
+              touchMode === 'precision' ? 'min-h-[44px]' : 
+              'min-h-[48px]'
+            }
+            ${getFullTypographyClass('body', 'sm', isLargeFont)}
+          `}>
+            <SelectValue placeholder="현장을 선택하세요" />
+          </SelectTrigger>
+          <SelectContent 
+            className={`
+              ${touchMode === 'glove' ? 'p-2' : 'p-1'}
+              max-w-[90vw] sm:max-w-none
+              bg-white dark:bg-gray-800 
+              border border-gray-200 dark:border-gray-700
+              shadow-lg backdrop-blur-sm
+              z-50
+            `}
+            sideOffset={4}
+          >
+            {siteHistory.map((site) => (
+              <SelectItem 
+                key={site.site_id} 
+                value={site.site_id}
                 className={`
-                  ${touchMode === 'glove' ? 'p-2' : 'p-1'}
-                  max-w-[90vw] sm:max-w-none
-                  bg-white dark:bg-gray-800 
-                  border border-gray-200 dark:border-gray-700
-                  shadow-lg backdrop-blur-sm
-                  z-50
+                  ${touchMode === 'glove' ? 'min-h-[56px] px-4 py-3' : 
+                    touchMode === 'precision' ? 'min-h-[40px] px-3 py-2' : 
+                    'min-h-[44px] px-3 py-2'
+                  }
+                  ${getFullTypographyClass('body', 'sm', isLargeFont)}
                 `}
-                sideOffset={4}
               >
-                {siteHistory.map((site) => (
-                  <SelectItem 
-                    key={site.site_id} 
-                    value={site.site_id}
-                    className={`
-                      ${touchMode === 'glove' ? 'min-h-[56px] px-4 py-3' : 
-                        touchMode === 'precision' ? 'min-h-[40px] px-3 py-2' : 
-                        'min-h-[44px] px-3 py-2'
-                      }
-                      ${getFullTypographyClass('body', 'sm', isLargeFont)}
-                    `}
-                  >
-                    <div className="flex items-center gap-2 w-full">
-                      <span className="flex-1 truncate">{site.site_name}</span>
-                      {site.is_active && (
-                        <span className={`
-                          px-1.5 py-0.5 bg-green-100 text-green-700 rounded
-                          ${getFullTypographyClass('caption', 'xs', isLargeFont)}
-                        `}>
-                          현재
-                        </span>
-                      )}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            
-            <Button
-              variant="outline"
-              size={getButtonSize()}
-              className="gap-2 px-3"
-            >
-              <Search className="h-4 w-4" />
-              <span className="hidden sm:inline">현장 변경</span>
-            </Button>
-          </div>
-        </div>
+                <div className="flex items-center gap-2 w-full">
+                  <span className="flex-1 truncate">{site.site_name}</span>
+                  {site.is_active && (
+                    <span className={`
+                      px-1.5 py-0.5 bg-green-100 text-green-700 rounded
+                      ${getFullTypographyClass('caption', 'xs', isLargeFont)}
+                    `}>
+                      현재
+                    </span>
+                  )}
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Tabs - Compact Layout */}
@@ -306,74 +283,84 @@ export default function SiteInfoPageNew({
         <TabsContent value="overview" className="space-y-4">
           {selectedSite ? (
             <>
-              {/* 오늘의 현장 정보 - 접을 수 있는 카드 */}
+              {/* 오늘의 현장 정보 - 1번 이미지 스타일로 개선 */}
               <Card elevation="sm" className="theme-transition overflow-hidden">
                 <button
                   onClick={() => setSiteHistoryExpanded(!siteHistoryExpanded)}
-                  className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors theme-transition"
+                  className="w-full px-3 py-2.5 bg-blue-50 dark:bg-blue-900/20 border-b border-blue-200 dark:border-blue-700 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors theme-transition"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">오늘의 현장 정보</h3>
-                      <span className="text-xs text-gray-500 dark:text-gray-400">{selectedSite.site_name}</span>
+                      <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-100">오늘의 현장</h3>
+                      <span className="text-xs text-blue-600 dark:text-blue-300 font-medium">{selectedSite.site_name}</span>
                     </div>
                     {siteHistoryExpanded ? (
-                      <ChevronUp className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                      <ChevronUp className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                     ) : (
-                      <ChevronDown className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                      <ChevronDown className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                     )}
                   </div>
                 </button>
                 
                 {siteHistoryExpanded && (
-                  <div className={getCardPadding()}>
-                    {/* 현장 기본 정보 */}
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-2">
-                        <MapPin className="h-5 w-5 text-gray-400" />
-                        <span className="text-sm text-gray-600 dark:text-gray-400">현장 주소</span>
-                      </div>
-                      <p className="text-sm text-gray-900 dark:text-gray-100 pl-7">
-                        {selectedSite.site_address}
-                        <Button variant="ghost" size="sm" className="ml-2 h-6 w-6 p-0" onClick={() => copyToClipboard(selectedSite.site_address)}>
+                  <div className="p-3 bg-white dark:bg-gray-800">
+                    {/* 현장 기본 정보 - 컴팩트한 레이아웃 */}
+                    <div className="space-y-3">
+                      
+                      {/* 현장 주소 */}
+                      <div className="flex items-start gap-3">
+                        <MapPin className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <span className="text-xs text-gray-500 dark:text-gray-400 block mb-1">현장 주소</span>
+                          <p className="text-sm text-gray-900 dark:text-gray-100 break-words">
+                            {selectedSite.site_address}
+                          </p>
+                        </div>
+                        <Button variant="ghost" size="compact" className="h-6 w-6 p-0 min-h-0 flex-shrink-0" onClick={() => copyToClipboard(selectedSite.site_address)}>
                           <Copy className="h-3 w-3" />
                         </Button>
-                      </p>
+                      </div>
                       
                       {/* 숙소 정보 */}
                       {selectedSite.accommodation_address && (
-                        <>
-                          <div className="flex items-center gap-2">
-                            <Building className="h-5 w-5 text-gray-400" />
-                            <span className="text-sm text-gray-600 dark:text-gray-400">숙소</span>
+                        <div className="flex items-start gap-3">
+                          <Building className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <span className="text-xs text-gray-500 dark:text-gray-400 block mb-1">숙소</span>
+                            <p className="text-sm text-gray-900 dark:text-gray-100 break-words">
+                              {selectedSite.accommodation_address}
+                            </p>
                           </div>
-                          <p className="text-sm text-gray-900 dark:text-gray-100 pl-7">
-                            {selectedSite.accommodation_address}
-                            <Button variant="ghost" size="sm" className="ml-2 h-6 w-6 p-0" onClick={() => copyToClipboard(selectedSite.accommodation_address!)}>
-                              <Copy className="h-3 w-3" />
-                            </Button>
-                          </p>
-                        </>
+                          <Button variant="ghost" size="compact" className="h-6 w-6 p-0 min-h-0 flex-shrink-0" onClick={() => copyToClipboard(selectedSite.accommodation_address!)}>
+                            <Copy className="h-3 w-3" />
+                          </Button>
+                        </div>
                       )}
+
+                      {/* 구분선 */}
+                      <div className="border-t border-gray-100 dark:border-gray-700 my-3" />
 
                       {/* 담당자 연락처 */}
                       {(selectedSite.construction_manager_phone || selectedSite.safety_manager_phone) && (
-                        <>
+                        <div className="space-y-2">
                           <div className="flex items-center gap-2">
-                            <Users className="h-5 w-5 text-gray-400" />
-                            <span className="text-sm text-gray-600 dark:text-gray-400">담당자</span>
+                            <Users className="h-4 w-4 text-blue-500" />
+                            <span className="text-xs text-gray-500 dark:text-gray-400">담당자 연락처</span>
                           </div>
-                          <div className="pl-7 space-y-2">
+                          <div className="space-y-1.5 pl-6">
                             {selectedSite.construction_manager_phone && (
-                              <div className="flex items-center justify-between">
-                                <span className="text-sm text-gray-900 dark:text-gray-100">
-                                  건축관리자 {selectedSite.construction_manager_phone}
-                                </span>
-                                <div className="flex gap-1">
-                                  <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => copyToClipboard(selectedSite.construction_manager_phone!)}>
+                              <div className="flex items-center justify-between bg-gray-50 dark:bg-gray-700/50 rounded-lg px-2 py-1.5">
+                                <div className="flex-1">
+                                  <span className="text-xs text-gray-500 dark:text-gray-400 block">건축관리자</span>
+                                  <span className="text-sm text-gray-900 dark:text-gray-100 font-medium">
+                                    {selectedSite.construction_manager_phone}
+                                  </span>
+                                </div>
+                                <div className="flex gap-1 flex-shrink-0">
+                                  <Button variant="ghost" size="compact" className="h-6 w-6 p-0 min-h-0" onClick={() => copyToClipboard(selectedSite.construction_manager_phone!)}>
                                     <Copy className="h-3 w-3" />
                                   </Button>
-                                  <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-green-600" onClick={() => makePhoneCall(selectedSite.construction_manager_phone!)}>
+                                  <Button variant="ghost" size="compact" className="h-6 w-6 p-0 min-h-0 text-green-600" onClick={() => makePhoneCall(selectedSite.construction_manager_phone!)}>
                                     <Phone className="h-3 w-3" />
                                   </Button>
                                 </div>
@@ -381,77 +368,77 @@ export default function SiteInfoPageNew({
                             )}
                             
                             {selectedSite.safety_manager_phone && (
-                              <div className="flex items-center justify-between">
-                                <span className="text-sm text-gray-900 dark:text-gray-100">
-                                  안전관리자 {selectedSite.safety_manager_phone}
-                                </span>
-                                <div className="flex gap-1">
-                                  <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => copyToClipboard(selectedSite.safety_manager_phone!)}>
+                              <div className="flex items-center justify-between bg-gray-50 dark:bg-gray-700/50 rounded-lg px-2 py-1.5">
+                                <div className="flex-1">
+                                  <span className="text-xs text-gray-500 dark:text-gray-400 block">안전관리자</span>
+                                  <span className="text-sm text-gray-900 dark:text-gray-100 font-medium">
+                                    {selectedSite.safety_manager_phone}
+                                  </span>
+                                </div>
+                                <div className="flex gap-1 flex-shrink-0">
+                                  <Button variant="ghost" size="compact" className="h-6 w-6 p-0 min-h-0" onClick={() => copyToClipboard(selectedSite.safety_manager_phone!)}>
                                     <Copy className="h-3 w-3" />
                                   </Button>
-                                  <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-green-600" onClick={() => makePhoneCall(selectedSite.safety_manager_phone!)}>
+                                  <Button variant="ghost" size="compact" className="h-6 w-6 p-0 min-h-0 text-green-600" onClick={() => makePhoneCall(selectedSite.safety_manager_phone!)}>
                                     <Phone className="h-3 w-3" />
                                   </Button>
                                 </div>
                               </div>
                             )}
                           </div>
-                        </>
+                        </div>
                       )}
+
+                      {/* 구분선 */}
+                      <div className="border-t border-gray-100 dark:border-gray-700 my-3" />
 
                       {/* 작업 정보 */}
                       {(selectedSite.work_process || selectedSite.work_section) && (
-                        <>
-                          <div className="flex items-center gap-2">
-                            <FileText className="h-5 w-5 text-gray-400" />
-                            <span className="text-sm text-gray-600 dark:text-gray-400">작업내용</span>
-                          </div>
-                          <div className="pl-7">
+                        <div className="flex items-start gap-3">
+                          <FileText className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                          <div className="flex-1">
+                            <span className="text-xs text-gray-500 dark:text-gray-400 block mb-1">작업내용</span>
                             <p className="text-sm text-gray-900 dark:text-gray-100">
-                              {selectedSite.work_process} • {selectedSite.work_section}
+                              {selectedSite.work_process}{selectedSite.work_process && selectedSite.work_section && ' • '}{selectedSite.work_section}
                             </p>
                           </div>
-                        </>
+                        </div>
                       )}
 
                       {/* 현장 공도면 */}
                       {selectedSite.blueprint_document_url && (
-                        <>
-                          <div className="flex items-center gap-2">
-                            <FileText className="h-5 w-5 text-gray-400" />
-                            <span className="text-sm text-gray-600 dark:text-gray-400">현장 공도면</span>
-                          </div>
-                          <div className="pl-7">
+                        <div className="flex items-start gap-3">
+                          <FileText className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                          <div className="flex-1">
+                            <span className="text-xs text-gray-500 dark:text-gray-400 block mb-1">현장 공도면</span>
                             <Button 
                               variant="ghost" 
-                              size="sm" 
-                              className="text-blue-600 dark:text-blue-400 p-0 h-auto"
-                              onClick={() => window.open(selectedSite.blueprint_document_url, '_blank')}
+                              size="compact" 
+                              className="text-blue-600 dark:text-blue-400 p-0 h-auto min-h-0 text-sm hover:underline"
+                              onClick={() => selectedSite.blueprint_document_url && window.open(selectedSite.blueprint_document_url)}
                             >
                               미리보기
                             </Button>
                           </div>
-                        </>
+                        </div>
                       )}
 
                       {/* PTW */}
                       {selectedSite.ptw_document_url && (
-                        <>
-                          <div className="flex items-center gap-2">
-                            <FileText className="h-5 w-5 text-gray-400" />
-                            <span className="text-sm text-gray-600 dark:text-gray-400">PTW (작업허가서)</span>
-                          </div>
-                          <div className="pl-7">
+                        <div className="flex items-start gap-3">
+                          <FileText className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                          <div className="flex-1">
+                            <span className="text-xs text-gray-500 dark:text-gray-400 block mb-1">PTW (작업허가서)</span>
                             <Button 
                               variant="ghost" 
-                              size="sm" 
-                              className="text-blue-600 dark:text-blue-400 p-0 h-auto"
-                              onClick={() => window.open(selectedSite.ptw_document_url, '_blank')}
+                              size="compact" 
+                              className="text-blue-600 dark:text-blue-400 p-0 h-auto min-h-0 text-sm hover:underline"
+                              onClick={() => selectedSite.ptw_document_url && window.open(selectedSite.ptw_document_url)}
                             >
                               미리보기
                             </Button>
                           </div>
-                        </>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -544,31 +531,18 @@ export default function SiteInfoPageNew({
               </Card>
             </>
           ) : (
-            <Card className="text-center py-12">
-              <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg w-fit mx-auto mb-4">
-                <MapPin className="h-8 w-8 text-gray-400" />
-              </div>
-              <h3 className={`${getFullTypographyClass('heading', 'lg', isLargeFont)} font-semibold text-gray-900 dark:text-gray-100 mb-2`}>
-                현장을 선택하세요
-              </h3>
-              <p className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-500 dark:text-gray-400`}>
-                상단의 드롭다운에서 현장을 선택하면 상세 정보를 확인할 수 있습니다.
-              </p>
-            </Card>
+            <EmptyState
+              icon={<MapPin className="h-8 w-8" />}
+              title="현장을 선택하세요"
+              description="상단의 드롭다운에서 현장을 선택하면 상세 정보를 확인할 수 있습니다."
+            />
           )}
         </TabsContent>
 
         <TabsContent value="materials" className="space-y-4">
           {selectedSite ? (
             materialsLoading ? (
-              <Card>
-                <div className={`${getCardPadding()} text-center py-6`}>
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-3"></div>
-                  <p className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-500 dark:text-gray-400`}>
-                    자재 정보를 불러오는 중...
-                  </p>
-                </div>
-              </Card>
+              <LoadingState message="자재 정보를 불러오는 중..." />
             ) : (
               <MaterialManagementSimplified 
                 materials={materials}
@@ -579,24 +553,24 @@ export default function SiteInfoPageNew({
               />
             )
           ) : (
-            <Card>
-              <div className={`${getCardPadding()} text-center py-6`}>
-                <Package className="h-10 w-10 text-gray-400 mx-auto mb-3" />
-                <p className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-500 dark:text-gray-400 mb-3`}>
-                  현장을 선택하여 자재 현황을 확인하세요
-                </p>
+            <EmptyState
+              icon={<Package className="h-10 w-10" />}
+              title="현장을 선택하여 자재 현황을 확인하세요"
+              description="상단의 드롭다운에서 현장을 선택하면 자재 현황을 확인할 수 있습니다."
+              action={
                 <Button 
                   size={getButtonSize()}
                   className="gap-2"
+                  onClick={() => {}} // TODO: Implement site selection
                 >
                   <Search className={getIconSize()} />
                   현장 선택
                 </Button>
-              </div>
-            </Card>
+              }
+            />
           )}
         </TabsContent>
       </Tabs>
-    </div>
+    </PageContainer>
   )
 }

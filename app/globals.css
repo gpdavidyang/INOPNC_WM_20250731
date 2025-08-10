@@ -368,9 +368,9 @@ select:focus {
   box-shadow: 0 0 0 2px #0064ff, 0 0 0 4px rgba(0, 100, 255, 0.1);
 }
 
-/* Large Font Mode CSS - Subtle increase for better readability */
+/* Large Font Mode CSS - Increased size for better accessibility */
 .large-font-mode {
-  font-size: 110%;
+  font-size: 125%;
 }
 
 /* Line clamp utility */

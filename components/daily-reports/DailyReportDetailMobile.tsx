@@ -28,9 +28,13 @@ import {
   Receipt,
   ClipboardList,
   MessageSquare,
-  PlusCircle
+  PlusCircle,
+  Wrench,
+  User,
+  Camera
 } from 'lucide-react'
 import { DailyReport, Profile } from '@/types'
+import type { DailyReportFormData, WorkerData, PhotoData, ReceiptData } from '@/types/daily-reports'
 import { showErrorNotification } from '@/lib/error-handling'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
@@ -53,7 +57,6 @@ export default function DailyReportDetailMobile({ report, currentUser }: DailyRe
   const [approvalComments, setApprovalComments] = useState('')
   const [expandedSections, setExpandedSections] = useState({
     basic: true,
-    stats: true,
     materials: false,
     notes: false
   })
@@ -110,9 +113,8 @@ export default function DailyReportDetailMobile({ report, currentUser }: DailyRe
   const workDate = new Date((report as any).report_date || report.work_date)
   const formattedDate = format(workDate, 'yyyy년 MM월 dd일 (EEEE)', { locale: ko })
 
-  // 통계 계산
-  const totalWorkers = report.total_workers || 0
-  const npc1000Used = report.npc1000_used || 0
+  // Form data 추출
+  const formData = (report as any).formData || {} as DailyReportFormData
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20">
@@ -132,6 +134,43 @@ export default function DailyReportDetailMobile({ report, currentUser }: DailyRe
             </div>
           </div>
           {getStatusBadge(report.status || 'draft')}
+        </div>
+      </div>
+
+      {/* 헤더 정보 섹션 */}
+      <div className="p-3">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-3">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <FileText className="h-4 w-4 text-blue-600" />
+              <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">작업일지 정보</span>
+            </div>
+            <div className="text-xs text-gray-500 dark:text-gray-400">
+              #{report.id.substring(0, 8)}
+            </div>
+          </div>
+          <div className="space-y-2 text-xs">
+            <div className="flex justify-between">
+              <span className="text-gray-600 dark:text-gray-400">작성일시</span>
+              <span className="font-medium text-gray-900 dark:text-gray-100">
+                {format(new Date(report.created_at), 'yyyy.MM.dd HH:mm', { locale: ko })}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600 dark:text-gray-400">수정일시</span>
+              <span className="font-medium text-gray-900 dark:text-gray-100">
+                {format(new Date(report.updated_at), 'yyyy.MM.dd HH:mm', { locale: ko })}
+              </span>
+            </div>
+            {report.approved_at && (
+              <div className="flex justify-between">
+                <span className="text-gray-600 dark:text-gray-400">승인일시</span>
+                <span className="font-medium text-green-700 dark:text-green-300">
+                  {format(new Date(report.approved_at), 'yyyy.MM.dd HH:mm', { locale: ko })}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -182,53 +221,37 @@ export default function DailyReportDetailMobile({ report, currentUser }: DailyRe
           )}
         </div>
 
-        {/* 작업 내용 입력 섹션 */}
+        {/* 작업 내용 섹션 */}
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
           <div className="p-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <FileText className="h-4 w-4 text-blue-500" />
-              <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">작업 내용 입력</span>
+              <Wrench className="h-4 w-4 text-gray-600" />
+              <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">작업 내용</span>
             </div>
           </div>
-          <div className="px-3 pb-3 border-t border-gray-100 dark:border-gray-700 pt-2">
-            {(report as any).work_content ? (
-              <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap bg-gray-50 dark:bg-gray-700 p-2 rounded-lg">
-                {(report as any).work_content}
-              </p>
-            ) : (
-              <p className="text-sm text-gray-400 italic">입력된 작업 내용이 없습니다.</p>
-            )}
+          <div className="px-3 pb-3 border-t border-gray-100 dark:border-gray-700 pt-2 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-gray-600 dark:text-gray-400">부재명</span>
+              <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                {report.member_name || '-'}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-gray-600 dark:text-gray-400">공정</span>
+              <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                {report.process_type || '-'}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-gray-600 dark:text-gray-400">작업구간</span>
+              <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                {formData.work_section || '-'}
+              </span>
+            </div>
           </div>
         </div>
 
-        {/* 작업 통계 섹션 */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-          <button
-            onClick={() => toggleSection('stats')}
-            className="w-full p-3 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700"
-          >
-            <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">작업 통계</span>
-            {expandedSections.stats ? (
-              <ChevronUp className="h-4 w-4 text-gray-400" />
-            ) : (
-              <ChevronDown className="h-4 w-4 text-gray-400" />
-            )}
-          </button>
-          {expandedSections.stats && (
-            <div className="px-3 pb-3 grid grid-cols-3 gap-2 border-t border-gray-100 dark:border-gray-700 pt-2">
-              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-2 text-center">
-                <Users className="h-4 w-4 text-blue-600 dark:text-blue-400 mx-auto mb-1" />
-                <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">{totalWorkers}</div>
-                <div className="text-xs text-gray-600 dark:text-gray-400">작업인원</div>
-              </div>
-              <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-2 text-center">
-                <Clock className="h-4 w-4 text-orange-600 dark:text-orange-400 mx-auto mb-1" />
-                <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">8</div>
-                <div className="text-xs text-gray-600 dark:text-gray-400">작업시간</div>
-              </div>
-            </div>
-          )}
-        </div>
+
 
         {/* 작업자 입력 섹션 */}
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
@@ -239,18 +262,40 @@ export default function DailyReportDetailMobile({ report, currentUser }: DailyRe
             </div>
           </div>
           <div className="px-3 pb-3 border-t border-gray-100 dark:border-gray-700 pt-2">
-            {(report as any).worker_details ? (
-              <div className="bg-gray-50 dark:bg-gray-700 p-2 rounded-lg">
-                <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-                  {(report as any).worker_details}
-                </p>
+            {formData.workers && formData.workers.length > 0 ? (
+              <div className="space-y-2">
+                {formData.workers.map((worker: WorkerData, index: number) => (
+                  <div key={index} className="flex justify-between items-center p-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <User className="h-4 w-4 text-gray-500" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{worker.name}</p>
+                        <p className="text-xs text-gray-600 dark:text-gray-400">{worker.position || '작업자'}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{worker.hours || 8}시간</p>
+                      <p className="text-xs text-gray-600 dark:text-gray-400">{(worker.hours || 8) / 8} 공수</p>
+                    </div>
+                  </div>
+                ))}
+                <div className="border-t pt-2 mt-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                      총 작업인원: {formData.workers.length}명
+                    </span>
+                    <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                      총 {formData.workers.reduce((sum, worker) => sum + (worker.hours || 8), 0)}시간
+                    </span>
+                  </div>
+                </div>
               </div>
             ) : (
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-gray-600 dark:text-gray-400">총 작업인원</span>
                   <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                    {totalWorkers}명
+                    {report.total_workers || 0}명
                   </span>
                 </div>
                 {report.member_name && (
@@ -261,7 +306,7 @@ export default function DailyReportDetailMobile({ report, currentUser }: DailyRe
                     </span>
                   </div>
                 )}
-                {!totalWorkers && !report.member_name && (
+                {!report.total_workers && !report.member_name && (
                   <p className="text-sm text-gray-400 italic">작업자 정보가 없습니다.</p>
                 )}
               </div>
@@ -273,40 +318,82 @@ export default function DailyReportDetailMobile({ report, currentUser }: DailyRe
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
           <div className="p-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <ImageIcon className="h-4 w-4 text-purple-500" />
+              <Camera className="h-4 w-4 text-blue-600" />
               <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">사진 업로드</span>
             </div>
           </div>
-          <div className="px-3 pb-3 border-t border-gray-100 dark:border-gray-700 pt-2">
-            {(report as any).photo_urls && Array.isArray((report as any).photo_urls) && (report as any).photo_urls.length > 0 ? (
-              <div className="grid grid-cols-2 gap-2">
-                {(report as any).photo_urls.map((photoUrl: string, index: number) => (
-                  <div key={index} className="relative group cursor-pointer">
-                    <img
-                      src={photoUrl}
-                      alt={`작업 사진 ${index + 1}`}
-                      className="w-full h-24 object-cover rounded-lg border border-gray-200 dark:border-gray-600"
-                    />
-                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 rounded-lg flex items-center justify-center">
-                      <button className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-white dark:bg-gray-800 p-1 rounded-full">
-                        <ImageIcon className="h-4 w-4 text-gray-700 dark:text-gray-300" />
-                      </button>
+          <div className="px-3 pb-3 border-t border-gray-100 dark:border-gray-700 pt-2 space-y-4">
+            {/* 작업전 사진 하위 섹션 */}
+            <div>
+              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                <Camera className="h-3 w-3 text-blue-500" />
+                작업전 사진
+              </h4>
+              {formData.before_photos && formData.before_photos.length > 0 ? (
+                <div className="grid grid-cols-2 gap-2">
+                  {formData.before_photos.map((photo: PhotoData, index: number) => (
+                    <div key={index} className="relative group cursor-pointer">
+                      <img
+                        src={photo.url || photo.path}
+                        alt={`작업전 사진 ${index + 1}`}
+                        className="w-full h-24 object-cover rounded-lg border border-gray-200 dark:border-gray-600"
+                      />
+                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 rounded-lg flex items-center justify-center">
+                        <button className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-white dark:bg-gray-800 p-1 rounded-full">
+                          <ImageIcon className="h-4 w-4 text-gray-700 dark:text-gray-300" />
+                        </button>
+                      </div>
+                      {photo.description && (
+                        <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 text-center truncate">
+                          {photo.description}
+                        </p>
+                      )}
                     </div>
-                  </div>
-                ))}
-              </div>
-            ) : (report as any).photos_description ? (
-              <div className="bg-gray-50 dark:bg-gray-700 p-2 rounded-lg">
-                <p className="text-sm text-gray-700 dark:text-gray-300">
-                  {(report as any).photos_description}
-                </p>
-              </div>
-            ) : (
-              <div className="text-center py-4">
-                <ImageIcon className="h-8 w-8 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
-                <p className="text-sm text-gray-400 italic">업로드된 사진이 없습니다.</p>
-              </div>
-            )}
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <Camera className="h-6 w-6 text-gray-300 dark:text-gray-600 mx-auto mb-1" />
+                  <p className="text-xs text-gray-400 italic">작업전 사진이 없습니다.</p>
+                </div>
+              )}
+            </div>
+
+            {/* 작업후 사진 하위 섹션 */}
+            <div>
+              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                <Camera className="h-3 w-3 text-green-500" />
+                작업후 사진
+              </h4>
+              {formData.after_photos && formData.after_photos.length > 0 ? (
+                <div className="grid grid-cols-2 gap-2">
+                  {formData.after_photos.map((photo: PhotoData, index: number) => (
+                    <div key={index} className="relative group cursor-pointer">
+                      <img
+                        src={photo.url || photo.path}
+                        alt={`작업후 사진 ${index + 1}`}
+                        className="w-full h-24 object-cover rounded-lg border border-gray-200 dark:border-gray-600"
+                      />
+                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 rounded-lg flex items-center justify-center">
+                        <button className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-white dark:bg-gray-800 p-1 rounded-full">
+                          <ImageIcon className="h-4 w-4 text-gray-700 dark:text-gray-300" />
+                        </button>
+                      </div>
+                      {photo.description && (
+                        <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 text-center truncate">
+                          {photo.description}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <Camera className="h-6 w-6 text-gray-300 dark:text-gray-600 mx-auto mb-1" />
+                  <p className="text-xs text-gray-400 italic">작업후 사진이 없습니다.</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -314,30 +401,61 @@ export default function DailyReportDetailMobile({ report, currentUser }: DailyRe
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
           <div className="p-3 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Receipt className="h-4 w-4 text-orange-500" />
+              <Receipt className="h-4 w-4 text-purple-600" />
               <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">영수증 첨부</span>
             </div>
           </div>
           <div className="px-3 pb-3 border-t border-gray-100 dark:border-gray-700 pt-2">
-            {(report as any).receipt_urls && Array.isArray((report as any).receipt_urls) && (report as any).receipt_urls.length > 0 ? (
+            {formData.receipts && formData.receipts.length > 0 ? (
               <div className="space-y-2">
-                {(report as any).receipt_urls.map((receiptUrl: string, index: number) => (
-                  <div key={index} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <Receipt className="h-4 w-4 text-orange-500" />
-                      <span className="text-sm text-gray-700 dark:text-gray-300">영수증 {index + 1}</span>
+                {formData.receipts.map((receipt: ReceiptData, index: number) => (
+                  <div key={index} className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg space-y-2">
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div>
+                        <span className="text-xs text-gray-600 dark:text-gray-400">구분</span>
+                        <p className="font-medium text-gray-900 dark:text-gray-100">
+                          {receipt.description || '영수증'}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-xs text-gray-600 dark:text-gray-400">금액</span>
+                        <p className="font-medium text-gray-900 dark:text-gray-100">
+                          {receipt.amount ? `₩${receipt.amount.toLocaleString()}` : '-'}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-xs text-gray-600 dark:text-gray-400">일자</span>
+                        <p className="font-medium text-gray-900 dark:text-gray-100">
+                          {receipt.date ? format(new Date(receipt.date), 'yyyy.MM.dd', { locale: ko }) : '-'}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-xs text-gray-600 dark:text-gray-400">첨부파일</span>
+                        <div className="flex items-center gap-2">
+                          <Receipt className="h-4 w-4 text-gray-500" />
+                          <span className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                            {receipt.filename || `영수증_${index + 1}`}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    <button className="text-blue-600 dark:text-blue-400 text-xs font-medium hover:underline">
-                      보기
-                    </button>
+                    {receipt.vendor && (
+                      <div className="pt-2 border-t border-gray-200 dark:border-gray-600">
+                        <span className="text-xs text-gray-600 dark:text-gray-400">업체명</span>
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{receipt.vendor}</p>
+                      </div>
+                    )}
+                    <div className="flex justify-between items-center pt-2">
+                      <span className="text-xs text-gray-500">
+                        {receipt.file_size && `파일크기: ${(receipt.file_size / 1024).toFixed(1)}KB`}
+                      </span>
+                      <button className="text-blue-600 dark:text-blue-400 text-xs font-medium hover:underline flex items-center gap-1">
+                        <Download className="h-3 w-3" />
+                        다운로드
+                      </button>
+                    </div>
                   </div>
                 ))}
-              </div>
-            ) : (report as any).receipt_description ? (
-              <div className="bg-gray-50 dark:bg-gray-700 p-2 rounded-lg">
-                <p className="text-sm text-gray-700 dark:text-gray-300">
-                  {(report as any).receipt_description}
-                </p>
               </div>
             ) : (
               <div className="text-center py-4">

@@ -91,7 +91,6 @@ export function DailyReportListEnhanced({ currentUser, sites = [] }: DailyReport
     totalNPC1000Used: 0,
     averageWorkersPerDay: 0
   })
-  const [showStats, setShowStats] = useState(true)
   const [searchResult, setSearchResult] = useState<SearchResult<DailyReport> | undefined>()
   const [isSearchMode, setIsSearchMode] = useState(false)
   const [showFilters, setShowFilters] = useState(true)
@@ -481,41 +480,6 @@ export function DailyReportListEnhanced({ currentUser, sites = [] }: DailyReport
   return (
     <div className="space-y-6">
 
-      {/* High-Density Stats Cards */}
-      {showStats && (
-        <div className="grid grid-cols-2 gap-2">
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-3 hover:shadow-md transition-shadow duration-200">
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <div className={`${getFullTypographyClass('caption', 'xs', isLargeFont)} text-gray-600 dark:text-gray-400`}>작업일지</div>
-                <div className={`${getFullTypographyClass('heading', 'lg', isLargeFont)} text-gray-900 dark:text-gray-100 mt-0.5`}>{stats.totalReports}건</div>
-                <div className={`flex gap-1.5 mt-0.5 ${getFullTypographyClass('caption', 'xs', isLargeFont)}`}>
-                  <span className="text-green-600 dark:text-green-400">승인 {stats.approvedReports}</span>
-                  <span className="text-blue-600 dark:text-blue-400">대기 {stats.submittedReports}</span>
-                </div>
-              </div>
-              <div className="p-1.5 bg-blue-50 dark:bg-blue-900 rounded-lg">
-                <FileText className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-3 hover:shadow-md transition-shadow duration-200">
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <div className={`${getFullTypographyClass('caption', 'xs', isLargeFont)} text-gray-600 dark:text-gray-400`}>작업인원</div>
-                <div className={`${getFullTypographyClass('heading', 'lg', isLargeFont)} text-gray-900 dark:text-gray-100 mt-0.5`}>{stats.totalWorkers}명</div>
-                <div className={`${getFullTypographyClass('caption', 'xs', isLargeFont)} text-gray-500 dark:text-gray-400 mt-0.5`}>
-                  평균 {stats.averageWorkersPerDay}명
-                </div>
-              </div>
-              <div className="p-1.5 bg-green-50 dark:bg-green-900 rounded-lg">
-                <Users className="w-4 h-4 text-green-600 dark:text-green-400" />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Advanced Search Interface */}
       <SearchInterface
@@ -657,15 +621,18 @@ export function DailyReportListEnhanced({ currentUser, sites = [] }: DailyReport
                     <RefreshCw className="w-3 h-3 mr-1" />
                     새로고침
                   </Button>
-                  <Button 
-                    variant="outline" 
-                    size="compact" 
-                    onClick={() => setShowStats(!showStats)}
-                    className="h-8 px-3 rounded-lg dark:border-gray-600 dark:text-gray-300"
-                  >
-                    <PieChart className="w-3 h-3 mr-1" />
-                    통계
-                  </Button>
+                  {canCreateReport && (
+                    <Link href="/dashboard/daily-reports/new">
+                      <Button 
+                        variant="primary" 
+                        size="compact" 
+                        className="h-8 px-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white"
+                      >
+                        <Plus className="w-3 h-3 mr-1" />
+                        새 작업일지
+                      </Button>
+                    </Link>
+                  )}
                 </div>
                 <div className="flex gap-2 items-center">
                   <ViewToggle
@@ -703,15 +670,18 @@ export function DailyReportListEnhanced({ currentUser, sites = [] }: DailyReport
                 <X className="w-3 h-3 mr-1" />
                 검색 해제
               </Button>
-              <Button 
-                variant="outline" 
-                size="compact" 
-                onClick={() => setShowStats(!showStats)}
-                className="h-8 px-3 rounded-lg dark:border-gray-600 dark:text-gray-300"
-              >
-                <PieChart className="w-3 h-3 mr-1" />
-                통계
-              </Button>
+              {canCreateReport && (
+                <Link href="/dashboard/daily-reports/new">
+                  <Button 
+                    variant="primary" 
+                    size="compact" 
+                    className="h-8 px-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    <Plus className="w-3 h-3 mr-1" />
+                    새 작업일지
+                  </Button>
+                </Link>
+              )}
             </div>
             <div className="flex gap-2 items-center">
               <ViewToggle

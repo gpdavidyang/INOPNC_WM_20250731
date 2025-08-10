@@ -91,6 +91,7 @@ export default function RootLayout({
                           <ServiceWorkerRegistration />
                           <NotificationPermission />
                         </PerformanceMonitoringProvider>
+                      </AuthProvider>
                       <Toaster 
                         position="top-right"
                         richColors
@@ -102,7 +103,6 @@ export default function RootLayout({
                           }
                         }}
                       />
-                    </AuthProvider>
                   </EnvironmentalProvider>
                 </SunlightModeProvider>
               </ContrastModeProvider>

@@ -146,38 +146,35 @@ className={cn(
 
 ## Spacing System
 
-### 헤더-섹션 간격 표준 (Header-Section Spacing Standards) ⚡️ v3.1.0 업데이트
+### 헤더-섹션 간격 표준 (Header-Section Spacing Standards) ⚡️ v3.2.0 업데이트
+- **헤더-섹션 간격** : 12px
 
-#### 표준 간격 규칙 (개정: 2025-08-10)
-- **기본 간격**: `space-y-px` (1px) - 페이지 헤더와 첫 번째 섹션 간의 표준 간격 
-- **적용 위치**: 페이지 헤더 다음 첫 번째 섹션
-- **CSS 클래스**: `space-y-px` 또는 `mt-px` (1px)
-- **좌우 가장자리 간격**: `px-px` (1px) - 모바일 최소 패딩 유지
-- **섹션-섹션 간격**: `space-y-px` (1px) - 모든 섹션 간 표준 간격
+#### 표준 간격 규칙 (개정: 2025-08-10 - 현장관리 페이지 기준)
+- **좌우 가장자리 간격**: `px-3 sm:px-4 lg:px-6` - 반응형 수평 패딩 (모바일 12px, 태블릿 16px, 데스크톱 24px)
+- **섹션-섹션 간격**: `space-y-3` (12px) - 모든 섹션 간 표준 간격
+- **드롭다운-첫번째섹션 간격**: `mb-20` (80px) + `mt-6` (24px) = 104px 총 간격
 
-#### 실제 적용 예시
+#### 현장관리 페이지 검증된 적용값 (2025-08-10)
 ```jsx
-// 페이지 구조 (업데이트된 표준 - v3.1.1)
-<div className="space-y-px px-px sm:px-6 lg:px-8"> {/* 헤더-섹션간 1px, 섹션-섹션간 4px */}
-  <PageHeader />
-  <FirstSection />      {/* 헤더와 1px 간격 */}
+// 현장관리 페이지 구조 (검증 완료)
+<div className="space-y-3 px-3 sm:px-4 lg:px-6"> {/* 좌우 반응형 패딩 */}
+  <div className="mb-20">                        {/* 드롭다운 컨테이너 - 80px 하단 여백 */}
+    <SiteDropdown />
+  </div>
   
-  {/* 섹션 내부에서는 4px 간격 */}
-  <Tabs className="space-y-1">           {/* 4px 섹션 간격 */}
-    <TabsContent className="space-y-1">  {/* 4px 내부 섹션 간격 */}
-      <Section />
-      <Section />
-    </TabsContent>
-  </Tabs>
+  <TabsContent className="space-y-3 mt-6">       {/* 첫 번째 섹션 - 24px 상단 + 12px 섹션 간격 */}
+    <Section />                                   {/* 총 104px 드롭다운-섹션 간격 */}
+    <Section />                                   {/* 12px 섹션 간격 */}
+  </TabsContent>
 </div>
 ```
 
-#### 간격 시스템 일관성 (v3.1.1 - 2025-08-10 업데이트)
-- **헤더-첫번째섹션**: `space-y-px` (1px) - 페이지 헤더와 첫 번째 섹션만
-- **섹션-섹션 간격**: `space-y-1` (4px) - 모든 섹션 간 표준 간격 (업데이트됨)
-- **좌우 가장자리**: `px-px` (1px) - 모바일 최소 패딩 (유지)
+#### 간격 시스템 일관성 (v3.2.0 - 2025-08-10 검증됨)
+- **좌우 가장자리**: `px-3 sm:px-4 lg:px-6` - 반응형 수평 패딩 (모바일 12px → 태블릿 16px → 데스크톱 24px)
+- **섹션-섹션 간격**: `space-y-3` (12px) - 모든 섹션 간 표준 간격
+- **드롭다운-섹션 간격**: `mb-20` + `mt-6` = 104px - 충분한 시각적 분리
 - **컨테이너 내부**: `p-3` (12px) - 카드 및 컨테이너 내부 패딩 (유지)
-- **조밀한 레이아웃**: `gap-1` (4px) - 그리드 및 플렉스 간격 (업데이트됨)
+- **조밀한 레이아웃**: `gap-3` (12px) - 그리드 및 플렉스 간격 (일관성 유지)
 
 ### Mobile-First Field Worker Spacing
 

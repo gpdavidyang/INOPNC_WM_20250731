@@ -87,24 +87,8 @@ export default function SiteInfoContent({
         start_date: site.start_date,
         end_date: site.end_date || ''
       },
-      is_active: site.site_status === 'active',
-      // Add document fields
-      ptw_document: site.ptw_document_id && site.ptw_document_url ? {
-        id: site.ptw_document_id,
-        title: site.ptw_document_title || 'PTW 작업허가서',
-        file_url: site.ptw_document_url,
-        file_name: site.ptw_document_filename || 'ptw.pdf',
-        mime_type: site.ptw_document_mime_type || 'application/pdf',
-        document_type: 'ptw'
-      } : undefined,
-      blueprint_document: site.blueprint_document_id && site.blueprint_document_url ? {
-        id: site.blueprint_document_id,
-        title: site.blueprint_document_title || '공사도면',
-        file_url: site.blueprint_document_url,
-        file_name: site.blueprint_document_filename || 'blueprint.pdf',
-        mime_type: site.blueprint_document_mime_type || 'application/pdf',
-        document_type: 'blueprint'
-      } : undefined
+      is_active: site.site_status === 'active'
+      // Document fields excluded to match Home screen appearance
     }
   }
 
@@ -168,17 +152,21 @@ export default function SiteInfoContent({
   // Convert site info for display
   const siteInfo = convertToSiteInfo(currentSite)
 
-  // Touch-responsive padding
-  const getPadding = () => {
-    if (touchMode === 'glove') return 'p-6 sm:p-8'
-    if (touchMode === 'precision') return 'p-3 sm:p-4'
-    return 'p-4 sm:p-6'
+  // Updated padding to match 2025-08-10 standards
+  const getHeaderPadding = () => {
+    if (touchMode === 'glove') return 'px-4 py-3 sm:px-5 sm:py-4 lg:px-7 lg:py-6'
+    if (touchMode === 'precision') return 'px-3 py-2 sm:px-4 sm:py-3 lg:px-6 lg:py-4'
+    return 'px-3 py-3 sm:px-4 sm:py-3 lg:px-6 lg:py-4'
+  }
+
+  const getContentPadding = () => {
+    return 'px-3 sm:px-4 lg:px-6' // Responsive horizontal padding per standards
   }
 
   return (
     <div className="max-w-7xl mx-auto">
       {/* Header - Mobile Optimized - Sticky */}
-      <div className={`sticky top-0 z-20 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 ${getPadding()} flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4`}>
+      <div className={`sticky top-0 z-20 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 ${getHeaderPadding()} flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3`}>
         <div>
           <h1 className={`${getFullTypographyClass('heading', isLargeFont ? '3xl' : '2xl', isLargeFont)} font-bold text-gray-900 dark:text-gray-100`}>
             현장정보
@@ -188,10 +176,10 @@ export default function SiteInfoContent({
           </p>
         </div>
         
-        <div className="flex gap-2">
+        <div className="flex gap-3">
           <button
             onClick={() => setShowSearchModal(true)}
-            className={`flex items-center gap-2 ${
+            className={`flex items-center gap-3 ${
               touchMode === 'glove' ? 'px-5 py-3 min-h-[56px]' : 
               touchMode === 'precision' ? 'px-3 py-1.5 min-h-[44px]' : 
               'px-4 py-2 min-h-[48px]'
@@ -204,7 +192,7 @@ export default function SiteInfoContent({
           <button
             onClick={refreshData}
             disabled={isRefreshing}
-            className={`flex items-center gap-2 ${
+            className={`flex items-center gap-3 ${
               touchMode === 'glove' ? 'px-5 py-3 min-h-[56px]' : 
               touchMode === 'precision' ? 'px-3 py-1.5 min-h-[44px]' : 
               'px-4 py-2 min-h-[48px]'
@@ -216,13 +204,11 @@ export default function SiteInfoContent({
         </div>
       </div>
 
-      {/* Content wrapper with padding */}
-      <div className={`space-y-6 ${getPadding()}`}>
+      {/* Content wrapper with header-section spacing (12px) and standard padding */}
+      <div className={`mt-3 space-y-3 ${getContentPadding()}`}>
         {/* Error State */}
         {error && (
-          <div className={`bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg ${
-            touchMode === 'glove' ? 'p-6' : touchMode === 'precision' ? 'p-3' : 'p-4'
-          }`}>
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
             <p className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-red-800 dark:text-red-200`}>
               {error}
             </p>
@@ -239,9 +225,9 @@ export default function SiteInfoContent({
         {/* Site History - Matching Home Tab Style */}
         {siteHistory.length > 0 && (
           <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-            <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
+            <div className="p-3 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                   <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">현장 참여 이력</h3>
                   <span className="text-xs text-gray-500 dark:text-gray-400">{siteHistory.length}개 현장</span>
                 </div>
@@ -250,10 +236,10 @@ export default function SiteInfoContent({
         
           <div className="divide-y divide-gray-100 dark:divide-gray-700 max-h-64 overflow-y-auto">
             {siteHistory.map((site, index) => (
-              <div key={`${site.site_id}-${index}`} className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors theme-transition">
+              <div key={`${site.site_id}-${index}`} className="p-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors theme-transition">
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex items-center gap-3 mb-1">
                       <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
                         {site.site_name}
                       </h4>
@@ -323,7 +309,7 @@ export default function SiteInfoContent({
         {/* Empty State (when no site history exists) */}
         {siteHistory.length === 0 && !loading && (
           <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-            <div className="p-6 sm:p-8">
+            <div className="p-3">
               <div className="flex flex-col items-center justify-center space-y-4">
                 <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
                   <Clock className="h-8 w-8 text-gray-400" />
@@ -338,7 +324,7 @@ export default function SiteInfoContent({
                 </div>
                 <button
                   onClick={() => setShowSearchModal(true)}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-base font-medium transition-colors touch-manipulation"
+                  className="flex items-center gap-3 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-base font-medium transition-colors touch-manipulation"
                 >
                   <Search className="h-4 w-4" />
                   현장 찾기

@@ -28,10 +28,10 @@ export function AttendancePageClient({ profile, isPartnerCompany }: AttendancePa
 
   return (
     <div className="h-full bg-white dark:bg-gray-900">
-      <div className="space-y-px px-px sm:px-6 lg:px-8">
+      <div className="px-3 sm:px-4 lg:px-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           {/* UI Guidelines에 맞는 탭 디자인 */}
-          <div className="flex gap-2 mb-3">
+          <div className="flex gap-3 mb-3">
             <button
               onClick={() => setActiveTab('attendance')}
               className={cn(
@@ -64,7 +64,7 @@ export function AttendancePageClient({ profile, isPartnerCompany }: AttendancePa
             </button>
           </div>
 
-          <TabsContent value="attendance" className="mt-0">
+          <TabsContent value="attendance" className="mt-0 pt-3">
             <AttendanceView profile={profile} />
           </TabsContent>
 

@@ -383,7 +383,7 @@ export default function DashboardLayout({ user, profile, children, initialActive
         />
         
         {/* Main content */}
-        <main id="main-content" className="space-y-1 px-px sm:px-6 lg:px-8 pb-16 md:pb-6">
+        <main id="main-content" className="pt-3 px-3 sm:px-4 lg:px-6 pb-16 md:pb-6">
           <div className="mx-auto max-w-7xl">
             <div role="region" aria-live="polite" aria-label="페이지 콘텐츠">
               {renderContent()}

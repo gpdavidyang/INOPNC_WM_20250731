@@ -287,7 +287,7 @@ export default function SiteInfoPageNew({
               <Card elevation="sm" className="theme-transition overflow-hidden">
                 <button
                   onClick={() => setSiteHistoryExpanded(!siteHistoryExpanded)}
-                  className="w-full px-3 py-2.5 bg-blue-50 dark:bg-blue-900/20 border-b border-blue-200 dark:border-blue-700 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors theme-transition"
+                  className="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors theme-transition"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -308,31 +308,33 @@ export default function SiteInfoPageNew({
                     <div className="space-y-1">
                       
                       {/* 현장 주소 */}
-                      <div className="flex items-start gap-3">
-                        <MapPin className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <span className="text-xs text-gray-500 dark:text-gray-400 block mb-1">현장 주소</span>
-                          <p className="text-sm text-gray-900 dark:text-gray-100 break-words">
-                            {selectedSite.site_address}
-                          </p>
-                        </div>
+                      <div className="flex items-center gap-3">
+                        <MapPin className="h-4 w-4 text-blue-500 flex-shrink-0" />
+                        <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">현장</span>
+                        <p className="text-sm text-gray-900 dark:text-gray-100 break-words flex-1 min-w-0">
+                          {selectedSite.site_address}
+                        </p>
                         <Button variant="ghost" size="compact" className="h-6 w-6 p-0 min-h-0 flex-shrink-0" onClick={() => copyToClipboard(selectedSite.site_address)}>
                           <Copy className="h-3 w-3" />
+                        </Button>
+                        <Button variant="ghost" size="compact" className="h-6 w-6 p-0 min-h-0 flex-shrink-0 text-blue-600" onClick={() => window.open(`https://tmapapi.sktelecom.com/main.html#weblink/search?query=${encodeURIComponent(selectedSite.site_address)}`)}>
+                          <Navigation className="h-3 w-3" />
                         </Button>
                       </div>
                       
                       {/* 숙소 정보 */}
                       {selectedSite.accommodation_address && (
-                        <div className="flex items-start gap-3">
-                          <Building className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
-                          <div className="flex-1 min-w-0">
-                            <span className="text-xs text-gray-500 dark:text-gray-400 block mb-1">숙소</span>
-                            <p className="text-sm text-gray-900 dark:text-gray-100 break-words">
-                              {selectedSite.accommodation_address}
-                            </p>
-                          </div>
+                        <div className="flex items-center gap-3">
+                          <Building className="h-4 w-4 text-blue-500 flex-shrink-0" />
+                          <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">숙소</span>
+                          <p className="text-sm text-gray-900 dark:text-gray-100 break-words flex-1 min-w-0">
+                            {selectedSite.accommodation_address}
+                          </p>
                           <Button variant="ghost" size="compact" className="h-6 w-6 p-0 min-h-0 flex-shrink-0" onClick={() => copyToClipboard(selectedSite.accommodation_address!)}>
                             <Copy className="h-3 w-3" />
+                          </Button>
+                          <Button variant="ghost" size="compact" className="h-6 w-6 p-0 min-h-0 flex-shrink-0 text-blue-600" onClick={() => window.open(`https://tmapapi.sktelecom.com/main.html#weblink/search?query=${encodeURIComponent(selectedSite.accommodation_address!)}`)}>
+                            <Navigation className="h-3 w-3" />
                           </Button>
                         </div>
                       )}

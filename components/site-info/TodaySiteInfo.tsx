@@ -109,167 +109,169 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
 
   return (
     <Card 
-      elevation="md" 
-      className="overflow-hidden theme-transition"
+      elevation="sm" 
+      className="theme-transition"
       aria-labelledby="site-info-section"
     >
-      <button
-        onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors theme-transition"
-      >
-        <h2 id="site-info-section" className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-          오늘의 현장 정보 <span className="text-xs font-normal text-gray-600 dark:text-gray-400 ml-2">{siteInfo.name}</span>
-        </h2>
-        {isExpanded ? (
-          <ChevronUp className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
-        ) : (
-          <ChevronDown className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
-        )}
-      </button>
-      
-      {isExpanded && (
-        <div className="px-3 pb-3 space-y-2 border-t border-gray-100 dark:border-gray-700 pt-3">
-        {/* Site Address */}
-        <div className="flex items-center gap-1 text-xs">
-          <MapPin className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
-          <span className="font-medium text-gray-900 dark:text-gray-100">현장</span>
-          <span className="text-gray-600 dark:text-gray-400 flex-1 ml-1 truncate">
-            {siteInfo.address.full_address}
-          </span>
-          <button
-            onClick={() => copyToClipboard(siteInfo.address.full_address, '현장주소')}
-            className="p-0.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
-            title="주소 복사"
-          >
-            <Copy className="h-3 w-3 text-gray-400" />
-          </button>
-          <button
-            onClick={() => openTMap(siteInfo.address.full_address, siteInfo.name)}
-            className="px-1.5 py-0.5 text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
-          >
-            T맵
-          </button>
+      <div className="px-4 py-4">
+        <div className="flex items-center justify-between mb-4">
+          <h2 id="site-info-section" className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            오늘의 현장 정보 <span className="text-sm font-normal text-gray-600 dark:text-gray-400 ml-1">{siteInfo.name}</span>
+          </h2>
+          <ChevronUp className="h-4 w-4 text-gray-400" />
         </div>
+        
+        <div className="space-y-3">
+          {/* Site Address */}
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <MapPin className="h-4 w-4 text-gray-400 flex-shrink-0" />
+              <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">현장 주소</span>
+              <div className="flex-1"></div>
+              <button
+                onClick={() => copyToClipboard(siteInfo.address.full_address, '현장주소')}
+                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                title="주소 복사"
+              >
+                <Copy className="h-3.5 w-3.5 text-gray-400" />
+              </button>
+              <button
+                onClick={() => openTMap(siteInfo.address.full_address, siteInfo.name)}
+                className="px-2 py-1 text-xs font-medium bg-gray-50 text-gray-600 hover:bg-gray-100 rounded transition-colors"
+              >
+                T맵
+              </button>
+            </div>
+            <div className="pl-6 text-sm text-gray-600 dark:text-gray-400">
+              {siteInfo.address.full_address}
+            </div>
+          </div>
 
-        {/* Accommodation if exists */}
-        {siteInfo.accommodation && (
-          <div className="flex items-center gap-1 text-xs">
-            <Home className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
-            <span className="font-medium text-gray-900 dark:text-gray-100">숙소</span>
-            <span className="text-gray-600 dark:text-gray-400 flex-1 ml-1 truncate">
-              {siteInfo.accommodation.full_address}
+          {/* Accommodation if exists */}
+          {siteInfo.accommodation && (
+            <div className="space-y-1 text-sm">
+              <div className="flex items-center gap-2">
+                <Home className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                <span className="font-medium text-gray-900 dark:text-gray-100">숙소</span>
+                <div className="flex-1"></div>
+                <button
+                  onClick={() => copyToClipboard(siteInfo.accommodation!.full_address, '숙소주소')}
+                  className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                  title="주소 복사"
+                >
+                  <Copy className="h-3.5 w-3.5 text-gray-400" />
+                </button>
+                <button
+                  onClick={() => openTMap(siteInfo.accommodation!.full_address, '숙소')}
+                  className="px-2 py-1 text-xs bg-gray-50 text-gray-600 hover:bg-gray-100 rounded transition-colors"
+                >
+                  T맵
+                </button>
+              </div>
+              <div className="pl-6 text-gray-600 dark:text-gray-400">
+                {siteInfo.accommodation.full_address}
+              </div>
+            </div>
+          )}
+
+          {/* Manager Contacts */}
+          {siteInfo.managers && siteInfo.managers.length > 0 && (
+            <>
+              {/* Construction Manager first */}
+              {siteInfo.managers.filter((manager: any) => manager.role === 'construction_manager').map((manager: any, index: number) => (
+                <div key={index} className="space-y-1 text-sm">
+                  <div className="flex items-center gap-2">
+                    <User className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                    <span className="font-medium text-gray-900 dark:text-gray-100">건축관리자</span>
+                    <div className="flex-1"></div>
+                    <button
+                      onClick={() => copyToClipboard(manager.phone, '전화번호')}
+                      className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                      title="전화번호 복사"
+                    >
+                      <Copy className="h-3.5 w-3.5 text-gray-400" />
+                    </button>
+                    <button
+                      onClick={() => makePhoneCall(manager.phone)}
+                      className="p-1 hover:bg-green-50 dark:hover:bg-green-900/20 rounded"
+                      title="전화"
+                    >
+                      <Phone className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
+                    </button>
+                  </div>
+                  <div className="pl-6 text-gray-600 dark:text-gray-400">
+                    {manager.name} • {manager.phone}
+                  </div>
+                </div>
+              ))}
+              {/* Safety Manager second */}
+              {siteInfo.managers.filter((manager: any) => manager.role === 'safety_manager').map((manager: any, index: number) => (
+                <div key={index} className="space-y-1 text-sm">
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                    <span className="font-medium text-gray-900 dark:text-gray-100">안전관리자</span>
+                    <div className="flex-1"></div>
+                    <button
+                      onClick={() => copyToClipboard(manager.phone, '전화번호')}
+                      className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                      title="전화번호 복사"
+                    >
+                      <Copy className="h-3.5 w-3.5 text-gray-400" />
+                    </button>
+                    <button
+                      onClick={() => makePhoneCall(manager.phone)}
+                      className="p-1 hover:bg-green-50 dark:hover:bg-green-900/20 rounded"
+                      title="전화"
+                    >
+                      <Phone className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
+                    </button>
+                  </div>
+                  <div className="pl-6 text-gray-600 dark:text-gray-400">
+                    {manager.name} • {manager.phone}
+                  </div>
+                </div>
+              ))}
+            </>
+          )}
+
+          {/* Work Details */}
+          <div className="flex items-center gap-2 text-sm">
+            <Wrench className="h-4 w-4 text-gray-400 flex-shrink-0" />
+            <span className="font-medium text-gray-900 dark:text-gray-100">작업내용</span>
+            <span className="text-gray-600 dark:text-gray-400 flex-1 ml-2">
+              {siteInfo.process.work_process} • {siteInfo.process.work_section}
             </span>
+          </div>
+
+          {/* Blueprint Document */}
+          <div className="flex items-center gap-2 text-sm">
+            <Map className="h-4 w-4 text-gray-400 flex-shrink-0" />
+            <span className="font-medium text-gray-900 dark:text-gray-100">현장 공도면</span>
+            <div className="flex-1"></div>
             <button
-              onClick={() => copyToClipboard(siteInfo.accommodation!.full_address, '숙소주소')}
-              className="p-0.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
-              title="주소 복사"
+              onClick={() => setShowBlueprintModal(true)}
+              className="px-2 py-1 text-xs bg-gray-50 text-gray-600 hover:bg-gray-100 rounded transition-colors"
+              title="도면 보기"
             >
-              <Copy className="h-3 w-3 text-gray-400" />
-            </button>
-            <button
-              onClick={() => openTMap(siteInfo.accommodation!.full_address, '숙소')}
-              className="px-1.5 py-0.5 text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
-            >
-              T맵
+              미리보기
             </button>
           </div>
-        )}
 
-        {/* Manager Contacts */}
-        {siteInfo.managers && siteInfo.managers.length > 0 && (
-          <div className="space-y-2">
-            {/* Construction Manager first */}
-            {siteInfo.managers.filter((manager: any) => manager.role === 'construction_manager').map((manager: any, index: number) => (
-              <div key={index} className="flex items-center gap-1 text-xs">
-                <User className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
-                <span className="font-medium text-gray-900 dark:text-gray-100">건축관리자</span>
-                <span className="text-gray-600 dark:text-gray-400">{manager.name}</span>
-                <span className="text-gray-600 dark:text-gray-400 flex-1 ml-1">{manager.phone}</span>
-                <button
-                  onClick={() => copyToClipboard(manager.phone, '전화번호')}
-                  className="p-0.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
-                  title="전화번호 복사"
-                >
-                  <Copy className="h-3 w-3 text-gray-400" />
-                </button>
-                <button
-                  onClick={() => makePhoneCall(manager.phone)}
-                  className="p-0.5 hover:bg-green-50 dark:hover:bg-green-900/20 rounded"
-                  title="전화"
-                >
-                  <Phone className="h-3 w-3 text-green-600 dark:text-green-400" />
-                </button>
-              </div>
-            ))}
-            {/* Safety Manager second */}
-            {siteInfo.managers.filter((manager: any) => manager.role === 'safety_manager').map((manager: any, index: number) => (
-              <div key={index} className="flex items-center gap-1 text-xs">
-                <ShieldCheck className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
-                <span className="font-medium text-gray-900 dark:text-gray-100">안전관리자</span>
-                <span className="text-gray-600 dark:text-gray-400">{manager.name}</span>
-                <span className="text-gray-600 dark:text-gray-400 flex-1 ml-1">{manager.phone}</span>
-                <button
-                  onClick={() => copyToClipboard(manager.phone, '전화번호')}
-                  className="p-0.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
-                  title="전화번호 복사"
-                >
-                  <Copy className="h-3 w-3 text-gray-400" />
-                </button>
-                <button
-                  onClick={() => makePhoneCall(manager.phone)}
-                  className="p-0.5 hover:bg-green-50 dark:hover:bg-green-900/20 rounded"
-                  title="전화"
-                >
-                  <Phone className="h-3 w-3 text-green-600 dark:text-green-400" />
-                </button>
-              </div>
-            ))}
+          {/* PTW Document Preview */}
+          <div className="flex items-center gap-2 text-sm">
+            <FileText className="h-4 w-4 text-gray-400 flex-shrink-0" />
+            <span className="font-medium text-gray-900 dark:text-gray-100">PTW (작업허가서)</span>
+            <div className="flex-1"></div>
+            <button
+              onClick={() => setShowPTWModal(true)}
+              className="px-2 py-1 text-xs bg-gray-50 text-gray-600 hover:bg-gray-100 rounded transition-colors"
+              title="작업허가서 보기"
+            >
+              미리보기
+            </button>
           </div>
-        )}
-
-        {/* Divider */}
-        <div className="border-t border-gray-200 dark:border-gray-700 my-1" />
-
-        {/* Work Details */}
-        <div className="flex items-center gap-1 text-xs">
-          <Wrench className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
-          <span className="font-medium text-gray-900 dark:text-gray-100">작업내용</span>
-          <span className="text-gray-600 dark:text-gray-400 flex-1 ml-1 truncate">
-            {siteInfo.process.work_process} • {siteInfo.process.work_section}
-          </span>
         </div>
-
-        {/* Blueprint Document */}
-        <div className="flex items-center gap-1 text-xs">
-          <Map className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
-          <span className="font-medium text-gray-900 dark:text-gray-100">현장 공도면</span>
-          <div className="flex-1"></div>
-          <button
-            onClick={() => setShowBlueprintModal(true)}
-            className="flex items-center gap-1 px-1.5 py-0.5 text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
-            title="도면 보기"
-          >
-            <Eye className="h-3 w-3" />
-            <span>미리보기</span>
-          </button>
-        </div>
-
-        {/* PTW Document Preview */}
-        <div className="flex items-center gap-1 text-xs">
-          <FileText className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
-          <span className="font-medium text-gray-900 dark:text-gray-100">PTW (작업허가서)</span>
-          <div className="flex-1"></div>
-          <button
-            onClick={() => setShowPTWModal(true)}
-            className="flex items-center gap-1 px-1.5 py-0.5 text-xs text-green-600 hover:text-green-700 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-colors"
-            title="작업허가서 보기"
-          >
-            <Eye className="h-3 w-3" />
-            <span>미리보기</span>
-          </button>
-        </div>
-        </div>
-      )}
+      </div>
 
       {/* Blueprint Modal - Mobile Optimized */}
       {showBlueprintModal && (
@@ -293,8 +295,8 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
               {/* Document Info Card */}
               <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-4 sm:p-6">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                    <Map className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600 dark:text-blue-400" />
+                  <div className="p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                    <Map className="h-6 w-6 sm:h-8 sm:w-8 text-gray-600 dark:text-gray-400" />
                   </div>
                   <div className="flex-1">
                     <h4 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100">
@@ -377,7 +379,7 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
                   link.click()
                   document.body.removeChild(link)
                 }}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 active:bg-blue-800 transition-colors font-medium shadow-sm"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gray-600 text-white rounded-xl hover:bg-gray-700 active:bg-gray-800 transition-colors font-medium shadow-sm"
                 disabled={!siteInfo.blueprint_document}
               >
                 <Download className="h-4 w-4" />
@@ -414,8 +416,8 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
             <div className="p-4 sm:p-6 overflow-y-auto max-h-[calc(85vh-140px)] sm:max-h-[calc(90vh-140px)]">
               <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-4 sm:p-6">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                    <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600 dark:text-blue-400" />
+                  <div className="p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                    <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-gray-600 dark:text-gray-400" />
                   </div>
                   <div className="flex-1">
                     <h4 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100">
@@ -499,7 +501,7 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
                           {/* Enhanced PDF Thumbnail Simulation */}
                           <div className="w-full max-w-xs h-48 bg-gradient-to-b from-white to-gray-100 dark:from-gray-700 dark:to-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg overflow-hidden relative">
                             {/* PDF Header */}
-                            <div className="bg-blue-600 text-white text-xs px-2 py-1.5 font-semibold">
+                            <div className="bg-gray-600 text-white text-xs px-2 py-1.5 font-semibold">
                               작업허가서(PTW) - INOPNC
                             </div>
                             
@@ -570,7 +572,7 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
                             </button>
                             <button
                               onClick={() => window.open(siteInfo.ptw_document?.file_url || '/docs/PTW.pdf', '_blank')}
-                              className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors shadow-sm"
+                              className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-600 text-white text-sm font-medium rounded-lg hover:bg-gray-700 active:bg-gray-800 transition-colors shadow-sm"
                               disabled={!siteInfo.ptw_document}
                             >
                               <ExternalLink className="h-4 w-4" />
@@ -585,7 +587,7 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
                         {siteInfo.ptw_document && (
                           <button
                             onClick={() => window.open(siteInfo.ptw_document!.file_url, '_blank')}
-                            className="text-blue-600 hover:text-blue-700 dark:text-blue-400"
+                            className="text-gray-600 hover:text-gray-700 dark:text-gray-400"
                           >
                             새 창에서 열기
                           </button>
@@ -608,7 +610,7 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
                   link.click()
                   document.body.removeChild(link)
                 }}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 active:bg-blue-800 transition-colors font-medium shadow-sm"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gray-600 text-white rounded-xl hover:bg-gray-700 active:bg-gray-800 transition-colors font-medium shadow-sm"
                 disabled={!siteInfo.ptw_document}
               >
                 <Download className="h-4 w-4" />

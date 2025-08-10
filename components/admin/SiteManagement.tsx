@@ -237,8 +237,8 @@ export default function SiteManagement({ profile }: SiteManagementProps) {
 
   return (
     <div className="py-6">
-      <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-12">
-        <div className="space-y-6">
+      <div className="mx-auto max-w-7xl px-3 sm:px-4 lg:px-6">
+        <div className="space-y-3">
           {/* Header with search and filters */}
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
@@ -431,7 +431,7 @@ function SiteCreateEditModal({ isOpen, onClose, onSuccess, site }: SiteCreateEdi
             {isEditing ? '현장 편집' : '새 현장 추가'}
           </h2>
 
-          <form onSubmit={handleSubmit} className="space-y-2">
+          <form onSubmit={handleSubmit} className="space-y-3">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Basic Information */}
               <div className="md:col-span-2">

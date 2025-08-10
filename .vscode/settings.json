@@ -49,3 +49,30 @@
 	"typescript.tsserver.maxTsServerMemory": 8192,
 	"typescript.tsserver.experimental.enableProjectDiagnostics": true
 }
+{
+  // 파일 열람/감시로 인한 자동 맥락 전송 방지
+  "files.exclude": {
+    "**/.git": true,
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/.next": true,
+    "**/build": true,
+    "**/.turbo": true,
+    "**/.cache": true,
+    "**/*.log": true,
+    "**/*.min.*": true
+  },
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/dist/**": true,
+    "**/.next/**": true,
+    "**/build/**": true,
+    "**/.turbo/**": true,
+    "**/.cache/**": true,
+    "**/*.log": true
+  },
+
+  // 에디터에서 불필요한 대용량 자동 열기 방지
+  "workbench.editor.enablePreview": true,
+  "workbench.editor.limit.perEditorGroup": 5
+}

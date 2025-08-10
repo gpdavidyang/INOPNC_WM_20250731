@@ -20,6 +20,8 @@ import {
 import { useFontSize, getFullTypographyClass } from '@/contexts/FontSizeContext'
 import { useTouchMode } from '@/contexts/TouchModeContext'
 import { createClient } from '@/lib/supabase/client'
+import MaterialRequestDialog from './MaterialRequestDialog'
+import InventoryRecordDialog from './InventoryRecordDialog'
 
 interface DailyStatus {
   incoming: number
@@ -63,6 +65,10 @@ export default function NPC1000DailyDashboard({ currentSiteId, currentSiteName }
   const [movements, setMovements] = useState<InventoryMovement[]>([])
   const [sortField, setSortField] = useState<'date' | 'incoming' | 'used' | 'inventory'>('date')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
+  
+  // Dialog states
+  const [requestDialogOpen, setRequestDialogOpen] = useState(false)
+  const [recordDialogOpen, setRecordDialogOpen] = useState(false)
   
   // Touch-responsive sizing
   const getButtonSize = () => {
@@ -218,174 +224,155 @@ export default function NPC1000DailyDashboard({ currentSiteId, currentSiteName }
     if (valueA > valueB) return sortDirection === 'asc' ? 1 : -1
     return 0
   })
+
+  // Handle dialog success callbacks
+  const handleDialogSuccess = () => {
+    loadNPCData() // Reload data after successful dialog operations
+  }
+
+  // Get selected site info
+  const selectedSiteName = currentSiteName || 
+    availableSites.find(site => site.id === selectedSiteId)?.name || '현장 선택'
   
   return (
-    <div className="space-y-3">
-      {/* NPC-1000 Management Header */}
-      <div className="mb-4">
-        <div className="flex items-center gap-2 mb-3">
-          <Package className={`${getIconSize()} text-blue-600 dark:text-blue-400`} />
-          <h1 className={`${getFullTypographyClass('heading', isLargeFont ? 'lg' : 'md', isLargeFont)} font-bold text-gray-900 dark:text-gray-100`}>
-            NPC-1000 관리
-          </h1>
-        </div>
-        {currentSiteName && (
-          <div className="mb-2">
-            <span className={`${getFullTypographyClass('body', 'xs', isLargeFont)} text-gray-600 dark:text-gray-400`}>
-              현재 현장: <span className="font-medium text-gray-900 dark:text-gray-100">{currentSiteName}</span>
-            </span>
+    <div className="space-y-2">
+      {/* Status Cards - Two-column layout with higher density */}
+      <div className="grid grid-cols-2 gap-2">
+        {/* Daily Status Card */}
+        <Card className="p-2">
+          <div className="space-y-2">
+            {/* Header with blue dot */}
+            <div className="flex items-center gap-1.5 mb-1">
+              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+              <h3 className={`${getFullTypographyClass('heading', 'xs', isLargeFont)} font-medium text-gray-900 dark:text-gray-100`}>
+                금일 현황
+              </h3>
+            </div>
+            
+            {/* Daily Status Items */}
+            <div className="space-y-1">
+              <div className="flex items-center justify-between">
+                <span className={`${getFullTypographyClass('body', 'xs', isLargeFont)} text-gray-700 dark:text-gray-300`}>
+                  입고
+                </span>
+                <span className={`${getFullTypographyClass('heading', 'md', isLargeFont)} font-semibold text-gray-900 dark:text-gray-100`}>
+                  {dailyStatus.incoming}
+                </span>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <span className={`${getFullTypographyClass('body', 'xs', isLargeFont)} text-gray-700 dark:text-gray-300`}>
+                  사용
+                </span>
+                <span className={`${getFullTypographyClass('heading', 'md', isLargeFont)} font-semibold text-gray-900 dark:text-gray-100`}>
+                  {dailyStatus.used}
+                </span>
+              </div>
+              
+              <div className="flex items-center justify-between pt-0.5 border-t border-gray-200 dark:border-gray-700">
+                <span className={`${getFullTypographyClass('body', 'xs', isLargeFont)} text-gray-700 dark:text-gray-300`}>
+                  재고
+                </span>
+                <span className={`${getFullTypographyClass('heading', 'md', isLargeFont)} font-semibold text-blue-600 dark:text-blue-400`}>
+                  {dailyStatus.inventory}
+                </span>
+              </div>
+            </div>
           </div>
-        )}
+        </Card>
+
+        {/* Cumulative Status Card */}
+        <Card className="p-2">
+          <div className="space-y-2">
+            {/* Header with green dot */}
+            <div className="flex items-center gap-1.5 mb-1">
+              <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+              <h3 className={`${getFullTypographyClass('heading', 'xs', isLargeFont)} font-medium text-gray-900 dark:text-gray-100`}>
+                누적 현황
+              </h3>
+            </div>
+            
+            {/* Cumulative Status Items */}
+            <div className="space-y-1">
+              <div className="flex items-center justify-between">
+                <span className={`${getFullTypographyClass('body', 'xs', isLargeFont)} text-gray-700 dark:text-gray-300`}>
+                  총입고
+                </span>
+                <span className={`${getFullTypographyClass('heading', 'md', isLargeFont)} font-semibold text-gray-900 dark:text-gray-100`}>
+                  {cumulativeStatus.totalIncoming}
+                </span>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <span className={`${getFullTypographyClass('body', 'xs', isLargeFont)} text-gray-700 dark:text-gray-300`}>
+                  총사용
+                </span>
+                <span className={`${getFullTypographyClass('heading', 'md', isLargeFont)} font-semibold text-gray-900 dark:text-gray-100`}>
+                  {cumulativeStatus.totalUsed}
+                </span>
+              </div>
+              
+              <div className="flex items-center justify-between pt-0.5 border-t border-gray-200 dark:border-gray-700">
+                <span className={`${getFullTypographyClass('body', 'xs', isLargeFont)} text-gray-700 dark:text-gray-300`}>
+                  현재고
+                </span>
+                <span className={`${getFullTypographyClass('heading', 'md', isLargeFont)} font-semibold text-green-600 dark:text-green-400`}>
+                  {cumulativeStatus.totalInventory}
+                </span>
+              </div>
+            </div>
+          </div>
+        </Card>
       </div>
 
-      {/* Today's Status */}
-      <div>
-        <h3 className={`${getFullTypographyClass('heading', 'sm', isLargeFont)} font-medium text-gray-900 dark:text-gray-100 mb-2`}>
-          금일 현황
-        </h3>
-        <div className="grid grid-cols-3 gap-2">
-          <Card>
-            <div className="p-3 text-center">
-              <div className="flex items-center justify-center mb-1">
-                <ArrowDown className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-              </div>
-              <p className={`${getFullTypographyClass('body', 'xs', isLargeFont)} text-gray-600 dark:text-gray-400 mb-0.5`}>
-                입고
-              </p>
-              <p className={`${getFullTypographyClass('heading', 'lg', isLargeFont)} font-bold text-gray-900 dark:text-gray-100`}>
-                {dailyStatus.incoming}
-              </p>
-            </div>
-          </Card>
-          
-          <Card>
-            <div className="p-3 text-center">
-              <div className="flex items-center justify-center mb-1">
-                <ArrowUp className="h-4 w-4 text-red-600 dark:text-red-400" />
-              </div>
-              <p className={`${getFullTypographyClass('body', 'xs', isLargeFont)} text-gray-600 dark:text-gray-400 mb-0.5`}>
-                사용
-              </p>
-              <p className={`${getFullTypographyClass('heading', 'lg', isLargeFont)} font-bold text-gray-900 dark:text-gray-100`}>
-                {dailyStatus.used}
-              </p>
-            </div>
-          </Card>
-          
-          <Card>
-            <div className="p-3 text-center">
-              <div className="flex items-center justify-center mb-1">
-                <Archive className="h-4 w-4 text-green-600 dark:text-green-400" />
-              </div>
-              <p className={`${getFullTypographyClass('body', 'xs', isLargeFont)} text-gray-600 dark:text-gray-400 mb-0.5`}>
-                재고
-              </p>
-              <p className={`${getFullTypographyClass('heading', 'lg', isLargeFont)} font-bold text-blue-600 dark:text-blue-400`}>
-                {dailyStatus.inventory}
-              </p>
-            </div>
-          </Card>
-        </div>
-      </div>
-
-      {/* Cumulative Status */}
-      <div>
-        <h3 className={`${getFullTypographyClass('heading', 'sm', isLargeFont)} font-medium text-gray-900 dark:text-gray-100 mb-2`}>
-          누적 현황
-        </h3>
-        <div className="grid grid-cols-3 gap-2">
-          <Card>
-            <div className="p-3 text-center">
-              <div className="flex items-center justify-center mb-1">
-                <ArrowDown className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-              </div>
-              <p className={`${getFullTypographyClass('body', 'xs', isLargeFont)} text-gray-600 dark:text-gray-400 mb-0.5`}>
-                총입고
-              </p>
-              <p className={`${getFullTypographyClass('heading', 'lg', isLargeFont)} font-bold text-gray-900 dark:text-gray-100`}>
-                {cumulativeStatus.totalIncoming}
-              </p>
-            </div>
-          </Card>
-          
-          <Card>
-            <div className="p-3 text-center">
-              <div className="flex items-center justify-center mb-1">
-                <ArrowUp className="h-4 w-4 text-red-600 dark:text-red-400" />
-              </div>
-              <p className={`${getFullTypographyClass('body', 'xs', isLargeFont)} text-gray-600 dark:text-gray-400 mb-0.5`}>
-                총사용
-              </p>
-              <p className={`${getFullTypographyClass('heading', 'lg', isLargeFont)} font-bold text-gray-900 dark:text-gray-100`}>
-                {cumulativeStatus.totalUsed}
-              </p>
-            </div>
-          </Card>
-          
-          <Card>
-            <div className="p-3 text-center">
-              <div className="flex items-center justify-center mb-1">
-                <Archive className="h-4 w-4 text-green-600 dark:text-green-400" />
-              </div>
-              <p className={`${getFullTypographyClass('body', 'xs', isLargeFont)} text-gray-600 dark:text-gray-400 mb-0.5`}>
-                현재고
-              </p>
-              <p className={`${getFullTypographyClass('heading', 'lg', isLargeFont)} font-bold text-green-600 dark:text-green-400`}>
-                {cumulativeStatus.totalInventory}
-              </p>
-            </div>
-          </Card>
-        </div>
-      </div>
-
-      {/* Inventory Movement Table */}
+      {/* Inventory Movement Table - Higher density */}
       <Card>
-        <div className="p-4">
+        <div className="p-2">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200 dark:border-gray-700">
                   <th 
-                    className="text-left py-3 px-2 font-medium text-gray-900 dark:text-gray-100 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                    className="text-left py-2 px-1 font-medium text-gray-900 dark:text-gray-100 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50"
                     onClick={() => handleSort('date')}
                   >
-                    <div className="flex items-center gap-2">
-                      날짜
+                    <div className="flex items-center gap-1">
+                      <span className={`${getFullTypographyClass('body', 'xs', isLargeFont)}`}>날짜</span>
                       {sortField === 'date' && (
-                        sortDirection === 'asc' ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
+                        sortDirection === 'asc' ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
                       )}
                     </div>
                   </th>
                   <th 
-                    className="text-center py-3 px-2 font-medium text-gray-900 dark:text-gray-100 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                    className="text-center py-2 px-1 font-medium text-gray-900 dark:text-gray-100 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50"
                     onClick={() => handleSort('incoming')}
                   >
-                    <div className="flex items-center justify-center gap-2">
-                      입고
+                    <div className="flex items-center justify-center gap-1">
+                      <span className={`${getFullTypographyClass('body', 'xs', isLargeFont)}`}>입고</span>
                       {sortField === 'incoming' && (
-                        sortDirection === 'asc' ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
+                        sortDirection === 'asc' ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
                       )}
                     </div>
                   </th>
                   <th 
-                    className="text-center py-3 px-2 font-medium text-gray-900 dark:text-gray-100 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                    className="text-center py-2 px-1 font-medium text-gray-900 dark:text-gray-100 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50"
                     onClick={() => handleSort('used')}
                   >
-                    <div className="flex items-center justify-center gap-2">
-                      사용
+                    <div className="flex items-center justify-center gap-1">
+                      <span className={`${getFullTypographyClass('body', 'xs', isLargeFont)}`}>사용</span>
                       {sortField === 'used' && (
-                        sortDirection === 'asc' ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
+                        sortDirection === 'asc' ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
                       )}
                     </div>
                   </th>
                   <th 
-                    className="text-center py-3 px-2 font-medium text-gray-900 dark:text-gray-100 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                    className="text-center py-2 px-1 font-medium text-gray-900 dark:text-gray-100 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50"
                     onClick={() => handleSort('inventory')}
                   >
-                    <div className="flex items-center justify-center gap-2">
-                      재고
+                    <div className="flex items-center justify-center gap-1">
+                      <span className={`${getFullTypographyClass('body', 'xs', isLargeFont)}`}>재고</span>
                       {sortField === 'inventory' && (
-                        sortDirection === 'asc' ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
+                        sortDirection === 'asc' ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
                       )}
                     </div>
                   </th>
@@ -394,9 +381,9 @@ export default function NPC1000DailyDashboard({ currentSiteId, currentSiteName }
               <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                 {sortedMovements.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="py-8 text-center">
-                      <Package className="h-10 w-10 text-gray-400 mx-auto mb-3" />
-                      <p className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-500`}>
+                    <td colSpan={4} className="py-4 text-center">
+                      <Package className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                      <p className={`${getFullTypographyClass('body', 'xs', isLargeFont)} text-gray-500`}>
                         NPC-1000 자재 기록이 없습니다.
                       </p>
                     </td>
@@ -404,26 +391,26 @@ export default function NPC1000DailyDashboard({ currentSiteId, currentSiteName }
                 ) : (
                   sortedMovements.map((movement, index) => (
                     <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                      <td className="py-3 px-2">
-                        <span className="font-medium text-gray-900 dark:text-gray-100">
+                      <td className="py-1.5 px-1">
+                        <span className={`${getFullTypographyClass('body', 'xs', isLargeFont)} font-medium text-gray-900 dark:text-gray-100`}>
                           {new Date(movement.date).toLocaleDateString('ko-KR', {
                             month: '2-digit',
                             day: '2-digit'
                           })}
                         </span>
                       </td>
-                      <td className="py-3 px-2 text-center">
-                        <span className="font-medium text-gray-900 dark:text-gray-100">
+                      <td className="py-1.5 px-1 text-center">
+                        <span className={`${getFullTypographyClass('body', 'xs', isLargeFont)} font-medium text-gray-900 dark:text-gray-100`}>
                           {movement.incoming}
                         </span>
                       </td>
-                      <td className="py-3 px-2 text-center">
-                        <span className="font-medium text-gray-900 dark:text-gray-100">
+                      <td className="py-1.5 px-1 text-center">
+                        <span className={`${getFullTypographyClass('body', 'xs', isLargeFont)} font-medium text-gray-900 dark:text-gray-100`}>
                           {movement.used}
                         </span>
                       </td>
-                      <td className="py-3 px-2 text-center">
-                        <span className="font-medium text-blue-600 dark:text-blue-400">
+                      <td className="py-1.5 px-1 text-center">
+                        <span className={`${getFullTypographyClass('body', 'xs', isLargeFont)} font-medium text-blue-600 dark:text-blue-400`}>
                           {movement.inventory}
                         </span>
                       </td>
@@ -436,25 +423,46 @@ export default function NPC1000DailyDashboard({ currentSiteId, currentSiteName }
         </div>
       </Card>
 
-      {/* Action Buttons */}
-      <div className="flex gap-4">
+      {/* Action Buttons - Compact */}
+      <div className="flex gap-2">
         <Button 
           size={getButtonSize()}
-          className="flex-1 gap-2"
+          className="flex-1 gap-1.5"
           variant="outline"
+          onClick={() => setRequestDialogOpen(true)}
+          disabled={!selectedSiteId}
         >
           <Plus className={getIconSize()} />
           요청
         </Button>
         <Button 
           size={getButtonSize()}
-          className="flex-1 gap-2"
+          className="flex-1 gap-1.5"
           variant="outline"
+          onClick={() => setRecordDialogOpen(true)}
+          disabled={!selectedSiteId}
         >
           <FileText className={getIconSize()} />
           입출고 기록
         </Button>
       </div>
+
+      {/* Dialogs */}
+      <MaterialRequestDialog
+        open={requestDialogOpen}
+        onOpenChange={setRequestDialogOpen}
+        siteId={selectedSiteId}
+        siteName={selectedSiteName}
+        onSuccess={handleDialogSuccess}
+      />
+
+      <InventoryRecordDialog
+        open={recordDialogOpen}
+        onOpenChange={setRecordDialogOpen}
+        siteId={selectedSiteId}
+        siteName={selectedSiteName}
+        onSuccess={handleDialogSuccess}
+      />
     </div>
   )
 }

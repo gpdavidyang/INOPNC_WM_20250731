@@ -485,7 +485,7 @@ export default function HomeTab({ profile, onTabChange, onDocumentsSearch }: Hom
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       {/* Work Log Creation Button - Primary CTA with Premium Gradient */}
       {(profile.role === 'worker' || profile.role === 'site_manager') && (
         <Card 

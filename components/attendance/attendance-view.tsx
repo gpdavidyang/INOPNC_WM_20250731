@@ -264,10 +264,10 @@ export function AttendanceView({ profile }: AttendanceViewProps) {
   const selectedSiteInfo = sites.find(s => s.id === selectedSite)
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
           {/* Site Selection - UI Guidelines Compliant */}
-      <Card className="p-2">
-        <div className="flex items-center gap-2">
+      <Card className="p-3">
+        <div className="flex items-center gap-3">
           <div className="w-6 h-6 bg-gray-100 dark:bg-gray-700 rounded flex items-center justify-center shrink-0">
             <Building2 className="h-3 w-3 text-gray-600" />
           </div>
@@ -293,9 +293,9 @@ export function AttendanceView({ profile }: AttendanceViewProps) {
       </Card>
 
       {/* Calendar Card - UI Guidelines Compliant */}
-      <Card className="p-2">
+      <Card className="p-3">
         {/* Month Navigation - Touch Optimized */}
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center justify-between mb-3">
           <Button
             variant="ghost"
             size="icon"
@@ -339,7 +339,7 @@ export function AttendanceView({ profile }: AttendanceViewProps) {
         {/* Calendar Grid - Simple & Modern */}
         <div className="relative">
           {/* Weekday Headers */}
-          <div className="grid grid-cols-7 mb-2">
+          <div className="grid grid-cols-7 mb-3">
             {['일', '월', '화', '수', '목', '금', '토'].map((day, i) => (
               <div
                 key={day}
@@ -357,7 +357,7 @@ export function AttendanceView({ profile }: AttendanceViewProps) {
           </div>
           
           {/* Calendar Days - Simple & Modern Design */}
-          <div className="grid grid-cols-7 gap-1">
+          <div className="grid grid-cols-7 gap-3">
             
             {fullCalendarDays.map((day, index) => {
               const attendance = day ? getAttendanceForDate(day) : undefined
@@ -429,10 +429,7 @@ export function AttendanceView({ profile }: AttendanceViewProps) {
         </div>
 
         {/* Monthly Statistics - Improved UI Consistency */}
-        <div className={cn(
-          "border-t border-gray-200 dark:border-gray-700",
-          touchMode === 'glove' ? 'mt-4 pt-4' : 'mt-3 pt-3'
-        )}>
+        <div className="border-t border-gray-200 dark:border-gray-700 mt-3 pt-3">
           <div className="flex items-center gap-3 mb-3">
             <div className={cn(
               "bg-blue-100 dark:bg-blue-900/30 rounded-lg p-2 flex items-center justify-center",
@@ -500,10 +497,7 @@ export function AttendanceView({ profile }: AttendanceViewProps) {
 
       {/* Selected Date Details - Simple & Modern Design with High Density */}
       {selectedDate && getSelectedDateDetails() && (
-        <Card className={cn(
-          "border border-gray-200 dark:border-gray-700",
-          touchMode === 'glove' ? 'p-3 mt-4' : 'p-2 mt-3'
-        )}>
+        <Card className="border border-gray-200 dark:border-gray-700 p-3">
           {/* Header - Compact Design */}
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">

@@ -139,7 +139,7 @@ export function SearchBuilder({ fields, onSearch, className, loading }: SearchBu
         <select
           value={filter.value}
           onChange={(e) => updateFilter(filter.id, { value: e.target.value })}
-          className="px-3 py-1.5 h-8 border border-gray-200 rounded-lg bg-white text-sm focus:border-blue-500 focus:outline-none"
+          className="w-full px-3 py-1.5 text-sm font-medium border border-gray-200 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
         >
           <option value="">선택하세요</option>
           {fieldConfig.options.map(option => (
@@ -229,7 +229,7 @@ export function SearchBuilder({ fields, onSearch, className, loading }: SearchBu
                         values: undefined
                       })
                     }}
-                    className="px-2 py-1.5 h-8 w-full border border-gray-200 rounded-lg bg-white text-sm focus:border-blue-500 focus:outline-none"
+                    className="w-full px-3 py-1.5 text-sm font-medium border border-gray-200 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                   >
                     {fields.map(field => (
                       <option key={field.field} value={field.field}>
@@ -249,7 +249,7 @@ export function SearchBuilder({ fields, onSearch, className, loading }: SearchBu
                       value: '',
                       values: undefined
                     })}
-                    className="px-2 py-1.5 h-8 w-full border border-gray-200 rounded-lg bg-white text-sm focus:border-blue-500 focus:outline-none"
+                    className="w-full px-3 py-1.5 text-sm font-medium border border-gray-200 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                   >
                     {getFieldConfig(filter.field)?.operators.map(operator => (
                       <option key={operator} value={operator}>
@@ -290,7 +290,7 @@ export function SearchBuilder({ fields, onSearch, className, loading }: SearchBu
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="px-3 py-2 h-9 w-full border border-gray-200 rounded-lg bg-white text-sm focus:border-blue-500 focus:outline-none"
+            className="w-full px-3 py-1.5 text-sm font-medium border border-gray-200 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
           >
             {fields.map(field => (
               <option key={field.field} value={field.field}>
@@ -304,7 +304,7 @@ export function SearchBuilder({ fields, onSearch, className, loading }: SearchBu
           <select
             value={sortOrder}
             onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
-            className="px-3 py-2 h-9 w-full border border-gray-200 rounded-lg bg-white text-sm focus:border-blue-500 focus:outline-none"
+            className="w-full px-3 py-1.5 text-sm font-medium border border-gray-200 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
           >
             <option value="desc">내림차순</option>
             <option value="asc">오름차순</option>

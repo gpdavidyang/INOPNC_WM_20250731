@@ -7,10 +7,25 @@ const createJestConfig = nextJest({
 
 // Add any custom config to be passed to Jest
 const customJestConfig = {
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  setupFilesAfterEnv: [
+    '<rootDir>/jest.setup.js',
+    '<rootDir>/lib/test-utils/pwa-setup.ts'
+  ],
   testEnvironment: 'jest-environment-jsdom',
+  testEnvironmentOptions: {
+    customExportConditions: [''],
+    url: 'https://localhost:3000'
+  },
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
+    '^@/lib/test-utils/(.*)$': '<rootDir>/lib/test-utils/$1',
+  },
+  globals: {
+    'ts-jest': {
+      tsconfig: {
+        jsx: 'react-jsx'
+      }
+    }
   },
   testMatch: [
     '**/__tests__/**/*.(ts|tsx|js)',

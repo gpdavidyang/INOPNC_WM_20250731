@@ -5,6 +5,13 @@ import { useRouter } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { createDailyReport } from '@/lib/supabase/daily-reports'
+import { 
+  CustomSelect,
+  CustomSelectContent,
+  CustomSelectItem,
+  CustomSelectTrigger,
+  CustomSelectValue,
+} from '@/components/ui/custom-select'
 
 interface Site {
   id: string
@@ -77,21 +84,22 @@ export default function DailyReportForm({ sites }: DailyReportFormProps) {
               <label htmlFor="site_id" className="block text-sm font-medium text-gray-700">
                 현장 선택 *
               </label>
-              <select
-                id="site_id"
-                name="site_id"
-                required
+              <CustomSelect
                 value={formData.site_id}
-                onChange={(e) => setFormData({ ...formData, site_id: e.target.value })}
-                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                onValueChange={(value) => setFormData({ ...formData, site_id: value })}
+                required
               >
-                <option value="">현장을 선택하세요</option>
-                {sites.map((site: any) => (
-                  <option key={site.id} value={site.id}>
-                    {site.name}
-                  </option>
-                ))}
-              </select>
+                <CustomSelectTrigger id="site_id" className="w-full">
+                  <CustomSelectValue placeholder="현장을 선택하세요" />
+                </CustomSelectTrigger>
+                <CustomSelectContent>
+                  {sites.map((site: any) => (
+                    <CustomSelectItem key={site.id} value={site.id}>
+                      {site.name}
+                    </CustomSelectItem>
+                  ))}
+                </CustomSelectContent>
+              </CustomSelect>
             </div>
 
             {/* Work date */}
@@ -133,20 +141,21 @@ export default function DailyReportForm({ sites }: DailyReportFormProps) {
                 <label htmlFor="weather" className="block text-sm font-medium text-gray-700">
                   날씨
                 </label>
-                <select
-                  id="weather"
-                  name="weather"
+                <CustomSelect
                   value={formData.weather}
-                  onChange={(e) => setFormData({ ...formData, weather: e.target.value })}
-                  className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                  onValueChange={(value) => setFormData({ ...formData, weather: value })}
                 >
-                  <option value="">선택하세요</option>
-                  <option value="맑음">맑음</option>
-                  <option value="흐림">흐림</option>
-                  <option value="비">비</option>
-                  <option value="눈">눈</option>
-                  <option value="안개">안개</option>
-                </select>
+                  <CustomSelectTrigger id="weather" className="w-full">
+                    <CustomSelectValue placeholder="선택하세요" />
+                  </CustomSelectTrigger>
+                  <CustomSelectContent>
+                    <CustomSelectItem value="맑음">맑음</CustomSelectItem>
+                    <CustomSelectItem value="흐림">흐림</CustomSelectItem>
+                    <CustomSelectItem value="비">비</CustomSelectItem>
+                    <CustomSelectItem value="눈">눈</CustomSelectItem>
+                    <CustomSelectItem value="안개">안개</CustomSelectItem>
+                  </CustomSelectContent>
+                </CustomSelect>
               </div>
 
               {/* Temperature */}

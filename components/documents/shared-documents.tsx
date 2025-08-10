@@ -5,6 +5,14 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
+import { 
+  CustomSelect,
+  CustomSelectContent,
+  CustomSelectItem,
+  CustomSelectTrigger,
+  CustomSelectValue,
+} from '@/components/ui/custom-select'
+import { cn } from '@/lib/utils'
 import {
   FileText,
   Search,
@@ -22,7 +30,13 @@ import {
   HardHat,
   FileSpreadsheet,
   AlertCircle,
-  ClipboardList
+  ClipboardList,
+  Grid3x3,
+  List,
+  File,
+  FileImage,
+  FileArchive,
+  ChevronDown
 } from 'lucide-react'
 import { getSharedDocuments } from '@/app/actions/documents'
 import { format } from 'date-fns'
@@ -116,6 +130,8 @@ export function SharedDocuments({ profile, initialSearch }: SharedDocumentsProps
   const [loading, setLoading] = useState(false)
   const [searchTerm, setSearchTerm] = useState(initialSearch || '')
   const [filterRole, setFilterRole] = useState<string>('all')
+  const [sortBy, setSortBy] = useState('date')
+  const [viewMode, setViewMode] = useState('list')
 
   useEffect(() => {
     if (selectedCategory) {
@@ -146,6 +162,24 @@ export function SharedDocuments({ profile, initialSearch }: SharedDocumentsProps
     if (bytes < 1024) return bytes + ' B'
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
+  }
+
+  const FILE_TYPES: Record<string, any> = {
+    pdf: { icon: FileText, color: 'text-red-500', bg: 'bg-red-50 dark:bg-red-900/20' },
+    doc: { icon: FileText, color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20' },
+    docx: { icon: FileText, color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20' },
+    xls: { icon: FileSpreadsheet, color: 'text-green-500', bg: 'bg-green-50 dark:bg-green-900/20' },
+    xlsx: { icon: FileSpreadsheet, color: 'text-green-500', bg: 'bg-green-50 dark:bg-green-900/20' },
+    jpg: { icon: FileImage, color: 'text-purple-500', bg: 'bg-purple-50 dark:bg-purple-900/20' },
+    jpeg: { icon: FileImage, color: 'text-purple-500', bg: 'bg-purple-50 dark:bg-purple-900/20' },
+    png: { icon: FileImage, color: 'text-purple-500', bg: 'bg-purple-50 dark:bg-purple-900/20' },
+    zip: { icon: FileArchive, color: 'text-yellow-500', bg: 'bg-yellow-50 dark:bg-yellow-900/20' },
+    default: { icon: File, color: 'text-gray-500', bg: 'bg-gray-50 dark:bg-gray-900/20' }
+  }
+
+  const getFileTypeConfig = (fileName: string) => {
+    const ext = fileName.split('.').pop()?.toLowerCase() || ''
+    return FILE_TYPES[ext as keyof typeof FILE_TYPES] || FILE_TYPES.default
   }
 
   const getAccessBadge = (accessLevel: string) => {
@@ -179,48 +213,42 @@ export function SharedDocuments({ profile, initialSearch }: SharedDocumentsProps
   })
 
   if (!selectedCategory) {
-    // Category Selection View
+    // Mobile-Optimized Category Selection View
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <p className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-600`}>
-              역할과 소속에 따라 접근 가능한 문서가 다를 수 있습니다.
-            </p>
-          </div>
-          <div className={`flex items-center gap-2 ${getFullTypographyClass('body', 'sm', isLargeFont)}`}>
-            <Users className="h-4 w-4 text-gray-500" />
-            <span className="text-gray-600">내 역할: </span>
-            <Badge>{profile.role === 'admin' ? '관리자' : profile.role === 'site_manager' ? '현장소장' : '작업자'}</Badge>
+      <div className="space-y-2">
+        <div className="p-3 bg-white dark:bg-gray-800 rounded-lg border">
+          <div className="flex items-center justify-between">
+            <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+              공유문서함
+            </h2>
+            <Badge variant="secondary" className="text-xs">
+              {profile.role === 'admin' ? '관리자' : profile.role === 'site_manager' ? '현장소장' : '작업자'}
+            </Badge>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 gap-2">
           {accessibleCategories.map((category: any) => {
             const Icon = category.icon
             return (
               <Card
                 key={category.id}
-                className={`${
-                  touchMode === 'glove' ? 'p-8' : touchMode === 'precision' ? 'p-4' : 'p-6'
-                } cursor-pointer hover:shadow-lg transition-shadow`}
+                className="p-3 cursor-pointer hover:shadow-md transition-all touch-manipulation min-h-[100px]"
                 onClick={() => setSelectedCategory(category.id)}
               >
-                <div className="flex items-start gap-4">
-                  <div className={`p-3 rounded-lg ${category.color}`}>
+                <div className="flex flex-col items-center text-center space-y-2">
+                  <div className={cn("p-3 rounded-xl", category.color)}>
                     <Icon className="h-6 w-6" />
                   </div>
-                  <div className="flex-1">
-                    <h3 className={`${getFullTypographyClass('body', 'base', isLargeFont)} font-semibold text-gray-900`}>{category.name}</h3>
-                    <p className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-600 mt-1`}>{category.description}</p>
-                    <div className="flex items-center justify-between mt-3">
-                      <div className={`flex items-center ${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-500`}>
-                        <span>문서 보기</span>
-                        <ChevronRight className="h-4 w-4 ml-1" />
-                      </div>
-                      {getAccessBadge(category.accessLevel)}
-                    </div>
+                  <div>
+                    <h3 className="text-xs font-medium text-gray-900 dark:text-gray-100">
+                      {category.name}
+                    </h3>
+                    <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">
+                      {category.description}
+                    </p>
                   </div>
+                  <ChevronRight className="h-4 w-4 text-gray-400" />
                 </div>
               </Card>
             )
@@ -230,123 +258,213 @@ export function SharedDocuments({ profile, initialSearch }: SharedDocumentsProps
     )
   }
 
-  // Document List View
+  // Mobile-Optimized Document List View
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size={touchMode === 'glove' ? 'standard' : touchMode === 'precision' ? 'compact' : 'compact'}
-            onClick={() => setSelectedCategory(null)}
-          >
-            ← 뒤로
-          </Button>
-          {selectedCategoryInfo && (
-            <div className="flex items-center gap-2">
-              <div className={`p-2 rounded-lg ${selectedCategoryInfo.color}`}>
-                <selectedCategoryInfo.icon className="h-5 w-5" />
-              </div>
-              <h2 className={`${getFullTypographyClass('heading', 'xl', isLargeFont)} font-semibold`}>{selectedCategoryInfo.name}</h2>
-            </div>
-          )}
+    <div className="space-y-2">
+      {/* Mobile-Optimized Header */}
+      <div className="p-3 bg-white dark:bg-gray-800 rounded-lg border">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSelectedCategory(null)}
+              className="h-12 px-3 min-w-[48px]"
+            >
+              ← 뒤로
+            </Button>
+            {selectedCategoryInfo && (
+              <>
+                <div className={cn("p-2 rounded-lg", selectedCategoryInfo.color)}>
+                  <selectedCategoryInfo.icon className="h-5 w-5" />
+                </div>
+                <div>
+                  <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+                    {selectedCategoryInfo.name}
+                  </h2>
+                  <span className="text-xs text-gray-500">
+                    {filteredDocuments.length}개 문서
+                  </span>
+                </div>
+              </>
+            )}
+          </div>
+          
+          {/* Touch-Optimized View Mode Toggle */}
+          <div className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+            <button
+              onClick={() => setViewMode('list')}
+              className={cn(
+                "p-2 rounded transition-colors min-w-[48px] h-10",
+                viewMode === 'list'
+                  ? "bg-white dark:bg-gray-600 text-blue-600 shadow-sm"
+                  : "text-gray-500 hover:text-gray-700"
+              )}
+            >
+              <List className="h-5 w-5" />
+            </button>
+            <button
+              onClick={() => setViewMode('grid')}
+              className={cn(
+                "p-2 rounded transition-colors min-w-[48px] h-10",
+                viewMode === 'grid'
+                  ? "bg-white dark:bg-gray-600 text-blue-600 shadow-sm"
+                  : "text-gray-500 hover:text-gray-700"
+              )}
+            >
+              <Grid3x3 className="h-5 w-5" />
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Search and Filter */}
-      <div className="flex gap-4">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+      {/* Mobile-Optimized Search and Filter Controls */}
+      <div className="p-3 bg-white dark:bg-gray-800 rounded-lg border space-y-3">
+        {/* Search Input - Full Width on Mobile */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
-            placeholder="문서 검색..."
+            type="text"
+            placeholder="파일명으로 검색..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className={`pl-10 ${
-              touchMode === 'glove' ? 'h-14 text-lg' : 
-              touchMode === 'precision' ? 'h-9 text-sm' : 
-              'h-10 text-base'
-            }`}
+            className="pl-9 h-12 text-sm bg-gray-50 dark:bg-gray-700/50"
           />
         </div>
-        <Button 
-          variant="outline"
-          size={touchMode === 'glove' ? 'field' : touchMode === 'precision' ? 'compact' : 'standard'}
-        >
-          <Filter className="h-4 w-4 mr-2" />
-          필터
-        </Button>
+        
+        {/* Filter Controls Row */}
+        <div className="flex items-center gap-2">
+          {/* Sort Dropdown */}
+          <CustomSelect value={sortBy} onValueChange={setSortBy}>
+            <CustomSelectTrigger className={cn(
+              "flex-1",
+              touchMode === 'glove' && "min-h-[60px] text-base",
+              touchMode === 'precision' && "min-h-[44px] text-sm",
+              touchMode !== 'precision' && touchMode !== 'glove' && "min-h-[40px] text-sm"
+            )}>
+              <CustomSelectValue placeholder="정렬 방식" />
+            </CustomSelectTrigger>
+            <CustomSelectContent>
+              <CustomSelectItem value="date">날짜순</CustomSelectItem>
+              <CustomSelectItem value="name">이름순</CustomSelectItem>
+              <CustomSelectItem value="size">크기순</CustomSelectItem>
+            </CustomSelectContent>
+          </CustomSelect>
+          
+          <Button variant="outline" size="sm" className="h-12 px-3 min-w-[80px]">
+            <Filter className="h-4 w-4 mr-1" />
+            필터
+          </Button>
+        </div>
       </div>
 
       {/* Document List */}
       {loading ? (
-        <div className={`text-center py-12 ${getFullTypographyClass('body', 'base', isLargeFont)} text-gray-500`}>
+        <div className="text-center py-12 text-gray-500">
           문서를 불러오는 중...
         </div>
       ) : filteredDocuments.length === 0 ? (
-        <Card className={`${
-          touchMode === 'glove' ? 'p-16' : touchMode === 'precision' ? 'p-8' : 'p-12'
-        } text-center`}>
+        <Card className="p-12 text-center">
           <FolderOpen className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-          <p className={`${getFullTypographyClass('body', 'base', isLargeFont)} text-gray-500`}>
+          <p className="text-gray-500">
             {searchTerm ? '검색 결과가 없습니다.' : '이 카테고리에 공유된 문서가 없습니다.'}
           </p>
         </Card>
-      ) : (
-        <div className="space-y-2">
-          {filteredDocuments.map((doc: any) => (
-            <Card
-              key={doc.id}
-              className={`${
-                touchMode === 'glove' ? 'p-6' : touchMode === 'precision' ? 'p-3' : 'p-4'
-              } hover:shadow-md transition-shadow`}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="p-2 bg-gray-100 rounded-lg">
-                    <FileText className="h-6 w-6 text-gray-600" />
-                  </div>
-                  <div>
-                    <h4 className={`${getFullTypographyClass('body', 'base', isLargeFont)} font-medium text-gray-900`}>{doc.name}</h4>
-                    <div className={`flex items-center gap-4 mt-1 ${getFullTypographyClass('caption', 'sm', isLargeFont)} text-gray-500`}>
-                      <span className="flex items-center gap-1">
-                        <Clock className="h-3.5 w-3.5" />
-                        {format(new Date(doc.uploadDate), 'yyyy.MM.dd', { locale: ko })}
-                      </span>
-                      <span>{formatFileSize(doc.size)}</span>
-                      <span className="flex items-center gap-1">
-                        <User className="h-3.5 w-3.5" />
+      ) : viewMode === 'list' ? (
+        /* Mobile-Optimized List View */
+        <div className="bg-white dark:bg-gray-800 rounded-lg border divide-y">
+          {filteredDocuments.map((doc: any) => {
+            const fileConfig = getFileTypeConfig(doc.name)
+            const FileIcon = fileConfig.icon
+            
+            return (
+              <div
+                key={doc.id}
+                className="flex items-center p-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors min-h-[60px]"
+              >
+                {/* File Icon with Type-based Color */}
+                <div className={cn("mr-3 p-2 rounded-lg", fileConfig.bg)}>
+                  <FileIcon className={cn("h-5 w-5", fileConfig.color)} />
+                </div>
+
+                {/* File Info */}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                    {doc.name}
+                  </p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-xs text-gray-500">
+                      {formatFileSize(doc.size)}
+                    </span>
+                    <span className="text-xs text-gray-400">•</span>
+                    <span className="text-xs text-gray-500">
+                      {format(new Date(doc.uploadDate), 'MM월 dd일', { locale: ko })}
+                    </span>
+                    <div className="hidden sm:flex items-center">
+                      <span className="text-xs text-gray-400 mx-2">•</span>
+                      <span className="text-xs text-gray-500">
                         {doc.uploadedBy}
                       </span>
-                      {doc.site && (
-                        <span className="flex items-center gap-1">
-                          <Building2 className="h-3.5 w-3.5" />
-                          {doc.site.name}
-                        </span>
-                      )}
                     </div>
                   </div>
+                  {/* Mobile Access Badge */}
+                  <div className="mt-1 sm:hidden">
+                    {getAccessBadge(doc.accessLevel)}
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
+
+                {/* Desktop Access Badge */}
+                <div className="hidden sm:block mr-3">
                   {getAccessBadge(doc.accessLevel)}
-                  <Button
-                    variant="ghost"
-                    size={touchMode === 'glove' ? 'standard' : touchMode === 'precision' ? 'compact' : 'compact'}
-                    onClick={() => window.open(doc.url, '_blank')}
-                  >
-                    <Eye className="h-4 w-4" />
+                </div>
+
+                {/* Touch-Optimized Quick Actions */}
+                <div className="flex items-center gap-1">
+                  <Button variant="ghost" size="icon" className="h-12 w-12 min-w-[48px]">
+                    <Eye className="h-5 w-5" />
                   </Button>
-                  <Button
-                    variant="ghost"
-                    size={touchMode === 'glove' ? 'standard' : touchMode === 'precision' ? 'compact' : 'compact'}
-                    onClick={() => window.open(doc.url, '_blank')}
-                  >
-                    <Download className="h-4 w-4" />
+                  <Button variant="ghost" size="icon" className="h-12 w-12 min-w-[48px]">
+                    <Download className="h-5 w-5" />
                   </Button>
                 </div>
               </div>
-            </Card>
-          ))}
+            )
+          })}
+        </div>
+      ) : (
+        /* Mobile-Optimized Grid View */
+        <div className="grid grid-cols-2 gap-2">
+          {filteredDocuments.map((doc: any) => {
+            const fileConfig = getFileTypeConfig(doc.name)
+            const FileIcon = fileConfig.icon
+            
+            return (
+              <Card
+                key={doc.id}
+                className="p-3 hover:shadow-md transition-all cursor-pointer touch-manipulation min-h-[140px]"
+              >
+                <div className="flex flex-col items-center text-center space-y-2">
+                  <div className={cn("p-2 rounded-lg", fileConfig.bg)}>
+                    <FileIcon className={cn("h-6 w-6", fileConfig.color)} />
+                  </div>
+                  <p className="text-xs font-medium text-gray-900 dark:text-gray-100 line-clamp-2">
+                    {doc.name}
+                  </p>
+                  <div className="space-y-1">
+                    <p className="text-xs text-gray-500">
+                      {formatFileSize(doc.size)}
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      {format(new Date(doc.uploadDate), 'MM/dd', { locale: ko })}
+                    </p>
+                    <div className="mt-1">
+                      {getAccessBadge(doc.accessLevel)}
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            )
+          })}
         </div>
       )}
     </div>

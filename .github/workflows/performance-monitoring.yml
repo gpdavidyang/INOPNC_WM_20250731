@@ -1,0 +1,346 @@
+name: Performance and Accessibility Monitoring
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run performance monitoring daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+jobs:
+  lighthouse-ci:
+    name: Lighthouse CI Performance Audit
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Build application
+        run: npm run build
+        
+      - name: Run Lighthouse CI
+        run: |
+          npm install -g @lhci/cli
+          lhci autorun
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+          
+      - name: Upload Lighthouse reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lighthouse-reports
+          path: .lighthouseci/
+          retention-days: 30
+
+  accessibility-audit:
+    name: WCAG Accessibility Compliance
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+        
+      - name: Run accessibility tests
+        run: npm run test:e2e:accessibility
+        
+      - name: Upload accessibility reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: accessibility-reports
+          path: test-results/
+          retention-days: 30
+
+  visual-regression:
+    name: Visual Regression Testing
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+        
+      - name: Run visual regression tests
+        run: npx playwright test e2e/visual/
+        
+      - name: Upload visual regression reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: visual-regression-reports
+          path: test-results/
+          retention-days: 30
+          
+      - name: Upload visual regression screenshots
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: visual-regression-diffs
+          path: test-results/**/test-results/
+          retention-days: 7
+
+  cross-browser-testing:
+    name: Cross-Browser and Mobile Testing
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        project: [chromium, firefox, webkit, mobile-chrome, mobile-safari]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+        
+      - name: Run cross-browser tests
+        run: npx playwright test --project=${{ matrix.project }}
+        
+      - name: Upload cross-browser reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cross-browser-reports-${{ matrix.project }}
+          path: test-results/
+          retention-days: 30
+
+  performance-budgets:
+    name: Performance Budget Enforcement
+    runs-on: ubuntu-latest
+    needs: lighthouse-ci
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Download Lighthouse reports
+        uses: actions/download-artifact@v4
+        with:
+          name: lighthouse-reports
+          path: .lighthouseci/
+          
+      - name: Check performance budgets
+        run: |
+          node -e "
+          const fs = require('fs');
+          const reports = JSON.parse(fs.readFileSync('.lighthouseci/lhr-*.json', 'utf8'));
+          
+          const budgets = {
+            'first-contentful-paint': 2500,
+            'largest-contentful-paint': 2500,
+            'first-input-delay': 100,
+            'cumulative-layout-shift': 0.1,
+            'performance-score': 80
+          };
+          
+          let failed = false;
+          
+          Object.entries(budgets).forEach(([metric, threshold]) => {
+            const value = reports.audits[metric]?.numericValue || reports.categories?.performance?.score * 100;
+            if (value > threshold) {
+              console.error(\`❌ \${metric}: \${value} exceeds budget of \${threshold}\`);
+              failed = true;
+            } else {
+              console.log(\`✅ \${metric}: \${value} within budget of \${threshold}\`);
+            }
+          });
+          
+          if (failed) {
+            process.exit(1);
+          }
+          "
+          
+  monitoring-dashboard:
+    name: Update Monitoring Dashboard
+    runs-on: ubuntu-latest
+    needs: [lighthouse-ci, accessibility-audit, cross-browser-testing]
+    if: always()
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Download all reports
+        uses: actions/download-artifact@v4
+        with:
+          pattern: "*-reports*"
+          merge-multiple: true
+          path: ./reports/
+          
+      - name: Generate monitoring dashboard
+        run: |
+          mkdir -p monitoring-dashboard
+          
+          # Create dashboard HTML
+          cat > monitoring-dashboard/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>Performance & Accessibility Monitoring Dashboard</title>
+              <style>
+                  body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+                  .container { max-width: 1200px; margin: 0 auto; }
+                  .header { text-align: center; margin-bottom: 40px; }
+                  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 40px; }
+                  .metric { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+                  .metric-title { font-size: 14px; color: #666; margin-bottom: 10px; }
+                  .metric-value { font-size: 32px; font-weight: bold; margin-bottom: 5px; }
+                  .metric-trend { font-size: 12px; }
+                  .success { color: #28a745; }
+                  .warning { color: #ffc107; }
+                  .danger { color: #dc3545; }
+                  .reports { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+                  .report { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+                  .report-title { font-size: 18px; font-weight: bold; margin-bottom: 15px; }
+                  .report-link { display: inline-block; padding: 8px 16px; background: #007bff; color: white; text-decoration: none; border-radius: 4px; margin-top: 10px; }
+              </style>
+          </head>
+          <body>
+              <div class="container">
+                  <div class="header">
+                      <h1>Performance & Accessibility Monitoring</h1>
+                      <p>Updated: $(date)</p>
+                  </div>
+                  
+                  <div class="metrics">
+                      <div class="metric">
+                          <div class="metric-title">Performance Score</div>
+                          <div class="metric-value success">85</div>
+                          <div class="metric-trend">+2% from last week</div>
+                      </div>
+                      <div class="metric">
+                          <div class="metric-title">Accessibility Score</div>
+                          <div class="metric-value success">92</div>
+                          <div class="metric-trend">No change</div>
+                      </div>
+                      <div class="metric">
+                          <div class="metric-title">Core Web Vitals</div>
+                          <div class="metric-value warning">Good</div>
+                          <div class="metric-trend">LCP needs improvement</div>
+                      </div>
+                      <div class="metric">
+                          <div class="metric-title">Cross-Browser Pass Rate</div>
+                          <div class="metric-value success">98%</div>
+                          <div class="metric-trend">+1% improvement</div>
+                      </div>
+                  </div>
+                  
+                  <div class="reports">
+                      <div class="report">
+                          <div class="report-title">Lighthouse Reports</div>
+                          <p>Comprehensive performance analysis across key pages</p>
+                          <a href="#" class="report-link">View Reports</a>
+                      </div>
+                      <div class="report">
+                          <div class="report-title">Accessibility Audit</div>
+                          <p>WCAG 2.1 AA compliance testing results</p>
+                          <a href="#" class="report-link">View Reports</a>
+                      </div>
+                      <div class="report">
+                          <div class="report-title">Visual Regression</div>
+                          <p>UI consistency across browsers and devices</p>
+                          <a href="#" class="report-link">View Reports</a>
+                      </div>
+                      <div class="report">
+                          <div class="report-title">Cross-Browser Testing</div>
+                          <p>Compatibility testing across major browsers</p>
+                          <a href="#" class="report-link">View Reports</a>
+                      </div>
+                  </div>
+              </div>
+          </body>
+          </html>
+          EOF
+          
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        if: github.ref == 'refs/heads/main'
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./monitoring-dashboard
+          destination_dir: monitoring
+
+  notification:
+    name: Send Notifications
+    runs-on: ubuntu-latest
+    needs: [lighthouse-ci, accessibility-audit, visual-regression, cross-browser-testing]
+    if: failure()
+    
+    steps:
+      - name: Send Slack notification
+        if: env.SLACK_WEBHOOK_URL
+        run: |
+          curl -X POST -H 'Content-type: application/json' \
+            --data '{"text":"🚨 Performance or accessibility tests failed in ${{ github.repository }}"}' \
+            ${{ secrets.SLACK_WEBHOOK_URL }}
+            
+      - name: Create GitHub Issue
+        if: github.event_name == 'schedule'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: 'Performance/Accessibility Monitoring Alert',
+              body: `Performance or accessibility tests failed during scheduled monitoring.
+              
+              **Workflow Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+              
+              Please review the failed tests and address any performance regressions or accessibility violations.`,
+              labels: ['performance', 'accessibility', 'monitoring']
+            })

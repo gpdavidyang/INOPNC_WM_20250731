@@ -15,7 +15,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select-new'
+} from '@/components/ui/custom-select'
 import {
   Bell,
   Search,

@@ -7,6 +7,8 @@ import React, { ReactElement } from 'react'
 import { render, RenderOptions } from '@testing-library/react'
 import { SunlightModeProvider } from '@/contexts/SunlightModeContext'
 import { EnvironmentalProvider } from '@/contexts/EnvironmentalContext'
+import { TouchModeProvider } from '@/contexts/TouchModeContext'
+import { FontSizeProvider } from '@/contexts/FontSizeContext'
 
 // Mock Next.js router
 export const mockRouter = {
@@ -39,11 +41,15 @@ export const mockNavigation = {
  */
 const AllTheProviders = ({ children }: { children: React.ReactNode }) => {
   return (
-    <SunlightModeProvider>
-      <EnvironmentalProvider>
-        {children}
-      </EnvironmentalProvider>
-    </SunlightModeProvider>
+    <TouchModeProvider>
+      <FontSizeProvider>
+        <SunlightModeProvider>
+          <EnvironmentalProvider>
+            {children}
+          </EnvironmentalProvider>
+        </SunlightModeProvider>
+      </FontSizeProvider>
+    </TouchModeProvider>
   )
 }
 
@@ -58,6 +64,27 @@ const customRender = (
 // Re-export everything
 export * from '@testing-library/react'
 export { customRender as render }
+export { customRender as renderWithProviders }
+
+// Add custom accessibility matcher
+expect.extend({
+  toBeAccessible(received) {
+    // Basic accessibility check - in real world, would use axe-core
+    const pass = received.tagName && !received.getAttribute('aria-hidden')
+    
+    if (pass) {
+      return {
+        message: () => `expected ${received} not to be accessible`,
+        pass: true,
+      }
+    } else {
+      return {
+        message: () => `expected ${received} to be accessible`,
+        pass: false,
+      }
+    }
+  },
+})
 
 /**
  * Mock profile data for testing
@@ -84,12 +111,12 @@ export const createMockProfile = (overrides = {}) => ({
 export const createMockWorkLog = (overrides = {}) => ({
   id: 'log-123',
   work_date: '2024-08-01',
-  site_name: '강남 A현장',
-  work_content: '슬라브 타설 작업 진행',
+  site_name: 'Test Site Alpha',
+  work_content: '콘크리트 타설 작업 진행',
   status: 'draft' as const,
   created_at: '2024-08-01T08:00:00Z',
   updated_at: '2024-08-01T10:30:00Z',
-  created_by_name: '김철수',
+  created_by_name: 'Test User',
   site_id: 'site-123',
   ...overrides,
 })
@@ -99,8 +126,8 @@ export const createMockWorkLog = (overrides = {}) => ({
  */
 export const createMockSite = (overrides = {}) => ({
   id: 'site-123',
-  name: '강남 A현장',
-  location: '서울시 강남구',
+  name: 'Test Construction Site',
+  location: 'Test City, Test District',
   status: 'active' as const,
   organization_id: 'org-123',
   created_at: '2024-01-01T00:00:00Z',
@@ -130,7 +157,7 @@ export const createMockDailyReport = (overrides = {}) => ({
   site_id: 'site-123',
   weather: 'sunny' as const,
   temperature: 25,
-  work_content: '슬라브 타설 작업',
+  work_content: '콘크리트 타설 작업',
   safety_notes: '안전점검 완료',
   quality_notes: '품질 기준 충족',
   issues_notes: '이슈 없음',

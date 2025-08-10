@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { ViewToggle, useViewMode, CardView, ListView } from '@/components/ui/view-toggle'
 import { useFontSize, getTypographyClass } from '@/contexts/FontSizeContext'
 import { useTouchMode } from '@/contexts/TouchModeContext'
 import { 
@@ -64,6 +65,7 @@ export function EquipmentList({
     sortOrder: 'asc'
   })
   const [showFilters, setShowFilters] = useState(false)
+  const [viewMode, setViewMode] = useViewMode('equipment-list')
 
   // Filter equipment
   const filteredEquipment = equipment.filter(item => {
@@ -132,6 +134,41 @@ export function EquipmentList({
     return 'p-4'
   }
 
+  // Render action buttons for equipment
+  const renderActionButtons = (item: Equipment) => (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="compact" className="h-8 w-8 p-0">
+          <MoreVertical className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        {item.status === 'available' && (
+          <>
+            <DropdownMenuItem onClick={() => onCheckout(item)}>
+              <Package className="h-4 w-4 mr-2" />
+              반출하기
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+          </>
+        )}
+        <DropdownMenuItem onClick={() => onMaintenance(item)}>
+          <Wrench className="h-4 w-4 mr-2" />
+          정비 일정
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => onViewHistory(item)}>
+          <Calendar className="h-4 w-4 mr-2" />
+          사용 이력
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => onEdit(item)}>
+          <Hammer className="h-4 w-4 mr-2" />
+          수정
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+
   return (
     <div className="space-y-4">
       {/* Search and Filters */}
@@ -146,6 +183,12 @@ export function EquipmentList({
               className="pl-10"
             />
           </div>
+          <ViewToggle
+            mode={viewMode}
+            onModeChange={setViewMode}
+            availableModes={['card', 'list']}
+            size="md"
+          />
           <Button
             variant="outline"
             size={getButtonSize()}
@@ -168,7 +211,7 @@ export function EquipmentList({
                 <select
                   value={filter.category}
                   onChange={(e) => setFilter({ ...filter, category: e.target.value })}
-                  className="w-full h-10 px-3 rounded-md border border-gray-300 bg-white"
+                  className="w-full px-3 py-1.5 text-sm font-medium border border-gray-200 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                 >
                   <option value="">전체 카테고리</option>
                   {categories.map(cat => (
@@ -184,7 +227,7 @@ export function EquipmentList({
                 <select
                   value={filter.status}
                   onChange={(e) => setFilter({ ...filter, status: e.target.value as any })}
-                  className="w-full h-10 px-3 rounded-md border border-gray-300 bg-white"
+                  className="w-full px-3 py-1.5 text-sm font-medium border border-gray-200 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                 >
                   <option value="all">전체 상태</option>
                   <option value="available">사용가능</option>
@@ -202,7 +245,7 @@ export function EquipmentList({
                 <select
                   value={filter.site}
                   onChange={(e) => setFilter({ ...filter, site: e.target.value })}
-                  className="w-full h-10 px-3 rounded-md border border-gray-300 bg-white"
+                  className="w-full px-3 py-1.5 text-sm font-medium border border-gray-200 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                 >
                   <option value="">전체 현장</option>
                   {sites.map(site => (
@@ -221,7 +264,7 @@ export function EquipmentList({
                     const [sortBy, sortOrder] = e.target.value.split('-')
                     setFilter({ ...filter, sortBy: sortBy as any, sortOrder: sortOrder as any })
                   }}
-                  className="w-full h-10 px-3 rounded-md border border-gray-300 bg-white"
+                  className="w-full px-3 py-1.5 text-sm font-medium border border-gray-200 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                 >
                   <option value="name-asc">이름 (오름차순)</option>
                   <option value="name-desc">이름 (내림차순)</option>
@@ -236,100 +279,192 @@ export function EquipmentList({
         )}
       </div>
 
-      {/* Equipment Grid */}
+      {/* Equipment Display */}
       {sortedEquipment.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {sortedEquipment.map(item => {
-            const status = getStatusDisplay(item.status)
-            const StatusIcon = status.icon
+        <>
+          {viewMode === 'card' ? (
+            <CardView columns={3}>
+              {sortedEquipment.map(item => {
+                const status = getStatusDisplay(item.status)
+                const StatusIcon = status.icon
 
-            return (
-              <Card key={item.id} className={`${getTouchPadding()} hover:shadow-md transition-shadow`}>
-                <div className="flex justify-between items-start mb-3">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className={`font-medium ${getTypographyClass('base', isLargeFont)}`}>
-                        {item.name}
-                      </h3>
+                return (
+                  <Card key={item.id} className={`${getTouchPadding()} hover:shadow-md transition-shadow`}>
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className={`font-medium ${getTypographyClass('base', isLargeFont)}`}>
+                            {item.name}
+                          </h3>
+                        </div>
+                        <p className={`${getTypographyClass('small', isLargeFont)} text-gray-500`}>
+                          {item.code}
+                        </p>
+                      </div>
+                      {renderActionButtons(item)}
                     </div>
-                    <p className={`${getTypographyClass('small', isLargeFont)} text-gray-500`}>
-                      {item.code}
-                    </p>
-                  </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="compact" className="h-8 w-8 p-0">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      {item.status === 'available' && (
-                        <>
-                          <DropdownMenuItem onClick={() => onCheckout(item)}>
-                            <Package className="h-4 w-4 mr-2" />
-                            반출하기
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                        </>
+
+                    <div className={`space-y-2 ${getTypographyClass('small', isLargeFont)}`}>
+                      {item.category && (
+                        <div className="flex items-center gap-2 text-gray-600">
+                          <Tag className="h-3.5 w-3.5" />
+                          <span>{item.category.name}</span>
+                        </div>
                       )}
-                      <DropdownMenuItem onClick={() => onMaintenance(item)}>
-                        <Wrench className="h-4 w-4 mr-2" />
-                        정비 일정
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => onViewHistory(item)}>
-                        <Calendar className="h-4 w-4 mr-2" />
-                        사용 이력
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => onEdit(item)}>
-                        <Hammer className="h-4 w-4 mr-2" />
-                        수정
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
 
-                <div className={`space-y-2 ${getTypographyClass('small', isLargeFont)}`}>
-                  {item.category && (
-                    <div className="flex items-center gap-2 text-gray-600">
-                      <Tag className="h-3.5 w-3.5" />
-                      <span>{item.category.name}</span>
+                      {item.manufacturer && (
+                        <div className="flex items-center gap-2 text-gray-600">
+                          <Package className="h-3.5 w-3.5" />
+                          <span>{item.manufacturer} {item.model}</span>
+                        </div>
+                      )}
+
+                      {item.site && (
+                        <div className="flex items-center gap-2 text-gray-600">
+                          <MapPin className="h-3.5 w-3.5" />
+                          <span>{item.site.name}</span>
+                        </div>
+                      )}
                     </div>
-                  )}
 
-                  {item.manufacturer && (
-                    <div className="flex items-center gap-2 text-gray-600">
-                      <Package className="h-3.5 w-3.5" />
-                      <span>{item.manufacturer} {item.model}</span>
+                    <div className="mt-4 flex items-center justify-between">
+                      <div className={`flex items-center gap-1.5 ${status.color}`}>
+                        <StatusIcon className="h-4 w-4" />
+                        <span className={`font-medium ${getTypographyClass('small', isLargeFont)}`}>
+                          {status.label}
+                        </span>
+                      </div>
+
+                      {item.purchase_date && (
+                        <span className={`${getTypographyClass('small', isLargeFont)} text-gray-500`}>
+                          구입: {formatDate(item.purchase_date)}
+                        </span>
+                      )}
                     </div>
-                  )}
-
-                  {item.site && (
-                    <div className="flex items-center gap-2 text-gray-600">
-                      <MapPin className="h-3.5 w-3.5" />
-                      <span>{item.site.name}</span>
-                    </div>
-                  )}
-                </div>
-
-                <div className="mt-4 flex items-center justify-between">
-                  <div className={`flex items-center gap-1.5 ${status.color}`}>
-                    <StatusIcon className="h-4 w-4" />
-                    <span className={`font-medium ${getTypographyClass('small', isLargeFont)}`}>
-                      {status.label}
+                  </Card>
+                )
+              })}
+            </CardView>
+          ) : (
+            <ListView
+              data={sortedEquipment}
+              columns={[
+                {
+                  key: 'code',
+                  label: '장비코드',
+                  sortable: true,
+                  width: '120px',
+                  render: (value) => (
+                    <span className={`font-mono ${getTypographyClass('small', isLargeFont)}`}>
+                      {value}
                     </span>
-                  </div>
-
-                  {item.purchase_date && (
-                    <span className={`${getTypographyClass('small', isLargeFont)} text-gray-500`}>
-                      구입: {formatDate(item.purchase_date)}
+                  )
+                },
+                {
+                  key: 'name',
+                  label: '장비명',
+                  sortable: true,
+                  render: (value, item) => (
+                    <div>
+                      <div className={`font-medium ${getTypographyClass('base', isLargeFont)}`}>
+                        {value}
+                      </div>
+                      {item.manufacturer && (
+                        <div className={`${getTypographyClass('small', isLargeFont)} text-gray-500`}>
+                          {item.manufacturer} {item.model}
+                        </div>
+                      )}
+                    </div>
+                  )
+                },
+                {
+                  key: 'category.name',
+                  label: '카테고리',
+                  sortable: true,
+                  width: '120px',
+                  render: (value) => (
+                    <span className={getTypographyClass('small', isLargeFont)}>
+                      {value || '-'}
                     </span>
-                  )}
-                </div>
-              </Card>
-            )
-          })}
-        </div>
+                  )
+                },
+                {
+                  key: 'status',
+                  label: '상태',
+                  sortable: true,
+                  width: '120px',
+                  align: 'center',
+                  render: (value) => {
+                    const status = getStatusDisplay(value)
+                    const StatusIcon = status.icon
+                    return (
+                      <div className={`flex items-center justify-center gap-1.5 ${status.color}`}>
+                        <StatusIcon className="h-4 w-4" />
+                        <span className={`font-medium ${getTypographyClass('small', isLargeFont)}`}>
+                          {status.label}
+                        </span>
+                      </div>
+                    )
+                  }
+                },
+                {
+                  key: 'current_user',
+                  label: '현재 사용자',
+                  width: '120px',
+                  render: (value) => (
+                    <span className={getTypographyClass('small', isLargeFont)}>
+                      {value || '-'}
+                    </span>
+                  )
+                },
+                {
+                  key: 'site.name',
+                  label: '위치/현장',
+                  sortable: true,
+                  width: '150px',
+                  render: (value) => (
+                    <span className={getTypographyClass('small', isLargeFont)}>
+                      {value || '-'}
+                    </span>
+                  )
+                },
+                {
+                  key: 'last_maintenance_date',
+                  label: '최근 정비',
+                  width: '120px',
+                  render: (value) => (
+                    <span className={getTypographyClass('small', isLargeFont)}>
+                      {value ? formatDate(value) : '-'}
+                    </span>
+                  )
+                },
+                {
+                  key: 'actions',
+                  label: '작업',
+                  width: '80px',
+                  align: 'center',
+                  render: (_, item) => renderActionButtons(item)
+                }
+              ]}
+              sortConfig={{
+                key: filter.sortBy,
+                direction: filter.sortOrder
+              }}
+              onSort={(config) => {
+                if (config.direction) {
+                  setFilter({
+                    ...filter,
+                    sortBy: config.key as any,
+                    sortOrder: config.direction
+                  })
+                }
+              }}
+              hoverable
+              compact={!isLargeFont}
+              emptyMessage="장비가 없습니다"
+            />
+          )}
+        </>
       ) : (
         <Card className="p-8 text-center">
           <Package className="h-12 w-12 mx-auto text-gray-400 mb-4" />

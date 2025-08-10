@@ -232,7 +232,7 @@ export function EquipmentMaintenanceComponent({ currentUser }: EquipmentMaintena
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className={`${getInputSize()} px-3 rounded-md border border-gray-300 bg-white`}
+            className="w-full px-3 py-1.5 text-sm font-medium border border-gray-200 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
           >
             <option value="all">모든 상태</option>
             <option value="scheduled">예정</option>
@@ -245,7 +245,7 @@ export function EquipmentMaintenanceComponent({ currentUser }: EquipmentMaintena
           <select
             value={dateFilter}
             onChange={(e) => setDateFilter(e.target.value)}
-            className={`${getInputSize()} px-3 rounded-md border border-gray-300 bg-white`}
+            className="w-full px-3 py-1.5 text-sm font-medium border border-gray-200 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
           >
             <option value="all">모든 날짜</option>
             <option value="overdue">지연</option>

@@ -1,5 +1,5 @@
 import React from 'react'
-import { render, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent } from '@/__tests__/utils/test-utils'
 import { WeatherResistantInput } from '@/components/ui/weather-resistant-input'
 
 describe('WeatherResistantInput Component', () => {

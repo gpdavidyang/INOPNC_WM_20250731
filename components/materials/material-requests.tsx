@@ -258,7 +258,7 @@ export function MaterialRequests({ materials, currentUser, currentSite }: Materi
             setSelectedSite(e.target.value)
             loadRequests()
           }}
-          className="flex-1 h-10 px-3 rounded-md border border-gray-300 bg-white"
+          className="w-full px-3 py-1.5 text-sm font-medium border border-gray-200 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
         >
           <option value="">모든 현장</option>
           {sites.map(site => (
@@ -274,7 +274,7 @@ export function MaterialRequests({ materials, currentUser, currentSite }: Materi
             setStatusFilter(e.target.value)
             loadRequests()
           }}
-          className="w-full sm:w-48 h-10 px-3 rounded-md border border-gray-300 bg-white"
+          className="w-full px-3 py-1.5 text-sm font-medium border border-gray-200 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
         >
           <option value="all">모든 상태</option>
           <option value="pending">대기중</option>
@@ -446,7 +446,7 @@ export function MaterialRequests({ materials, currentUser, currentSite }: Materi
                   id="site"
                   value={requestForm.site_id}
                   onChange={(e) => setRequestForm({ ...requestForm, site_id: e.target.value })}
-                  className="w-full mt-1.5 h-10 px-3 rounded-md border border-gray-300 bg-white"
+                  className="w-full px-3 py-1.5 text-sm font-medium border border-gray-200 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                   required
                 >
                   <option value="">현장 선택</option>
@@ -477,7 +477,7 @@ export function MaterialRequests({ materials, currentUser, currentSite }: Materi
                 id="priority"
                 value={requestForm.priority}
                 onChange={(e) => setRequestForm({ ...requestForm, priority: e.target.value as any })}
-                className="w-full mt-1.5 h-10 px-3 rounded-md border border-gray-300 bg-white"
+                className="w-full px-3 py-1.5 text-sm font-medium border border-gray-200 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
               >
                 <option value="low">낮음</option>
                 <option value="normal">보통</option>
@@ -494,7 +494,7 @@ export function MaterialRequests({ materials, currentUser, currentSite }: Materi
                     <select
                       value={item.material_id}
                       onChange={(e) => updateRequestItem(index, 'material_id', e.target.value)}
-                      className="flex-1 h-10 px-3 rounded-md border border-gray-300 bg-white"
+                      className="w-full px-3 py-1.5 text-sm font-medium border border-gray-200 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                       required
                     >
                       <option value="">자재 선택</option>

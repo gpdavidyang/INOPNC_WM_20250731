@@ -41,6 +41,89 @@ npm run snapshot:save "reason"  # Save code snapshot before critical changes
 npm run protect:check          # Verify critical features are working
 ```
 
+## Recent Updates
+
+### 2025-08-04: Blueprint Markup Tool UI/UX Improvements
+- **Dark Mode Support**: Complete dark theme implementation across all markup tool components
+  - Upload screen, editor interface, and document list all support dark mode
+- **Tool Palette Layout Enhancement**:
+  - New 2-row layout for mobile devices
+  - Row 1: Select, Material Zone (gray), Work Progress (red) + Undo/Redo
+  - Row 2: Work Complete (blue), Text, Pen + Delete
+  - All tools now visible within viewport
+- **Improved Visibility and Design**:
+  - Increased button size to 48x48px for better touch targets
+  - Larger icons (6x6) for improved visibility
+  - Box tools now display as filled colored squares
+  - Gradient effects and shadows for depth
+  - Modern rounded corners (rounded-xl)
+- **Action Button Differentiation**:
+  - Undo/Redo: Gray gradient background
+  - Delete: Red theme for danger action
+
+### 2025-08-04: Bottom Navigation Bar Update
+- **Navigation Menu Simplified**: Restructured mobile bottom navigation for better UX
+  - Removed '공도면' (blueprint) menu item 
+  - Added '내정보' (My Info) menu item for quick profile access
+  - New menu order: 홈(빠른메뉴), 출력현황, 작업일지, 문서함, 내정보
+- **Profile Screen Implementation**: 
+  - Shows user name, email, and role information
+  - Role display in Korean (작업자, 현장관리자, 파트너사, 관리자, 시스템관리자)
+
+### 2025-08-04: Quick Menu and Today's Site Info Updates
+- **Quick Menu Default Changes**: Updated default items from '출력현황, 내문서함, 현장정보, 도면' to '출근현황, 작업일지, 현장정보, 문서함'
+- **Today's Site Information Reorganization**:
+  - Reordered sections: Site address → Accommodation → Manager contacts → Divider → Work details → 현장 공도면 → PTW
+  - Moved blueprint icon from 작업지시서 to new 현장 공도면 section
+  - Changed 작업지시서 to 작업내용 (work content only, no icon)
+  - Added visual divider line between manager contacts and work details
+
+### 2025-08-07: Unified Page Header System Implementation
+- **PageHeader Component**: New unified page header system for consistent navigation context
+  - Breadcrumb navigation showing hierarchical page location
+  - Contextual action buttons with responsive behavior
+  - Mobile-first design with touch-friendly targets (48x48px)
+  - Dark mode and accessibility support (WCAG compliant)
+- **Pre-configured Variants**:
+  - `DashboardPageHeader`: Standard dashboard pages
+  - `AdminPageHeader`: Admin section pages
+  - `ReportsPageHeader`: Report pages with back navigation
+  - `DocumentsPageHeader`: Document management pages
+- **Integration Features**:
+  - Touch mode support for construction site usage (normal/glove/precision)
+  - Font size context integration
+  - Responsive action buttons (text to icons on mobile)
+  - Complete documentation and examples in `/components/ui/page-header-*.tsx`
+
+### 2025-08-07: Site Data Cleanup and RLS Policy Fixes
+- **Fixed Duplicate Site Entries**: Removed duplicate "강남 A현장" entries from database
+  - Issue: Multiple identical site entries were causing duplicates in dropdowns
+  - Solution: Cleaned up database to keep only one instance of each site
+  - Note: The "V" character appearing before site names was likely a rendering issue with checkmarks (✓)
+- **Fixed Site Dropdown Empty Issue**: Added RLS policy for authenticated users
+  - Issue: Sites dropdown was empty because RLS policy only allowed admins to view sites
+  - Solution: Added "Users can view sites" policy allowing all authenticated users to SELECT from sites table
+  - Added null safety checks in component to handle edge cases
+- **Comprehensive RLS Policy Review**: Verified all tables have proper SELECT policies
+  - Confirmed policies exist for: sites, daily_reports, attendance_records, documents, materials, material_inventory, notifications
+  - All authenticated users can now view necessary data for proper UI functionality
+  - Created migration files to persist these policies
+
+### 2025-08-03: Today's Site Information Enhancements
+- **Blueprint View Button**: Added "공사도면" button next to work details
+  - Opens modal with actual construction blueprint image
+  - Download functionality for blueprint files
+  - Mobile-optimized with slide-up animation
+- **PTW Document Section**: New section below work details
+  - "PTW (작업허가서)" preview functionality
+  - Modal with PDF viewer and document information
+  - Auto-generated document numbers
+  - Download capability for PTW documents
+- **Mobile Optimization**: 
+  - Bottom sheet style modals for mobile devices
+  - Proper z-index handling to avoid NavBar overlap
+  - Touch-friendly button sizes
+
 ## Architecture Overview
 
 ### Tech Stack
@@ -108,12 +191,52 @@ Key tables with RLS (Row Level Security) enabled:
   - Orange (0.1-0.4 공수): Less than half day
   - Gray: No work/holiday
 
-### User Roles
+### User Roles & Permissions (2025-08-07 Update)
+
+#### Role Definitions
 - `worker` - Basic worker, can view/create own reports
 - `site_manager` - Manages specific construction sites
 - `customer_manager` - External customer access
 - `admin` - Organization admin
 - `system_admin` - Full system access
+
+#### Hierarchical Permission System
+Our Row Level Security (RLS) implementation follows a strict hierarchical model:
+
+##### 🔧 System Administrator (system_admin)
+- Complete unrestricted access to all data across the system
+- Can manage all user profiles and system settings
+- Bypass all RLS restrictions for maintenance and troubleshooting
+- Special assignment: davidswyang@gmail.com
+
+##### 👔 Administrator/Site Manager (admin, site_manager)
+- Access to all data within assigned construction sites
+- Can view and manage team member profiles within their sites
+- Site-specific data management permissions
+- Cross-site data isolation enforced
+
+##### 👷 General Worker (worker)
+- Access limited to personal data (attendance, daily reports)
+- Can view team data within the same construction site
+- Cannot access data from other sites
+- Basic profile management for own account
+
+#### RLS Implementation Details
+
+##### Profile Table Protection
+- **Infinite Recursion Prevention**: Uses EXISTS clauses instead of direct self-references
+- **Separate Policies**: INSERT, UPDATE, and SELECT policies for granular control
+- **Auto-creation Support**: Profiles are created automatically on first login
+
+##### Key Security Features
+1. **Unauthenticated Access Blocking**: All data access requires authentication
+2. **Site Data Isolation**: Complete separation between different construction sites
+3. **Role-based Filtering**: Data visibility determined by user role and site assignments
+4. **Performance Optimization**: Efficient queries using EXISTS and LIMIT clauses
+
+##### Critical Migration Files
+- `301_simple_rls_policies.sql` - Initial simplified RLS policies
+- `302_fix_infinite_recursion_rls.sql` - Fixed infinite recursion issue with EXISTS patterns
 
 ## Supabase Configuration
 
@@ -328,9 +451,10 @@ export interface MarkupDocument {
 
 For development/testing:
 - worker@inopnc.com / password123
-- manager@inopnc.com / password123
+- manager@inopnc.com / password123  
 - customer@inopnc.com / password123
 - admin@inopnc.com / password123
+- production@inopnc.com / password123 (site_manager role)
 
 ## Task Master AI Instructions
 **Import Task Master's development workflow commands and guidelines, treat as if import is in the main CLAUDE.md file.**

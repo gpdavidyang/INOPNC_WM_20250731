@@ -126,7 +126,19 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
-    const body = await request.json()
+    
+    // Check if request has a body
+    const contentLength = request.headers.get('content-length')
+    if (!contentLength || contentLength === '0') {
+      return NextResponse.json({ error: 'Request body is required' }, { status: 400 })
+    }
+    
+    let body
+    try {
+      body = await request.json()
+    } catch (e) {
+      return NextResponse.json({ error: 'Invalid JSON in request body' }, { status: 400 })
+    }
     
     // Check if this is a performance metric submission (Web Vitals, custom metrics, etc.)
     if (body.type && ['web_vitals', 'custom_metric', 'api_performance'].includes(body.type)) {

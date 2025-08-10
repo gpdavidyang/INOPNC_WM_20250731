@@ -14,19 +14,42 @@ export async function getAttendanceRecords(params: {
   date_from: string
   date_to: string
 }) {
+  console.log('🔍 getAttendanceRecords called with params:', JSON.stringify(params, null, 2))
+  
   try {
     const supabase = createClient()
     
+    // Step 1: Verify authentication
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError || !user) {
+      console.error('❌ Authentication failed in getAttendanceRecords:', userError)
+      return { success: false, error: 'User not authenticated' }
+    }
+    
+    console.log('✅ User authenticated:', user.id)
+    
+    // Step 2: Build query with proper field selection
     let query = supabase
       .from('attendance_records')
       .select(`
-        *,
-        site:sites(id, name),
-        worker:profiles(id, full_name, email)
+        id,
+        user_id,
+        site_id,
+        work_date,
+        check_in_time,
+        check_out_time,
+        work_hours,
+        overtime_hours,
+        labor_hours,
+        status,
+        notes,
+        created_at,
+        updated_at,
+        sites(id, name)
       `)
-      .gte('attendance_date', params.date_from)
-      .lte('attendance_date', params.date_to)
-      .order('attendance_date', { ascending: true })
+      .gte('work_date', params.date_from)
+      .lte('work_date', params.date_to)
+      .order('work_date', { ascending: true })
 
     if (params.user_id) {
       query = query.eq('user_id', params.user_id)
@@ -35,17 +58,57 @@ export async function getAttendanceRecords(params: {
       query = query.eq('site_id', params.site_id)
     }
 
+    console.log('📍 Executing attendance records query...')
     const { data, error } = await query
 
+    // Step 3: Enhanced logging 
+    console.log('📊 Database query result:', {
+      success: !error,
+      recordCount: data?.length || 0,
+      error: error?.message,
+      errorDetails: error?.details,
+      errorHint: error?.hint,
+      errorCode: error?.code,
+      sampleRecord: data?.[0] ? {
+        id: data[0].id,
+        work_date: data[0].work_date,
+        labor_hours: data[0].labor_hours,
+        site_name: data[0].sites?.name
+      } : null,
+      params
+    })
+
     if (error) {
-      console.error('Error fetching attendance records:', error)
-      return { success: false, error: error.message }
+      console.error('❌ Database error in getAttendanceRecords:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      })
+      return { success: false, error: `Database error: ${error.message}` }
     }
 
-    return { success: true, data }
+    // Step 4: Transform data to match expected interface
+    // Client expects `date` field but DB has `work_date`
+    const transformedData = data?.map(record => ({
+      ...record,
+      date: record.work_date, // Add date field for compatibility
+      site_name: record.sites?.name || 'Unknown Site'
+    })) || []
+
+    console.log('✅ Successfully fetched and transformed', transformedData.length, 'attendance records')
+    console.log('🔧 Sample transformed record:', transformedData[0] ? {
+      id: transformedData[0].id,
+      date: transformedData[0].date,
+      work_date: transformedData[0].work_date,
+      labor_hours: transformedData[0].labor_hours,
+      site_name: transformedData[0].site_name
+    } : 'No records')
+
+    return { success: true, data: transformedData }
   } catch (error) {
-    console.error('Error in getAttendanceRecords:', error)
-    return { success: false, error: 'Failed to fetch attendance records' }
+    console.error('💥 Unexpected error in getAttendanceRecords:', error)
+    return { success: false, error: `Failed to fetch attendance records: ${error instanceof Error ? error.message : 'Unknown error'}` }
   }
 }
 

@@ -1,7 +1,25 @@
 import { getCurrentUserSite, getUserSiteHistory } from '@/app/actions/site-info'
-import SiteInfoContent from './site-info-content'
+import { getProfile } from '@/app/actions/profile'
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
+import DashboardLayout from '@/components/dashboard/dashboard-layout'
+import SiteInfoPageNew from '@/components/site-info/SiteInfoPageNew'
 
 export default async function SiteInfoPage() {
+  // Get user profile for authentication
+  const profileResult = await getProfile()
+  if (!profileResult.success || !profileResult.data) {
+    redirect('/auth/login')
+  }
+
+  // Get Supabase user for dashboard layout
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  if (!user) {
+    redirect('/auth/login')
+  }
+
   // Fetch current site and history on server side
   const [currentSiteResult, historyResult] = await Promise.all([
     getCurrentUserSite(),
@@ -12,9 +30,18 @@ export default async function SiteInfoPage() {
   const siteHistory = historyResult.success ? historyResult.data || [] : []
 
   return (
-    <SiteInfoContent 
-      initialCurrentSite={currentSite}
-      initialSiteHistory={siteHistory}
-    />
+    <DashboardLayout 
+      user={user} 
+      profile={profileResult.data}
+      initialActiveTab="site-info"
+    >
+      <div className="p-4 sm:p-6">
+        <SiteInfoPageNew 
+          initialCurrentSite={currentSite}
+          initialSiteHistory={siteHistory}
+          currentUser={profileResult.data}
+        />
+      </div>
+    </DashboardLayout>
   )
 }

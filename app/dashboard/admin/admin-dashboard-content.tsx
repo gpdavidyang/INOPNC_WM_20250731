@@ -1,9 +1,11 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useFontSize, getFullTypographyClass } from '@/contexts/FontSizeContext'
 import { useTouchMode } from '@/contexts/TouchModeContext'
+import { QuickActionsSettings } from '@/components/admin/quick-actions-settings'
 import { 
   Users, 
   Building2, 
@@ -14,13 +16,68 @@ import {
   TrendingUp,
   AlertCircle,
   CheckCircle,
-  Clock
+  Clock,
+  Home,
+  Search,
+  Calendar,
+  Bell,
+  Shield,
+  Monitor,
+  Database,
+  Settings,
+  HelpCircle
 } from 'lucide-react'
 import Link from 'next/link'
+import type { QuickAction } from '@/types'
+
+// 아이콘 매핑
+const ICON_MAP = {
+  Users,
+  Building2,
+  DollarSign,
+  Package,
+  FileText,
+  Layers,
+  Home,
+  Search,
+  Calendar,
+  Bell,
+  Shield,
+  Monitor,
+  Database,
+  Settings,
+  HelpCircle,
+  TrendingUp,
+  AlertCircle,
+  CheckCircle,
+  Clock
+}
 
 export function AdminDashboardContent() {
   const { isLargeFont } = useFontSize()
   const { touchMode } = useTouchMode()
+  const [quickActions, setQuickActions] = useState<QuickAction[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  // 빠른 작업 불러오기
+  const fetchQuickActions = async () => {
+    try {
+      setIsLoading(true)
+      const response = await fetch('/api/admin/quick-actions')
+      if (response.ok) {
+        const data = await response.json()
+        setQuickActions(data.quickActions?.filter((action: QuickAction) => action.is_active) || [])
+      }
+    } catch (error) {
+      console.error('Error fetching quick actions:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchQuickActions()
+  }, [])
 
   return (
     <div className={`${
@@ -88,80 +145,53 @@ export function AdminDashboardContent() {
       <Card className={`${
         touchMode === 'glove' ? 'p-8' : touchMode === 'precision' ? 'p-4' : 'p-6'
       }`}>
-        <h2 className={`${getFullTypographyClass('heading', 'lg', isLargeFont)} font-semibold mb-4`}>빠른 작업</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <Link href="/dashboard/admin/users">
-            <Button 
-              variant="outline" 
-              className={`${
-                touchMode === 'glove' ? 'h-24' : touchMode === 'precision' ? 'h-16' : 'h-20'
-              } flex flex-col items-center justify-center space-y-2 w-full`}
-            >
-              <Users className="h-6 w-6" />
-              <span className={getFullTypographyClass('button', 'base', isLargeFont)}>사용자 관리</span>
-            </Button>
-          </Link>
-          
-          <Link href="/dashboard/admin/sites">
-            <Button 
-              variant="outline" 
-              className={`${
-                touchMode === 'glove' ? 'h-24' : touchMode === 'precision' ? 'h-16' : 'h-20'
-              } flex flex-col items-center justify-center space-y-2 w-full`}
-            >
-              <Building2 className="h-6 w-6" />
-              <span className={getFullTypographyClass('button', 'base', isLargeFont)}>현장 관리</span>
-            </Button>
-          </Link>
-          
-          <Link href="/dashboard/admin/salary">
-            <Button 
-              variant="outline" 
-              className={`${
-                touchMode === 'glove' ? 'h-24' : touchMode === 'precision' ? 'h-16' : 'h-20'
-              } flex flex-col items-center justify-center space-y-2 w-full`}
-            >
-              <DollarSign className="h-6 w-6" />
-              <span className={getFullTypographyClass('button', 'base', isLargeFont)}>급여 관리</span>
-            </Button>
-          </Link>
-          
-          <Link href="/dashboard/admin/materials">
-            <Button 
-              variant="outline" 
-              className={`${
-                touchMode === 'glove' ? 'h-24' : touchMode === 'precision' ? 'h-16' : 'h-20'
-              } flex flex-col items-center justify-center space-y-2 w-full`}
-            >
-              <Package className="h-6 w-6" />
-              <span className={getFullTypographyClass('button', 'base', isLargeFont)}>자재 관리</span>
-            </Button>
-          </Link>
-          
-          <Link href="/dashboard/admin/shared-documents">
-            <Button 
-              variant="outline" 
-              className={`${
-                touchMode === 'glove' ? 'h-24' : touchMode === 'precision' ? 'h-16' : 'h-20'
-              } flex flex-col items-center justify-center space-y-2 w-full`}
-            >
-              <FileText className="h-6 w-6" />
-              <span className={getFullTypographyClass('button', 'base', isLargeFont)}>문서 관리</span>
-            </Button>
-          </Link>
-          
-          <Link href="/dashboard/admin/markup">
-            <Button 
-              variant="outline" 
-              className={`${
-                touchMode === 'glove' ? 'h-24' : touchMode === 'precision' ? 'h-16' : 'h-20'
-              } flex flex-col items-center justify-center space-y-2 w-full`}
-            >
-              <Layers className="h-6 w-6" />
-              <span className={getFullTypographyClass('button', 'base', isLargeFont)}>도면 관리</span>
-            </Button>
-          </Link>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className={`${getFullTypographyClass('heading', 'lg', isLargeFont)} font-semibold`}>빠른 작업</h2>
+          <QuickActionsSettings onUpdate={fetchQuickActions} />
         </div>
+        
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[...Array(6)].map((_, index) => (
+              <div
+                key={index}
+                className={`${
+                  touchMode === 'glove' ? 'h-24' : touchMode === 'precision' ? 'h-16' : 'h-20'
+                } bg-gray-100 rounded-md animate-pulse`}
+              />
+            ))}
+          </div>
+        ) : quickActions.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {quickActions.map((action) => {
+              const IconComponent = ICON_MAP[action.icon_name as keyof typeof ICON_MAP] || Home
+              
+              return (
+                <Link key={action.id} href={action.link_url}>
+                  <Button 
+                    variant="outline" 
+                    className={`${
+                      touchMode === 'glove' ? 'h-24' : touchMode === 'precision' ? 'h-16' : 'h-20'
+                    } flex flex-col items-center justify-center space-y-2 w-full hover:bg-gray-50`}
+                    title={action.description}
+                  >
+                    <IconComponent className="h-6 w-6" />
+                    <span className={getFullTypographyClass('button', 'base', isLargeFont)}>
+                      {action.title}
+                    </span>
+                  </Button>
+                </Link>
+              )
+            })}
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <p className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-500 mb-4`}>
+              등록된 빠른 작업이 없습니다.
+            </p>
+            <QuickActionsSettings onUpdate={fetchQuickActions} />
+          </div>
+        )}
       </Card>
 
       {/* Recent Activities */}

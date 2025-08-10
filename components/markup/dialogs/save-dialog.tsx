@@ -18,7 +18,7 @@ import {
   SelectItem, 
   SelectTrigger, 
   SelectValue 
-} from '@/components/ui/select-new'
+} from '@/components/ui/custom-select'
 import { Textarea } from '@/components/ui/textarea'
 
 interface SaveDialogProps {

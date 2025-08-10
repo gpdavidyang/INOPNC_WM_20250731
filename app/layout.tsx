@@ -18,6 +18,7 @@ import { OfflineIndicator } from "@/components/pwa/offline-indicator";
 import { NotificationPermission } from "@/components/pwa/notification-permission";
 import { DeepLinkProvider } from "@/components/providers/deep-link-provider";
 import { PerformanceMonitoringProvider } from "@/components/providers/performance-monitoring-provider";
+import { ThemeProvider } from "next-themes";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -25,14 +26,6 @@ export const metadata: Metadata = {
   title: "INOPNC Work Management",
   description: "건설 현장 작업 일지 및 자재 관리를 위한 통합 관리 시스템",
   manifest: "/manifest.json",
-  themeColor: "#2563eb",
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-    viewportFit: "cover"
-  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -63,31 +56,41 @@ export const metadata: Metadata = {
   }
 };
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
+  themeColor: "#2563eb"
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko">
+    <html lang="ko" suppressHydrationWarning>
       <body className={inter.className}>
         <ErrorBoundary>
-          <FontSizeProvider>
-            <TouchModeProvider>
-              <ContrastModeProvider>
-                <SunlightModeProvider>
-                  <EnvironmentalProvider>
-                    <ThemeInitializer />
-                    <SkipNavigation />
-                    <AuthProvider>
-                      <PerformanceMonitoringProvider>
-                        <DeepLinkProvider />
-                        {children}
-                        <OfflineIndicator />
-                        <InstallPrompt />
-                        <ServiceWorkerRegistration />
-                        <NotificationPermission />
-                      </PerformanceMonitoringProvider>
+          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+            <FontSizeProvider>
+              <TouchModeProvider>
+                <ContrastModeProvider>
+                  <SunlightModeProvider>
+                    <EnvironmentalProvider>
+                      <ThemeInitializer />
+                      <SkipNavigation />
+                      <AuthProvider>
+                        <PerformanceMonitoringProvider>
+                          <DeepLinkProvider />
+                          {children}
+                          <OfflineIndicator />
+                          <InstallPrompt />
+                          <ServiceWorkerRegistration />
+                          <NotificationPermission />
+                        </PerformanceMonitoringProvider>
                       <Toaster 
                         position="top-right"
                         richColors
@@ -105,6 +108,7 @@ export default function RootLayout({
               </ContrastModeProvider>
             </TouchModeProvider>
           </FontSizeProvider>
+          </ThemeProvider>
         </ErrorBoundary>
       </body>
     </html>

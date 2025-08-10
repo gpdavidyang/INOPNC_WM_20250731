@@ -62,17 +62,43 @@ This document defines the comprehensive UI design system for the INOPNC construc
 --dust-overlay: rgba(0,0,0,0.8); /* Dust protection overlay */
 ```
 
-### Dark Mode Colors
+### Dark Mode Colors (Enhanced)
 ```css
-/* Dark Mode Backgrounds */
+/* Premium Dark Mode Backgrounds */
 dark:bg-gray-900             /* Primary background */
 dark:bg-gray-800             /* Card backgrounds */
 dark:bg-gray-700             /* Secondary backgrounds */
 
-/* Dark Mode Text */
+/* Premium Gradient Backgrounds */
+.bg-premium-light {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+}
+.bg-premium-dark {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+}
+
+/* Surface Elevation for Depth */
+.surface-elevated {
+  background: color-mix(in srgb, var(--color-bg-primary) 95%, var(--color-primary) 5%);
+}
+
+/* Dark Mode Text with Enhanced Readability */
 dark:text-gray-100           /* Primary text */
 dark:text-gray-300           /* Secondary text */
 dark:text-gray-400           /* Muted text */
+
+/* Enhanced Typography for Premium Feel */
+.text-primary-strong { 
+  color: var(--color-text-primary);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+/* Construction Field Large Font */
+.text-construction-xl {
+  font-size: clamp(1.25rem, 2vw, 1.5rem);
+  line-height: 1.4;
+}
 
 /* High Contrast Dark Mode */
 .high-contrast.dark {
@@ -318,7 +344,7 @@ sizes: {
 }
 ```
 
-## Animation & Transitions
+## Animation & Transitions (Enhanced)
 
 ### Standard Transitions
 ```css
@@ -331,6 +357,48 @@ hover:scale-105 transition-transform duration-200
 
 /* Active states */
 active:scale-95 transition-transform duration-100
+
+/* Theme Switch Transitions */
+* {
+  transition: background-color 200ms ease-in-out,
+              color 200ms ease-in-out,
+              border-color 200ms ease-in-out;
+}
+
+/* Elevation Transitions */
+.elevation-transition {
+  transition: box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+```
+
+### Elevation System for Premium Feel
+```css
+/* Light Mode Elevations */
+.elevation-sm {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+}
+.elevation-md {
+  box-shadow: 0 4px 6px rgba(0,0,0,0.16);
+}
+.elevation-lg {
+  box-shadow: 0 10px 20px rgba(0,0,0,0.19);
+}
+
+/* Dark Mode Elevations - Enhanced Depth */
+.dark .elevation-sm {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+.dark .elevation-md {
+  box-shadow: 0 4px 6px rgba(0,0,0,0.4);
+}
+.dark .elevation-lg {
+  box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+}
+
+/* Interactive Elevation Changes */
+.card-hover {
+  @apply elevation-sm hover:elevation-md transition-shadow;
+}
 ```
 
 ### Loading States
@@ -1224,7 +1292,127 @@ The customizable quick menu component allows users to personalize their dashboar
 - **Battery Conservation**: Efficient UI updates and minimal background activity
 - **Storage Management**: Local data storage for offline work capability
 
+## Theme System Enhancements (v3.1.0)
+
+### Premium Dark/Light Mode Improvements
+
+#### Color System Unification
+Replace hardcoded Tailwind classes with CSS variables for consistency:
+```css
+/* Instead of: */
+bg-white dark:bg-gray-800
+
+/* Use: */
+.bg-surface { background: var(--color-bg-surface); }
+.text-primary { color: var(--color-text-primary); }
+```
+
+#### Construction-Specific Theme Modes
+
+##### Time-Based Auto Theme
+```javascript
+const getTimeBasedTheme = () => {
+  const hour = new Date().getHours();
+  if (hour >= 4 && hour < 6) return 'dawn';     // Gradual light transition
+  if (hour >= 6 && hour < 18) return 'day';      // Full light mode
+  if (hour >= 18 && hour < 20) return 'dusk';    // Gradual dark transition
+  return 'night';                                 // Full dark mode
+}
+```
+
+##### Weather-Based Adaptation
+```javascript
+const weatherModes = {
+  sunny: { contrast: 'high', brightness: 'reduced' },
+  cloudy: { contrast: 'normal', brightness: 'normal' },
+  rainy: { contrast: 'enhanced', brightness: 'increased' },
+  foggy: { contrast: 'maximum', brightness: 'high' }
+}
+```
+
+##### Role-Based Defaults
+```javascript
+const roleThemes = {
+  worker: {
+    fontSize: 'large',
+    contrast: 'high',
+    touchMode: 'glove',
+    density: 'comfortable'
+  },
+  siteManager: {
+    fontSize: 'medium',
+    contrast: 'normal',
+    touchMode: 'normal',
+    density: 'balanced'
+  },
+  admin: {
+    fontSize: 'small',
+    contrast: 'normal',
+    touchMode: 'precision',
+    density: 'high'
+  }
+}
+```
+
+### Visual Hierarchy Improvements
+
+#### Component Depth System
+```tsx
+// Card with elevation
+<div className="bg-surface elevation-sm hover:elevation-md transition-shadow">
+  {/* Content */}
+</div>
+
+// Premium gradient background
+<div className="bg-premium-light dark:bg-premium-dark">
+  {/* Content */}
+</div>
+```
+
+#### Emergency & Safety Components
+```tsx
+// Emergency button with pulse animation
+<button className="bg-danger-600 hover:bg-danger-700 
+                   animate-pulse shadow-danger min-h-[64px]">
+  긴급 정지
+</button>
+
+// Safety-critical indicator
+<div className="border-2 border-danger-500 bg-danger-50 
+                dark:bg-danger-900/20 p-4 rounded-xl">
+  <AlertTriangle className="h-6 w-6 text-danger-600" />
+  안전 주의 구역
+</div>
+```
+
+### Implementation Priority
+
+#### Phase 1: Immediate (1 Day)
+1. ✅ Implement CSS variable system
+2. ✅ Add elevation system
+3. ✅ Apply transition animations
+4. ✅ Create theme toggle component
+
+#### Phase 2: Short-term (1 Week)
+1. ⏳ Refactor all components to use CSS variables
+2. ⏳ Implement time-based auto theme
+3. ⏳ Add system preference detection
+4. ⏳ Create premium gradient system
+
+#### Phase 3: Long-term (1 Month)
+1. 📋 Integrate ambient light sensor API
+2. 📋 Add weather API connection
+3. 📋 Implement role-based theme profiles
+4. 📋 Create user preference storage
+
+### Expected Improvements
+- **Readability**: 30% improvement in contrast scores
+- **User Satisfaction**: Premium feel with smooth transitions
+- **Accessibility**: WCAG AAA compliance for critical elements
+- **Performance**: CSS-only transitions reduce JavaScript overhead
+
 ## Version History
+- v3.1.0 (2025-08): Theme system enhancements for premium dark/light modes
 - v3.0.0 (2025-01): Major mobile-first field worker update with high-density UI patterns and construction-specific components
 - v2.0.0 (2024-01): Updated based on implemented demo components
 - v1.0.0 (2023-12): Initial design system definition

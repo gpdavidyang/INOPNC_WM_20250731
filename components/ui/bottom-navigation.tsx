@@ -31,6 +31,13 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
     const handleNavigation = (item: BottomNavItem, e: React.MouseEvent) => {
       e.preventDefault()
       
+      console.log('BottomNavigation: Click detected', {
+        label: item.label,
+        href: item.href,
+        specialAction: item.specialAction,
+        currentPathname: pathname
+      })
+      
       if (item.specialAction === 'filter-blueprint') {
         // 공도면 특수 동작: 공유문서함으로 이동하며 자동 필터링
         if (currentUser?.active_site_id) {
@@ -57,10 +64,15 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
       }
       
       // 일반 네비게이션 - 탭 시스템 또는 라우터 사용
-      if (onTabChange && item.href.startsWith('#')) {
-        const tabId = item.href.replace('#', '')
-        onTabChange(tabId)
+      if (item.href.startsWith('#')) {
+        // 해시 기반 탭은 onTabChange 호출
+        if (onTabChange) {
+          const tabId = item.href.replace('#', '')
+          onTabChange(tabId)
+        }
       } else {
+        // 직접 경로는 항상 라우터 사용
+        console.log('BottomNavigation: Calling router.push with', item.href)
         router.push(item.href)
       }
     }
@@ -82,6 +94,13 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
       >
         <div className="flex h-full items-center justify-around px-1">
           {items.map((item, index) => {
+            console.log('BottomNavigation: Rendering item', {
+              index,
+              label: item.label,
+              href: item.href,
+              hasOnClick: typeof handleNavigation === 'function'
+            })
+            
             // 활성 상태 판단 로직
             let isActive = false
             if (onTabChange && item.href.startsWith('#')) {
@@ -98,7 +117,10 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
             return (
               <button
                 key={index}
-                onClick={(e) => handleNavigation(item, e)}
+                onClick={(e) => {
+                  console.log('BottomNavigation: Button clicked!', item.label)
+                  handleNavigation(item, e)
+                }}
                 className={cn(
                   "relative flex flex-col items-center justify-center transition-all duration-200",
                   // 터치 영역: 44x44px minimum (Apple HIG)

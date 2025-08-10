@@ -3,7 +3,7 @@
 import { Profile } from '@/types'
 import { 
   Shield, Menu, X, Home, Users, Building2, FolderCheck, 
-  DollarSign, Package, Layers, Settings, LogOut
+  DollarSign, Package, Layers, Settings, LogOut, BarChart3, Bell
 } from 'lucide-react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useState } from 'react'
@@ -11,6 +11,7 @@ import { signOut } from '@/app/auth/actions'
 import Link from 'next/link'
 import { useFontSize, getFullTypographyClass } from '@/contexts/FontSizeContext'
 import { useTouchMode } from '@/contexts/TouchModeContext'
+import GlobalSearch from '@/components/admin/GlobalSearch'
 
 interface AdminDashboardLayoutProps {
   profile: Profile
@@ -23,6 +24,18 @@ const adminMenuItems = [
     label: '홈',
     icon: Home,
     href: '/dashboard/admin'
+  },
+  {
+    id: 'analytics',
+    label: '분석 대시보드',
+    icon: BarChart3,
+    href: '/dashboard/admin/analytics'
+  },
+  {
+    id: 'notifications',
+    label: '통합 알림 센터',
+    icon: Bell,
+    href: '/dashboard/admin/notifications'
   },
   {
     id: 'sites',
@@ -174,6 +187,7 @@ export default function AdminDashboardLayout({ profile, children }: AdminDashboa
               <div className="flex-1" />
               
               <div className="flex items-center gap-4">
+                <GlobalSearch />
                 <div className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-700 dark:text-gray-300`}>
                   {profile.full_name}
                 </div>

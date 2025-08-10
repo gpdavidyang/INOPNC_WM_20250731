@@ -289,15 +289,13 @@ export function MarkupEditor({
         onCreateNew={handleCreateNew}
         onOpenDocument={handleOpenDocument as any}
         onEditDocument={handleEditDocument as any}
-        isLargeFont={isLargeFont}
-        touchMode={touchMode}
       />
     )
   }
 
   // 에디터 보기
   return (
-    <div className="h-full flex flex-col bg-gray-50">
+    <div className="h-full flex flex-col bg-gray-50 dark:bg-gray-900">
       {/* 상단 툴바 */}
       <TopToolbar
         fileName={blueprintFileName || (editorState.currentFile as any)?.title || '새 마킹'}
@@ -318,28 +316,28 @@ export function MarkupEditor({
             {/* 데스크톱: 좌측 도구 패널 */}
             {!isMobile && (
               <div className={`${
-                touchMode === 'glove' ? 'w-24' : touchMode === 'precision' ? 'w-16' : 'w-20'
-              } bg-white border-r border-gray-200 ${
-                touchMode === 'glove' ? 'p-3' : touchMode === 'precision' ? 'p-1' : 'p-2'
-              }`}>
-                <ToolPalette
-                  activeTool={editorState.toolState.activeTool}
-                  onToolChange={handleToolChange}
-                  onUndo={markupTools.undo}
-                  onRedo={markupTools.redo}
-                  onDelete={markupTools.deleteSelected}
-                  canUndo={editorState.undoStack.length > 0}
-                  canRedo={editorState.redoStack.length > 0}
-                  hasSelection={editorState.selectedObjects.length > 0}
-                  isMobile={false}
-                  isLargeFont={isLargeFont}
-                  touchMode={touchMode}
-                />
+                touchMode === 'glove' ? 'w-28' : touchMode === 'precision' ? 'w-20' : 'w-24'
+              } bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col`}>
+                <div className="flex-1 overflow-y-auto overflow-x-hidden py-2">
+                  <ToolPalette
+                    activeTool={editorState.toolState.activeTool}
+                    onToolChange={handleToolChange}
+                    onUndo={markupTools.undo}
+                    onRedo={markupTools.redo}
+                    onDelete={markupTools.deleteSelected}
+                    canUndo={editorState.undoStack.length > 0}
+                    canRedo={editorState.redoStack.length > 0}
+                    hasSelection={editorState.selectedObjects.length > 0}
+                    isMobile={false}
+                    isLargeFont={isLargeFont}
+                    touchMode={touchMode}
+                  />
+                </div>
               </div>
             )}
 
             {/* 캔버스 영역 */}
-            <div className="flex-1 relative bg-gray-100 overflow-hidden min-h-96" ref={containerRef} style={{ height: '100%' }}>
+            <div className="flex-1 relative bg-gray-100 dark:bg-gray-900 overflow-hidden min-h-96" ref={containerRef} style={{ height: '100%' }}>
               <MarkupCanvas
                 ref={canvasRef}
                 editorState={editorState}
@@ -367,9 +365,7 @@ export function MarkupEditor({
 
       {/* 모바일: 하단 도구바 */}
       {isMobile && blueprintUrl && (
-        <div className={`bg-white border-t border-gray-200 px-2 ${
-          touchMode === 'glove' ? 'py-2' : touchMode === 'precision' ? 'py-0.5' : 'py-1'
-        }`}>
+        <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
           <ToolPalette
             activeTool={editorState.toolState.activeTool}
             onToolChange={handleToolChange}

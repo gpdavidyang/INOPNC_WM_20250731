@@ -658,23 +658,15 @@ async function syncOfflineActions() {
 
 // IndexedDB helpers for storing offline data
 async function getStoredData(storeName) {
-  // Simplified implementation - in production use proper IndexedDB
-  try {
-    const stored = localStorage.getItem(`sw-${storeName}`)
-    return stored ? JSON.parse(stored) : []
-  } catch {
-    return []
-  }
+  // Service Workers don't have access to localStorage
+  // Return empty array for now - in production use IndexedDB
+  return []
 }
 
 async function removeStoredData(storeName, itemId) {
-  try {
-    const stored = await getStoredData(storeName)
-    const filtered = stored.filter(item => item.id !== itemId)
-    localStorage.setItem(`sw-${storeName}`, JSON.stringify(filtered))
-  } catch (error) {
-    console.error('[ServiceWorker] Failed to remove stored data:', error)
-  }
+  // Service Workers don't have access to localStorage
+  // In production, use IndexedDB instead
+  console.log(`[ServiceWorker] Would remove item ${itemId} from ${storeName}`)
 }
 
 // Notification badge management
@@ -692,23 +684,12 @@ function updateNotificationBadge(increment) {
   }
   
   // Store badge count for persistence
-  try {
-    localStorage.setItem('sw-notification-badge-count', notificationBadgeCount.toString())
-  } catch (error) {
-    console.error('[ServiceWorker] Failed to store badge count:', error)
-  }
+  // Service Workers don't have access to localStorage
+  // Badge count is managed in memory only for this session
 }
 
-// Restore badge count on service worker startup
-try {
-  const stored = localStorage.getItem('sw-notification-badge-count')
-  if (stored) {
-    notificationBadgeCount = parseInt(stored, 10) || 0
-    updateNotificationBadge(0) // Update badge without changing count
-  }
-} catch (error) {
-  console.error('[ServiceWorker] Failed to restore badge count:', error)
-}
+// Service Workers don't have access to localStorage
+// Use IndexedDB or skip badge count restoration in SW context
 
 // Handle silent notification updates
 async function handleSilentNotificationUpdate(notificationData) {

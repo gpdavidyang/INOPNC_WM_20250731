@@ -125,7 +125,13 @@ export function ServiceWorkerRegistration() {
           await fetch('/api/push/subscribe', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(subscription)
+            body: JSON.stringify({
+              subscription: subscription.toJSON(),
+              deviceInfo: {
+                userAgent: navigator.userAgent,
+                platform: navigator.platform
+              }
+            })
           })
           
           console.log('Push subscription registered')

@@ -81,8 +81,13 @@ const config: Config = {
           DEFAULT: '#0064FF',
           50: '#eff9ff',
           100: '#dff0ff',
+          200: '#bfdbfe',
+          300: '#93c5fd',
+          400: '#60a5fa',
           500: '#0064FF',
           600: '#0050d9',
+          700: '#1d4ed8',
+          800: '#1e40af',
           900: '#001a4d'
         },
         'toss-gray': {
@@ -170,7 +175,14 @@ const config: Config = {
         // INOPNC 디자인 시스템 애니메이션 추가
         'scale-in': 'scaleIn 0.2s ease-out',
         'scale-out': 'scaleOut 0.2s ease-in',
-        'bounce-subtle': 'bounceSubtle 0.6s ease-out'
+        'bounce-subtle': 'bounceSubtle 0.6s ease-out',
+        // Quantum Holographic Effects (Iteration 9)
+        'shimmer': 'shimmer 2s ease-in-out infinite',
+        'shimmer-slow': 'shimmer 3s ease-in-out infinite',
+        'spin-slow': 'spin 8s linear infinite',
+        'pulse-glow': 'pulseGlow 2s ease-in-out infinite',
+        'quantum-field': 'quantumField 4s ease-in-out infinite',
+        'holographic-shift': 'holographicShift 6s ease-in-out infinite'
       },
       keyframes: {
         // 기존 키프레임 유지
@@ -183,7 +195,7 @@ const config: Config = {
           '100%': { opacity: '0' },
         },
         slideUp: {
-          '0%': { transform: 'translateY(20px)', opacity: '0' },
+          '0%': { transform: 'translateY(100%)', opacity: '1' },
           '100%': { transform: 'translateY(0)', opacity: '1' },
         },
         slideDown: {
@@ -202,6 +214,67 @@ const config: Config = {
         bounceSubtle: {
           '0%, 100%': { transform: 'translateY(0)' },
           '50%': { transform: 'translateY(-4px)' },
+        },
+        // Quantum Holographic Effects Keyframes (Iteration 9)
+        shimmer: {
+          '0%': { 
+            transform: 'translateX(-100%)',
+            opacity: '0'
+          },
+          '50%': {
+            transform: 'translateX(0%)',
+            opacity: '0.8'
+          },
+          '100%': { 
+            transform: 'translateX(100%)',
+            opacity: '0'
+          }
+        },
+        pulseGlow: {
+          '0%, 100%': { 
+            boxShadow: '0 0 5px rgba(59,130,246,0.3)',
+            opacity: '0.7'
+          },
+          '50%': { 
+            boxShadow: '0 0 20px rgba(59,130,246,0.6), 0 0 30px rgba(147,51,234,0.4)',
+            opacity: '1'
+          }
+        },
+        quantumField: {
+          '0%': { 
+            backgroundPosition: '0% 50%',
+            opacity: '0.3'
+          },
+          '50%': { 
+            backgroundPosition: '100% 50%',
+            opacity: '0.6'
+          },
+          '100%': { 
+            backgroundPosition: '0% 50%',
+            opacity: '0.3'
+          }
+        },
+        holographicShift: {
+          '0%': { 
+            filter: 'hue-rotate(0deg) saturate(100%)',
+            transform: 'translateX(0px)'
+          },
+          '25%': { 
+            filter: 'hue-rotate(90deg) saturate(120%)',
+            transform: 'translateX(1px)'
+          },
+          '50%': { 
+            filter: 'hue-rotate(180deg) saturate(110%)',
+            transform: 'translateX(0px)'
+          },
+          '75%': { 
+            filter: 'hue-rotate(270deg) saturate(120%)',
+            transform: 'translateX(-1px)'
+          },
+          '100%': { 
+            filter: 'hue-rotate(360deg) saturate(100%)',
+            transform: 'translateX(0px)'
+          }
         }
       },
       backgroundImage: {

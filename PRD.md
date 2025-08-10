@@ -109,10 +109,12 @@ Provide a unified platform that eliminates paper-based workflows, improves data 
 - **Site Assignment**: Workers and managers assigned to specific construction sites
 
 #### 1.3 Security Features
-- **Row Level Security (RLS)**: Database-level security ensuring data isolation
+- **Row Level Security (RLS)**: Database-level security ensuring data isolation with hierarchical permissions
 - **Cookie-Based Sessions**: Secure session management with HTTP-only cookies
 - **Middleware Protection**: Route-level authentication checks
 - **Audit Logging**: Login/logout events tracked for security monitoring
+- **Infinite Recursion Prevention**: Special RLS patterns to prevent circular references in policies
+- **Site-based Data Isolation**: Complete separation between different construction sites
 
 ### 2. Dashboard System
 
@@ -125,18 +127,20 @@ Provide a unified platform that eliminates paper-based workflows, improves data 
 - **Quick Menu Section**: 
   - 2-column grid layout (2x1, 2x2, 2x3 expandable)
   - Customizable menu items (add/remove functionality)
-  - Default items: 출력현황, 내문서함, 현장정보, 도면
+  - Default items: 출근현황, 작업일지, 현장정보, 문서함
 - **Today's Site Info**: Collapsible section with:
   - Site address: Full address with copy icon and T맵 navigation icon
   - Accommodation address: Full address with copy icon and T맵 navigation icon
-  - Process information:
+  - Manager contacts (displayed first):
+    - Construction manager: Name, title, phone with copy and call icons
+    - Safety manager: Name, title, phone with copy and call icons
+  - Divider line (구분선)
+  - Work details:
     - 부재명 (Member name): e.g., 슬라브, 기둥, 거더
     - 작업공정 (Work process): e.g., 철근, 거푸집, 콘크리트
     - 작업구간 (Work section): e.g., 3층 A구역
-    - Drawing view icon for related technical drawings
-  - Contact information:
-    - Construction manager: Name, title, phone with copy and call icons
-    - Safety manager: Name, title, phone with copy and call icons
+  - 현장 공도면 (Site blueprint): Map icon with preview button for technical drawings
+  - PTW (작업허가서): Document icon with preview button for work permit
 - **Announcements**: Collapsible section for headquarters notices
 
 #### 2.2 Navigation System
@@ -156,7 +160,7 @@ Provide a unified platform that eliminates paper-based workflows, improves data 
   - Mobile sidebar prevents focus on hidden elements when closed
   - Improved screen reader support with semantic navigation landmarks
 
-##### Mobile Navigation - Bottom Navigation Bar
+##### Mobile Navigation - Bottom Navigation Bar (Updated 2025-08-04)
 **Purpose**: Fixed bottom navigation for mobile devices providing quick access to primary functions
 
 **Menu Configuration**:
@@ -165,8 +169,8 @@ Provide a unified platform that eliminates paper-based workflows, improves data 
 | 1 | 홈(빠른메뉴) | Home | 홈 화면으로 이동, 빠른메뉴 섹션 표시 |
 | 2 | 출력현황 | Calendar | 출력현황 메뉴로 직접 이동 |
 | 3 | 작업일지 | FileText | 작업일지 목록 화면으로 이동 |
-| 4 | 도면 | FileImage | 공유문서함의 도면 필터링 결과 표시 |
-| 5 | 내문서함 | FolderOpen | 내문서함 메뉴로 직접 이동 |
+| 4 | 문서함 | FolderOpen | 통합 문서함 메뉴로 직접 이동 |
+| 5 | 내정보 | User | 사용자 프로필 정보 화면으로 이동 |
 
 **Design Specifications**:
 - **Layout**: 5개 메뉴 균등 배치, 중앙 정렬
@@ -179,7 +183,6 @@ Provide a unified platform that eliminates paper-based workflows, improves data 
   - 활성: Primary Color (#007AFF 또는 브랜드 컬러)
 
 **Special Features**:
-- **도면 Auto-Filter**: 현재 사용자의 활성 현장으로 자동 필터링 + '도면' badge 검색
 - **Safe Area Support**: iOS Home Indicator와 충돌 방지
 - **Touch Optimization**: 44x44px 최소 터치 영역
 - **Accessibility**: 스크린 리더 지원, 키보드 네비게이션
@@ -526,7 +529,16 @@ Provide a unified platform that eliminates paper-based workflows, improves data 
 
 ### 6. Site and Project Information (현장정보)
 
-#### 6.1 Today's Site Information ✅ **Updated 2025-08-03**
+#### 6.1 Today's Site Information ✅ **Updated 2025-08-04**
+##### Display Order
+1. **Site Address Section**
+2. **Accommodation Address Section** (if exists)
+3. **Manager Contacts Section** (displayed first after addresses)
+4. **Divider Line** (구분선)
+5. **Work Details Section**
+6. **Site Blueprint Section** (현장 공도면)
+7. **PTW Document Section**
+
 ##### Site Address Section
 - **Components**:
   - Full address display
@@ -545,20 +557,37 @@ Provide a unified platform that eliminates paper-based workflows, improves data 
   - Address copy: Copy address to clipboard
   - T-Map link: Launch T-Map app for navigation
 
-##### Process Information Section
-- **Display Information**:
+##### Manager Contacts Section (Moved Up)
+- **Construction Manager** (건축관리자):
+  - Name and title display
+  - Phone number
+  - Copy icon for number copy
+  - Phone icon for direct calling
+- **Safety Manager** (안전관리자):
+  - Name and title display
+  - Phone number
+  - Copy icon for number copy
+  - Phone icon for direct calling
+
+##### Work Details Section
+- **Display Information** (no icons):
   - 부재명 (Member name): e.g., 슬라브, 기둥, 거더
   - 작업공정 (Work process): e.g., 철근, 거푸집, 콘크리트
   - 작업구간 정보 (Work section): e.g., 3층 A구역
-- **Functions**:
-  - **Blueprint View Button** ✅: "도면" button next to work details
-    - Opens modal with actual blueprint image
-    - Displays site construction drawings
-    - Download functionality for blueprint files
-    - Mobile-optimized modal with slide-up animation
 
-##### PTW Document Section ✅ **New**
-- **Location**: Below Process Information Section
+##### Site Blueprint Section ✅ **New Location**
+- **Title**: "현장 공도면"
+- **Components**:
+  - Map icon with blueprint label
+  - Preview button with eye icon
+- **Modal Features**:
+  - Blueprint image display
+  - Site construction drawings
+  - Download functionality for blueprint files
+  - Mobile-optimized modal with slide-up animation
+
+##### PTW Document Section ✅
+- **Location**: Bottom of Today's Site Info
 - **Components**:
   - Document type label: "PTW (작업허가서)"
   - Preview button with eye icon
@@ -572,18 +601,6 @@ Provide a unified platform that eliminates paper-based workflows, improves data 
   - Bottom sheet style modal for mobile
   - Full-width buttons for easy touch
   - Proper z-index to avoid NavBar overlap
-
-##### Manager Contacts Section
-- **Construction Manager**:
-  - Name and title display
-  - Phone number
-  - Copy icon for number copy
-  - Phone icon for direct calling
-- **Safety Manager**:
-  - Name and title display
-  - Phone number
-  - Copy icon for number copy
-  - Phone icon for direct calling
 
 ##### UI/UX Enhancements ✅
 - **Modal Design**:
@@ -612,6 +629,21 @@ A comprehensive Canvas-based blueprint markup and document management system des
 - **Multi-Tool Support**: Box markings (3 colors), text annotations, pen drawing, and selection tools
 - **Professional Shortcuts**: Full keyboard shortcut support for power users
 - **Responsive Design**: Optimized for both mobile field use and desktop office work
+
+##### Recent UI/UX Improvements (2025-08-04) ✅
+- **완벽한 다크모드 지원**: 업로드 화면, 에디터, 문서 목록 모두 다크 테마 적용
+- **2행 도구 팔레트 레이아웃**: 모바일에서 모든 도구를 효율적으로 표시
+  - 1행: 선택, 자재구간(회색), 작업진행(빨강) + Undo/Redo
+  - 2행: 작업완료(파랑), 텍스트, 펜 + Delete
+- **향상된 가독성 및 디자인**:
+  - 48x48px 터치 타겟으로 모바일 사용성 개선
+  - 아이콘 크기 6x6으로 확대
+  - 박스 도구는 채워진 색상 사각형으로 표시
+  - 그라디언트 효과와 그림자로 깊이감 추가
+  - rounded-xl로 현대적인 디자인 적용
+- **액션 버튼 차별화**:
+  - Undo/Redo: 회색 그라디언트 배경
+  - Delete: 빨간색 테마로 위험 액션 표시
 
 #### 6A.2 Document Management Interface ✅
 
@@ -913,8 +945,10 @@ profiles (1) ──── (N) notifications
 All tables implement Row Level Security with policies based on:
 - User organization membership
 - Site assignment relationships
-- Role-based permissions
+- Role-based permissions (system_admin > admin/site_manager > worker)
 - Document ownership
+- EXISTS clauses to prevent infinite recursion
+- LIMIT 1 optimization for performance
 
 ### API Design
 
@@ -1053,7 +1087,49 @@ Supabase real-time subscriptions enable:
 
 ## Security and Permissions
 
-### Row Level Security (RLS) Policies
+### Row Level Security (RLS) Policies (2025-08-07 Update)
+
+#### Hierarchical Permission System
+Our RLS implementation follows a strict hierarchical model with infinite recursion prevention:
+
+##### 🔧 System Administrator (system_admin)
+- Complete unrestricted access to all data across the system
+- Can manage all user profiles and system settings
+- Bypass all RLS restrictions for maintenance and troubleshooting
+- Special assignment: davidswyang@gmail.com
+
+##### 👔 Administrator/Site Manager (admin, site_manager)
+- Access to all data within assigned construction sites
+- Can view and manage team member profiles within their sites
+- Site-specific data management permissions
+- Cross-site data isolation enforced
+
+##### 👷 General Worker (worker)
+- Access limited to personal data (attendance, daily reports)
+- Can view team data within the same construction site
+- Cannot access data from other sites
+- Basic profile management for own account
+
+#### RLS Implementation Details
+
+##### Profile Table Protection
+- **Infinite Recursion Prevention**: Uses EXISTS clauses instead of direct self-references
+- **Separate Policies**: INSERT, UPDATE, and SELECT policies for granular control
+- **Auto-creation Support**: Profiles are created automatically on first login
+- **Example Policy**:
+```sql
+CREATE POLICY "profiles_access_policy" ON profiles
+FOR ALL USING (
+  id = auth.uid()  -- Own profile always accessible
+  OR
+  EXISTS (          -- System admin check without recursion
+    SELECT 1 FROM profiles p 
+    WHERE p.id = auth.uid() 
+    AND p.role = 'system_admin'
+    LIMIT 1
+  )
+);
+```
 
 #### User Profile Access
 - Users can view and update their own profile
@@ -1506,6 +1582,63 @@ Future enhancements will focus on advanced analytics, mobile capabilities, and b
 
 ## Recent Updates
 
+### 2025-08-03: UI Consistency Improvements and Drag-and-Drop Implementation
+
+#### 1. Documents Screen UI Consistency (문서함 화면)
+**Objective**: Achieve complete UI consistency across all three tabs in the Documents screen
+
+**Completed Improvements**:
+- **내문서함 (My Documents) Tab**:
+  - ✅ Removed 'size' sorting option as requested
+  - ✅ Converted dropdown sorting to toggle buttons (날짜순/이름순)
+  - ✅ Fixed issue where clicking "날짜순" still showed dropdown with 3 options
+  - ✅ TypeScript types updated to exclude 'size' from sortBy options
+
+- **공유문서함 (Shared Documents) Tab**:
+  - ✅ Added complete file upload functionality for all users
+  - ✅ Implemented drag-and-drop support matching 내문서함 tab
+  - ✅ Applied toggle button sorting pattern (날짜순/이름순)
+  - ✅ Added comprehensive file validation (type, size restrictions)
+  - ✅ Added visual feedback for drag states and upload progress
+
+- **도면마킹 (Drawing Markup) Tab**:
+  - ✅ Complete UI overhaul to match other tabs' design pattern
+  - ✅ Changed location selection from dropdown to toggle buttons
+  - ✅ Added card/list view toggle functionality
+  - ✅ Unified card list design across all screen sizes
+  - ✅ Improved list view consistency with other tabs
+
+**Technical Implementation**:
+- Updated all TypeScript interfaces to remove 'size' sorting option
+- Implemented consistent toggle button components across tabs
+- Added drag-and-drop handlers with proper error handling
+- Optimized file upload workflow with progress indicators
+- Fixed document.createElement browser compatibility issue
+
+#### 2. Site Information Page Optimization (현장정보 화면)
+**Objective**: Make the site information page as compact and efficient as the home screen
+
+**UI Improvements**:
+- ✅ Reduced header padding from `p-4` to `px-3 py-3`
+- ✅ Optimized title sizes from `3xl/2xl` to `2xl/xl`
+- ✅ Minimized content spacing from `space-y-6 p-4` to `space-y-4 p-3`
+- ✅ Improved card spacing throughout the component
+- ✅ Made dropdown controls more compact (200px → 180px width)
+
+**Result**: Site information page now matches the compact and efficient layout style of the home screen
+
+#### 3. Technical Achievements
+- **TypeScript Error Resolution**: Fixed all compilation and type errors
+- **Cross-tab Consistency**: Achieved uniform UI patterns across all document tabs
+- **Mobile Optimization**: Enhanced touch targets and responsive design
+- **Performance**: Optimized rendering and interaction performance
+
+#### 4. User Experience Impact
+- **Consistency**: Users now experience identical UI patterns across all document management tabs
+- **Efficiency**: Faster document management with improved toggle interfaces
+- **Mobile-First**: Better mobile experience with optimized spacing and controls
+- **Accessibility**: Improved touch targets and visual feedback
+
 ### 2025-08-03: Terminology Updates for Mobile UX Optimization
 - **UI Text Simplification**: Simplified terminology for better mobile user experience
   - "T맵지도" → "T맵" (Navigation links in site information)
@@ -1514,7 +1647,28 @@ Future enhancements will focus on advanced analytics, mobile capabilities, and b
 - **Rationale**: Shorter terms improve readability on mobile devices and maintain consistency across the interface
 - **Impact**: Enhanced mobile UX with cleaner, more concise interface labels
 
-**Document Version**: 1.1  
-**Last Updated**: August 3, 2025  
+### 2025-08-04: Bottom Navigation Update
+- **Bottom Navigation Menu Changes**: Simplified navigation structure for better user experience
+  - Removed '공도면' (blueprint) menu item
+  - Added '내정보' (My Info) menu item for quick access to user profile
+  - Updated menu order: 홈(빠른메뉴), 출력현황, 작업일지, 문서함, 내정보
+  - Implemented profile view showing user name, email, and role information
+- **Rationale**: Streamlined navigation by consolidating document access under single '문서함' entry and providing direct access to user profile
+
+### 2025-08-04: Quick Menu and Today's Site Information Updates
+- **Quick Menu Default Changes**: Updated default quick menu items for better workflow
+  - Changed from: 출력현황, 내문서함, 현장정보, 도면
+  - Changed to: 출근현황, 작업일지, 현장정보, 문서함
+  - Rationale: Better alignment with user's daily workflow priorities
+- **Today's Site Information Reorganization**: Improved information hierarchy
+  - Moved manager contacts (건축관리자, 안전관리자) above work details
+  - Added divider line between managers and work content
+  - Changed "작업지시서" to "작업내용" (removed blueprint icon)
+  - Added new "현장 공도면" section with Map icon and preview button
+  - Maintained PTW section at the bottom
+  - Rationale: More logical information flow with contact information prioritized
+
+**Document Version**: 1.3  
+**Last Updated**: August 4, 2025  
 **Status**: Active Development  
 **Next Review**: August 31, 2025

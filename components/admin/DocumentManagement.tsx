@@ -393,7 +393,7 @@ export default function DocumentManagement({ profile }: DocumentManagementProps)
           <select
             value={typeFilter}
             onChange={(e) => handleTypeFilter(e.target.value as DocumentType | '')}
-            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+            className="w-full px-3 py-1.5 text-sm font-medium border border-gray-200 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
           >
             <option value="">모든 타입</option>
             <option value="personal">개인</option>
@@ -407,7 +407,7 @@ export default function DocumentManagement({ profile }: DocumentManagementProps)
           <select
             value={approvalFilter}
             onChange={(e) => handleApprovalFilter(e.target.value as ApprovalStatus | '')}
-            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+            className="w-full px-3 py-1.5 text-sm font-medium border border-gray-200 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
           >
             <option value="">모든 승인 상태</option>
             <option value="pending">승인 대기</option>
@@ -418,7 +418,7 @@ export default function DocumentManagement({ profile }: DocumentManagementProps)
           <select
             value={siteFilter}
             onChange={(e) => handleSiteFilter(e.target.value)}
-            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+            className="w-full px-3 py-1.5 text-sm font-medium border border-gray-200 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
           >
             <option value="">모든 현장</option>
             {availableSites.map((site) => (

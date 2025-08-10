@@ -28,18 +28,18 @@ interface SendNotificationOptions {
 }
 
 class PushNotificationService {
-  private isSupported: boolean
+  private supported: boolean
   private publicVapidKey: string | null = null
 
   constructor() {
-    this.isSupported = typeof window !== 'undefined' && 'serviceWorker' in navigator && 'PushManager' in window
+    this.supported = typeof window !== 'undefined' && 'serviceWorker' in navigator && 'PushManager' in window
   }
 
   /**
    * Initialize the push notification service
    */
   async initialize(): Promise<boolean> {
-    if (!this.isSupported) {
+    if (!this.supported) {
       console.warn('Push notifications not supported')
       return false
     }
@@ -60,14 +60,14 @@ class PushNotificationService {
    * Check if push notifications are supported
    */
   isSupported(): boolean {
-    return this.isSupported
+    return this.supported
   }
 
   /**
    * Get current notification permission status
    */
   getPermissionStatus(): NotificationPermission {
-    if (!this.isSupported) return 'denied'
+    if (!this.supported) return 'denied'
     return Notification.permission
   }
 
@@ -75,7 +75,7 @@ class PushNotificationService {
    * Request notification permission
    */
   async requestPermission(): Promise<NotificationPermission> {
-    if (!this.isSupported) return 'denied'
+    if (!this.supported) return 'denied'
 
     const permission = await Notification.requestPermission()
     
@@ -90,7 +90,7 @@ class PushNotificationService {
    * Subscribe to push notifications
    */
   async subscribeToPush(): Promise<PushSubscription | null> {
-    if (!this.isSupported || !this.publicVapidKey) {
+    if (!this.supported || !this.publicVapidKey) {
       console.error('Push notifications not supported or not initialized')
       return null
     }
@@ -126,7 +126,7 @@ class PushNotificationService {
    * Unsubscribe from push notifications
    */
   async unsubscribe(): Promise<boolean> {
-    if (!this.isSupported) return false
+    if (!this.supported) return false
 
     try {
       const registration = await navigator.serviceWorker.ready
@@ -192,7 +192,7 @@ class PushNotificationService {
     isSubscribed: boolean
     subscription: PushSubscription | null
   }> {
-    if (!this.isSupported) {
+    if (!this.supported) {
       return { isSubscribed: false, subscription: null }
     }
 

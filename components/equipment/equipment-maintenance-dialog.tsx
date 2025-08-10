@@ -148,7 +148,7 @@ export function EquipmentMaintenanceDialog({
                 id="equipment"
                 value={formData.equipment_id}
                 onChange={(e) => setFormData({ ...formData, equipment_id: e.target.value })}
-                className={`w-full ${getInputSize()} pl-10 pr-3 rounded-md border border-gray-300 bg-white`}
+                className="w-full px-3 py-1.5 text-sm font-medium border border-gray-200 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 pl-10 pr-3"
                 required
               >
                 <option value="">장비 선택</option>
@@ -174,7 +174,7 @@ export function EquipmentMaintenanceDialog({
                 id="type"
                 value={formData.maintenance_type}
                 onChange={(e) => setFormData({ ...formData, maintenance_type: e.target.value as any })}
-                className={`w-full ${getInputSize()} pl-10 pr-3 rounded-md border border-gray-300 bg-white`}
+                className="w-full px-3 py-1.5 text-sm font-medium border border-gray-200 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 pl-10 pr-3"
               >
                 <option value="routine">정기 점검</option>
                 <option value="repair">수리</option>

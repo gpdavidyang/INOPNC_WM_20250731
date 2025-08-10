@@ -147,7 +147,7 @@ export default function ProjectList({ currentUser, currentProfile, projects }: P
                       <select
                         value={project.status}
                         onChange={(e) => handleStatusChange(project.id, e.target.value)}
-                        className="block w-full text-sm border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-3 py-1.5 text-sm font-medium border border-gray-200 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                       >
                         <option value="active">진행 중</option>
                         <option value="completed">완료됨</option>

@@ -1,10 +1,17 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { 
+  CustomSelect,
+  CustomSelectContent,
+  CustomSelectItem,
+  CustomSelectTrigger,
+  CustomSelectValue,
+} from '@/components/ui/custom-select'
 import {
   Calendar,
   Search,
@@ -36,10 +43,14 @@ import { showErrorNotification } from '@/lib/error-handling'
 import { getDailyReports } from '@/app/actions/daily-reports'
 import { searchDailyReports, getQuickFilterResults } from '@/app/actions/search'
 import { CompactReportCard } from './CompactReportCard'
+import { DailyReportDetailDialog } from './DailyReportDetailDialog'
 import { ExportButton } from '@/components/export/export-button'
 import { SearchInterface } from '@/components/search/SearchInterface'
 import { dailyReportSearchConfig } from '@/lib/search/daily-report-config'
 import type { SearchOptions, SearchResult } from '@/lib/search/types'
+import { ViewToggle, useViewMode, CardView, ListView } from '@/components/ui/view-toggle'
+import { useSortableData } from '@/components/ui/sortable-table'
+import type { SortConfig } from '@/components/ui/sortable-table'
 
 interface DailyReportListEnhancedProps {
   currentUser: Profile
@@ -57,7 +68,8 @@ interface ReportStats {
   averageWorkersPerDay: number
 }
 
-export function DailyReportListEnhanced({ currentUser, sites }: DailyReportListEnhancedProps) {
+export function DailyReportListEnhanced({ currentUser, sites = [] }: DailyReportListEnhancedProps) {
+  console.log('DailyReportListEnhanced - sites received:', sites, 'length:', sites?.length)
   const { isLargeFont } = useFontSize()
   const { touchMode } = useTouchMode()
   const [reports, setReports] = useState<DailyReport[]>([])
@@ -65,10 +77,10 @@ export function DailyReportListEnhanced({ currentUser, sites }: DailyReportListE
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedSite, setSelectedSite] = useState<string>('all')
   const [selectedStatus, setSelectedStatus] = useState<string>('all')
-  const [dateRange, setDateRange] = useState({
-    from: format(startOfMonth(new Date()), 'yyyy-MM-dd'),
-    to: format(endOfMonth(new Date()), 'yyyy-MM-dd')
-  })
+  const [dateRange, setDateRange] = useState(() => ({
+    from: '2025-07-01', // 7월 1일부터
+    to: '2025-08-31' // 8월 31일까지
+  }))
   const [stats, setStats] = useState<ReportStats>({
     totalReports: 0,
     draftReports: 0,
@@ -82,12 +94,74 @@ export function DailyReportListEnhanced({ currentUser, sites }: DailyReportListE
   const [showStats, setShowStats] = useState(true)
   const [searchResult, setSearchResult] = useState<SearchResult<DailyReport> | undefined>()
   const [isSearchMode, setIsSearchMode] = useState(false)
+  const [showFilters, setShowFilters] = useState(true)
+  
+  // View mode state
+  const [viewMode, setViewMode] = useViewMode('daily-reports', 'card')
+  
+  // Detail dialog state
+  const [selectedReport, setSelectedReport] = useState<DailyReport | null>(null)
+  const [showDetailDialog, setShowDetailDialog] = useState(false)
 
-  useEffect(() => {
-    loadReports()
-  }, [selectedSite, selectedStatus, dateRange])
+  // Get active filters for display
+  const getActiveFilters = () => {
+    const filters: { label: string; value: string; key: string }[] = []
+    
+    if (selectedSite !== 'all') {
+      const site = sites?.find(s => s.id === selectedSite)
+      filters.push({ 
+        label: `현장: ${site?.name || '미지정'}`, 
+        value: selectedSite, 
+        key: 'site' 
+      })
+    }
+    
+    if (selectedStatus !== 'all') {
+      const statusNames = {
+        draft: '임시저장',
+        submitted: '제출됨',
+        approved: '승인됨',
+        rejected: '반려됨'
+      }
+      filters.push({ 
+        label: `상태: ${statusNames[selectedStatus as keyof typeof statusNames]}`, 
+        value: selectedStatus, 
+        key: 'status' 
+      })
+    }
+    
+    if (searchTerm) {
+      filters.push({ 
+        label: `검색: ${searchTerm}`, 
+        value: searchTerm, 
+        key: 'search' 
+      })
+    }
+    
+    return filters
+  }
 
-  const loadReports = async () => {
+  const clearFilter = (key: string) => {
+    switch (key) {
+      case 'site':
+        setSelectedSite('all')
+        break
+      case 'status':
+        setSelectedStatus('all')
+        break
+      case 'search':
+        setSearchTerm('')
+        break
+    }
+  }
+
+  const handleViewDetail = useCallback((report: DailyReport) => {
+    setSelectedReport(report)
+    setShowDetailDialog(true)
+  }, [])
+
+  // Memoize the loadReports function to prevent infinite loops
+  const loadReports = useCallback(async () => {
     setLoading(true)
     try {
       const filters: any = {}
@@ -100,18 +174,23 @@ export function DailyReportListEnhanced({ currentUser, sites }: DailyReportListE
         filters.status = selectedStatus
       }
       
-      if ((dateRange as any).start) {
-        filters.start_date = (dateRange as any).start
+      if (dateRange.from) {
+        filters.start_date = dateRange.from
       }
       
-      if ((dateRange as any).end) {
-        filters.end_date = (dateRange as any).end
+      if (dateRange.to) {
+        filters.end_date = dateRange.to
       }
 
       const result = await getDailyReports(filters)
+      console.log('getDailyReports filters:', filters)
+      console.log('getDailyReports result:', result)
       
       if (result.success && result.data) {
         const reportData = result.data as DailyReport[]
+        console.log('Setting reports:', reportData.length, 'items')
+        console.log('First report data:', reportData[0])
+        console.log('Sites available:', sites)
         setReports(reportData)
 
         // Calculate stats
@@ -166,7 +245,11 @@ export function DailyReportListEnhanced({ currentUser, sites }: DailyReportListE
     } finally {
       setLoading(false)
     }
-  }
+  }, [selectedSite, selectedStatus, dateRange])
+
+  useEffect(() => {
+    loadReports()
+  }, [loadReports])
 
   const handleSearch = async (options: SearchOptions) => {
     setLoading(true)
@@ -270,30 +353,137 @@ export function DailyReportListEnhanced({ currentUser, sites }: DailyReportListE
     return matchesSearch && matchesSite && matchesStatus
   })
 
+  // Sorting state
+  const { data: sortedReports, sortConfig, setSortConfig } = useSortableData(
+    filteredReports,
+    { key: 'report_date', direction: 'desc' }
+  )
+
+  // Table columns configuration
+  const tableColumns = [
+    {
+      key: 'report_date',
+      label: '작업일',
+      sortable: true,
+      width: '120px',
+      render: (value: string) => (
+        <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+          {format(new Date(value), 'MM/dd', { locale: ko })}
+        </div>
+      )
+    },
+    {
+      key: 'site_id',
+      label: '현장',
+      sortable: true,
+      render: (value: string, report: DailyReport) => {
+        // report.site가 join으로 이미 포함되어 있음
+        const siteName = (report as any).site?.name || sites?.find(s => s.id === value)?.name || '미지정'
+        return (
+          <div className="text-sm text-gray-900 dark:text-gray-100">
+            {siteName}
+          </div>
+        )
+      }
+    },
+    {
+      key: 'status',
+      label: '상태',
+      sortable: true,
+      width: '100px',
+      align: 'center' as const,
+      render: (value: string) => {
+        const statusConfig = {
+          draft: { label: '임시저장', color: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300' },
+          submitted: { label: '제출됨', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300' },
+          approved: { label: '승인됨', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' },
+          rejected: { label: '반려됨', color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300' }
+        }
+        const config = statusConfig[value as keyof typeof statusConfig] || statusConfig.draft
+        return (
+          <Badge className={`text-xs px-2 py-1 ${config.color}`}>
+            {config.label}
+          </Badge>
+        )
+      }
+    },
+    {
+      key: 'total_workers',
+      label: '작업인원',
+      sortable: true,
+      width: '90px',
+      align: 'center' as const,
+      render: (value: number) => (
+        <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+          {value || 0}명
+        </div>
+      )
+    },
+    {
+      key: 'npc1000_used',
+      label: '자재사용',
+      sortable: true,
+      width: '100px',
+      align: 'center' as const,
+      render: (value: number) => (
+        <div className="text-sm text-gray-900 dark:text-gray-100">
+          {value ? `${Math.round(value)}kg` : '-'}
+        </div>
+      )
+    },
+    {
+      key: 'issues',
+      label: '특이사항',
+      render: (value: string) => (
+        <div className="text-sm text-gray-600 dark:text-gray-400 max-w-xs truncate">
+          {value || '-'}
+        </div>
+      )
+    },
+    {
+      key: 'actions',
+      label: '작업',
+      width: '120px',
+      align: 'center' as const,
+      render: (value: any, report: DailyReport) => {
+        const canEdit = currentUser.id === report.created_by && report.status === 'draft'
+        return (
+          <div className="flex items-center justify-center gap-2">
+            <Link href={`/dashboard/daily-reports/${report.id}`}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2 text-xs"
+              >
+                <FileText className="w-3 h-3 mr-1" />
+                보기
+              </Button>
+            </Link>
+            {canEdit && (
+              <Link href={`/dashboard/daily-reports/${report.id}/edit`}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 px-2 text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400"
+                >
+                  편집
+                </Button>
+              </Link>
+            )}
+          </div>
+        )
+      }
+    }
+  ]
 
   const canCreateReport = ['worker', 'site_manager', 'admin'].includes(currentUser.role)
 
   return (
     <div className="space-y-6">
-      {/* Action Button for PageLayout */}
-      <div className="hidden" id="page-action">
-        {canCreateReport && (
-          <Link href="/dashboard/daily-reports/new">
-            <Button 
-              size={touchMode === 'glove' ? 'field' : touchMode === 'precision' ? 'compact' : 'standard'}
-              variant="primary"
-              touchMode={touchMode}
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              작업일지 작성
-            </Button>
-          </Link>
-        )}
-      </div>
 
       {/* High-Density Stats Cards */}
       {showStats && (
-        <div className="grid grid-cols-2 gap-2 md:grid-cols-4 md:gap-3">
+        <div className="grid grid-cols-2 gap-2">
           <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-3 hover:shadow-md transition-shadow duration-200">
             <div className="flex items-center justify-between">
               <div className="flex-1">
@@ -324,42 +514,6 @@ export function DailyReportListEnhanced({ currentUser, sites }: DailyReportListE
               </div>
             </div>
           </div>
-
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-3 hover:shadow-md transition-shadow duration-200">
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <div className={`${getFullTypographyClass('caption', 'xs', isLargeFont)} text-gray-600 dark:text-gray-400`}>NPC-1000</div>
-                <div className={`${getFullTypographyClass('heading', 'lg', isLargeFont)} text-gray-900 dark:text-gray-100 mt-0.5`}>{(stats.totalNPC1000Used / 1000).toFixed(1)}t</div>
-                <div className={`${getFullTypographyClass('caption', 'xs', isLargeFont)} text-gray-500 dark:text-gray-400 mt-0.5`}>
-                  평균 {Math.round(stats.totalNPC1000Used / stats.totalReports)}kg
-                </div>
-              </div>
-              <div className="p-1.5 bg-orange-50 dark:bg-orange-900 rounded-lg">
-                <Package className="w-4 h-4 text-orange-600 dark:text-orange-400" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-3 hover:shadow-md transition-shadow duration-200">
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <div className={`${getFullTypographyClass('caption', 'xs', isLargeFont)} text-gray-600 dark:text-gray-400`}>승인율</div>
-                <div className={`${getFullTypographyClass('heading', 'lg', isLargeFont)} text-gray-900 dark:text-gray-100 mt-0.5`}>
-                  {stats.totalReports > 0 
-                    ? Math.round((stats.approvedReports / stats.totalReports) * 100)
-                    : 0}%
-                </div>
-                {stats.rejectedReports > 0 && (
-                  <div className={`${getFullTypographyClass('caption', 'xs', isLargeFont)} text-red-600 dark:text-red-400 mt-0.5`}>
-                    반려 {stats.rejectedReports}건
-                  </div>
-                )}
-              </div>
-              <div className="p-1.5 bg-purple-50 dark:bg-purple-900 rounded-lg">
-                <BarChart3 className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-              </div>
-            </div>
-          </div>
         </div>
       )}
 
@@ -376,88 +530,158 @@ export function DailyReportListEnhanced({ currentUser, sites }: DailyReportListE
 
       {/* Compact Filters - Mobile Optimized */}
       {!isSearchMode && (
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-3">
-          <div className="space-y-2">
-            {/* Compact Search Bar */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-4 h-4" />
-              <Input
-                type="text"
-                placeholder="부재명, 공정, 특이사항으로 검색..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className={`pl-9 ${
-                  touchMode === 'glove' ? 'h-14' : 
-                  touchMode === 'precision' ? 'h-9' : 
-                  'h-10'
-                } ${getFullTypographyClass('body', 'sm', isLargeFont)} bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 rounded-xl focus:bg-white dark:focus:bg-gray-600 focus:ring-2 focus:ring-blue-500 dark:text-white`}
-              />
-            </div>
-            
-            {/* Compact Filter Grid */}
-            <div className="grid grid-cols-2 gap-2 md:flex md:gap-2">
-              <select
-                value={selectedSite}
-                onChange={(e) => setSelectedSite(e.target.value)}
-                className={`px-3 py-2 ${
-                  touchMode === 'glove' ? 'h-14' : 
-                  touchMode === 'precision' ? 'h-9' : 
-                  'h-10'
-                } border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 ${getFullTypographyClass('body', 'sm', isLargeFont)} focus:border-blue-500 focus:outline-none dark:text-white`}
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+          {/* Filter Header with Active Filters */}
+          <div className="p-3 pb-2 border-b border-gray-100 dark:border-gray-700">
+            <div className="flex items-center justify-between">
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
               >
-                <option value="all">전체 현장</option>
-                {sites.map((site: any) => (
-                  <option key={site.id} value={site.id}>
-                    {site.name}
-                  </option>
-                ))}
-              </select>
+                <Filter className="w-4 h-4" />
+                필터
+                {!showFilters && getActiveFilters().length > 0 && (
+                  <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 text-xs px-1.5 py-0.5">
+                    {getActiveFilters().length}
+                  </Badge>
+                )}
+              </button>
               
-              <select
-                value={selectedStatus}
-                onChange={(e) => setSelectedStatus(e.target.value)}
-                className={`px-3 py-2 ${
-                  touchMode === 'glove' ? 'h-14' : 
-                  touchMode === 'precision' ? 'h-9' : 
-                  'h-10'
-                } border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 ${getFullTypographyClass('body', 'sm', isLargeFont)} focus:border-blue-500 focus:outline-none dark:text-white`}
-              >
-                <option value="all">전체 상태</option>
-                <option value="draft">임시저장</option>
-                <option value="submitted">제출됨</option>
-                <option value="approved">승인됨</option>
-                <option value="rejected">반려됨</option>
-              </select>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex gap-2 justify-between">
-              <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
-                  size="compact" 
-                  onClick={loadReports} 
-                  className="h-8 px-3 rounded-lg dark:border-gray-600 dark:text-gray-300"
-                >
-                  <RefreshCw className="w-3 h-3 mr-1" />
-                  새로고침
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="compact" 
-                  onClick={() => setShowStats(!showStats)}
-                  className="h-8 px-3 rounded-lg dark:border-gray-600 dark:text-gray-300"
-                >
-                  <PieChart className="w-3 h-3 mr-1" />
-                  통계
-                </Button>
-              </div>
-              <ExportButton 
-                sites={sites}
-                className="h-8 px-3"
-              />
+              {/* Active Filters Display when collapsed */}
+              {!showFilters && getActiveFilters().length > 0 && (
+                <div className="flex flex-wrap gap-1">
+                  {getActiveFilters().map((filter, index) => (
+                    <div
+                      key={`${filter.key}-${index}`}
+                      className="flex items-center gap-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-full text-xs border border-blue-200 dark:border-blue-700"
+                    >
+                      <span>{filter.label}</span>
+                      <button
+                        onClick={() => clearFilter(filter.key)}
+                        className="hover:bg-blue-100 dark:hover:bg-blue-800 rounded-full p-0.5"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {!showFilters && (
+                <div className="flex gap-2 items-center">
+                  <ViewToggle
+                    mode={viewMode}
+                    onModeChange={setViewMode}
+                    size="sm"
+                    availableModes={['card', 'list']}
+                  />
+                </div>
+              )}
             </div>
           </div>
+          
+          {/* Filter Controls */}
+          {showFilters && (
+            <div className="p-3 space-y-2">
+              {/* 현장선택 - 첫번째 */}
+              <CustomSelect value={selectedSite} onValueChange={setSelectedSite}>
+                <CustomSelectTrigger className={cn(
+                  "w-full",
+                  touchMode === 'glove' && "min-h-[60px] text-base",
+                  touchMode === 'precision' && "min-h-[44px] text-sm",
+                  touchMode !== 'precision' && touchMode !== 'glove' && "min-h-[40px] text-sm",
+                  getFullTypographyClass('body', 'sm', isLargeFont)
+                )}>
+                  <CustomSelectValue placeholder="전체 현장" />
+                </CustomSelectTrigger>
+                <CustomSelectContent>
+                  <CustomSelectItem value="all">전체 현장</CustomSelectItem>
+                  {sites && sites.length > 0 ? (
+                    sites.map((site: any) => (
+                      <CustomSelectItem key={site.id} value={site.id}>
+                        {site.name}
+                      </CustomSelectItem>
+                    ))
+                  ) : (
+                    <CustomSelectItem value="loading" disabled>현장 데이터 로딩 중...</CustomSelectItem>
+                  )}
+                </CustomSelectContent>
+              </CustomSelect>
+              
+              {/* 상태선택 - 두번째 */}
+              <CustomSelect value={selectedStatus} onValueChange={setSelectedStatus}>
+                <CustomSelectTrigger className={cn(
+                  "w-full",
+                  touchMode === 'glove' && "min-h-[60px] text-base",
+                  touchMode === 'precision' && "min-h-[44px] text-sm",
+                  touchMode !== 'precision' && touchMode !== 'glove' && "min-h-[40px] text-sm",
+                  getFullTypographyClass('body', 'sm', isLargeFont)
+                )}>
+                  <CustomSelectValue placeholder="전체 상태" />
+                </CustomSelectTrigger>
+                <CustomSelectContent>
+                  <CustomSelectItem value="all">전체 상태</CustomSelectItem>
+                  <CustomSelectItem value="draft">임시저장</CustomSelectItem>
+                  <CustomSelectItem value="submitted">제출됨</CustomSelectItem>
+                  <CustomSelectItem value="approved">승인됨</CustomSelectItem>
+                  <CustomSelectItem value="rejected">반려됨</CustomSelectItem>
+                </CustomSelectContent>
+              </CustomSelect>
+
+              {/* 검색어 입력 - 세번째 */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-4 h-4" />
+                <Input
+                  type="text"
+                  placeholder="부재명, 공정, 특이사항으로 검색..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className={`pl-9 ${
+                    touchMode === 'glove' ? 'h-14' : 
+                    touchMode === 'precision' ? 'h-9' : 
+                    'h-10'
+                  } ${getFullTypographyClass('body', 'sm', isLargeFont)} bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 rounded-xl focus:bg-white dark:focus:bg-gray-600 focus:ring-2 focus:ring-blue-500 dark:text-white`}
+                />
+              </div>
+
+
+              {/* Action Buttons */}
+              <div className="flex gap-2 justify-between">
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="compact" 
+                    onClick={loadReports} 
+                    className="h-8 px-3 rounded-lg dark:border-gray-600 dark:text-gray-300"
+                  >
+                    <RefreshCw className="w-3 h-3 mr-1" />
+                    새로고침
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="compact" 
+                    onClick={() => setShowStats(!showStats)}
+                    className="h-8 px-3 rounded-lg dark:border-gray-600 dark:text-gray-300"
+                  >
+                    <PieChart className="w-3 h-3 mr-1" />
+                    통계
+                  </Button>
+                </div>
+                <div className="flex gap-2 items-center">
+                  <ViewToggle
+                    mode={viewMode}
+                    onModeChange={setViewMode}
+                    size="sm"
+                    availableModes={['card', 'list']}
+                  />
+                  <ExportButton 
+                    sites={sites}
+                    className="h-8 px-3"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -489,43 +713,52 @@ export function DailyReportListEnhanced({ currentUser, sites }: DailyReportListE
                 통계
               </Button>
             </div>
-            <ExportButton 
-              sites={sites}
-              className="h-8 px-3"
-            />
+            <div className="flex gap-2 items-center">
+              <ViewToggle
+                mode={viewMode}
+                onModeChange={setViewMode}
+                size="sm"
+                availableModes={['card', 'list']}
+              />
+              <ExportButton 
+                sites={sites}
+                className="h-8 px-3"
+              />
+            </div>
           </div>
         </div>
       )}
 
       {/* High-Density Report List */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-        {loading ? (
-          <div className="p-8 text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-            <p className={`mt-3 text-gray-600 dark:text-gray-400 ${getFullTypographyClass('body', 'sm', isLargeFont)}`}>작업일지를 불러오는 중...</p>
-          </div>
-        ) : filteredReports.length === 0 ? (
-          <div className="p-6 text-center">
-            <FileText className="w-10 h-10 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
-            <p className={`text-gray-600 dark:text-gray-400 ${getFullTypographyClass('body', 'sm', isLargeFont)} mb-1`}>작업일지가 없습니다.</p>
-            <p className={`text-gray-500 dark:text-gray-500 ${getFullTypographyClass('caption', 'xs', isLargeFont)} mb-3`}>새로운 작업일지를 작성해보세요.</p>
-            {canCreateReport && (
-              <Link href="/dashboard/daily-reports/new">
-                <Button 
-                  variant="primary" 
-                  size={touchMode === 'glove' ? 'field' : touchMode === 'precision' ? 'compact' : 'standard'}
-                  touchMode={touchMode}
-                  className="px-4 rounded-xl"
-                >
-                  작업일지 작성하기
-                </Button>
-              </Link>
-            )}
-          </div>
-        ) : (
+      {loading ? (
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-8 text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <p className={`mt-3 text-gray-600 dark:text-gray-400 ${getFullTypographyClass('body', 'sm', isLargeFont)}`}>작업일지를 불러오는 중...</p>
+        </div>
+      ) : filteredReports.length === 0 ? (
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 text-center">
+          <FileText className="w-10 h-10 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
+          <p className={`text-gray-600 dark:text-gray-400 ${getFullTypographyClass('body', 'sm', isLargeFont)} mb-1`}>작업일지가 없습니다.</p>
+          <p className={`text-gray-500 dark:text-gray-500 ${getFullTypographyClass('caption', 'xs', isLargeFont)} mb-3`}>새로운 작업일지를 작성해보세요.</p>
+          {canCreateReport && (
+            <Link href="/dashboard/daily-reports/new">
+              <Button 
+                variant="primary" 
+                size={touchMode === 'glove' ? 'field' : touchMode === 'precision' ? 'compact' : 'standard'}
+                touchMode={touchMode}
+                className="px-4 rounded-xl"
+              >
+                작업일지 작성하기
+              </Button>
+            </Link>
+          )}
+        </div>
+      ) : viewMode === 'card' ? (
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
           <div className="divide-y divide-gray-100 dark:divide-gray-700">
-            {filteredReports.map((report: any) => {
-              const site = sites.find(s => s.id === report.site_id)
+            {sortedReports.map((report: any) => {
+              // report.site가 join으로 이미 포함되어 있음
+              const site = report.site || sites?.find(s => s.id === report.site_id)
               const canEdit = currentUser.id === report.created_by && report.status === 'draft'
               
               return (
@@ -534,12 +767,36 @@ export function DailyReportListEnhanced({ currentUser, sites }: DailyReportListE
                   report={report}
                   site={site}
                   canEdit={canEdit}
+                  onViewDetail={() => handleViewDetail(report)}
                 />
               )
             })}
           </div>
-        )}
-      </div>
+        </div>
+      ) : (
+        <ListView
+          data={sortedReports}
+          columns={tableColumns}
+          sortConfig={sortConfig}
+          onSort={setSortConfig}
+          onRowClick={handleViewDetail}
+          emptyMessage="작업일지가 없습니다"
+          striped={true}
+          hoverable={true}
+          compact={false}
+          className="bg-white dark:bg-gray-900"
+          containerClassName="rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden"
+        />
+      )}
+
+      {/* Detail Dialog */}
+      <DailyReportDetailDialog
+        report={selectedReport}
+        site={selectedReport ? (selectedReport as any).site || sites?.find(s => s.id === selectedReport.site_id) : undefined}
+        currentUser={currentUser}
+        open={showDetailDialog}
+        onOpenChange={setShowDetailDialog}
+      />
     </div>
   )
 }

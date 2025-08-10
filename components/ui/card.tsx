@@ -7,8 +7,11 @@ import { useTouchMode } from '@/contexts/TouchModeContext'
 
 const Card = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => {
+  React.HTMLAttributes<HTMLDivElement> & { 
+    elevation?: 'sm' | 'md' | 'lg' | 'xl'
+    premium?: boolean
+  }
+>(({ className, elevation = 'sm', premium = false, ...props }, ref) => {
   const { touchMode } = useTouchMode()
   
   const touchModeClasses = {
@@ -17,11 +20,23 @@ const Card = React.forwardRef<
     precision: "p-3"
   }
   
+  const elevationClasses = {
+    sm: "elevation-sm hover:elevation-md",
+    md: "elevation-md hover:elevation-lg",
+    lg: "elevation-lg hover:elevation-xl",
+    xl: "elevation-xl"
+  }
+  
   return (
     <div
       ref={ref}
       className={cn(
-        "bg-white dark:bg-toss-gray-800 backdrop-blur-sm border border-toss-gray-200 dark:border-toss-gray-700 rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.12)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.3)] dark:hover:shadow-[0_8px_24px_rgba(0,0,0,0.4)] transition-all duration-300",
+        "rounded-2xl border border-gray-200 dark:border-gray-700",
+        "theme-transition elevation-hover",
+        premium 
+          ? "bg-premium-light dark:bg-premium-dark" 
+          : "bg-white dark:bg-gray-800",
+        elevationClasses[elevation],
         touchModeClasses[touchMode],
         className
       )}
@@ -64,7 +79,7 @@ const CardTitle = React.forwardRef<
       ref={ref}
       className={cn(
         getFullTypographyClass('heading', 'xl', isLargeFont),
-        "font-semibold leading-none tracking-tight text-toss-gray-900 dark:text-toss-gray-100",
+        "font-semibold leading-none tracking-tight text-gray-900 dark:text-gray-100",
         className
       )}
       {...props}
@@ -84,7 +99,7 @@ const CardDescription = React.forwardRef<
       ref={ref}
       className={cn(
         getFullTypographyClass('body', 'sm', isLargeFont),
-        "text-toss-gray-500 dark:text-toss-gray-400",
+        "text-gray-500 dark:text-gray-400",
         className
       )}
       {...props}

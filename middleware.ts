@@ -46,19 +46,25 @@ export async function middleware(request: NextRequest) {
       }
     )
 
-    // Get session - use getUser for more reliable auth check
-    const { data: { user }, error } = await supabase.auth.getUser()
+    // Optimize auth check - try session first, then verify user if needed
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+    let user = session?.user || null
     
-    // If there's an error, try to refresh the session
-    if (error && !user) {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session) {
-        // Session exists but getUser failed, try to refresh
-        await supabase.auth.refreshSession()
-        const refreshResult = await supabase.auth.getUser()
-        if (refreshResult.data.user) {
-          // Successfully refreshed
-          return response
+    // Verify user for critical paths - required for critical test compliance
+    if (session && !sessionError) {
+      try {
+        const { data: { user: verifiedUser } } = await supabase.auth.getUser()
+        user = verifiedUser
+      } catch (userError) {
+        // If getUser fails, try refresh
+        try {
+          const { data: { session: refreshedSession } } = await supabase.auth.refreshSession()
+          if (refreshedSession) {
+            user = refreshedSession.user
+          }
+        } catch (refreshError) {
+          // If refresh fails, clear session
+          user = null
         }
       }
     }
@@ -72,13 +78,13 @@ export async function middleware(request: NextRequest) {
     const isDemoPath = demoPaths.some(path => pathname.startsWith(path))
 
     // Debug logging - only log important events, not every request
-    if (error || (!user && !isPublicPath && !isDemoPath)) {
+    if (sessionError || (!user && !isPublicPath && !isDemoPath)) {
       console.log('Middleware auth issue:', {
         pathname,
         hasUser: !!user,
         isPublicPath,
         isDemoPath,
-        error: error?.message
+        error: sessionError?.message
       })
     }
     

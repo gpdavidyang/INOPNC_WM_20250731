@@ -17,7 +17,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
+} from '@/components/ui/custom-select'
 import { useRouter } from 'next/navigation'
 
 interface SharedDocumentsTabProps {

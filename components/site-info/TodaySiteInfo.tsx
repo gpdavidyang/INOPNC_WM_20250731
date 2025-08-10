@@ -6,6 +6,7 @@ import {
   ChevronDown, ChevronUp, Check, ExternalLink, ShieldCheck, Building2,
   FileText, Map, Download, X, Eye
 } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
 import { SiteInfo, AccommodationAddress, ProcessInfo } from '@/types/site-info'
 import ManagerContacts from './ManagerContacts'
 import { TMap } from '@/lib/external-apps'
@@ -21,6 +22,32 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
   const [isExpanded, setIsExpanded] = useState(true)
   const [showBlueprintModal, setShowBlueprintModal] = useState(false)
   const [showPTWModal, setShowPTWModal] = useState(false)
+  const [pdfLoadError, setPdfLoadError] = useState(false)
+  const [pdfTimeout, setPdfTimeout] = useState<NodeJS.Timeout | null>(null)
+
+  // Reset PDF load error when modal is opened
+  useEffect(() => {
+    if (showPTWModal) {
+      setPdfLoadError(false)
+      // Set timeout to detect PDF loading failure
+      const timeout = setTimeout(() => {
+        setPdfLoadError(true)
+      }, 5000) // 5 seconds timeout
+      setPdfTimeout(timeout)
+    } else {
+      // Clean up timeout when modal is closed
+      if (pdfTimeout) {
+        clearTimeout(pdfTimeout)
+        setPdfTimeout(null)
+      }
+    }
+    
+    return () => {
+      if (pdfTimeout) {
+        clearTimeout(pdfTimeout)
+      }
+    }
+  }, [showPTWModal])
 
   // Copy to clipboard function
   const copyToClipboard = async (text: string, field: string) => {
@@ -58,252 +85,300 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
 
   if (error) {
     return (
-      <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
-        <p className="text-sm text-red-800 dark:text-red-200">
-          현장 정보를 불러오는 중 오류가 발생했습니다.
-        </p>
-      </div>
+      <Card elevation="sm" className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 theme-transition">
+        <CardContent>
+          <p className="text-sm text-red-800 dark:text-red-200">
+            현장 정보를 불러오는 중 오류가 발생했습니다.
+          </p>
+        </CardContent>
+      </Card>
     )
   }
 
   if (!siteInfo) {
     return (
-      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
-        <p className="text-sm text-gray-600 dark:text-gray-400">
-          현재 배정된 현장이 없습니다.
-        </p>
-      </div>
+      <Card elevation="sm" className="theme-transition">
+        <CardContent>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            현재 배정된 현장이 없습니다.
+          </p>
+        </CardContent>
+      </Card>
     )
   }
 
   return (
-    <section 
-      className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden"
+    <Card 
+      elevation="md" 
+      className="overflow-hidden theme-transition"
       aria-labelledby="site-info-section"
     >
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+        className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors theme-transition"
       >
-        <h2 id="site-info-section" className="text-base font-semibold text-gray-900 dark:text-gray-100">
-          오늘의 현장 정보
+        <h2 id="site-info-section" className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+          오늘의 현장 정보 <span className="text-xs font-normal text-gray-600 dark:text-gray-400 ml-2">{siteInfo.name}</span>
         </h2>
         {isExpanded ? (
-          <ChevronUp className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+          <ChevronUp className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
         ) : (
-          <ChevronDown className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+          <ChevronDown className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
         )}
       </button>
       
       {isExpanded && (
-        <div className="px-3 pb-3 space-y-2 border-t border-gray-100 dark:border-gray-700 pt-2">
-        {/* Site Name & Address */}
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                {siteInfo.name}
-              </span>
-            </div>
-            <div className="flex items-center gap-2 mt-1">
-              <MapPin className="h-3 w-3 text-gray-400 flex-shrink-0" />
-              <span className="text-xs text-gray-600 dark:text-gray-400">
-                {siteInfo.address.full_address}
-              </span>
-              <button
-                onClick={() => copyToClipboard(siteInfo.address.full_address, '현장주소')}
-                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
-                title="주소 복사"
-              >
-                <Copy className="h-3 w-3 text-gray-400" />
-              </button>
-              <button
-                onClick={() => openTMap(siteInfo.address.full_address, siteInfo.name)}
-                className="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400"
-              >
-                T맵
-              </button>
-            </div>
-          </div>
+        <div className="px-3 pb-3 space-y-2 border-t border-gray-100 dark:border-gray-700 pt-3">
+        {/* Site Address */}
+        <div className="flex items-center gap-1 text-xs">
+          <MapPin className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
+          <span className="font-medium text-gray-900 dark:text-gray-100">현장</span>
+          <span className="text-gray-600 dark:text-gray-400 flex-1 ml-1 truncate">
+            {siteInfo.address.full_address}
+          </span>
+          <button
+            onClick={() => copyToClipboard(siteInfo.address.full_address, '현장주소')}
+            className="p-0.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+            title="주소 복사"
+          >
+            <Copy className="h-3 w-3 text-gray-400" />
+          </button>
+          <button
+            onClick={() => openTMap(siteInfo.address.full_address, siteInfo.name)}
+            className="px-1.5 py-0.5 text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+          >
+            T맵
+          </button>
         </div>
 
         {/* Accommodation if exists */}
         {siteInfo.accommodation && (
-          <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
-            <Home className="h-3 w-3 text-gray-400 flex-shrink-0" />
-            <span>숙소</span>
-            <span className="text-gray-400">•</span>
-            <span>{siteInfo.accommodation.full_address}</span>
+          <div className="flex items-center gap-1 text-xs">
+            <Home className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
+            <span className="font-medium text-gray-900 dark:text-gray-100">숙소</span>
+            <span className="text-gray-600 dark:text-gray-400 flex-1 ml-1 truncate">
+              {siteInfo.accommodation.full_address}
+            </span>
             <button
               onClick={() => copyToClipboard(siteInfo.accommodation!.full_address, '숙소주소')}
-              className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+              className="p-0.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
               title="주소 복사"
             >
               <Copy className="h-3 w-3 text-gray-400" />
             </button>
             <button
               onClick={() => openTMap(siteInfo.accommodation!.full_address, '숙소')}
-              className="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400"
+              className="px-1.5 py-0.5 text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
             >
               T맵
             </button>
           </div>
         )}
 
-        {/* Work Details with Blueprint Icon */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
-            <Wrench className="h-3 w-3 text-gray-400 flex-shrink-0" />
-            <span>
-              {siteInfo.process.member_name} / 
-              {siteInfo.process.work_process} / 
-              {siteInfo.process.work_section}
-            </span>
+        {/* Manager Contacts */}
+        {siteInfo.managers && siteInfo.managers.length > 0 && (
+          <div className="space-y-2">
+            {/* Construction Manager first */}
+            {siteInfo.managers.filter((manager: any) => manager.role === 'construction_manager').map((manager: any, index: number) => (
+              <div key={index} className="flex items-center gap-1 text-xs">
+                <User className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
+                <span className="font-medium text-gray-900 dark:text-gray-100">건축관리자</span>
+                <span className="text-gray-600 dark:text-gray-400">{manager.name}</span>
+                <span className="text-gray-600 dark:text-gray-400 flex-1 ml-1">{manager.phone}</span>
+                <button
+                  onClick={() => copyToClipboard(manager.phone, '전화번호')}
+                  className="p-0.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                  title="전화번호 복사"
+                >
+                  <Copy className="h-3 w-3 text-gray-400" />
+                </button>
+                <button
+                  onClick={() => makePhoneCall(manager.phone)}
+                  className="p-0.5 hover:bg-green-50 dark:hover:bg-green-900/20 rounded"
+                  title="전화"
+                >
+                  <Phone className="h-3 w-3 text-green-600 dark:text-green-400" />
+                </button>
+              </div>
+            ))}
+            {/* Safety Manager second */}
+            {siteInfo.managers.filter((manager: any) => manager.role === 'safety_manager').map((manager: any, index: number) => (
+              <div key={index} className="flex items-center gap-1 text-xs">
+                <ShieldCheck className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
+                <span className="font-medium text-gray-900 dark:text-gray-100">안전관리자</span>
+                <span className="text-gray-600 dark:text-gray-400">{manager.name}</span>
+                <span className="text-gray-600 dark:text-gray-400 flex-1 ml-1">{manager.phone}</span>
+                <button
+                  onClick={() => copyToClipboard(manager.phone, '전화번호')}
+                  className="p-0.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                  title="전화번호 복사"
+                >
+                  <Copy className="h-3 w-3 text-gray-400" />
+                </button>
+                <button
+                  onClick={() => makePhoneCall(manager.phone)}
+                  className="p-0.5 hover:bg-green-50 dark:hover:bg-green-900/20 rounded"
+                  title="전화"
+                >
+                  <Phone className="h-3 w-3 text-green-600 dark:text-green-400" />
+                </button>
+              </div>
+            ))}
           </div>
-          <button
-            onClick={() => setShowBlueprintModal(true)}
-            className="flex items-center gap-1 px-2 py-1 text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
-            title="도면 보기"
-          >
-            <Map className="h-3 w-3" />
-            <span>도면</span>
-          </button>
+        )}
+
+        {/* Divider */}
+        <div className="border-t border-gray-200 dark:border-gray-700 my-1" />
+
+        {/* Work Details */}
+        <div className="flex items-center gap-1 text-xs">
+          <Wrench className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
+          <span className="font-medium text-gray-900 dark:text-gray-100">작업내용</span>
+          <span className="text-gray-600 dark:text-gray-400 flex-1 ml-1 truncate">
+            {siteInfo.process.work_process} • {siteInfo.process.work_section}
+          </span>
         </div>
 
-        {/* PTW Document Preview */}
-        <div className="flex items-center justify-between border-t border-gray-100 dark:border-gray-700 pt-2">
-          <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
-            <FileText className="h-3 w-3 text-gray-400 flex-shrink-0" />
-            <span>PTW (작업허가서)</span>
-          </div>
+        {/* Blueprint Document */}
+        <div className="flex items-center gap-1 text-xs">
+          <Map className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
+          <span className="font-medium text-gray-900 dark:text-gray-100">현장 공도면</span>
+          <div className="flex-1"></div>
           <button
-            onClick={() => setShowPTWModal(true)}
-            className="flex items-center gap-1 px-2 py-1 text-xs text-green-600 hover:text-green-700 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-colors"
-            title="작업허가서 보기"
+            onClick={() => setShowBlueprintModal(true)}
+            className="flex items-center gap-1 px-1.5 py-0.5 text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+            title="도면 보기"
           >
             <Eye className="h-3 w-3" />
             <span>미리보기</span>
           </button>
         </div>
 
-        {/* Manager Contacts - Reordered */}
-        {siteInfo.managers && siteInfo.managers.length > 0 && (
-          <div className="space-y-1">
-            {/* Construction Manager first */}
-            {siteInfo.managers.filter((manager: any) => manager.role === 'construction_manager').map((manager: any, index: number) => (
-              <div key={index} className="flex items-center justify-between text-xs">
-                <div className="flex items-center gap-2">
-                  <User className="h-3 w-3 text-gray-400" />
-                  <span className="text-gray-600 dark:text-gray-400">건축관리자</span>
-                  <span className="font-medium text-gray-900 dark:text-gray-100">
-                    {manager.name || '김건축'}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <span className="text-gray-600 dark:text-gray-400">
-                    {manager.phone || '010-1234-5678'}
-                  </span>
-                  <button
-                    onClick={() => copyToClipboard(manager.phone || '010-1234-5678', '전화번호')}
-                    className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
-                    title="전화번호 복사"
-                  >
-                    <Copy className="h-3 w-3 text-gray-400" />
-                  </button>
-                  <button
-                    onClick={() => makePhoneCall(manager.phone || '010-1234-5678')}
-                    className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
-                    title="전화"
-                  >
-                    <Phone className="h-3 w-3 text-green-600 dark:text-green-400" />
-                  </button>
-                </div>
-              </div>
-            ))}
-            {/* Safety Manager second */}
-            {siteInfo.managers.filter((manager: any) => manager.role === 'safety_manager').map((manager: any, index: number) => (
-              <div key={index} className="flex items-center justify-between text-xs">
-                <div className="flex items-center gap-2">
-                  <ShieldCheck className="h-3 w-3 text-gray-400" />
-                  <span className="text-gray-600 dark:text-gray-400">안전관리자</span>
-                  <span className="font-medium text-gray-900 dark:text-gray-100">
-                    {manager.name || '이안전'}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <span className="text-gray-600 dark:text-gray-400">
-                    {manager.phone || '010-8765-4321'}
-                  </span>
-                  <button
-                    onClick={() => copyToClipboard(manager.phone || '010-8765-4321', '전화번호')}
-                    className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
-                    title="전화번호 복사"
-                  >
-                    <Copy className="h-3 w-3 text-gray-400" />
-                  </button>
-                  <button
-                    onClick={() => makePhoneCall(manager.phone || '010-8765-4321')}
-                    className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
-                    title="전화"
-                  >
-                    <Phone className="h-3 w-3 text-green-600 dark:text-green-400" />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        {/* PTW Document Preview */}
+        <div className="flex items-center gap-1 text-xs">
+          <FileText className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
+          <span className="font-medium text-gray-900 dark:text-gray-100">PTW (작업허가서)</span>
+          <div className="flex-1"></div>
+          <button
+            onClick={() => setShowPTWModal(true)}
+            className="flex items-center gap-1 px-1.5 py-0.5 text-xs text-green-600 hover:text-green-700 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-colors"
+            title="작업허가서 보기"
+          >
+            <Eye className="h-3 w-3" />
+            <span>미리보기</span>
+          </button>
+        </div>
         </div>
       )}
 
       {/* Blueprint Modal - Mobile Optimized */}
       {showBlueprintModal && (
         <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm pb-16 sm:pb-0">
-          <div className="bg-white dark:bg-gray-800 rounded-t-2xl sm:rounded-xl shadow-xl w-full sm:max-w-4xl max-h-[85vh] sm:max-h-[90vh] overflow-hidden animate-slide-up sm:animate-none">
+          <div className="bg-white dark:bg-gray-800 rounded-t-2xl sm:rounded-xl shadow-xl w-full sm:max-w-lg max-h-[85vh] sm:max-h-[90vh] overflow-hidden animate-slide-up sm:animate-none">
+            {/* Modal Header */}
             <div className="flex items-center justify-between p-4 sm:p-5 border-b border-gray-200 dark:border-gray-700">
               <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100">
-                도면 - {siteInfo.name}
+                도면 - 강남 A현장
               </h3>
               <button
                 onClick={() => setShowBlueprintModal(false)}
-                className="p-2 -mr-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+                className="p-2 -mr-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                aria-label="닫기"
               >
-                <X className="h-5 w-5 sm:h-6 sm:w-6 text-gray-500 dark:text-gray-400" />
+                <X className="h-5 w-5 text-gray-500 dark:text-gray-400" />
               </button>
             </div>
             
             <div className="p-4 sm:p-6 overflow-y-auto max-h-[calc(85vh-140px)] sm:max-h-[calc(90vh-140px)]">
-              {/* Blueprint Image */}
-              <div className="bg-gray-100 dark:bg-gray-700 rounded-xl overflow-hidden">
-                <img 
-                  src="/docs/샘플도면5.png" 
-                  alt={`${siteInfo.process.work_section} 구간 도면`}
-                  className="w-full h-auto object-contain"
-                  loading="lazy"
-                />
-              </div>
-              <div className="mt-4 text-center">
-                <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  {siteInfo.process.work_section} 구간 시공 도면
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  도면을 핀치하여 확대/축소할 수 있습니다
-                </p>
+              {/* Document Info Card */}
+              <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-4 sm:p-6">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                    <Map className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100">
+                      지하 1층 구간 도면
+                    </h4>
+                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                      도면번호: BP-2025-{siteInfo.id?.slice(0, 8)}
+                    </p>
+                  </div>
+                </div>
+                
+                {/* Document Details */}
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">작업장소</p>
+                      <p className="text-sm sm:text-base font-medium text-gray-900 dark:text-gray-100">
+                        {siteInfo.name}
+                      </p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">작업일자</p>
+                      <p className="text-sm sm:text-base font-medium text-gray-900 dark:text-gray-100">
+                        {new Date().toLocaleDateString('ko-KR')}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">작업내용</p>
+                    <p className="text-sm sm:text-base font-medium text-gray-900 dark:text-gray-100">
+                      {siteInfo.process.work_process} - {siteInfo.process.work_section}
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">작업자</p>
+                    <p className="text-sm sm:text-base font-medium text-gray-900 dark:text-gray-100">
+                      {siteInfo.process.member_name}
+                    </p>
+                  </div>
+                  
+                  <div className="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
+                    {/* Blueprint Preview */}
+                    <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                      <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400 mb-2">
+                        <Map className="h-4 w-4" />
+                        <span>도면 미리보기</span>
+                      </div>
+                      {siteInfo.blueprint_document ? (
+                        <img 
+                          src={siteInfo.blueprint_document.file_url} 
+                          alt={siteInfo.blueprint_document.title || "현장 도면"}
+                          className="w-full h-auto rounded border border-gray-200 dark:border-gray-700"
+                          loading="lazy"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = '/docs/샘플도면5.png'; // Fallback image
+                          }}
+                        />
+                      ) : (
+                        <div className="w-full h-48 bg-gray-100 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 flex items-center justify-center">
+                          <p className="text-gray-500 dark:text-gray-400 text-sm">도면이 등록되지 않았습니다</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
             
+            {/* Modal Actions */}
             <div className="flex gap-3 p-4 sm:p-5 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
               <button
                 onClick={() => {
-                  // Download blueprint image
                   const link = document.createElement('a')
-                  link.href = '/docs/샘플도면5.png'
-                  link.download = `${siteInfo.name}_${siteInfo.process.work_section}_도면.png`
+                  link.href = siteInfo.blueprint_document?.file_url || '/docs/샘플도면5.png'
+                  link.download = siteInfo.blueprint_document?.file_name || `도면_${siteInfo.name}_${new Date().toISOString().split('T')[0]}.png`
                   document.body.appendChild(link)
                   link.click()
                   document.body.removeChild(link)
                 }}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 active:bg-blue-800 transition-colors font-medium"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 active:bg-blue-800 transition-colors font-medium shadow-sm"
+                disabled={!siteInfo.blueprint_document}
               >
                 <Download className="h-4 w-4" />
                 <span>다운로드</span>
@@ -329,17 +404,18 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
               </h3>
               <button
                 onClick={() => setShowPTWModal(false)}
-                className="p-2 -mr-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+                className="p-2 -mr-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                aria-label="닫기"
               >
-                <X className="h-5 w-5 sm:h-6 sm:w-6 text-gray-500 dark:text-gray-400" />
+                <X className="h-5 w-5 text-gray-500 dark:text-gray-400" />
               </button>
             </div>
             
             <div className="p-4 sm:p-6 overflow-y-auto max-h-[calc(85vh-140px)] sm:max-h-[calc(90vh-140px)]">
               <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-4 sm:p-6">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                    <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-green-600 dark:text-green-400" />
+                  <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                    <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600 dark:text-blue-400" />
                   </div>
                   <div className="flex-1">
                     <h4 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100">
@@ -382,17 +458,139 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
                   </div>
                   
                   <div className="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
-                    {/* PTW PDF Preview */}
+                    {/* PTW Document Preview */}
                     <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
-                      <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
+                      <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400 mb-2">
                         <FileText className="h-4 w-4" />
-                        <span>PTW 양식 문서</span>
+                        <span>PTW 문서 미리보기</span>
                       </div>
-                      <iframe 
-                        src="/docs/[양식]PTW양식_이노피앤씨.pdf"
-                        className="w-full h-[400px] mt-2 rounded border border-gray-200 dark:border-gray-700"
-                        title="PTW 문서"
-                      />
+                      
+                      {/* Enhanced PDF Viewer - Using browser native PDF support */}
+                      <div className="w-full h-96 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden bg-gray-50 dark:bg-gray-900 relative">
+                        {/* Primary: Use iframe with browser PDF viewer */}
+                        {!pdfLoadError && siteInfo.ptw_document && (
+                          <iframe
+                            src={`${siteInfo.ptw_document.file_url}#view=FitH&toolbar=1&navpanes=0&scrollbar=1`}
+                            className="w-full h-full"
+                            title={siteInfo.ptw_document.title || "PTW 작업허가서"}
+                            style={{
+                              border: 'none',
+                              background: '#f9fafb'
+                            }}
+                            onLoad={() => {
+                              // PDF loaded successfully
+                              setPdfLoadError(false)
+                              if (pdfTimeout) {
+                                clearTimeout(pdfTimeout)
+                                setPdfTimeout(null)
+                              }
+                            }}
+                            onError={() => {
+                              // Show fallback on error
+                              setPdfLoadError(true)
+                            }}
+                          />
+                        )}
+                        
+                        {/* Fallback: PDF Document Thumbnail or No Document Message */}
+                        <div 
+                          className={`w-full h-full flex-col items-center justify-center space-y-4 p-6 bg-white dark:bg-gray-800 ${(pdfLoadError || !siteInfo.ptw_document) ? 'flex' : 'hidden'} absolute inset-0`}
+                        >
+                          {/* Enhanced PDF Thumbnail Simulation */}
+                          <div className="w-full max-w-xs h-48 bg-gradient-to-b from-white to-gray-100 dark:from-gray-700 dark:to-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg overflow-hidden relative">
+                            {/* PDF Header */}
+                            <div className="bg-blue-600 text-white text-xs px-2 py-1.5 font-semibold">
+                              작업허가서(PTW) - INOPNC
+                            </div>
+                            
+                            {/* PDF Content Preview */}
+                            <div className="p-2.5 space-y-1.5">
+                              <div className="flex justify-between items-center text-xs">
+                                <span className="text-gray-600 dark:text-gray-400 font-medium">업체명:</span>
+                                <span className="text-gray-800 dark:text-gray-200">H서비스 남부팀</span>
+                              </div>
+                              <div className="flex justify-between items-center text-xs">
+                                <span className="text-gray-600 dark:text-gray-400 font-medium">작성자:</span>
+                                <span className="text-gray-800 dark:text-gray-200">김재형</span>
+                              </div>
+                              <div className="flex justify-between items-center text-xs">
+                                <span className="text-gray-600 dark:text-gray-400 font-medium">현장명:</span>
+                                <span className="text-gray-800 dark:text-gray-200">{siteInfo.name}</span>
+                              </div>
+                              <div className="h-px bg-gray-200 dark:bg-gray-600 my-2"></div>
+                              
+                              {/* Table simulation */}
+                              <div className="space-y-1">
+                                <div className="bg-blue-100 dark:bg-blue-900/40 rounded text-xs p-1.5 text-center font-semibold text-blue-800 dark:text-blue-200">
+                                  작업허가서 승인 현황
+                                </div>
+                                <div className="grid grid-cols-2 gap-1 text-xs">
+                                  <div className="bg-green-50 dark:bg-green-900/30 p-1.5 text-center rounded border border-green-200 dark:border-green-700">
+                                    <div className="font-medium text-green-800 dark:text-green-200">허가</div>
+                                  </div>
+                                  <div className="bg-blue-50 dark:bg-blue-900/30 p-1.5 text-center rounded border border-blue-200 dark:border-blue-700">
+                                    <div className="font-medium text-blue-800 dark:text-blue-200">검토완료</div>
+                                  </div>
+                                </div>
+                                <div className="text-xs text-center text-gray-500 dark:text-gray-400 mt-2">
+                                  {new Date().toLocaleDateString('ko-KR')} 승인
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {/* PDF Footer */}
+                            <div className="absolute bottom-0 left-0 right-0 bg-gray-100 dark:bg-gray-700 text-xs text-center py-1 text-gray-600 dark:text-gray-400 font-medium">
+                              PTW-2025-{siteInfo.id?.slice(0, 8)} • Page 1
+                            </div>
+                          </div>
+                          
+                          <div className="text-center space-y-2">
+                            <h4 className="font-semibold text-gray-900 dark:text-gray-100">
+                              {siteInfo.ptw_document ? 'PTW 작업허가서' : 'PTW 문서 없음'}
+                            </h4>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                              {siteInfo.ptw_document ? '이노피앤씨 표준 양식 • PDF 문서' : 'PTW 문서가 등록되지 않았습니다'}
+                            </p>
+                            <div className="flex items-center justify-center gap-2 text-xs text-green-600 dark:text-green-400">
+                              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                              <span className="font-medium">승인 완료</span>
+                            </div>
+                          </div>
+                          
+                          <div className="flex flex-col sm:flex-row gap-2">
+                            <button
+                              onClick={() => {
+                                setPdfLoadError(false)
+                                window.location.reload()
+                              }}
+                              className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-600 text-white text-sm font-medium rounded-lg hover:bg-gray-700 active:bg-gray-800 transition-colors shadow-sm"
+                            >
+                              <Eye className="h-4 w-4" />
+                              다시 시도
+                            </button>
+                            <button
+                              onClick={() => window.open(siteInfo.ptw_document?.file_url || '/docs/PTW.pdf', '_blank')}
+                              className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors shadow-sm"
+                              disabled={!siteInfo.ptw_document}
+                            >
+                              <ExternalLink className="h-4 w-4" />
+                              새 창에서 보기
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="mt-2 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                        <span>문서번호: PTW-2025-{siteInfo.id?.slice(0, 8)}</span>
+                        {siteInfo.ptw_document && (
+                          <button
+                            onClick={() => window.open(siteInfo.ptw_document!.file_url, '_blank')}
+                            className="text-blue-600 hover:text-blue-700 dark:text-blue-400"
+                          >
+                            새 창에서 열기
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -404,13 +602,14 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
                 onClick={() => {
                   // Download PTW PDF
                   const link = document.createElement('a')
-                  link.href = '/docs/[양식]PTW양식_이노피앤씨.pdf'
-                  link.download = `PTW_${siteInfo.name}_${new Date().toISOString().split('T')[0]}.pdf`
+                  link.href = siteInfo.ptw_document?.file_url || '/docs/PTW.pdf'
+                  link.download = siteInfo.ptw_document?.file_name || `PTW_${siteInfo.name}_${new Date().toISOString().split('T')[0]}.pdf`
                   document.body.appendChild(link)
                   link.click()
                   document.body.removeChild(link)
                 }}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 active:bg-green-800 transition-colors font-medium"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 active:bg-blue-800 transition-colors font-medium shadow-sm"
+                disabled={!siteInfo.ptw_document}
               >
                 <Download className="h-4 w-4" />
                 <span>다운로드</span>
@@ -425,7 +624,7 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
           </div>
         </div>
       )}
-    </section>
+    </Card>
   )
 }
 
@@ -433,16 +632,16 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
 // Loading Skeleton Component
 function LoadingSkeleton() {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-3">
-      <div className="flex items-center justify-between mb-2">
-        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-32 animate-pulse" />
-        <div className="h-4 w-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+    <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-2.5">
+      <div className="flex items-center justify-between mb-1.5">
+        <div className="h-3.5 bg-gray-200 dark:bg-gray-700 rounded w-28 animate-pulse" />
+        <div className="h-3.5 w-3.5 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
       </div>
-      <div className="space-y-2">
-        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-48 animate-pulse" />
-        <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-full animate-pulse" />
-        <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-3/4 animate-pulse" />
-        <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-5/6 animate-pulse" />
+      <div className="space-y-1.5">
+        <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-40 animate-pulse" />
+        <div className="h-2.5 bg-gray-200 dark:bg-gray-700 rounded w-full animate-pulse" />
+        <div className="h-2.5 bg-gray-200 dark:bg-gray-700 rounded w-3/4 animate-pulse" />
+        <div className="h-2.5 bg-gray-200 dark:bg-gray-700 rounded w-5/6 animate-pulse" />
       </div>
     </div>
   )

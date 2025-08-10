@@ -1,7 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { Document, DocumentType, FileAttachment } from '@/types'
+import { Document, DocumentType, FileAttachment, DocumentPermission } from '@/types'
 import { revalidatePath } from 'next/cache'
 
 // ==========================================
@@ -216,8 +216,8 @@ export async function getDocuments(filters: {
 }
 
 export async function getMyDocuments(params?: {
-  category: string
-  userId: string
+  category?: string
+  userId?: string
 }) {
   try {
     const supabase = createClient()
@@ -227,120 +227,63 @@ export async function getMyDocuments(params?: {
       return { success: false, error: 'User not authenticated' }
     }
 
-    // For now, return mock data based on category
-    // In a real implementation, this would query actual documents with category filtering
-    
-    let mockDocuments: any[] = []
-    
-    if (params?.category === 'salary') {
-      mockDocuments = [
-        {
-          id: 'doc-1',
-          category: params.category,
-          name: '2025년 1월 급여명세서.pdf',
-          size: 245632,
-          uploadDate: '2025-01-25',
-          lastModified: '2025-01-25',
-          uploadedBy: '시스템',
-          fileType: 'application/pdf',
-          url: '#'
-        },
-        {
-          id: 'doc-2',
-          category: params.category,
-          name: '2024년 12월 급여명세서.pdf',
-          size: 238947,
-          uploadDate: '2024-12-25',
-          lastModified: '2024-12-25',
-          uploadedBy: '시스템',
-          fileType: 'application/pdf',
-          url: '#'
-        }
-      ]
-    } else if (params?.category === 'daily-reports') {
-      mockDocuments = [
-        {
-          id: 'doc-3',
-          category: params.category,
-          name: '작업일지_2025-01-30.pdf',
-          size: 1024567,
-          uploadDate: '2025-01-30',
-          lastModified: '2025-01-30',
-          uploadedBy: '나',
-          fileType: 'application/pdf',
-          url: '#'
-        },
-        {
-          id: 'doc-4',
-          category: params.category,
-          name: '작업일지_2025-01-29.pdf',
-          size: 987234,
-          uploadDate: '2025-01-29',
-          lastModified: '2025-01-29',
-          uploadedBy: '나',
-          fileType: 'application/pdf',
-          url: '#'
-        }
-      ]
-    } else if (params?.category === 'certificates') {
-      mockDocuments = [
-        {
-          id: 'doc-5',
-          category: params.category,
-          name: '건설기계조종사면허증.jpg',
-          size: 845123,
-          uploadDate: '2024-03-15',
-          lastModified: '2024-03-15',
-          uploadedBy: '나',
-          fileType: 'image/jpeg',
-          url: '#'
-        }
-      ]
-    } else if (params?.category === 'safety') {
-      mockDocuments = [
-        {
-          id: 'doc-6',
-          category: params.category,
-          name: '안전교육이수증_2025.pdf',
-          size: 567890,
-          uploadDate: '2025-01-05',
-          lastModified: '2025-01-05',
-          uploadedBy: '나',
-          fileType: 'application/pdf',
-          url: '#'
-        },
-        {
-          id: 'doc-7',
-          category: params.category,
-          name: '특별안전교육_고소작업.pdf',
-          size: 432156,
-          uploadDate: '2024-11-20',
-          lastModified: '2024-11-20',
-          uploadedBy: '나',
-          fileType: 'application/pdf',
-          url: '#'
-        }
-      ]
-    } else if (!params?.category) {
-      // Return all documents if no category specified
-      const { data, error } = await supabase
-        .from('documents')
-        .select(`
-          *,
-          site:sites(name)
-        `)
-        .eq('owner_id', user.id)
-        .order('created_at', { ascending: false })
+    // Query actual documents from database
+    let query = supabase
+      .from('documents')
+      .select(`
+        id,
+        title,
+        description,
+        file_url,
+        file_name,
+        file_size,
+        mime_type,
+        document_type,
+        folder_path,
+        is_public,
+        created_at,
+        updated_at,
+        owner_id,
+        site_id,
+        site:sites(name),
+        owner:profiles!documents_owner_id_fkey(
+          id,
+          full_name,
+          email
+        )
+      `)
+      .eq('owner_id', user.id)
+      .order('created_at', { ascending: false })
 
-      if (error) {
-        console.error('Error fetching my documents:', error)
-        return { success: false, error: error.message }
-      }
-
-      return { success: true, data }
+    // Apply category filter if provided
+    if (params?.category && params.category !== 'all') {
+      query = query.eq('document_type', params.category)
     }
-    
-    return { success: true, data: mockDocuments }
+
+    const { data: documents, error: documentsError } = await query
+
+    if (documentsError) {
+      console.error('Error fetching documents:', documentsError)
+      return { success: false, error: documentsError.message }
+    }
+
+    // Transform documents to match the expected format
+    const transformedDocuments = documents?.map(doc => ({
+      id: doc.id,
+      category: doc.document_type || 'personal',
+      name: doc.file_name || doc.title,
+      size: doc.file_size || 0,
+      uploadDate: doc.created_at,
+      lastModified: doc.updated_at || doc.created_at,
+      uploadedBy: doc.owner?.full_name || doc.owner?.email || '나',
+      fileType: doc.mime_type || 'application/octet-stream',
+      url: doc.file_url,
+      title: doc.title,
+      description: doc.description,
+      site: doc.site
+    })) || []
+
+    return { success: true, data: transformedDocuments }
   } catch (error) {
     console.error('Error in getMyDocuments:', error)
     return { success: false, error: 'Failed to fetch documents' }
@@ -535,8 +478,70 @@ export async function deleteDocument(id: string) {
 //   }
 // }
 
+export async function shareDocument(params: {
+  documentId: string
+  userIds: string[]
+  permissionType: 'view' | 'edit' | 'admin'
+  expiresAt?: string
+}) {
+  try {
+    const supabase = createClient()
+    
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError || !user) {
+      return { success: false, error: 'User not authenticated' }
+    }
+
+    const { documentId, userIds, permissionType, expiresAt } = params
+
+    if (!documentId || !userIds || userIds.length === 0) {
+      return { success: false, error: 'Document ID and user IDs are required' }
+    }
+
+    // Check if user owns the document
+    const { data: document, error: docError } = await supabase
+      .from('documents')
+      .select('owner_id')
+      .eq('id', documentId)
+      .single()
+
+    if (docError || !document) {
+      return { success: false, error: 'Document not found' }
+    }
+
+    if (document.owner_id !== user.id) {
+      return { success: false, error: 'Unauthorized to share this document' }
+    }
+
+    // Create permission records for each user
+    const permissionsToInsert = userIds.map(userId => ({
+      document_id: documentId,
+      user_id: userId,
+      permission_type: permissionType,
+      granted_by: user.id,
+      ...(expiresAt && { expires_at: expiresAt })
+    }))
+
+    const { data: permissions, error: permError } = await supabase
+      .from('document_permissions')
+      .upsert(permissionsToInsert, { onConflict: 'document_id,user_id' })
+      .select()
+
+    if (permError) {
+      console.error('Error creating document permissions:', permError)
+      return { success: false, error: permError.message }
+    }
+
+    revalidatePath('/dashboard/documents')
+    return { success: true, data: permissions }
+  } catch (error) {
+    console.error('Error in shareDocument:', error)
+    return { success: false, error: 'Failed to share document' }
+  }
+}
+
 export async function getSharedDocuments(params: {
-  category: string
+  category?: string
   userId: string
   siteId?: string
   organizationId?: string
@@ -545,111 +550,124 @@ export async function getSharedDocuments(params: {
   try {
     const supabase = createClient()
     
-    // For now, return mock data based on category and access level
-    let mockDocuments: any[] = []
-    
-    if (params.category === 'site-docs' && params.siteId) {
-      mockDocuments = [
-        {
-          id: 'shared-1',
-          category: params.category,
-          name: '강남A현장_도면_Rev3.dwg',
-          size: 15678234,
-          uploadDate: '2025-01-28',
-          lastModified: '2025-01-28',
-          uploadedBy: '현장소장',
-          fileType: 'application/dwg',
-          url: '#',
-          accessLevel: 'site' as const,
-          site: { id: params.siteId, name: '강남 A현장' }
-        },
-        {
-          id: 'shared-2',
-          category: params.category,
-          name: '작업지침서_콘크리트타설.pdf',
-          size: 3456789,
-          uploadDate: '2025-01-15',
-          lastModified: '2025-01-15',
-          uploadedBy: '안전관리자',
-          fileType: 'application/pdf',
-          url: '#',
-          accessLevel: 'site' as const,
-          site: { id: params.siteId, name: '강남 A현장' }
-        }
-      ]
-    } else if (params.category === 'safety-docs') {
-      mockDocuments = [
-        {
-          id: 'shared-3',
-          category: params.category,
-          name: '2025년_안전관리규정.pdf',
-          size: 2345678,
-          uploadDate: '2025-01-01',
-          lastModified: '2025-01-01',
-          uploadedBy: '안전팀',
-          fileType: 'application/pdf',
-          url: '#',
-          accessLevel: 'public' as const
-        },
-        {
-          id: 'shared-4',
-          category: params.category,
-          name: 'MSDS_시멘트.pdf',
-          size: 567890,
-          uploadDate: '2024-12-20',
-          lastModified: '2024-12-20',
-          uploadedBy: '안전팀',
-          fileType: 'application/pdf',
-          url: '#',
-          accessLevel: 'public' as const
-        }
-      ]
-    } else if (params.category === 'company-notices' && params.organizationId) {
-      mockDocuments = [
-        {
-          id: 'shared-5',
-          category: params.category,
-          name: '2025년_연차사용안내.pdf',
-          size: 234567,
-          uploadDate: '2025-01-10',
-          lastModified: '2025-01-10',
-          uploadedBy: '인사팀',
-          fileType: 'application/pdf',
-          url: '#',
-          accessLevel: 'organization' as const,
-          organization: { id: params.organizationId, name: 'INOPNC' }
-        }
-      ]
-    } else if (params.category === 'forms-templates') {
-      mockDocuments = [
-        {
-          id: 'shared-6',
-          category: params.category,
-          name: '작업일지_양식.xlsx',
-          size: 45678,
-          uploadDate: '2025-01-01',
-          lastModified: '2025-01-01',
-          uploadedBy: '관리팀',
-          fileType: 'application/vnd.ms-excel',
-          url: '#',
-          accessLevel: 'public' as const
-        },
-        {
-          id: 'shared-7',
-          category: params.category,
-          name: '휴가신청서.docx',
-          size: 34567,
-          uploadDate: '2024-12-01',
-          lastModified: '2024-12-01',
-          uploadedBy: '인사팀',
-          fileType: 'application/vnd.ms-word',
-          url: '#',
-          accessLevel: 'public' as const
-        }
-      ]
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError || !user) {
+      return { success: false, error: 'User not authenticated' }
     }
-    
-    return { success: true, data: mockDocuments }
+
+    // Query shared documents from database
+    let query = supabase
+      .from('documents')
+      .select(`
+        id,
+        title,
+        description,
+        file_url,
+        file_name,
+        file_size,
+        mime_type,
+        document_type,
+        folder_path,
+        is_public,
+        created_at,
+        updated_at,
+        owner_id,
+        site_id,
+        site:sites(id, name),
+        owner:profiles!documents_owner_id_fkey(
+          id,
+          full_name,
+          email
+        )
+      `)
+      .neq('owner_id', user.id) // Exclude user's own documents
+      .order('created_at', { ascending: false })
+
+    // Apply filters based on access level
+    if (params.category === 'site-docs' && params.siteId) {
+      // Documents from the same site
+      query = query.eq('site_id', params.siteId)
+    } else if (params.category === 'safety-docs' || params.category === 'forms-templates') {
+      // Public documents
+      query = query.eq('is_public', true)
+    } else {
+      // All shared documents (public or from same site)
+      query = query.or(`is_public.eq.true${params.siteId ? `,site_id.eq.${params.siteId}` : ''}`)
+    }
+
+    // Apply category filter if provided
+    if (params.category && params.category !== 'all') {
+      query = query.eq('document_type', params.category)
+    }
+
+    const { data: documents, error: documentsError } = await query
+
+    if (documentsError) {
+      console.error('Error fetching shared documents:', documentsError)
+      return { success: false, error: documentsError.message }
+    }
+
+    // Also fetch documents shared directly with the user
+    const { data: sharedWithMe, error: sharesError } = await supabase
+      .from('document_shares')
+      .select(`
+        document:documents(
+          id,
+          title,
+          description,
+          file_url,
+          file_name,
+          file_size,
+          mime_type,
+          document_type,
+          folder_path,
+          is_public,
+          created_at,
+          updated_at,
+          owner_id,
+          site_id,
+          site:sites(id, name),
+          owner:profiles!documents_owner_id_fkey(
+            id,
+            full_name,
+            email
+          )
+        ),
+        permission
+      `)
+      .eq('shared_with_id', user.id)
+
+    if (sharesError) {
+      console.error('Error fetching shared documents:', sharesError)
+    }
+
+    // Combine and transform documents
+    const allSharedDocs = [
+      ...(documents || []),
+      ...(sharedWithMe?.map(share => share.document).filter(Boolean) || [])
+    ]
+
+    // Remove duplicates
+    const uniqueDocs = Array.from(new Map(allSharedDocs.map(doc => [doc.id, doc])).values())
+
+    // Transform documents to match the expected format
+    const transformedDocuments = uniqueDocs.map(doc => ({
+      id: doc.id,
+      category: doc.document_type || 'shared',
+      name: doc.file_name || doc.title,
+      size: doc.file_size || 0,
+      uploadDate: doc.created_at,
+      lastModified: doc.updated_at || doc.created_at,
+      uploadedBy: doc.owner?.full_name || doc.owner?.email || '알 수 없음',
+      fileType: doc.mime_type || 'application/octet-stream',
+      url: doc.file_url,
+      title: doc.title,
+      description: doc.description,
+      accessLevel: doc.is_public ? 'public' as const : 'site' as const,
+      site: doc.site
+    }))
+
+    return { success: true, data: transformedDocuments }
   } catch (error) {
     console.error('Error in getSharedDocuments:', error)
     return { success: false, error: 'Failed to fetch shared documents' }

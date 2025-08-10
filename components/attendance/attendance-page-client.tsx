@@ -1,12 +1,13 @@
 'use client'
 
-import { Suspense } from 'react'
+import { useState } from 'react'
+import Image from 'next/image'
+import { AttendanceView } from './attendance-view'
+import { SalaryView } from './salary-view'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { AttendanceCalendar } from '@/components/attendance/attendance-calendar'
-import { SalaryInfo } from '@/components/attendance/salary-info'
-import { LoadingSpinner } from '@/components/ui/loading-spinner'
-import { useFontSize, getTypographyClass, getFullTypographyClass } from '@/contexts/FontSizeContext'
+import { useFontSize } from '@/contexts/FontSizeContext'
 import { useTouchMode } from '@/contexts/TouchModeContext'
+import { cn } from '@/lib/utils'
 
 interface AttendancePageClientProps {
   profile: any
@@ -16,64 +17,79 @@ interface AttendancePageClientProps {
 export function AttendancePageClient({ profile, isPartnerCompany }: AttendancePageClientProps) {
   const { isLargeFont } = useFontSize()
   const { touchMode } = useTouchMode()
+  const [activeTab, setActiveTab] = useState('attendance')
+
+  console.log('AttendancePageClient: Received profile:', {
+    hasProfile: !!profile,
+    profileId: profile?.id,
+    profileRole: profile?.role,
+    profileFullName: profile?.full_name,
+    isPartnerCompany
+  })
 
   return (
-    <div className="h-full bg-white">
-      <div className="sticky top-0 z-20 border-b border-gray-200 bg-white px-6 py-4">
-        <h1 className={`${getFullTypographyClass('heading', '2xl', isLargeFont)} font-semibold text-gray-900`}>
-          출력현황
-        </h1>
-        <p className={`mt-1 ${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-600`}>
-          {isPartnerCompany 
-            ? '소속 회사 작업자들의 출력 현황을 확인합니다'
-            : '나의 출력 및 급여 정보를 확인합니다'
-          }
-        </p>
-      </div>
+    <div className="h-full bg-white dark:bg-gray-900">
+      <div className="p-3">
+        {/* INOPNC 로고 헤더 */}
+        <div className="flex items-center justify-center mb-4 pb-3 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex items-center gap-3">
+            <Image
+              src="/INOPNC_logo.png"
+              alt="INOPNC 로고"
+              width={32}
+              height={32}
+              className="object-contain"
+            />
+            <h1 className={cn(
+              "font-semibold text-gray-900 dark:text-white",
+              isLargeFont ? "text-lg" : "text-base"
+            )}>
+              INOPNC
+            </h1>
+          </div>
+        </div>
+        
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          {/* UI Guidelines에 맞는 탭 디자인 */}
+          <div className="flex gap-2 mb-3">
+            <button
+              onClick={() => setActiveTab('attendance')}
+              className={cn(
+                "flex-1 py-3 px-4 rounded-xl font-medium transition-all",
+                "min-h-[48px]", // UI Guidelines 표준 버튼 높이
+                activeTab === 'attendance' 
+                  ? "bg-toss-blue-600 text-white shadow-md" 
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200",
+                touchMode === 'glove' && "min-h-[60px] text-base",
+                touchMode === 'precision' && "min-h-[44px] text-sm",
+                touchMode !== 'precision' && touchMode !== 'glove' && "text-sm"
+              )}
+            >
+              출근정보
+            </button>
+            <button
+              onClick={() => setActiveTab('salary')}
+              className={cn(
+                "flex-1 py-3 px-4 rounded-xl font-medium transition-all",
+                "min-h-[48px]", // UI Guidelines 표준 버튼 높이
+                activeTab === 'salary' 
+                  ? "bg-toss-blue-600 text-white shadow-md" 
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200",
+                touchMode === 'glove' && "min-h-[60px] text-base",
+                touchMode === 'precision' && "min-h-[44px] text-sm",
+                touchMode !== 'precision' && touchMode !== 'glove' && "text-sm"
+              )}
+            >
+              급여정보
+            </button>
+          </div>
 
-      <div className={touchMode === 'glove' ? 'p-8' : touchMode === 'precision' ? 'p-4' : 'p-6'}>
-        <Tabs defaultValue="attendance" className="space-y-4">
-          <TabsList className={`grid w-full grid-cols-2 ${
-            touchMode === 'glove' ? 'h-14' : 
-            touchMode === 'precision' ? 'h-10' : 
-            'h-12'
-          }`}>
-            <TabsTrigger value="attendance" className={`${
-              getFullTypographyClass('button', 'base', isLargeFont)
-            } ${
-              touchMode === 'glove' ? 'py-3' : 
-              touchMode === 'precision' ? 'py-1.5' : 
-              'py-2'
-            }`}>
-              출근 정보
-            </TabsTrigger>
-            <TabsTrigger value="salary" className={`${
-              getFullTypographyClass('button', 'base', isLargeFont)
-            } ${
-              touchMode === 'glove' ? 'py-3' : 
-              touchMode === 'precision' ? 'py-1.5' : 
-              'py-2'
-            }`}>
-              급여 정보
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="attendance" className="space-y-4">
-            <Suspense fallback={<LoadingSpinner />}>
-              <AttendanceCalendar 
-                profile={profile}
-                isPartnerView={isPartnerCompany}
-              />
-            </Suspense>
+          <TabsContent value="attendance" className="mt-0">
+            <AttendanceView profile={profile} />
           </TabsContent>
 
-          <TabsContent value="salary" className="space-y-4">
-            <Suspense fallback={<LoadingSpinner />}>
-              <SalaryInfo 
-                profile={profile}
-                isPartnerView={isPartnerCompany}
-              />
-            </Suspense>
+          <TabsContent value="salary" className="mt-0">
+            <SalaryView profile={profile} />
           </TabsContent>
         </Tabs>
       </div>

@@ -1,8 +1,15 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { DocumentsPageClient } from '@/components/documents/documents-page-client'
+import DashboardLayout from '@/components/dashboard/dashboard-layout'
+import { DocumentsPageWithTabs } from '@/components/documents/documents-page-with-tabs'
 
-export default async function DocumentsPage() {
+interface DocumentsPageProps {
+  searchParams: { [key: string]: string | string[] | undefined }
+}
+
+export default async function DocumentsPage({ searchParams }: DocumentsPageProps) {
+  console.log('DocumentsPage - searchParams:', searchParams)
+  
   const supabase = createClient()
   
   // Check authentication
@@ -11,12 +18,16 @@ export default async function DocumentsPage() {
     redirect('/auth/login')
   }
 
-  // Get user profile
+  // Get user profile with site information  
   const { data: profile } = await supabase
     .from('profiles')
     .select(`
       *,
-      organization:organizations(*)
+      organization:organizations(*),
+      site_assignments(
+        site_id,
+        site:sites(id, name)
+      )
     `)
     .eq('id', user.id)
     .single()
@@ -25,5 +36,13 @@ export default async function DocumentsPage() {
     redirect('/auth/login')
   }
 
-  return <DocumentsPageClient profile={profile} />
+  return (
+    <DashboardLayout 
+      user={user} 
+      profile={profile as any}
+      initialActiveTab="documents"
+    >
+      <DocumentsPageWithTabs profile={profile} searchParams={searchParams} />
+    </DashboardLayout>
+  )
 }

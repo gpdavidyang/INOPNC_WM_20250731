@@ -6,6 +6,13 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
+import { 
+  CustomSelect,
+  CustomSelectContent,
+  CustomSelectItem,
+  CustomSelectTrigger,
+  CustomSelectValue,
+} from '@/components/ui/custom-select'
 import { useFontSize,  getTypographyClass, getFullTypographyClass } from '@/contexts/FontSizeContext'
 import { useTouchMode } from '@/contexts/TouchModeContext'
 import { 
@@ -37,6 +44,9 @@ import {
 } from '@/components/ui/dialog'
 import { createMaterial, updateMaterial } from '@/app/actions/materials'
 import { useToast } from '@/components/ui/use-toast'
+import { ViewToggle, useViewMode, CardView, ListView } from '@/components/ui/view-toggle'
+import { useSortableData } from '@/components/ui/sortable-table'
+import type { SortConfig } from '@/components/ui/sortable-table'
 
 interface MaterialCatalogProps {
   materials: any[]
@@ -92,6 +102,118 @@ export function MaterialCatalog({ materials, categories, searchQuery }: Material
     
     return matchesSearch && matchesCategory
   })
+
+  // View mode state
+  const [viewMode, setViewMode] = useViewMode('material-catalog', 'card')
+
+  // Sortable data for table view
+  const { data: sortedMaterials, sortConfig, setSortConfig } = useSortableData(filteredMaterials)
+
+  // Table columns definition
+  const tableColumns = [
+    {
+      key: 'material_code',
+      label: '자재코드',
+      sortable: true,
+      width: '120px',
+      render: (value: string) => (
+        <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">{value || '-'}</span>
+      )
+    },
+    {
+      key: 'name',
+      label: '자재명',
+      sortable: true,
+      render: (value: string, material: any) => (
+        <div>
+          <div className="font-medium text-gray-900">{value}</div>
+          {material.description && (
+            <div className="text-xs text-gray-500 mt-1">{material.description}</div>
+          )}
+        </div>
+      )
+    },
+    {
+      key: 'category.name',
+      label: '카테고리',
+      sortable: true,
+      render: (value: string, material: any) => (
+        <Badge variant="outline" className="text-xs">
+          {material.category?.name || '-'}
+        </Badge>
+      )
+    },
+    {
+      key: 'unit',
+      label: '단위',
+      sortable: true,
+      align: 'center' as const,
+      width: '80px'
+    },
+    {
+      key: 'unit_price',
+      label: '단가',
+      sortable: true,
+      align: 'right' as const,
+      width: '120px',
+      render: (value: number) => (
+        value ? `${value.toLocaleString()}원` : '-'
+      )
+    },
+    {
+      key: 'current_stock',
+      label: '재고',
+      sortable: true,
+      align: 'center' as const,
+      width: '100px',
+      render: (value: number, material: any) => {
+        if (value === undefined) return '-'
+        
+        const stockColor = value <= (material.minimum_stock || 0) 
+          ? 'text-red-600' 
+          : value >= (material.maximum_stock || 999999)
+          ? 'text-amber-600'
+          : 'text-green-600'
+          
+        return (
+          <span className={`font-medium ${stockColor}`}>
+            {value} {material.unit}
+          </span>
+        )
+      }
+    },
+    {
+      key: 'minimum_stock',
+      label: '최소재고',
+      sortable: true,
+      align: 'center' as const,
+      width: '100px',
+      render: (value: number, material: any) => 
+        value ? `${value} ${material.unit}` : '-'
+    },
+    {
+      key: 'actions',
+      label: '작업',
+      sortable: false,
+      align: 'center' as const,
+      width: '80px',
+      render: (value: any, material: any) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="compact" className="h-8 w-8 p-0">
+              <MoreVertical className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => handleEdit(material)}>
+              <Edit2 className="h-4 w-4 mr-2" />
+              수정
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )
+    }
+  ]
 
   // Toggle category expansion
   const toggleCategory = (categoryId: string) => {
@@ -192,10 +314,10 @@ export function MaterialCatalog({ materials, categories, searchQuery }: Material
     <div className="space-y-4">
       {/* Category Filter - Hierarchical */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Category Tree */}
-        <div className="lg:col-span-1">
+        {/* Category Tree - NPC-1000 section hidden for mobile optimization */}
+        <div className="lg:col-span-1 hidden lg:block">
           <Card className="p-4">
-            <h3 className="font-medium text-gray-900 mb-3">NPC-1000 카테고리</h3>
+            <h3 className="font-medium text-gray-900 mb-3">자재 카테고리</h3>
             <div className="space-y-1">
               <button
                 onClick={() => setSelectedCategory(null)}
@@ -260,8 +382,8 @@ export function MaterialCatalog({ materials, categories, searchQuery }: Material
         </div>
 
         {/* Materials Content */}
-        <div className="lg:col-span-3 space-y-4">
-          {/* Add Material Button */}
+        <div className="col-span-1 lg:col-span-3 space-y-4">
+          {/* Header with View Toggle */}
           <div className="flex justify-between items-center">
             <div>
               <h2 className="text-lg font-medium text-gray-900">
@@ -274,95 +396,117 @@ export function MaterialCatalog({ materials, categories, searchQuery }: Material
                 총 {filteredMaterials.length}개의 자재
               </p>
             </div>
-            <Button 
-              onClick={() => {
-                resetForm()
-                setEditingMaterial(null)
-                setShowAddDialog(true)
-              }}
-              className="gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              자재 추가
-            </Button>
+            <div className="flex items-center gap-3">
+              <ViewToggle
+                mode={viewMode}
+                onModeChange={setViewMode}
+                availableModes={['card', 'list']}
+                size="sm"
+              />
+              <Button 
+                onClick={() => {
+                  resetForm()
+                  setEditingMaterial(null)
+                  setShowAddDialog(true)
+                }}
+                className="gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                자재 추가
+              </Button>
+            </div>
           </div>
 
-          {/* Materials Grid */}
+          {/* Materials Display */}
           {filteredMaterials.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {filteredMaterials.map(material => (
-                <Card key={material.id} className="p-4 hover:shadow-md transition-shadow">
-                  <div className="flex justify-between items-start mb-3">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <h3 className="font-medium text-gray-900">{material.name}</h3>
-                        <Badge variant="outline" className="text-xs">
-                          {material.category?.name}
+            <>
+              {viewMode === 'card' ? (
+                <CardView columns={2}>
+                  {filteredMaterials.map(material => (
+                    <Card key={material.id} className="p-4 hover:shadow-md transition-shadow">
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h3 className="font-medium text-gray-900">{material.name}</h3>
+                            <Badge variant="outline" className="text-xs">
+                              {material.category?.name}
+                            </Badge>
+                          </div>
+                          {material.description && (
+                            <p className="text-sm text-gray-900">{material.description}</p>
+                          )}
+                        </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="compact" className="h-8 w-8 p-0">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleEdit(material)}>
+                              <Edit2 className="h-4 w-4 mr-2" />
+                              수정
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+
+                      <div className="space-y-2 text-sm">
+                        <div className="flex items-center gap-2 text-gray-900">
+                          <Hash className="h-3.5 w-3.5 text-gray-700" />
+                          <span className="font-mono text-xs">{material.material_code}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-gray-900">
+                          <Package className="h-3.5 w-3.5 text-gray-700" />
+                          <span>단위: {material.unit}</span>
+                        </div>
+                        {material.unit_price && (
+                          <div className="flex items-center gap-2 text-gray-900">
+                            <DollarSign className="h-3.5 w-3.5 text-gray-700" />
+                            <span>단가: {material.unit_price.toLocaleString()}원</span>
+                          </div>
+                        )}
+                        {material.supplier && (
+                          <div className="flex items-center gap-2 text-gray-900">
+                            <Building className="h-3.5 w-3.5 text-gray-700" />
+                            <span>공급업체: {material.supplier}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="mt-4 flex items-center justify-between">
+                        <Badge variant={material.is_active ? 'default' : 'secondary'}>
+                          {material.is_active ? '사용중' : '사용안함'}
                         </Badge>
+                        {material.current_stock !== undefined && (
+                          <div className="text-sm">
+                            <span className={`font-medium ${
+                              material.current_stock <= material.minimum_stock 
+                                ? 'text-red-600' 
+                                : material.current_stock >= material.maximum_stock
+                                ? 'text-amber-600'
+                                : 'text-green-600'
+                            }`}>
+                              재고: {material.current_stock} {material.unit}
+                            </span>
+                          </div>
+                        )}
                       </div>
-                      {material.description && (
-                        <p className="text-sm text-gray-900">{material.description}</p>
-                      )}
-                    </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="compact" className="h-8 w-8 p-0">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleEdit(material)}>
-                          <Edit2 className="h-4 w-4 mr-2" />
-                          수정
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-
-                  <div className="space-y-2 text-sm">
-                    <div className="flex items-center gap-2 text-gray-900">
-                      <Hash className="h-3.5 w-3.5 text-gray-700" />
-                      <span className="font-mono text-xs">{material.material_code}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-gray-900">
-                      <Package className="h-3.5 w-3.5 text-gray-700" />
-                      <span>단위: {material.unit}</span>
-                    </div>
-                    {material.unit_price && (
-                      <div className="flex items-center gap-2 text-gray-900">
-                        <DollarSign className="h-3.5 w-3.5 text-gray-700" />
-                        <span>단가: {material.unit_price.toLocaleString()}원</span>
-                      </div>
-                    )}
-                    {material.supplier && (
-                      <div className="flex items-center gap-2 text-gray-900">
-                        <Building className="h-3.5 w-3.5 text-gray-700" />
-                        <span>공급업체: {material.supplier}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="mt-4 flex items-center justify-between">
-                    <Badge variant={material.is_active ? 'default' : 'secondary'}>
-                      {material.is_active ? '사용중' : '사용안함'}
-                    </Badge>
-                    {material.current_stock !== undefined && (
-                      <div className="text-sm">
-                        <span className={`font-medium ${
-                          material.current_stock <= material.minimum_stock 
-                            ? 'text-red-600' 
-                            : material.current_stock >= material.maximum_stock
-                            ? 'text-amber-600'
-                            : 'text-green-600'
-                        }`}>
-                          재고: {material.current_stock} {material.unit}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </Card>
-              ))}
-            </div>
+                    </Card>
+                  ))}
+                </CardView>
+              ) : (
+                <ListView
+                  data={sortedMaterials}
+                  columns={tableColumns}
+                  onSort={setSortConfig}
+                  sortConfig={sortConfig}
+                  emptyMessage="자재가 없습니다"
+                  hoverable
+                  striped
+                />
+              )}
+            </>
           ) : (
             <Card className="p-8 text-center">
               <Package className="h-12 w-12 mx-auto text-gray-400 mb-4" />
@@ -404,24 +548,28 @@ export function MaterialCatalog({ materials, categories, searchQuery }: Material
           <div className="grid gap-4 py-4">
             <div>
               <Label htmlFor="category">카테고리 *</Label>
-              <select
-                id="category"
-                value={formData.category_id}
-                onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
-                className="w-full mt-1.5 h-10 px-3 rounded-md border border-gray-300 bg-white"
-                required
+              <CustomSelect 
+                value={formData.category_id} 
+                onValueChange={(value) => setFormData({ ...formData, category_id: value })}
               >
-                <option value="">카테고리 선택</option>
-                {Array.from(categoryHierarchy.values()).map(rootCategory => (
-                  <optgroup key={rootCategory.id} label={`${rootCategory.name} (${rootCategory.code})`}>
-                    {rootCategory.children && rootCategory.children.map((subCategory: any) => (
-                      <option key={subCategory.id} value={subCategory.id}>
-                        {subCategory.name} ({subCategory.code})
-                      </option>
-                    ))}
-                  </optgroup>
-                ))}
-              </select>
+                <CustomSelectTrigger className={cn(
+                  "w-full mt-1.5",
+                  touchMode === 'glove' && "min-h-[60px] text-base",
+                  touchMode === 'precision' && "min-h-[44px] text-sm",
+                  touchMode !== 'precision' && touchMode !== 'glove' && "min-h-[40px] text-sm"
+                )}>
+                  <CustomSelectValue placeholder="카테고리 선택" />
+                </CustomSelectTrigger>
+                <CustomSelectContent>
+                  {Array.from(categoryHierarchy.values()).map(rootCategory => (
+                    rootCategory.children && rootCategory.children.map((subCategory: any) => (
+                      <CustomSelectItem key={subCategory.id} value={subCategory.id}>
+                        {rootCategory.name} - {subCategory.name} ({subCategory.code})
+                      </CustomSelectItem>
+                    ))
+                  ))}
+                </CustomSelectContent>
+              </CustomSelect>
             </div>
 
             <div>
@@ -449,23 +597,30 @@ export function MaterialCatalog({ materials, categories, searchQuery }: Material
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="unit">단위 *</Label>
-                <select
-                  id="unit"
-                  value={formData.unit}
-                  onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-                  className="w-full mt-1.5 h-10 px-3 rounded-md border border-gray-300 bg-white"
-                  required
+                <CustomSelect 
+                  value={formData.unit} 
+                  onValueChange={(value) => setFormData({ ...formData, unit: value })}
                 >
-                  <option value="ea">개</option>
-                  <option value="kg">kg</option>
-                  <option value="ton">톤</option>
-                  <option value="m">m</option>
-                  <option value="m²">m²</option>
-                  <option value="m³">m³</option>
-                  <option value="L">리터</option>
-                  <option value="box">박스</option>
-                  <option value="set">세트</option>
-                </select>
+                  <CustomSelectTrigger className={cn(
+                    "w-full mt-1.5",
+                    touchMode === 'glove' && "min-h-[60px] text-base",
+                    touchMode === 'precision' && "min-h-[44px] text-sm",
+                    touchMode !== 'precision' && touchMode !== 'glove' && "min-h-[40px] text-sm"
+                  )}>
+                    <CustomSelectValue />
+                  </CustomSelectTrigger>
+                  <CustomSelectContent>
+                    <CustomSelectItem value="ea">개</CustomSelectItem>
+                    <CustomSelectItem value="kg">kg</CustomSelectItem>
+                    <CustomSelectItem value="ton">톤</CustomSelectItem>
+                    <CustomSelectItem value="m">m</CustomSelectItem>
+                    <CustomSelectItem value="m²">m²</CustomSelectItem>
+                    <CustomSelectItem value="m³">m³</CustomSelectItem>
+                    <CustomSelectItem value="L">리터</CustomSelectItem>
+                    <CustomSelectItem value="box">박스</CustomSelectItem>
+                    <CustomSelectItem value="set">세트</CustomSelectItem>
+                  </CustomSelectContent>
+                </CustomSelect>
               </div>
 
               <div>

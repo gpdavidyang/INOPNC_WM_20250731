@@ -13,9 +13,10 @@ interface CompactReportCardProps {
   report: DailyReport
   site?: Site
   canEdit: boolean
+  onViewDetail?: () => void
 }
 
-export function CompactReportCard({ report, site, canEdit }: CompactReportCardProps) {
+export function CompactReportCard({ report, site, canEdit, onViewDetail }: CompactReportCardProps) {
   const getStatusBadge = (status?: string) => {
     const statusMap = {
       draft: { label: '임시', className: 'bg-gray-100 text-gray-700' },
@@ -35,7 +36,10 @@ export function CompactReportCard({ report, site, canEdit }: CompactReportCardPr
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-3 hover:shadow-md transition-shadow">
+    <div 
+      className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700 p-3 hover:shadow-md transition-shadow cursor-pointer"
+      onClick={onViewDetail}
+    >
       {/* Header */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
@@ -50,28 +54,42 @@ export function CompactReportCard({ report, site, canEdit }: CompactReportCardPr
         {getStatusBadge(report.status || 'draft')}
       </div>
 
-      {/* Content Grid */}
-      <div className="grid grid-cols-2 gap-2 mb-2">
-        {/* Site & Process */}
-        <div>
-          <div className="flex items-center gap-1 text-xs text-gray-600">
-            <Building2 className="w-3 h-3" />
-            <span className="truncate">{site?.name || '-'}</span>
-          </div>
-          <p className="text-xs font-medium text-gray-900 mt-0.5 truncate">
-            {report.member_name} / {report.process_type}
-          </p>
+      {/* 작업내용 정보 */}
+      <div className="mb-3">
+        <div className="flex items-center gap-1 text-xs text-gray-500 mb-1">
+          <Building2 className="w-3 h-3" />
+          <span>작업내용 정보</span>
         </div>
-
-        {/* Workers & Materials */}
-        <div className="text-right">
-          <div className="flex items-center gap-1 text-xs text-gray-600 justify-end">
-            <Users className="w-3 h-3" />
-            <span>{report.total_workers}명</span>
+        <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-2 space-y-1">
+          <div className="text-xs">
+            <span className="text-gray-600 dark:text-gray-400">작업내용:</span>
+            <span className="ml-1 font-medium text-gray-900 dark:text-gray-100">{report.process_type || '-'}</span>
           </div>
-          <div className="flex items-center gap-1 text-xs text-gray-600 justify-end mt-0.5">
-            <Package className="w-3 h-3" />
-            <span className="font-medium text-orange-600">-{report.npc1000_used}kg</span>
+          <div className="text-xs">
+            <span className="text-gray-600 dark:text-gray-400">부재명:</span>
+            <span className="ml-1 font-medium text-gray-900 dark:text-gray-100">{report.member_name || '-'}</span>
+          </div>
+          <div className="text-xs">
+            <span className="text-gray-600 dark:text-gray-400">작업공간:</span>
+            <span className="ml-1 font-medium text-gray-900 dark:text-gray-100">{site?.name || '-'}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* 작업자 정보 */}
+      <div className="mb-3">
+        <div className="flex items-center gap-1 text-xs text-gray-500 mb-1">
+          <Users className="w-3 h-3" />
+          <span>작업자 정보</span>
+        </div>
+        <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-2 space-y-1">
+          <div className="text-xs">
+            <span className="text-gray-600 dark:text-gray-400">작업자:</span>
+            <span className="ml-1 font-medium text-gray-900 dark:text-gray-100">{report.total_workers || 0}명</span>
+          </div>
+          <div className="text-xs">
+            <span className="text-gray-600 dark:text-gray-400">공수:</span>
+            <span className="ml-1 font-medium text-blue-600 dark:text-blue-400">{report.npc1000_used || 0}공수</span>
           </div>
         </div>
       </div>
@@ -86,14 +104,25 @@ export function CompactReportCard({ report, site, canEdit }: CompactReportCardPr
 
       {/* Actions */}
       <div className="flex gap-1.5">
-        <Link href={`/dashboard/daily-reports/${report.id}`} className="flex-1">
-          <Button variant="outline" size="compact" className="w-full h-7 text-xs">
-            보기
-          </Button>
-        </Link>
+        <Button 
+          variant="outline" 
+          size="compact" 
+          className="flex-1 h-7 text-xs"
+          onClick={(e) => {
+            e.stopPropagation()
+            onViewDetail?.()
+          }}
+        >
+          상세보기
+        </Button>
         {canEdit && (
           <Link href={`/dashboard/daily-reports/${report.id}/edit`} className="flex-1">
-            <Button variant="outline" size="compact" className="w-full h-7 text-xs">
+            <Button 
+              variant="outline" 
+              size="compact" 
+              className="w-full h-7 text-xs"
+              onClick={(e) => e.stopPropagation()}
+            >
               수정
             </Button>
           </Link>

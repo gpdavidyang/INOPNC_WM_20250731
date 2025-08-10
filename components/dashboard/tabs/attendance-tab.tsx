@@ -4,23 +4,22 @@ import { useState, useEffect } from 'react'
 import { Profile } from '@/types'
 import { createClient } from '@/lib/supabase/client'
 import { 
-  Calendar as CalendarIcon, 
   ChevronLeft, 
   ChevronRight, 
-  MapPin,
-  Clock,
-  CheckCircle,
-  XCircle,
-  AlertTriangle,
-  Download,
-  Filter,
-  Search,
-  Building2,
   ChevronUp,
-  ChevronDown
+  ChevronDown,
+  Download,
+  Building2
 } from 'lucide-react'
 import jsPDF from 'jspdf'
-import autoTable from 'jspdf-autotable'
+import { SortableTable, useSortableData, type SortConfig } from '@/components/ui/sortable-table'
+import { 
+  CustomSelect,
+  CustomSelectContent, 
+  CustomSelectItem, 
+  CustomSelectTrigger, 
+  CustomSelectValue 
+} from '@/components/ui/custom-select'
 
 interface AttendanceTabProps {
   profile: Profile
@@ -58,37 +57,202 @@ interface Site {
 }
 
 export default function AttendanceTab({ profile }: AttendanceTabProps) {
+  // Early return if no profile
+  if (!profile?.id) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="text-center">
+          <p className="text-red-600 dark:text-red-400">프로필 정보를 불러올 수 없습니다.</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">페이지를 새로고침해 주세요.</p>
+        </div>
+      </div>
+    )
+  }
+
   const [activeTab, setActiveTab] = useState<'print' | 'salary'>('print')
-  const [selectedDate, setSelectedDate] = useState(new Date())
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [selectedSite, setSelectedSite] = useState<string>('all')
   const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([])
+  const [filteredRecords, setFilteredRecords] = useState<AttendanceRecord[]>([])
   const [salaryInfo, setSalaryInfo] = useState<SalaryInfo[]>([])
+  const [filteredSalaryInfo, setFilteredSalaryInfo] = useState<SalaryInfo[]>([])
+  const [selectedSalaryMonth, setSelectedSalaryMonth] = useState<string>('')
+  const [salaryFilter, setSalaryFilter] = useState<{period: string, sort: {key: keyof SalaryInfo | null, direction: 'asc' | 'desc'}}>({
+    period: 'recent3', // recent3, recent6, recent12, all
+    sort: {key: null, direction: 'asc'}
+  })
   const [sites, setSites] = useState<Site[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [sortConfig, setSortConfig] = useState<{key: 'work_date' | 'site_name' | 'labor_hours', direction: 'asc' | 'desc'} | null>(null)
   
   const supabase = createClient()
 
-  // Calendar state
+  // Calendar state - 현재 월로 초기화
   const [currentMonth, setCurrentMonth] = useState(new Date())
   
   useEffect(() => {
     loadData()
   }, [selectedDate, selectedSite, activeTab])
 
+  // 월 변경 시 데이터 필터링
+  useEffect(() => {
+    filterRecordsByMonth()
+  }, [attendanceRecords, currentMonth, selectedDate])
+
+  // 급여 데이터 필터링
+  useEffect(() => {
+    filterSalaryData()
+  }, [salaryInfo, salaryFilter])
+
+  const filterRecordsByMonth = () => {
+    if (selectedDate) {
+      // 특정 날짜가 선택된 경우 - 해당 날짜만 표시
+      const filtered = attendanceRecords.filter(record => 
+        new Date(record.work_date).toDateString() === selectedDate.toDateString()
+      )
+      setFilteredRecords(filtered)
+    } else {
+      // 월별 필터링 - 선택된 월의 모든 데이터 표시
+      const currentYear = currentMonth.getFullYear()
+      const currentMonthNum = currentMonth.getMonth() // 0-11 (JS Date months)
+      
+      const filtered = attendanceRecords.filter(record => {
+        const recordDate = new Date(record.work_date)
+        return recordDate.getFullYear() === currentYear && recordDate.getMonth() === currentMonthNum
+      })
+      setFilteredRecords(filtered)
+    }
+  }
+
+  const filterSalaryData = () => {
+    let filtered = [...salaryInfo]
+    
+    // 기간 필터링
+    const now = new Date()
+    const currentYear = now.getFullYear()
+    const currentMonth = now.getMonth() + 1
+    
+    switch (salaryFilter.period) {
+      case 'recent3':
+        filtered = filtered.filter(item => {
+          const [year, month] = item.month.split('-').map(Number)
+          const monthDiff = (currentYear - year) * 12 + (currentMonth - month)
+          return monthDiff >= 0 && monthDiff <= 2
+        })
+        break
+      case 'recent6':
+        filtered = filtered.filter(item => {
+          const [year, month] = item.month.split('-').map(Number)
+          const monthDiff = (currentYear - year) * 12 + (currentMonth - month)
+          return monthDiff >= 0 && monthDiff <= 5
+        })
+        break
+      case 'recent12':
+        filtered = filtered.filter(item => {
+          const [year, month] = item.month.split('-').map(Number)
+          const monthDiff = (currentYear - year) * 12 + (currentMonth - month)
+          return monthDiff >= 0 && monthDiff <= 11
+        })
+        break
+      // 'all'의 경우 모든 데이터 표시
+    }
+    
+    // 정렬
+    if (salaryFilter.sort.key) {
+      filtered.sort((a, b) => {
+        const key = salaryFilter.sort.key!
+        let aValue = a[key]
+        let bValue = b[key]
+        
+        // 숫자 정렬을 위한 처리
+        if (typeof aValue === 'number' && typeof bValue === 'number') {
+          return salaryFilter.sort.direction === 'asc' ? aValue - bValue : bValue - aValue
+        }
+        
+        // 문자열 정렬
+        const aStr = String(aValue)
+        const bStr = String(bValue)
+        
+        if (salaryFilter.sort.direction === 'asc') {
+          return aStr.localeCompare(bStr)
+        } else {
+          return bStr.localeCompare(aStr)
+        }
+      })
+    }
+    
+    setFilteredSalaryInfo(filtered)
+  }
+
+  const handleSalarySort = (key: keyof SalaryInfo) => {
+    setSalaryFilter(prev => ({
+      ...prev,
+      sort: {
+        key,
+        direction: prev.sort.key === key && prev.sort.direction === 'asc' ? 'desc' : 'asc'
+      }
+    }))
+  }
+
+  const getSalaryIcon = (key: keyof SalaryInfo) => {
+    if (!salaryFilter.sort.key || salaryFilter.sort.key !== key) {
+      return <ChevronUp className="h-3 w-3 text-gray-400" />
+    }
+    return salaryFilter.sort.direction === 'asc' 
+      ? <ChevronUp className="h-3 w-3 text-blue-600" />
+      : <ChevronDown className="h-3 w-3 text-blue-600" />
+  }
+
   const loadData = async () => {
+    if (!profile?.id) {
+      console.error('❌ AttendanceTab: No profile ID available')
+      setError('프로필 정보가 없습니다')
+      setLoading(false)
+      return
+    }
+
     setLoading(true)
+    setError(null)
+    
     try {
-      // Load sites
+      // Check and refresh session if needed (like WorkLogsTab)
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      
+      console.log('[AttendanceTab] Session check:', {
+        hasSession: !!session,
+        sessionError: sessionError?.message,
+        userId: session?.user?.id,
+        profileId: profile.id
+      })
+
+      if (!session) {
+        console.warn('[AttendanceTab] No session found, trying to refresh session...')
+        const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession()
+        
+        console.log('[AttendanceTab] Session refresh result:', {
+          success: !refreshError,
+          hasSession: !!refreshData.session,
+          error: refreshError?.message
+        })
+        
+        if (refreshError || !refreshData.session) {
+          console.error('[AttendanceTab] Could not establish session, queries may fail')
+        }
+      }
+      
+      // Load sites first
       await loadSites()
       
+      // Then load tab-specific data
       if (activeTab === 'print') {
         await loadAttendanceData()
       } else {
         await loadSalaryData()
       }
-    } catch (error) {
-      console.error('Error loading data:', error)
+    } catch (error: any) {
+      console.error('❌ AttendanceTab: Error loading data:', error)
+      setError(`데이터를 불러오는데 실패했습니다: ${error.message}`)
     } finally {
       setLoading(false)
     }
@@ -99,184 +263,161 @@ export default function AttendanceTab({ profile }: AttendanceTabProps) {
       const { data, error } = await supabase
         .from('sites')
         .select('id, name, address')
+        .eq('status', 'active')
         .order('name')
 
-      if (!error && data) {
-        setSites(data)
-      } else {
-        // Mock data if no sites available
-        setSites([
-          { id: '1', name: '강남 A현장', address: '서울시 강남구 테헤란로 123' },
-          { id: '2', name: '송파 B현장', address: '서울시 송파구 올림픽로 456' },
-          { id: '3', name: '서초 C현장', address: '서울시 서초구 반포대로 789' }
-        ])
-      }
-    } catch (error) {
+      if (error) throw error
+      setSites(data || [])
+    } catch (error: any) {
       console.error('Error loading sites:', error)
-      // Mock data fallback
-      setSites([
-        { id: '1', name: '강남 A현장', address: '서울시 강남구 테헤란로 123' },
-        { id: '2', name: '송파 B현장', address: '서울시 송파구 올림픽로 456' }
-      ])
+      setSites([])
+      throw new Error(`현장 목록 로드 실패: ${error.message}`)
     }
   }
 
   const loadAttendanceData = async () => {
     try {
-      // Mock attendance data for demo
-      const mockData: AttendanceRecord[] = [
-        {
-          id: '1',
-          work_date: '2025-08-01',
-          check_in_time: '08:00',
-          check_out_time: '17:00',
-          site_name: '강남 A현장',
-          status: 'present',
-          hours_worked: 8,
-          overtime_hours: 0,
-          labor_hours: 1.0  // 1.0 공수 = 8시간
-        },
-        {
-          id: '2',
-          work_date: '2025-08-02',
-          check_in_time: '08:15',
-          check_out_time: '19:00',
-          site_name: '송파 B현장',
-          status: 'present',
-          hours_worked: 10,
-          overtime_hours: 2,
-          labor_hours: 1.5  // 1.5 공수로 수정
-        },
-        {
-          id: '3',
-          work_date: '2025-08-05',
-          check_in_time: '08:00',
-          check_out_time: '12:00',
-          site_name: '반포 C현장',
-          status: 'present',
-          hours_worked: 4,
-          labor_hours: 0.5  // 0.5 공수 = 4시간
-        },
-        {
-          id: '4',
-          work_date: '2025-08-06',
-          check_in_time: '08:00',
-          check_out_time: '17:00',
-          site_name: '방배 현장',
-          status: 'present',
-          hours_worked: 8,
-          overtime_hours: 0,
-          labor_hours: 1.0
-        },
-        {
-          id: '5',
-          work_date: '2025-08-13',
-          check_in_time: null,
-          check_out_time: null,
-          site_name: '',
-          status: 'holiday',
-          hours_worked: 0,
-          overtime_hours: 0,
-          labor_hours: null  // 휴무일은 null로 처리
-        },
-        {
-          id: '6',
-          work_date: '2025-08-27',
-          check_in_time: '08:00',
-          check_out_time: '17:00',
-          site_name: '방배 현장',
-          status: 'present',
-          hours_worked: 8,
-          overtime_hours: 0,
-          labor_hours: 1.0
-        }
-      ]
+      // Calculate date range for current month
+      const selectedYear = currentMonth.getFullYear()
+      const selectedMonth = currentMonth.getMonth() + 1
+      const startDate = new Date(selectedYear, selectedMonth - 1, 1).toISOString().split('T')[0]
+      const endDate = new Date(selectedYear, selectedMonth, 0).toISOString().split('T')[0]
       
-      setAttendanceRecords(mockData)
-    } catch (error) {
-      console.error('Error loading attendance data:', error)
+      console.log('[AttendanceTab] Loading attendance data:', {
+        userId: profile.id,
+        dateRange: `${startDate} ~ ${endDate}`,
+        selectedSite
+      })
+      
+      let query = supabase
+        .from('attendance_records')
+        .select(`
+          id,
+          work_date,
+          check_in_time,
+          check_out_time,
+          status,
+          work_hours,
+          overtime_hours,
+          labor_hours,
+          notes,
+          site_id,
+          sites(name)
+        `)
+        .eq('user_id', profile.id)
+        .gte('work_date', startDate)
+        .lte('work_date', endDate)
+        .order('work_date', { ascending: false })
+
+      // Add site filter if selected
+      if (selectedSite !== 'all') {
+        query = query.eq('site_id', selectedSite)
+      }
+
+      const { data, error } = await query
+
+      if (error) {
+        console.error('[AttendanceTab] Query error:', error)
+        throw error
+      }
+
+      console.log('[AttendanceTab] Query success, records:', data?.length || 0)
+
+      // Transform data to match AttendanceRecord interface
+      // Now using labor_hours directly from database
+      const transformedData: AttendanceRecord[] = (data || []).map(record => ({
+        id: record.id,
+        work_date: record.work_date,
+        check_in_time: record.check_in_time,
+        check_out_time: record.check_out_time,
+        site_name: record.sites?.name || '',
+        status: record.status || 'absent',
+        hours_worked: record.work_hours || 0,
+        overtime_hours: record.overtime_hours || 0,
+        labor_hours: record.labor_hours || (record.work_hours ? record.work_hours / 8 : 0),  // Use DB labor_hours or calculate fallback
+        notes: record.notes
+      }))
+      
+      setAttendanceRecords(transformedData)
+    } catch (error: any) {
+      console.error('[AttendanceTab] Error loading attendance data:', error)
+      setAttendanceRecords([])
+      throw new Error(`출근 데이터 로드 실패: ${error.message}`)
     }
   }
 
   const loadSalaryData = async () => {
     try {
-      // Mock salary data for demo
-      const mockSalaryData: SalaryInfo[] = [
-        {
-          id: '1',
-          month: '2025-07',
-          basic_salary: 3000000,
-          overtime_pay: 400000,
-          allowances: 200000,
-          deductions: 180000,
-          total_pay: 3420000,
-          work_days: 22,
-          site_name: '강남 A현장'
-        },
-        {
-          id: '2',
-          month: '2025-06',
-          basic_salary: 3000000,
-          overtime_pay: 350000,
-          allowances: 200000,
-          deductions: 180000,
-          total_pay: 3370000,
-          work_days: 21,
-          site_name: '강남 A현장'
-        },
-        {
-          id: '3',
-          month: '2025-05',
-          basic_salary: 2800000,
-          overtime_pay: 320000,
-          allowances: 200000,
-          deductions: 160000,
-          total_pay: 3160000,
-          work_days: 20,
-          site_name: '송파 B현장'
-        }
-      ]
+      // Calculate salary from attendance records
+      // Note: In a real system, this would come from a payroll table
+      const { data: attendanceData, error } = await supabase
+        .from('attendance_records')
+        .select(`
+          work_date,
+          work_hours,
+          overtime_hours,
+          site_id,
+          sites(name)
+        `)
+        .eq('user_id', profile.id)
+        .order('work_date', { ascending: false })
+
+      if (error) {
+        console.error('Error loading salary data:', error)
+        setSalaryInfo([])
+        return
+      }
+
+      // Group by month and calculate salary
+      const monthlyData = new Map<string, SalaryInfo>()
       
-      setSalaryInfo(mockSalaryData)
+      (attendanceData || []).forEach(record => {
+        const month = record.work_date.substring(0, 7) // YYYY-MM
+        if (!monthlyData.has(month)) {
+          monthlyData.set(month, {
+            id: month,
+            month: month,
+            basic_salary: 3000000, // Base salary
+            overtime_pay: 0,
+            allowances: 200000, // Fixed allowances
+            deductions: 180000, // Fixed deductions (tax, insurance)
+            total_pay: 0,
+            work_days: 0,
+            site_name: record.sites?.name || ''
+          })
+        }
+        
+        const salary = monthlyData.get(month)!
+        if (record.work_hours) {
+          salary.work_days += 1
+          // Calculate overtime pay (work_hours > 8 means overtime)
+          if (record.overtime_hours && record.overtime_hours > 0) {
+            salary.overtime_pay += Math.floor(record.overtime_hours * 15000) // 시간당 15,000원
+          }
+        }
+      })
+
+      // Calculate total pay for each month
+      const salaryArray: SalaryInfo[] = Array.from(monthlyData.values()).map(salary => ({
+        ...salary,
+        total_pay: salary.basic_salary + salary.overtime_pay + salary.allowances - salary.deductions
+      }))
+
+      // Sort by month descending
+      salaryArray.sort((a, b) => b.month.localeCompare(a.month))
+      
+      setSalaryInfo(salaryArray)
+      
+      // Set initial selected month to most recent
+      if (salaryArray.length > 0 && !selectedSalaryMonth) {
+        setSelectedSalaryMonth(salaryArray[0].month)
+      }
     } catch (error) {
       console.error('Error loading salary data:', error)
+      setSalaryInfo([])
     }
   }
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'present':
-        return <CheckCircle className="h-4 w-4 text-green-600" />
-      case 'absent':
-        return <XCircle className="h-4 w-4 text-red-600" />
-      case 'late':
-        return <AlertTriangle className="h-4 w-4 text-yellow-600" />
-      case 'half_day':
-        return <Clock className="h-4 w-4 text-blue-600" />
-      default:
-        return null
-    }
-  }
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'present': return '출근'
-      case 'absent': return '결근'
-      case 'late': return '지각'
-      case 'half_day': return '반차'
-      default: return status
-    }
-  }
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'present': return 'bg-green-50 text-green-700 border-green-200'
-      case 'absent': return 'bg-red-50 text-red-700 border-red-200'
-      case 'late': return 'bg-yellow-50 text-yellow-700 border-yellow-200'
-      case 'half_day': return 'bg-blue-50 text-blue-700 border-blue-200'
-      default: return 'bg-gray-50 text-gray-700 border-gray-200'
-    }
-  }
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('ko-KR', {
@@ -302,7 +443,7 @@ export default function AttendanceTab({ profile }: AttendanceTabProps) {
       // Company and employee info
       doc.setFontSize(12)
       doc.text('INOPNC Construction', 20, 65)
-      doc.text(`Employee: ${profile.name || 'N/A'}`, 20, 75)
+      doc.text(`Employee: ${profile.full_name || 'N/A'}`, 20, 75)
       doc.text(`Site: ${salary.site_name}`, 20, 85)
       doc.text(`Work Days: ${salary.work_days}`, 20, 95)
       
@@ -371,13 +512,10 @@ export default function AttendanceTab({ profile }: AttendanceTabProps) {
       }
       return newDate
     })
+    // 월 변경 시 선택된 날짜 초기화
+    setSelectedDate(null)
   }
 
-  const goToToday = () => {
-    const today = new Date()
-    setCurrentMonth(today)
-    setSelectedDate(today)
-  }
 
   // Sorting functions
   const handleSort = (key: 'work_date' | 'site_name' | 'labor_hours') => {
@@ -389,9 +527,9 @@ export default function AttendanceTab({ profile }: AttendanceTabProps) {
   }
 
   const getSortedRecords = () => {
-    if (!sortConfig) return attendanceRecords
+    if (!sortConfig) return filteredRecords
 
-    return [...attendanceRecords].sort((a, b) => {
+    return [...filteredRecords].sort((a, b) => {
       const { key, direction } = sortConfig
       let aValue: any, bValue: any
 
@@ -429,8 +567,8 @@ export default function AttendanceTab({ profile }: AttendanceTabProps) {
       : <ChevronDown className="h-3 w-3 text-blue-600" />
   }
 
-  // Calculate statistics
-  const getStatistics = () => {
+  // Calculate overall statistics (전체 통계)
+  const getOverallStatistics = () => {
     const workDays = attendanceRecords.filter(record => 
       record.labor_hours !== null && record.labor_hours !== undefined && record.labor_hours > 0
     ).length
@@ -453,6 +591,30 @@ export default function AttendanceTab({ profile }: AttendanceTabProps) {
     }
   }
 
+  // Calculate monthly statistics (선택된 월 통계)
+  const getMonthlyStatistics = () => {
+    const workDays = filteredRecords.filter(record => 
+      record.labor_hours !== null && record.labor_hours !== undefined && record.labor_hours > 0
+    ).length
+    
+    const uniqueSites = new Set(
+      filteredRecords
+        .filter(record => record.site_name && record.labor_hours !== null && record.labor_hours !== undefined && record.labor_hours > 0)
+        .map(record => record.site_name)
+    ).size
+    
+    const totalLaborHours = filteredRecords
+      .filter(record => record.labor_hours !== null && record.labor_hours !== undefined)
+      .reduce((sum, record) => sum + (record.labor_hours || 0), 0)
+
+    return {
+      workDays,
+      uniqueSites,
+      totalLaborHours,
+      totalDays: filteredRecords.length
+    }
+  }
+
   const renderCalendar = () => {
     const daysInMonth = getDaysInMonth(currentMonth)
     const firstDay = getFirstDayOfMonth(currentMonth)
@@ -466,7 +628,7 @@ export default function AttendanceTab({ profile }: AttendanceTabProps) {
     // Days of the month
     for (let day = 1; day <= daysInMonth; day++) {
       const dayDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day)
-      const isSelected = selectedDate.toDateString() === dayDate.toDateString()
+      const isSelected = selectedDate ? selectedDate.toDateString() === dayDate.toDateString() : false
       const isToday = new Date().toDateString() === dayDate.toDateString()
       
       // Check if there's attendance data for this day
@@ -484,7 +646,7 @@ export default function AttendanceTab({ profile }: AttendanceTabProps) {
         <button
           key={day}
           onClick={() => setSelectedDate(dayDate)}
-          className={`h-20 w-full rounded-lg text-xs font-medium transition-colors touch-manipulation relative flex flex-col items-center justify-start p-1 ${
+          className={`h-14 w-full rounded text-xs font-medium transition-colors touch-manipulation relative flex flex-col items-center justify-start p-1 ${
             isSelected
               ? 'bg-blue-600 text-white'
               : dayRecord && dayRecord.labor_hours !== undefined
@@ -494,28 +656,24 @@ export default function AttendanceTab({ profile }: AttendanceTabProps) {
               : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
           }`}
         >
-          {/* 날짜 숫자 */}
-          <div className="text-lg font-bold">{day}</div>
+          {/* 날짜 숫자 - 상단 고정 */}
+          <div className="text-sm font-bold mb-0.5">{day}</div>
           
           {/* 공수 정보 */}
           {dayRecord && dayRecord.labor_hours !== undefined && dayRecord.labor_hours !== null && (
-            <div className={`text-xs font-bold mt-1 ${
+            <div className={`text-xs font-bold leading-none ${
               isSelected ? 'text-white' : 'text-gray-800 dark:text-gray-200'
             }`}>
               {dayRecord.labor_hours.toFixed(1)}
             </div>
           )}
           
-          {/* 현장명 정보 */}
-          {dayRecord && dayRecord.labor_hours !== undefined && dayRecord.labor_hours !== null && (
-            <div className={`text-xs text-center leading-tight mt-0.5 px-1 max-w-full ${
-              isSelected ? 'text-white' : 'text-blue-600 dark:text-blue-400'
+          {/* 현장명 약어 - 매우 작은 폰트 */}
+          {dayRecord && dayRecord.labor_hours !== undefined && dayRecord.labor_hours !== null && dayRecord.site_name && (
+            <div className={`text-[10px] leading-none px-0.5 truncate max-w-full ${
+              isSelected ? 'text-white/90' : 'text-blue-600 dark:text-blue-400'
             }`}>
-              {dayRecord.site_name ? (
-                <div className="truncate">
-                  {dayRecord.site_name.replace(/\s*[A-Z]?현장$/g, '')}
-                </div>
-              ) : ''}
+              {dayRecord.site_name.replace(/\s*[A-Z]?현장$/g, '').slice(0, 4)}
             </div>
           )}
           
@@ -527,13 +685,13 @@ export default function AttendanceTab({ profile }: AttendanceTabProps) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {/* Tab Navigation */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
         <div className="flex border-b border-gray-200 dark:border-gray-700">
           <button
             onClick={() => setActiveTab('print')}
-            className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+            className={`flex-1 px-3 py-2 text-xs font-medium transition-colors ${
               activeTab === 'print'
                 ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-b-2 border-blue-600'
                 : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700'
@@ -543,7 +701,7 @@ export default function AttendanceTab({ profile }: AttendanceTabProps) {
           </button>
           <button
             onClick={() => setActiveTab('salary')}
-            className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+            className={`flex-1 px-3 py-2 text-xs font-medium transition-colors ${
               activeTab === 'salary'
                 ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-b-2 border-blue-600'
                 : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700'
@@ -553,46 +711,56 @@ export default function AttendanceTab({ profile }: AttendanceTabProps) {
           </button>
         </div>
 
-        <div className="p-4">
+        <div className="p-3">
           {/* Filters */}
-          <div className="mb-4 flex flex-col sm:flex-row gap-3">
+          <div className="mb-3">
             {/* Site Selection */}
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                현장 선택
-              </label>
-              <div className="relative">
-                <select
-                  value={selectedSite}
-                  onChange={(e) => setSelectedSite(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="all">전체 현장</option>
+            <div className="relative">
+              <CustomSelect value={selectedSite} onValueChange={setSelectedSite}>
+                <CustomSelectTrigger className="w-full pl-8 pr-3 py-1.5 h-8 text-xs font-medium">
+                  <CustomSelectValue placeholder="전체 현장" />
+                </CustomSelectTrigger>
+                <CustomSelectContent>
+                  <CustomSelectItem value="all">전체 현장</CustomSelectItem>
                   {sites.map((site: any) => (
-                    <option key={site.id} value={site.id}>
+                    <CustomSelectItem key={site.id} value={site.id}>
                       {site.name}
-                    </option>
+                    </CustomSelectItem>
                   ))}
-                </select>
-                <Building2 className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-              </div>
+                </CustomSelectContent>
+              </CustomSelect>
+              <Building2 className="absolute left-2 top-2 h-3 w-3 text-gray-500 dark:text-gray-400 pointer-events-none" />
             </div>
-
           </div>
 
+          {error && (
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg p-3 mb-3">
+              <div className="flex items-center space-x-2">
+                <div className="text-red-600 dark:text-red-400 text-sm font-medium">오류</div>
+              </div>
+              <p className="text-red-600 dark:text-red-400 text-sm mt-1">{error}</p>
+              <button
+                onClick={() => loadData()}
+                className="mt-2 text-xs px-3 py-1 bg-red-100 hover:bg-red-200 dark:bg-red-800 dark:hover:bg-red-700 text-red-700 dark:text-red-200 rounded transition-colors"
+              >
+                다시 시도
+              </button>
+            </div>
+          )}
+
           {activeTab === 'print' ? (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {/* Calendar */}
-              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-4">
+              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+                <div className="flex items-center justify-between mb-3">
                   <button
                     onClick={() => navigateMonth('prev')}
                     className="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-colors"
                   >
-                    <ChevronLeft className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                    <ChevronLeft className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                   </button>
                   
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                     {currentMonth.getFullYear()}년 {currentMonth.getMonth() + 1}월
                   </h3>
                   
@@ -600,22 +768,14 @@ export default function AttendanceTab({ profile }: AttendanceTabProps) {
                     onClick={() => navigateMonth('next')}
                     className="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-colors"
                   >
-                    <ChevronRight className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                    <ChevronRight className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                   </button>
-                </div>
-                
-                {/* Legend for calendar */}
-                <div className="flex items-center justify-center gap-4 mb-4 text-xs">
-                  <div className="flex items-center gap-1">
-                    <div className="w-4 h-4 bg-blue-50 border border-blue-200 rounded"></div>
-                    <span className="text-gray-600 dark:text-gray-400">근무일</span>
-                  </div>
                 </div>
 
                 {/* Calendar Header */}
                 <div className="grid grid-cols-7 gap-1 mb-2">
                   {['일', '월', '화', '수', '목', '금', '토'].map((day: any) => (
-                    <div key={day} className="h-8 flex items-center justify-center text-sm font-medium text-gray-500 dark:text-gray-400">
+                    <div key={day} className="h-6 flex items-center justify-center text-xs font-medium text-gray-500 dark:text-gray-400">
                       {day}
                     </div>
                   ))}
@@ -627,173 +787,379 @@ export default function AttendanceTab({ profile }: AttendanceTabProps) {
                 </div>
               </div>
 
-              {/* Statistics Summary - Compact */}
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg p-3 border border-blue-200 dark:border-blue-800">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">통계 요약</h3>
+              {/* Statistics Summary - 전체 통계와 월별 통계 분리 */}
+              <div className="space-y-2">
+                {/* 전체 통계 */}
+                <div className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-lg p-2 border border-gray-200 dark:border-gray-700">
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mb-1 font-medium">📊 전체 통계</div>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="text-center">
+                      <div className="text-sm font-bold text-gray-600 dark:text-gray-400">
+                        {getOverallStatistics().workDays}
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-500">작업일</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-sm font-bold text-gray-600 dark:text-gray-400">
+                        {getOverallStatistics().uniqueSites}
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-500">현장</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-sm font-bold text-gray-600 dark:text-gray-400">
+                        {getOverallStatistics().totalLaborHours.toFixed(1)}
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-500">총공수</div>
+                    </div>
+                  </div>
                 </div>
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="text-center">
-                    <div className="text-xl font-bold text-blue-600 dark:text-blue-400">
-                      {getStatistics().workDays}
-                    </div>
-                    <div className="text-xs text-gray-600 dark:text-gray-400">작업일수</div>
+
+                {/* 선택된 월/날짜 통계 */}
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg p-2 border border-blue-200 dark:border-blue-800">
+                  <div className="text-xs text-blue-600 dark:text-blue-400 mb-1 font-medium">
+                    📅 {selectedDate 
+                      ? `${selectedDate.getMonth() + 1}/${selectedDate.getDate()} 일별 통계`
+                      : `${currentMonth.getFullYear()}년 ${currentMonth.getMonth() + 1}월 통계`
+                    }
                   </div>
-                  <div className="text-center">
-                    <div className="text-xl font-bold text-green-600 dark:text-green-400">
-                      {getStatistics().uniqueSites}
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="text-center">
+                      <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                        {getMonthlyStatistics().workDays}
+                      </div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400">작업일</div>
                     </div>
-                    <div className="text-xs text-gray-600 dark:text-gray-400">참여현장</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-xl font-bold text-purple-600 dark:text-purple-400">
-                      {getStatistics().totalLaborHours.toFixed(1)}
+                    <div className="text-center">
+                      <div className="text-lg font-bold text-green-600 dark:text-green-400">
+                        {getMonthlyStatistics().uniqueSites}
+                      </div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400">현장</div>
                     </div>
-                    <div className="text-xs text-gray-600 dark:text-gray-400">총 공수</div>
+                    <div className="text-center">
+                      <div className="text-lg font-bold text-purple-600 dark:text-purple-400">
+                        {getMonthlyStatistics().totalLaborHours.toFixed(1)}
+                      </div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400">총공수</div>
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* Attendance Records - Table Layout */}
-              <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 overflow-hidden">
-                {loading ? (
-                  <div className="text-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                    <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">데이터를 불러오는 중...</p>
-                  </div>
-                ) : (
+              <SortableTable
+                data={getSortedRecords()}
+                columns={[
+                  {
+                    key: 'work_date',
+                    label: '날짜',
+                    sortable: true,
+                    render: (value) => new Date(value).toLocaleDateString('ko-KR', {
+                      month: 'short',
+                      day: 'numeric'
+                    })
+                  },
+                  {
+                    key: 'site_name',
+                    label: '현장',
+                    sortable: true,
+                    render: (value) => value ? value.replace(/\s*[A-Z]?현장$/g, '') : '미지정',
+                    className: 'font-medium truncate max-w-[80px]'
+                  },
+                  {
+                    key: 'labor_hours',
+                    label: '공수',
+                    sortable: true,
+                    render: (value) => value !== null && value !== undefined && value > 0 ? (
+                      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-bold bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
+                        {value.toFixed(1)}
+                      </span>
+                    ) : (
+                      <span className="text-gray-400 dark:text-gray-500">-</span>
+                    )
+                  }
+                ]}
+                onSort={(config) => {
+                  if (config.key && config.direction) {
+                    setSortConfig({ key: config.key as keyof AttendanceRecord, direction: config.direction as 'asc' | 'desc' })
+                  } else {
+                    setSortConfig(null)
+                  }
+                }}
+                sortConfig={sortConfig || undefined}
+                loading={loading}
+                compact={true}
+                emptyMessage="출근 기록이 없습니다"
+              />
+            </div>
+          ) : (
+            /* Salary Info Tab - Compact Design */
+            <div className="space-y-2">
+              {/* 급여 정보 필터 */}
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center space-x-2">
+                  <span className="text-xs text-gray-600 dark:text-gray-400">조회 기간:</span>
+                  <CustomSelect 
+                    value={salaryFilter.period} 
+                    onValueChange={(value) => setSalaryFilter(prev => ({...prev, period: value}))}
+                  >
+                    <CustomSelectTrigger className="w-32 h-7 text-xs">
+                      <CustomSelectValue />
+                    </CustomSelectTrigger>
+                    <CustomSelectContent>
+                      <CustomSelectItem value="recent3">최근 3개월</CustomSelectItem>
+                      <CustomSelectItem value="recent6">최근 6개월</CustomSelectItem>
+                      <CustomSelectItem value="recent12">최근 12개월</CustomSelectItem>
+                      <CustomSelectItem value="all">전체 기간</CustomSelectItem>
+                    </CustomSelectContent>
+                  </CustomSelect>
+                </div>
+              </div>
+
+              {loading ? (
+                <div className="text-center py-4">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
+                  <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">데이터 로딩...</p>
+                </div>
+              ) : (
+                <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden">
                   <div className="overflow-x-auto">
                     <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                       <thead className="bg-gray-50 dark:bg-gray-700">
                         <tr>
                           <th 
-                            onClick={() => handleSort('work_date')}
-                            className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                            className="px-1 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 select-none whitespace-nowrap"
+                            onClick={() => handleSalarySort('month')}
                           >
-                            <div className="flex items-center gap-1">
-                              <span>날짜</span>
-                              {getSortIcon('work_date')}
+                            <div className="flex items-center space-x-1">
+                              <span>월</span>
+                              {getSalaryIcon('month')}
                             </div>
                           </th>
                           <th 
-                            onClick={() => handleSort('site_name')}
-                            className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                            className="px-1 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 select-none whitespace-nowrap"
+                            onClick={() => handleSalarySort('site_name')}
                           >
-                            <div className="flex items-center gap-1">
+                            <div className="flex items-center space-x-1">
                               <span>현장</span>
-                              {getSortIcon('site_name')}
+                              {getSalaryIcon('site_name')}
                             </div>
                           </th>
                           <th 
-                            onClick={() => handleSort('labor_hours')}
-                            className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                            className="px-1 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-300 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 select-none whitespace-nowrap"
+                            onClick={() => handleSalarySort('work_days')}
                           >
-                            <div className="flex items-center gap-1">
-                              <span>공수</span>
-                              {getSortIcon('labor_hours')}
+                            <div className="flex items-center justify-center space-x-1">
+                              <span>근무</span>
+                              {getSalaryIcon('work_days')}
                             </div>
+                          </th>
+                          <th 
+                            className="px-1 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-300 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 select-none whitespace-nowrap"
+                            onClick={() => handleSalarySort('basic_salary')}
+                          >
+                            <div className="flex items-center justify-end space-x-1">
+                              <span>기본</span>
+                              {getSalaryIcon('basic_salary')}
+                            </div>
+                          </th>
+                          <th 
+                            className="px-1 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-300 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 select-none whitespace-nowrap"
+                            onClick={() => handleSalarySort('overtime_pay')}
+                          >
+                            <div className="flex items-center justify-end space-x-1">
+                              <span>연장</span>
+                              {getSalaryIcon('overtime_pay')}
+                            </div>
+                          </th>
+                          <th 
+                            className="px-1 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-300 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 select-none whitespace-nowrap"
+                            onClick={() => handleSalarySort('total_pay')}
+                          >
+                            <div className="flex items-center justify-end space-x-1">
+                              <span>실급</span>
+                              {getSalaryIcon('total_pay')}
+                            </div>
+                          </th>
+                          <th className="px-1 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-300 whitespace-nowrap">
+                            PDF
                           </th>
                         </tr>
                       </thead>
                       <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                        {getSortedRecords().map((record: any) => (
-                          <tr key={record.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                              {new Date(record.work_date).toLocaleDateString('ko-KR', {
-                                year: 'numeric',
-                                month: 'short',
-                                day: 'numeric'
-                              })}
+                        {filteredSalaryInfo.map((salary: any) => (
+                          <tr 
+                            key={salary.id} 
+                            onClick={() => setSelectedSalaryMonth(salary.month)}
+                            className={`cursor-pointer transition-colors ${
+                              selectedSalaryMonth === salary.month 
+                                ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700' 
+                                : 'hover:bg-gray-50 dark:hover:bg-gray-700'
+                            }`}
+                          >
+                            <td className="px-1 py-2 whitespace-nowrap text-xs font-medium text-gray-900 dark:text-gray-100">
+                              {salary.month.split('-')[1]}월
                             </td>
-                            <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
-                              {record.site_name || '미지정'}
+                            <td className="px-1 py-2 whitespace-nowrap text-xs text-gray-900 dark:text-gray-100 truncate max-w-[50px]">
+                              {salary.site_name.replace(/\s*[A-Z]?현장$/g, '')}
                             </td>
-                            <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                              {record.labor_hours !== null && record.labor_hours !== undefined && record.labor_hours > 0 ? (
-                                <span className="inline-flex items-center px-2 py-1 rounded text-xs font-bold bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
-                                  {record.labor_hours.toFixed(1)} 공수
-                                </span>
-                              ) : (
-                                <span className="text-gray-400 dark:text-gray-500">-</span>
-                              )}
+                            <td className="px-1 py-2 whitespace-nowrap text-xs text-center text-gray-900 dark:text-gray-100">
+                              {salary.work_days}일
+                            </td>
+                            <td className="px-1 py-2 whitespace-nowrap text-xs text-right text-gray-900 dark:text-gray-100">
+                              {(salary.basic_salary / 10000).toFixed(0)}만
+                            </td>
+                            <td className="px-1 py-2 whitespace-nowrap text-xs text-right text-gray-900 dark:text-gray-100">
+                              {(salary.overtime_pay / 10000).toFixed(0)}만
+                            </td>
+                            <td className="px-1 py-2 whitespace-nowrap text-xs text-right font-bold text-blue-600 dark:text-blue-400">
+                              {(salary.total_pay / 10000).toFixed(0)}만
+                            </td>
+                            <td className="px-1 py-2 whitespace-nowrap text-center">
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation() // 행 클릭 이벤트 방지
+                                  downloadSalaryPDF(salary)
+                                }}
+                                className="p-1 text-blue-600 hover:text-blue-700 transition-colors hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded"
+                                title="PDF 다운로드"
+                              >
+                                <Download className="h-3 w-3" />
+                              </button>
                             </td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
                   </div>
-                )}
-              </div>
-            </div>
-          ) : (
-            /* Salary Info Tab */
-            <div className="space-y-4">
-              {loading ? (
-                <div className="text-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                  <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">데이터를 불러오는 중...</p>
-                </div>
-              ) : (
-                salaryInfo.map((salary: any) => (
-                  <div key={salary.id} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-4">
-                      <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                        {salary.month} 급여명세서
-                      </h4>
-                      <button 
-                        onClick={() => downloadSalaryPDF(salary)}
-                        className="flex items-center gap-2 px-3 py-1 text-sm text-blue-600 hover:text-blue-700 transition-colors hover:bg-blue-50 rounded-lg"
-                      >
-                        <Download className="h-4 w-4" />
-                        다운로드
-                      </button>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                      <div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">현장</p>
-                        <p className="font-medium text-gray-900 dark:text-gray-100">{salary.site_name}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">근무일수</p>
-                        <p className="font-medium text-gray-900 dark:text-gray-100">{salary.work_days}일</p>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600 dark:text-gray-400">기본급</span>
-                        <span className="font-medium text-gray-900 dark:text-gray-100">
-                          {formatCurrency(salary.basic_salary)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600 dark:text-gray-400">연장근무수당</span>
-                        <span className="font-medium text-gray-900 dark:text-gray-100">
-                          {formatCurrency(salary.overtime_pay)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600 dark:text-gray-400">제수당</span>
-                        <span className="font-medium text-gray-900 dark:text-gray-100">
-                          {formatCurrency(salary.allowances)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between text-red-600 dark:text-red-400">
-                        <span>공제액</span>
-                        <span className="font-medium">-{formatCurrency(salary.deductions)}</span>
-                      </div>
-                      <div className="border-t border-gray-200 dark:border-gray-600 pt-2 mt-2">
-                        <div className="flex justify-between text-lg font-semibold text-gray-900 dark:text-gray-100">
-                          <span>실지급액</span>
-                          <span className="text-blue-600 dark:text-blue-400">
-                            {formatCurrency(salary.total_pay)}
-                          </span>
+                  
+                  {/* 상세 정보 표시 영역 - 선택된 월의 상세 정보 */}
+                  {(() => {
+                    const selectedSalary = filteredSalaryInfo.find(salary => salary.month === selectedSalaryMonth)
+                    if (!selectedSalary) return null
+
+                    return (
+                      <div className="border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700 p-3">
+                        <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                          선택된 급여내역 ({selectedSalary.month})
+                        </div>
+                        <div className="grid grid-cols-2 gap-3 text-xs">
+                          <div className="space-y-1">
+                            <div className="flex justify-between">
+                              <span className="text-gray-600 dark:text-gray-400">기본급</span>
+                              <span className="font-medium text-gray-900 dark:text-gray-100">
+                                {formatCurrency(selectedSalary.basic_salary)}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600 dark:text-gray-400">연장수당</span>
+                              <span className="font-medium text-gray-900 dark:text-gray-100">
+                                {formatCurrency(selectedSalary.overtime_pay)}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600 dark:text-gray-400">제수당</span>
+                              <span className="font-medium text-gray-900 dark:text-gray-100">
+                                {formatCurrency(selectedSalary.allowances)}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="space-y-1">
+                            <div className="flex justify-between text-red-600 dark:text-red-400">
+                              <span>공제액</span>
+                              <span className="font-medium">-{formatCurrency(selectedSalary.deductions)}</span>
+                            </div>
+                            <div className="flex justify-between items-center bg-blue-100 dark:bg-blue-900/20 rounded px-2 py-1 mt-2">
+                              <span className="font-semibold text-gray-900 dark:text-gray-100">실지급액</span>
+                              <span className="font-bold text-blue-600 dark:text-blue-400">
+                                {formatCurrency(selectedSalary.total_pay)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* 급여 계산식 */}
+                        <div className="mt-4 pt-3 border-t border-gray-300 dark:border-gray-600">
+                          <div className="text-xs text-gray-500 dark:text-gray-400 mb-2 font-medium">
+                            💰 급여 계산식
+                          </div>
+                          <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-600">
+                            <div className="space-y-2 text-xs">
+                              {/* 총 지급액 계산 */}
+                              <div className="flex items-center justify-between py-1">
+                                <span className="text-gray-600 dark:text-gray-400">총 지급액</span>
+                                <span className="font-medium text-gray-900 dark:text-gray-100">
+                                  {formatCurrency(selectedSalary.basic_salary + selectedSalary.overtime_pay + selectedSalary.allowances)}
+                                </span>
+                              </div>
+                              
+                              {/* 계산식 표시 */}
+                              <div className="bg-gray-50 dark:bg-gray-700 rounded p-2 text-xs">
+                                <div className="text-gray-500 dark:text-gray-400 mb-1">계산과정:</div>
+                                <div className="space-y-1 font-mono">
+                                  <div className="flex justify-between">
+                                    <span>기본급</span>
+                                    <span className="text-gray-900 dark:text-gray-100">
+                                      {(selectedSalary.basic_salary / 10000).toFixed(0)}만원
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span>+ 연장수당</span>
+                                    <span className="text-gray-900 dark:text-gray-100">
+                                      {(selectedSalary.overtime_pay / 10000).toFixed(0)}만원
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span>+ 제수당</span>
+                                    <span className="text-gray-900 dark:text-gray-100">
+                                      {(selectedSalary.allowances / 10000).toFixed(0)}만원
+                                    </span>
+                                  </div>
+                                  <div className="border-t border-gray-300 dark:border-gray-600 pt-1 mt-1">
+                                    <div className="flex justify-between">
+                                      <span>- 공제액</span>
+                                      <span className="text-red-600 dark:text-red-400">
+                                        {(selectedSalary.deductions / 10000).toFixed(0)}만원
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <div className="border-t-2 border-blue-300 dark:border-blue-600 pt-1 mt-1">
+                                    <div className="flex justify-between font-bold text-blue-600 dark:text-blue-400">
+                                      <span>= 실지급액</span>
+                                      <span>{(selectedSalary.total_pay / 10000).toFixed(0)}만원</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              {/* 근무일 기준 계산 */}
+                              <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded p-2 text-xs">
+                                <div className="text-yellow-700 dark:text-yellow-300 mb-1 font-medium">근무일 기준:</div>
+                                <div className="space-y-1">
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-600 dark:text-gray-400">총 근무일</span>
+                                    <span className="text-gray-900 dark:text-gray-100">{selectedSalary.work_days}일</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-600 dark:text-gray-400">일당 평균</span>
+                                    <span className="text-gray-900 dark:text-gray-100">
+                                      {Math.round(selectedSalary.total_pay / selectedSalary.work_days / 1000)}천원
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-600 dark:text-gray-400">시급 평균 (8시간 기준)</span>
+                                    <span className="text-gray-900 dark:text-gray-100">
+                                      {Math.round(selectedSalary.total_pay / selectedSalary.work_days / 8 / 100)}백원
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </div>
-                ))
+                    )
+                  })()}
+                </div>
               )}
             </div>
           )}

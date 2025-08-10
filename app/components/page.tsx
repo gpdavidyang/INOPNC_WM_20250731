@@ -10,7 +10,7 @@ import {
   SelectItem, 
   SelectTrigger, 
   SelectValue 
-} from "@/components/ui/select-new"
+} from "@/components/ui/custom-select"
 import { Dropdown } from "@/components/ui/dropdown"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"

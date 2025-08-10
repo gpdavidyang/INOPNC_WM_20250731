@@ -33,6 +33,15 @@ export interface ManagerContact {
   profile_image?: string
 }
 
+export interface SiteDocument {
+  id: string
+  title: string
+  file_url: string
+  file_name: string
+  mime_type: string
+  document_type: string
+}
+
 export interface SiteInfo {
   id: string
   name: string
@@ -45,6 +54,8 @@ export interface SiteInfo {
     end_date: string
   }
   is_active: boolean
+  ptw_document?: SiteDocument
+  blueprint_document?: SiteDocument
 }
 
 export interface SiteSearchFilters {

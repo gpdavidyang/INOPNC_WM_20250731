@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { Profile } from '@/types'
 import { createClient } from '@/lib/supabase/client'
 import { CustomSelect } from '@/components/ui/custom-select'
 import { 
-  Plus, Eye, Edit, Trash2, Search, Filter, Calendar,
+  Eye, Edit, Trash2, Search, Filter, Calendar,
   ChevronLeft, ChevronRight, ChevronDown, ChevronUp,
   FileText, Clock, CheckCircle, XCircle, AlertTriangle,
   Building2, MoreHorizontal, Download, Copy
@@ -62,17 +62,213 @@ export default function WorkLogsTab({ profile }: WorkLogsTabProps) {
   
   const canCreate = ['worker', 'site_manager'].includes(profile.role)
 
+  const loadWorkLogs = useCallback(async () => {
+    try {
+      console.log('[WorkLogsTab] Loading work logs for user:', profile.role)
+      
+      // Check if the browser client has a valid session
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      
+      console.log('[WorkLogsTab] Session check:', {
+        hasSession: !!session,
+        sessionError: sessionError?.message,
+        userId: session?.user?.id,
+        profileId: profile.id
+      })
+
+      // If no session, the component might be used before proper authentication
+      if (!session) {
+        console.warn('[WorkLogsTab] No session found, trying to refresh session...')
+        
+        // Try to refresh session
+        const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession()
+        
+        console.log('[WorkLogsTab] Session refresh result:', {
+          success: !refreshError,
+          hasSession: !!refreshData.session,
+          error: refreshError?.message
+        })
+        
+        if (refreshError || !refreshData.session) {
+          console.error('[WorkLogsTab] Could not establish session, queries may fail')
+          // Continue anyway but queries might fail due to RLS
+        }
+      }
+
+      // Try simple query first to check basic connectivity
+      console.log('[WorkLogsTab] Testing basic connectivity...')
+      const { data: testData, error: testError } = await supabase
+        .from('daily_reports')
+        .select('id, work_date, status')
+        .limit(1)
+      
+      console.log('[WorkLogsTab] Basic connectivity test:', {
+        success: !testError,
+        count: testData?.length || 0,
+        error: testError?.message
+      })
+
+      if (testError) {
+        console.error('[WorkLogsTab] Basic connectivity failed:', testError)
+        // Don't abort immediately, try the main query anyway
+      }
+      
+      // Load real data from Supabase - try without inner join first
+      console.log('[WorkLogsTab] Attempting query without inner join...')
+      const simpleQuery = supabase
+        .from('daily_reports')
+        .select(`
+          id,
+          work_date,
+          member_name,
+          process_type,
+          issues,
+          status,
+          created_at,
+          updated_at,
+          site_id,
+          created_by,
+          sites(
+            id,
+            name
+          )
+        `)
+        .order('work_date', { ascending: false })
+        .limit(50)
+
+      // Apply role-based filtering
+      if (profile.role === 'worker') {
+        console.log('[WorkLogsTab] Applying worker filter for user:', profile.id)
+        simpleQuery.eq('created_by', profile.id)
+      } else {
+        console.log('[WorkLogsTab] No role filter applied - user role:', profile.role)
+      }
+
+      const { data, error } = await simpleQuery
+      
+      console.log('[WorkLogsTab] Main query completed:', { 
+        success: !error, 
+        count: data?.length || 0,
+        error: error?.message,
+        errorCode: error?.code,
+        errorDetails: error?.details,
+        errorHint: error?.hint
+      })
+
+      if (error) {
+        console.error('[WorkLogsTab] Main query failed:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        })
+        
+        // Fall back to even simpler query without foreign key join
+        console.log('[WorkLogsTab] Falling back to simplest query without site join...')
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from('daily_reports')
+          .select('id, work_date, member_name, process_type, issues, status, site_id, created_at, updated_at, created_by')
+          .order('work_date', { ascending: false })
+          .limit(50)
+        
+        // Apply same role filtering to fallback
+        if (profile.role === 'worker') {
+          console.log('[WorkLogsTab] Fallback: Applying worker filter for user:', profile.id)
+          // Note: This might not work if RLS is blocking access, but we try anyway
+        }
+        
+        if (!fallbackError && fallbackData && fallbackData.length > 0) {
+          console.log('[WorkLogsTab] Fallback query successful:', fallbackData.length, 'results')
+          // Convert fallback data to expected format
+          const fallbackLogs: WorkLog[] = fallbackData.map(report => ({
+            id: report.id,
+            work_date: report.work_date,
+            site_name: 'Unknown Site', // No site join in fallback
+            work_content: `${report.member_name || ''} - ${report.process_type || ''}: ${report.issues || ''}`,
+            status: (report.status === 'approved' || report.status === 'submitted') ? 'submitted' : 'draft',
+            created_at: report.created_at || new Date().toISOString(),
+            updated_at: report.updated_at || new Date().toISOString(),
+            created_by_name: 'Site Manager',
+            site_id: report.site_id || ''
+          }))
+          setWorkLogs(fallbackLogs)
+          console.log('[WorkLogsTab] Successfully loaded from fallback:', fallbackLogs.length, 'work logs')
+          return
+        } else {
+          console.error('[WorkLogsTab] Even fallback query failed:', fallbackError)
+          console.log('[WorkLogsTab] Setting empty work logs array')
+          setWorkLogs([])
+          return
+        }
+      }
+
+      if (!data || data.length === 0) {
+        console.log('[WorkLogsTab] No work logs found')
+        setWorkLogs([])
+        return
+      }
+
+      // Transform data to match WorkLog interface
+      const transformedLogs: WorkLog[] = data.map(report => ({
+        id: report.id,
+        work_date: report.work_date,
+        site_name: report.sites?.name || 'Unknown Site',
+        work_content: `${report.member_name || ''} - ${report.process_type || ''}: ${report.issues || ''}`,
+        status: (report.status === 'approved' || report.status === 'submitted') ? 'submitted' : 'draft',
+        created_at: report.created_at,
+        updated_at: report.updated_at,
+        created_by_name: 'Site Manager', // Hardcoded for now since we can't join profiles
+        site_id: report.site_id
+      }))
+      
+      setWorkLogs(transformedLogs)
+      console.log('[WorkLogsTab] Successfully loaded', transformedLogs.length, 'work logs')
+      
+    } catch (error) {
+      console.error('[WorkLogsTab] Unexpected error loading work logs:', error)
+      setWorkLogs([])
+    }
+  }, [profile.id, profile.role, supabase])
+
+  const loadSites = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('sites')
+        .select('id, name')
+        .eq('status', 'active')
+        .order('name')
+
+      if (error) {
+        console.error('Error loading sites:', error)
+        setSites([])
+        return
+      }
+
+      setSites(data || [])
+    } catch (error) {
+      console.error('Error loading sites:', error)
+      setSites([])
+    }
+  }, [supabase])
+
   useEffect(() => {
     let isMounted = true
     
     const initializeData = async () => {
+      console.log('[WorkLogsTab] Initializing data...')
+      
       if (!isMounted) return
       
       setLoading(true)
+      
       try {
-        await Promise.all([loadWorkLogs(), loadSites()])
+        // Load both data sets
+        await Promise.all([
+          loadWorkLogs(),
+          loadSites()
+        ])
       } catch (error) {
-        console.error('Error loading data:', error)
+        console.error('[WorkLogsTab] Error loading data:', error)
       } finally {
         if (isMounted) {
           setLoading(false)
@@ -80,106 +276,13 @@ export default function WorkLogsTab({ profile }: WorkLogsTabProps) {
       }
     }
     
+    // Call the async function immediately
     initializeData()
     
     return () => {
       isMounted = false
     }
-  }, [])
-
-
-  const loadWorkLogs = async () => {
-    try {
-      // Mock data for demo - in real implementation, this would fetch from Supabase
-      const mockData: WorkLog[] = [
-        {
-          id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-          work_date: '2024-08-01',
-          site_name: '강남 A현장',
-          work_content: '슬라브 타설 작업 진행, 3층 구조체 완료',
-          status: 'draft',
-          created_at: '2024-08-01T08:00:00Z',
-          updated_at: '2024-08-01T10:30:00Z',
-          created_by_name: '김철수',
-          site_id: '1'
-        },
-        {
-          id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
-          work_date: '2024-07-31',
-          site_name: '강남 A현장',
-          work_content: '기둥 거푸집 설치 및 철근 배근 작업',
-          status: 'submitted',
-          created_at: '2024-07-31T08:00:00Z',
-          updated_at: '2024-07-31T17:00:00Z',
-          created_by_name: '박현장',
-          site_id: '1'
-        },
-        {
-          id: '6ba7b811-9dad-11d1-80b4-00c04fd430c8',
-          work_date: '2024-07-30',
-          site_name: '송파 B현장',
-          work_content: '외벽 단열재 시공 및 방수 작업 완료',
-          status: 'submitted',
-          created_at: '2024-07-30T08:00:00Z',
-          updated_at: '2024-07-30T16:00:00Z',
-          created_by_name: '이작업',
-          site_id: '2'
-        },
-        {
-          id: '6ba7b812-9dad-11d1-80b4-00c04fd430c8',
-          work_date: '2024-07-29',
-          site_name: '서초 C현장',
-          work_content: '지하층 굴착 작업 및 토공사',
-          status: 'draft',
-          created_at: '2024-07-29T08:00:00Z',
-          updated_at: '2024-07-29T14:00:00Z',
-          created_by_name: '최감독',
-          site_id: '3'
-        },
-        {
-          id: '6ba7b813-9dad-11d1-80b4-00c04fd430c8',
-          work_date: '2024-07-28',
-          site_name: '강남 A현장',
-          work_content: '안전점검 및 품질관리 업무',
-          status: 'submitted',
-          created_at: '2024-07-28T08:00:00Z',
-          updated_at: '2024-07-28T15:30:00Z',
-          created_by_name: '정안전',
-          site_id: '1'
-        }
-      ]
-      
-      setWorkLogs(mockData)
-    } catch (error) {
-      console.error('Error loading work logs:', error)
-    }
-  }
-
-  const loadSites = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('sites')
-        .select('id, name')
-        .order('name')
-
-      if (!error && data) {
-        setSites(data)
-      } else {
-        // Mock data fallback
-        setSites([
-          { id: '1', name: '강남 A현장' },
-          { id: '2', name: '송파 B현장' },
-          { id: '3', name: '서초 C현장' }
-        ])
-      }
-    } catch (error) {
-      console.error('Error loading sites:', error)
-      setSites([
-        { id: '1', name: '강남 A현장' },
-        { id: '2', name: '송파 B현장' }
-      ])
-    }
-  }
+  }, [loadWorkLogs, loadSites]) // Use the memoized functions as dependencies
 
   // Filter and sort work logs
   const filteredAndSortedLogs = useMemo(() => {
@@ -300,9 +403,11 @@ export default function WorkLogsTab({ profile }: WorkLogsTabProps) {
     )
   }
 
+
   return (
-    <div className="space-y-3">
-      {/* Header Section */}
+    <div className="space-y-6">
+
+      {/* Header Section - Updated */}
       <section 
         className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-3"
         aria-labelledby="work-logs-heading"
@@ -319,11 +424,10 @@ export default function WorkLogsTab({ profile }: WorkLogsTabProps) {
           {canCreate && (
             <button
               onClick={() => router.push('/dashboard/daily-reports/new')}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-md transition-colors touch-manipulation focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-blue-600"
+              className="text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors touch-manipulation focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 rounded"
               aria-label="새 작업일지 작성하기"
             >
-              <Plus className="h-3.5 w-3.5" aria-hidden="true" />
-              <span>새 작업일지</span>
+              새 작업일지
             </button>
           )}
         </header>

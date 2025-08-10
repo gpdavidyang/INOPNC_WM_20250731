@@ -17,6 +17,23 @@ export interface Profile {
   updated_at: string
   last_login_at?: string | null
   login_count?: number | null
+  notification_preferences?: {
+    push_enabled?: boolean
+    material_approvals?: boolean
+    daily_report_reminders?: boolean
+    safety_alerts?: boolean
+    equipment_maintenance?: boolean
+    site_announcements?: boolean
+    quiet_hours_enabled?: boolean
+    quiet_hours_start?: string
+    quiet_hours_end?: string
+    sound_enabled?: boolean
+    vibration_enabled?: boolean
+    show_previews?: boolean
+    group_notifications?: boolean
+  } | null
+  push_subscription?: any | null
+  push_subscription_updated_at?: string | null
 }
 
 // 조직 타입
@@ -101,6 +118,17 @@ export interface CurrentUserSite {
   site_status: SiteStatus
   start_date: string
   end_date?: string | null
+  // Document fields
+  ptw_document_id?: string | null
+  ptw_document_title?: string | null
+  ptw_document_url?: string | null
+  ptw_document_filename?: string | null
+  ptw_document_mime_type?: string | null
+  blueprint_document_id?: string | null
+  blueprint_document_title?: string | null
+  blueprint_document_url?: string | null
+  blueprint_document_filename?: string | null
+  blueprint_document_mime_type?: string | null
 }
 
 // 사용자 현장 이력 (DB 함수 반환 타입)
@@ -140,6 +168,11 @@ export interface DailyReport {
   approved_at?: string | null
   created_at: string
   updated_at: string
+  // Join된 데이터
+  site?: {
+    id: string
+    name: string
+  } | null
 }
 
 // 작업자별 공수
@@ -160,18 +193,29 @@ export interface AttendanceRecord {
   user_id?: string | null
   site_id?: string | null
   work_date: string
+  date?: string // Added for client compatibility (same as work_date)
   check_in_time?: string | null
   check_out_time?: string | null
   work_hours?: number | null
   overtime_hours?: number | null
+  labor_hours?: number | null // 공수 (1.0 = 8 hours)
   status?: AttendanceStatus | null
   notes?: string | null
   created_at: string
   updated_at: string
+  // Joined fields from server actions
+  sites?: {
+    id: string
+    name: string
+  } | null
+  site_name?: string // Computed field for display
 }
 
 // 문서 타입
 export type DocumentType = 'personal' | 'shared' | 'blueprint' | 'report' | 'certificate' | 'other'
+
+// 사이트 문서 타입 (새로운 site_documents 테이블용)
+export type SiteDocumentType = 'ptw' | 'blueprint' | 'other'
 
 // 문서
 export interface Document {
@@ -275,6 +319,58 @@ export interface MarkupDocumentPermission {
   granted_by: string
   granted_at: string
   expires_at?: string
+}
+
+// 일반 문서 공유 권한
+export interface DocumentPermission {
+  id: string
+  document_id: string
+  user_id: string
+  permission_type: 'view' | 'edit' | 'admin'
+  granted_by: string
+  granted_at: string
+  expires_at?: string
+}
+
+// 현장 문서 (새로운 site_documents 테이블)
+export interface SiteDocument {
+  id: string
+  site_id: string
+  document_type: SiteDocumentType
+  file_name: string
+  file_url: string
+  file_size?: number | null
+  mime_type?: string | null
+  uploaded_by?: string | null
+  is_active: boolean
+  version: number
+  notes?: string | null
+  created_at: string
+  updated_at: string
+  // 조인된 정보
+  site?: {
+    id: string
+    name: string
+  } | null
+  uploader?: {
+    id: string
+    full_name: string
+    email: string
+  } | null
+}
+
+// 빠른 작업
+export interface QuickAction {
+  id: string
+  title: string
+  description?: string
+  icon_name: string
+  link_url: string
+  is_active: boolean
+  display_order: number
+  created_by?: string
+  created_at: string
+  updated_at: string
 }
 
 // Export module-specific types

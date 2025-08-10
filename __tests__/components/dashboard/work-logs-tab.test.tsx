@@ -46,10 +46,12 @@ describe('WorkLogsTab Component', () => {
   const mockSupabase = {
     from: jest.fn().mockReturnThis(),
     select: jest.fn().mockReturnThis(),
+    eq: jest.fn().mockReturnThis(),
+    limit: jest.fn().mockReturnThis(),
     order: jest.fn().mockResolvedValue({
       data: [
-        { id: '1', name: '강남 A현장' },
-        { id: '2', name: '송파 B현장' },
+        { id: 'test-site-1', name: 'Test Construction Site Alpha' },
+        { id: 'test-site-2', name: 'Test Construction Site Beta' },
       ],
       error: null,
     }),
@@ -69,13 +71,15 @@ describe('WorkLogsTab Component', () => {
       ...mockSupabase,
       from: jest.fn().mockReturnThis(),
       select: jest.fn().mockReturnThis(),
+      eq: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
       order: jest.fn().mockImplementation(() => {
         return new Promise(resolve => {
           setTimeout(() => {
             resolve({
               data: [
-                { id: '1', name: '강남 A현장' },
-                { id: '2', name: '송파 B현장' },
+                { id: 'test-site-1', name: 'Test Construction Site Alpha' },
+                { id: 'test-site-2', name: 'Test Construction Site Beta' },
               ],
               error: null,
             })
@@ -192,8 +196,8 @@ describe('WorkLogsTab Component', () => {
       })
       
       await waitFor(() => {
-        const gangnamSites = component.getAllByText(/강남 A현장/)
-        expect(gangnamSites.length).toBeGreaterThan(0)
+        const testSites = component.getAllByText(/Test Construction Site Alpha/)
+        expect(testSites.length).toBeGreaterThan(0)
       })
       
       // Open filters
@@ -210,20 +214,20 @@ describe('WorkLogsTab Component', () => {
       const siteSelects = component.getAllByTestId('custom-select')
       const siteSelect = siteSelects[0] // First select is for sites
       await actAsync(async () => {
-        fireEvent.change(siteSelect, { target: { value: '2' } })
+        fireEvent.change(siteSelect, { target: { value: 'test-site-2' } })
       })
       
       // Should only show logs from selected site
       await waitFor(() => {
-        // After filtering by site 2 (송파 B현장), we should see only those logs
-        const songpaLogs = component.queryAllByText(/송파 B현장/)
-        expect(songpaLogs.length).toBeGreaterThan(0)
+        // After filtering by site test-site-2 (Test Construction Site Beta), we should see only those logs
+        const betaLogs = component.queryAllByText(/Test Construction Site Beta/)
+        expect(betaLogs.length).toBeGreaterThan(0)
         
-        // And fewer 강남 A현장 logs than before (they should be filtered out)
-        const gangnamLogs = component.queryAllByText(/강남 A현장/)
-        // Since there might still be some 강남 logs in the site selector or other places,
+        // And fewer Alpha site logs than before (they should be filtered out)
+        const alphaLogs = component.queryAllByText(/Test Construction Site Alpha/)
+        // Since there might still be some Alpha logs in the site selector or other places,
         // we check that there are fewer than the original count
-        expect(gangnamLogs.length).toBeLessThanOrEqual(2) // Allow for some remaining in selectors
+        expect(alphaLogs.length).toBeLessThanOrEqual(2) // Allow for some remaining in selectors
       })
     })
 

@@ -3,51 +3,50 @@
 import { createClient } from '@/lib/supabase/server'
 
 export async function getSites() {
+  console.log('🔍 getSites called - starting execution')
+  
   try {
     const supabase = createClient()
     
+    // Step 1: Check authentication
     const { data: { user }, error: userError } = await supabase.auth.getUser()
     if (userError || !user) {
+      console.error('❌ Authentication failed in getSites:', userError)
       return { success: false, error: 'User not authenticated' }
     }
+    
+    console.log('✅ User authenticated:', user.id)
 
-    // Get user's profile to check organization
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single()
-
-    if (profileError || !profile) {
-      console.error('Profile query error:', profileError)
-      // Return all sites for now since we don't have proper role-based access set up
-      const { data: sites, error: sitesError } = await supabase
-        .from('sites')
-        .select('*')
-        .order('name', { ascending: true })
-      
-      if (sitesError) {
-        console.error('Error fetching sites:', sitesError)
-        return { success: false, error: sitesError.message }
-      }
-      
-      return { success: true, data: sites }
-    }
-
-    // For now, return all sites since role-based filtering isn't set up yet
-    const { data, error } = await supabase
+    // Step 2: Try to get sites with detailed logging
+    console.log('📍 Querying sites table...')
+    const { data: sites, error: sitesError } = await supabase
       .from('sites')
       .select('*')
       .order('name', { ascending: true })
 
-    if (error) {
-      console.error('Error fetching sites:', error)
-      return { success: false, error: error.message }
+    // Step 3: Log query results 
+    console.log('📊 Sites query result:', {
+      success: !sitesError,
+      sitesCount: sites?.length || 0,
+      error: sitesError?.message,
+      sites: sites?.map(s => ({ id: s.id, name: s.name })) || []
+    })
+
+    if (sitesError) {
+      console.error('❌ Database error in getSites:', sitesError)
+      return { success: false, error: sitesError.message }
     }
 
-    return { success: true, data }
+    // Step 4: Validate results
+    if (!sites || sites.length === 0) {
+      console.warn('⚠️ No sites found in database')
+      return { success: true, data: [] }
+    }
+
+    console.log('✅ Successfully fetched', sites.length, 'sites')
+    return { success: true, data: sites }
   } catch (error) {
-    console.error('Error in getSites:', error)
-    return { success: false, error: 'Failed to fetch sites' }
+    console.error('💥 Unexpected error in getSites:', error)
+    return { success: false, error: `Failed to fetch sites: ${error instanceof Error ? error.message : 'Unknown error'}` }
   }
 }

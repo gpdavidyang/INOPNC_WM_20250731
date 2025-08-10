@@ -19,6 +19,7 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '20')
     const search = searchParams.get('search')
+    const site = searchParams.get('site')
     const offset = (page - 1) * limit
     
     // 기본 쿼리 생성
@@ -38,6 +39,11 @@ export async function GET(request: NextRequest) {
     // 검색어 필터
     if (search) {
       query = query.ilike('title', `%${search}%`)
+    }
+    
+    // 현장 필터 (site 파라미터가 'all'이 아닌 경우에만 적용)
+    if (site && site !== 'all') {
+      query = query.eq('site_id', site)
     }
     
     // 페이지네이션

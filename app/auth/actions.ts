@@ -182,3 +182,81 @@ export async function signOut() {
   // Return success and let the client handle the redirect
   return { success: true }
 }
+
+export async function updatePassword(currentPassword: string, newPassword: string) {
+  const supabase = createClient()
+
+  // 먼저 현재 비밀번호로 재인증
+  const { data: { user }, error: userError } = await supabase.auth.getUser()
+  
+  if (userError || !user) {
+    return { success: false, error: '사용자를 찾을 수 없습니다.' }
+  }
+
+  // 현재 비밀번호로 재로그인 시도하여 검증
+  const { error: signInError } = await supabase.auth.signInWithPassword({
+    email: user.email!,
+    password: currentPassword,
+  })
+
+  if (signInError) {
+    return { success: false, error: '현재 비밀번호가 올바르지 않습니다.' }
+  }
+
+  // 새 비밀번호로 업데이트
+  const { error: updateError } = await supabase.auth.updateUser({
+    password: newPassword
+  })
+
+  if (updateError) {
+    return { success: false, error: updateError.message }
+  }
+
+  return { success: true }
+}
+
+export async function updateNotificationPreferences(preferences: any) {
+  const supabase = createClient()
+  
+  const { data: { user }, error: userError } = await supabase.auth.getUser()
+  
+  if (userError || !user) {
+    return { success: false, error: '사용자를 찾을 수 없습니다.' }
+  }
+
+  const { error } = await supabase
+    .from('profiles')
+    .update({ 
+      notification_preferences: preferences,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', user.id)
+
+  if (error) {
+    return { success: false, error: error.message }
+  }
+
+  return { success: true }
+}
+
+export async function requestPushPermission() {
+  if (!('Notification' in window)) {
+    return { success: false, error: '브라우저가 알림을 지원하지 않습니다.' }
+  }
+
+  if (Notification.permission === 'granted') {
+    return { success: true, permission: 'granted' }
+  }
+
+  if (Notification.permission === 'denied') {
+    return { success: false, error: '알림 권한이 거부되었습니다. 브라우저 설정에서 권한을 변경해주세요.' }
+  }
+
+  const permission = await Notification.requestPermission()
+  
+  if (permission === 'granted') {
+    return { success: true, permission: 'granted' }
+  } else {
+    return { success: false, error: '알림 권한이 거부되었습니다.' }
+  }
+}

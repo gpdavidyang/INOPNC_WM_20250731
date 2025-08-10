@@ -64,12 +64,12 @@ export function BlueprintUpload({ onImageUpload, currentImage, currentFileName, 
 
   if (currentImage) {
     return (
-      <div className={`flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg px-4 ${
+      <div className={`flex items-center justify-between bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-4 ${
         touchMode === 'glove' ? 'py-3' : touchMode === 'precision' ? 'py-1.5' : 'py-2'
       }`}>
         <div className="flex items-center gap-2">
-          <FileImage className="h-4 w-4 text-blue-600" />
-          <span className={`${getFullTypographyClass('body', 'sm', isLargeFont)} font-medium text-gray-700 truncate max-w-xs`}>
+          <FileImage className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+          <span className={`${getFullTypographyClass('body', 'sm', isLargeFont)} font-medium text-gray-700 dark:text-gray-300 truncate max-w-xs`}>
             {currentFileName}
           </span>
         </div>
@@ -81,7 +81,7 @@ export function BlueprintUpload({ onImageUpload, currentImage, currentFileName, 
             touchMode === 'glove' ? 'min-w-[56px] min-h-[56px]' : 
             touchMode === 'precision' ? 'min-w-[44px] min-h-[44px]' : 
             'min-w-[48px] min-h-[48px]'
-          } p-3 text-gray-500 hover:text-red-600 active:scale-95 transition-all duration-200 touch-manipulation focus-visible:ring-4 focus-visible:ring-red-500/50`}
+          } p-3 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 active:scale-95 transition-all duration-200 touch-manipulation focus-visible:ring-4 focus-visible:ring-red-500/50`}
         >
           <X className="h-5 w-5" />
         </Button>
@@ -105,20 +105,20 @@ export function BlueprintUpload({ onImageUpload, currentImage, currentFileName, 
         onDrop={handleDrop}
         className={`border-2 border-dashed rounded-lg ${
           touchMode === 'glove' ? 'p-8' : touchMode === 'precision' ? 'p-4' : 'p-6'
-        } text-center transition-colors cursor-pointer ${
+        } text-center transition-colors cursor-pointer bg-white dark:bg-gray-800 ${
           isDragOver
-            ? 'border-blue-500 bg-blue-50'
-            : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-400'
+            : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700/50'
         }`}
         onClick={() => fileInputRef.current?.click()}
       >
         <Upload className={`mx-auto h-12 w-12 mb-4 ${
-          isDragOver ? 'text-blue-500' : 'text-gray-400'
+          isDragOver ? 'text-blue-500 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500'
         }`} />
-        <h3 className={`${getFullTypographyClass('heading', 'lg', isLargeFont)} font-medium text-gray-900 mb-2`}>
+        <h3 className={`${getFullTypographyClass('heading', 'lg', isLargeFont)} font-medium text-gray-900 dark:text-gray-100 mb-2`}>
           도면 파일을 업로드하세요
         </h3>
-        <p className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-600 mb-4`}>
+        <p className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-600 dark:text-gray-400 mb-4`}>
           JPG, PNG, PDF 파일을 드래그하거나 클릭하여 선택하세요
         </p>
         <Button 
@@ -128,9 +128,9 @@ export function BlueprintUpload({ onImageUpload, currentImage, currentFileName, 
             touchMode === 'glove' ? 'min-h-[64px]' : 
             touchMode === 'precision' ? 'min-h-[48px]' : 
             'min-h-[56px]'
-          } px-6 py-3 font-medium active:scale-95 transition-all duration-200 touch-manipulation focus-visible:ring-4 focus-visible:ring-blue-500/50`}
+          } px-6 py-3 font-medium active:scale-95 transition-all duration-200 touch-manipulation focus-visible:ring-4 focus-visible:ring-blue-500/50 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-400 dark:hover:border-gray-500`}
         >
-          <FileImage className="h-5 w-5 mr-2" />
+          <FileImage className="h-5 w-5 mr-2 text-gray-600 dark:text-gray-400" />
           파일 선택
         </Button>
       </div>

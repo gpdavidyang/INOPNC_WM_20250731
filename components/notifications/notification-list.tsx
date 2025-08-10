@@ -45,64 +45,12 @@ export function NotificationList({ className, onNotificationClick }: Notificatio
       if (result.success && result.data) {
         setNotifications(result.data)
       } else {
-        // Mock 데이터로 임시 처리
-        const mockNotifications: NotificationExtended[] = [
-          {
-            id: '1',
-            user_id: 'user1',
-            type: 'info',
-            title: '새로운 작업일지가 제출되었습니다',
-            message: '강남 A현장에서 작업일지가 제출되었습니다. 확인해주세요.',
-            read: false,
-            created_at: new Date(Date.now() - 1000 * 60 * 30).toISOString(), // 30분 전
-            updated_at: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
-            action_url: '/dashboard/daily-reports',
-            metadata: {}
-          },
-          {
-            id: '2',
-            user_id: 'user1',
-            type: 'success',
-            title: '작업일지가 승인되었습니다',
-            message: '송파 B현장의 작업일지가 승인되었습니다.',
-            read: true,
-            read_at: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-            created_at: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString(), // 3시간 전
-            updated_at: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-            action_url: '/dashboard/daily-reports',
-            metadata: {}
-          },
-          {
-            id: '3',
-            user_id: 'user1',
-            type: 'warning',
-            title: '작업일지 제출 마감 임박',
-            message: '오늘의 작업일지를 아직 제출하지 않으셨습니다. 마감 시간이 1시간 남았습니다.',
-            read: false,
-            created_at: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(), // 5시간 전
-            updated_at: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(),
-            action_url: '/dashboard/daily-reports/new',
-            metadata: {}
-          }
-        ]
-        setNotifications(mockNotifications)
+        console.error('Failed to load notifications:', result.error)
+        setNotifications([])
       }
     } catch (error) {
-      // Mock 데이터 사용
-      const mockNotifications: NotificationExtended[] = [
-        {
-          id: '1',
-          user_id: 'user1',
-          type: 'info',
-          title: '시스템 공지사항',
-          message: '알림 기능이 준비 중입니다.',
-          read: false,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          metadata: {}
-        }
-      ]
-      setNotifications(mockNotifications)
+      console.error('Error loading notifications:', error)
+      setNotifications([])
     } finally {
       setLoading(false)
     }

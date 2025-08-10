@@ -75,8 +75,25 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
-    const body = await request.json()
+    
+    // Check if request has a body
+    const contentLength = request.headers.get('content-length')
+    if (!contentLength || contentLength === '0') {
+      return NextResponse.json({ error: 'Request body is required' }, { status: 400 })
+    }
+    
+    let body
+    try {
+      body = await request.json()
+    } catch (e) {
+      return NextResponse.json({ error: 'Invalid JSON in request body' }, { status: 400 })
+    }
     const { eventType, siteId, eventData } = body
+    
+    // Validate required fields
+    if (!eventType) {
+      return NextResponse.json({ error: 'eventType is required' }, { status: 400 })
+    }
     
     // Check if this is a RUM event (these can be anonymous)
     const isRumEvent = eventType.startsWith('rum_')

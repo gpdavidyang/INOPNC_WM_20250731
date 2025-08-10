@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { signIn } from '@/app/auth/actions'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter, useSearchParams } from 'next/navigation'
 
 export default function LoginPage() {
@@ -59,10 +60,15 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         {/* 로고 및 타이틀 */}
         <div className="text-center mb-8">
-          <div className="mx-auto w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center mb-4">
-            <span className="text-white text-2xl font-bold">IN</span>
+          <div className="mx-auto w-20 h-20 mb-4 flex items-center justify-center">
+            <Image
+              src="/INOPNC_logo.png"
+              alt="INOPNC 로고"
+              width={80}
+              height={80}
+              className="object-contain"
+            />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">INOPNC</h1>
           <p className="text-gray-600 mt-2">건설 작업일지 관리 시스템</p>
         </div>
 
@@ -172,6 +178,7 @@ export default function LoginPage() {
             <div className="space-y-1 text-xs text-gray-500">
               <p>작업자: worker@inopnc.com / password123</p>
               <p>현장관리자: manager@inopnc.com / password123</p>
+              <p>생산관리자: production@inopnc.com / password123</p>
               <p>파트너사: customer@partner.com / password123</p>
               <p>관리자: admin@inopnc.com / password123</p>
               <p>시스템관리자: system@inopnc.com / password123</p>

@@ -287,25 +287,70 @@ export function DailyReportDetailView({
           {/* Overview Tab */}
           {activeTab === 'overview' && (
             <div className="space-y-6">
+              {/* Work Content */}
+              <Card className="p-4">
+                <h3 className="font-semibold mb-3 flex items-center gap-2">
+                  <Wrench className="w-5 h-5 text-gray-600" />
+                  작업 내용
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <dt className="text-sm text-gray-600 mb-1">부재명</dt>
+                    <dd className="font-medium text-lg">{report.member_name || '-'}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm text-gray-600 mb-1">공정</dt>
+                    <dd className="font-medium text-lg">{report.process_type || '-'}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm text-gray-600 mb-1">작업구간</dt>
+                    <dd className="font-medium text-lg">{formData.work_section || '-'}</dd>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Worker Input - Individual Workers */}
+              <Card className="p-4">
+                <h3 className="font-semibold mb-3 flex items-center gap-2">
+                  <Users className="w-5 h-5 text-gray-600" />
+                  작업자 입력
+                </h3>
+                {(formData as any).workers && (formData as any).workers.length > 0 ? (
+                  <div className="space-y-3">
+                    {(formData as any).workers.map((worker: any, index: number) => (
+                      <div key={index} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <User className="w-5 h-5 text-gray-500" />
+                          <div>
+                            <p className="font-medium">{worker.name}</p>
+                            <p className="text-sm text-gray-600">{worker.position || '작업자'}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold text-lg">{worker.hours || 8}시간</p>
+                          <p className="text-sm text-gray-600">{(worker.hours || 8) / 8} 공수</p>
+                        </div>
+                      </div>
+                    ))}
+                    <div className="border-t pt-3 mt-3">
+                      <div className="flex justify-between items-center">
+                        <span className="font-semibold">총 작업인원: {(formData as any).workers.length}명</span>
+                        <span className="font-semibold text-lg">
+                          총 {(formData as any).workers.reduce((sum: number, worker: any) => sum + (worker.hours || 8), 0)}시간
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                    <span className="font-medium">총 작업인원</span>
+                    <span className="font-bold text-lg">{report.total_workers || 0}명</span>
+                  </div>
+                )}
+              </Card>
+
               {/* Basic Info */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card className="p-4">
-                  <h3 className="font-semibold mb-3">기본 정보</h3>
-                  <dl className="space-y-2">
-                    <div className="flex justify-between">
-                      <dt className="text-gray-600">부재명:</dt>
-                      <dd className="font-medium">{report.member_name}</dd>
-                    </div>
-                    <div className="flex justify-between">
-                      <dt className="text-gray-600">공정:</dt>
-                      <dd className="font-medium">{report.process_type}</dd>
-                    </div>
-                    <div className="flex justify-between">
-                      <dt className="text-gray-600">총 작업인원:</dt>
-                      <dd className="font-medium">{report.total_workers}명</dd>
-                    </div>
-                  </dl>
-                </Card>
 
                 <Card className="p-4">
                   <h3 className="font-semibold mb-3">날씨 정보</h3>
@@ -360,33 +405,6 @@ export function DailyReportDetailView({
                 </Card>
               </div>
 
-              {/* NPC-1000 Info */}
-              <Card className="p-4">
-                <h3 className="font-semibold mb-3 flex items-center gap-2">
-                  <Package className="w-5 h-5 text-gray-600" />
-                  NPC-1000 사용량
-                </h3>
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-green-600">
-                      {report.npc1000_incoming?.toLocaleString() || 0}
-                    </p>
-                    <p className="text-sm text-gray-600">입고량 (kg)</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-red-600">
-                      {report.npc1000_used?.toLocaleString() || 0}
-                    </p>
-                    <p className="text-sm text-gray-600">사용량 (kg)</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-blue-600">
-                      {report.npc1000_remaining?.toLocaleString() || 0}
-                    </p>
-                    <p className="text-sm text-gray-600">잔량 (kg)</p>
-                  </div>
-                </div>
-              </Card>
 
               {/* Issues */}
               {report.issues && (
@@ -601,12 +619,109 @@ export function DailyReportDetailView({
           {/* Photos Tab */}
           {activeTab === 'photos' && (
             <div className="space-y-6">
+              {/* Before Work Photos */}
               <Card className="p-4">
                 <h3 className="font-semibold mb-3 flex items-center gap-2">
-                  <Camera className="w-5 h-5 text-gray-600" />
-                  작업 사진
+                  <Camera className="w-5 h-5 text-blue-600" />
+                  작업전 사진
                 </h3>
-                <p className="text-gray-500">사진 기능은 준비 중입니다</p>
+                {(formData as any).before_photos && (formData as any).before_photos.length > 0 ? (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {(formData as any).before_photos.map((photo: any, index: number) => (
+                      <div key={index} className="relative group">
+                        <img
+                          src={photo.url || photo.path}
+                          alt={`작업전 사진 ${index + 1}`}
+                          className="w-full h-32 object-cover rounded-lg border cursor-pointer hover:opacity-75 transition-opacity"
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black bg-opacity-50 rounded-lg">
+                          <Button size="sm" variant="secondary">
+                            보기
+                          </Button>
+                        </div>
+                        {photo.description && (
+                          <p className="text-xs text-gray-600 mt-1 text-center truncate">
+                            {photo.description}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500">작업전 사진이 없습니다</p>
+                )}
+              </Card>
+
+              {/* After Work Photos */}
+              <Card className="p-4">
+                <h3 className="font-semibold mb-3 flex items-center gap-2">
+                  <Camera className="w-5 h-5 text-green-600" />
+                  작업후 사진
+                </h3>
+                {(formData as any).after_photos && (formData as any).after_photos.length > 0 ? (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {(formData as any).after_photos.map((photo: any, index: number) => (
+                      <div key={index} className="relative group">
+                        <img
+                          src={photo.url || photo.path}
+                          alt={`작업후 사진 ${index + 1}`}
+                          className="w-full h-32 object-cover rounded-lg border cursor-pointer hover:opacity-75 transition-opacity"
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black bg-opacity-50 rounded-lg">
+                          <Button size="sm" variant="secondary">
+                            보기
+                          </Button>
+                        </div>
+                        {photo.description && (
+                          <p className="text-xs text-gray-600 mt-1 text-center truncate">
+                            {photo.description}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500">작업후 사진이 없습니다</p>
+                )}
+              </Card>
+
+              {/* Receipts Section */}
+              <Card className="p-4">
+                <h3 className="font-semibold mb-3 flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-purple-600" />
+                  영수증 첨부
+                </h3>
+                {(formData as any).receipts && (formData as any).receipts.length > 0 ? (
+                  <div className="space-y-3">
+                    {(formData as any).receipts.map((receipt: any, index: number) => (
+                      <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <FileText className="w-8 h-8 text-gray-500" />
+                          <div>
+                            <p className="font-medium">{receipt.filename || `영수증_${index + 1}`}</p>
+                            <p className="text-sm text-gray-600">
+                              {receipt.amount && `₩${receipt.amount.toLocaleString()}`}
+                              {receipt.vendor && ` • ${receipt.vendor}`}
+                              {receipt.description && ` • ${receipt.description}`}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {receipt.date && format(new Date(receipt.date), 'yyyy.MM.dd')}
+                              {receipt.file_size && ` • ${(receipt.file_size / 1024).toFixed(1)}KB`}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline">
+                            <Download className="w-4 h-4 mr-1" />
+                            다운로드
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500">영수증이 없습니다</p>
+                )}
               </Card>
             </div>
           )}

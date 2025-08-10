@@ -17,18 +17,38 @@ class UIGuidelinesValidator {
     this.guidelines = UI_GUIDELINES;
     this.errors = [];
     this.warnings = [];
+    this.targetPath = process.argv[2] || 'components'; // 대상 경로 지정 가능
   }
 
   async validate() {
-    console.log(chalk.blue('🔍 UI Guidelines Validator v1.0'));
+    const isModuleValidation = this.targetPath !== 'components';
+    const validationScope = isModuleValidation ? `[${this.targetPath}]` : '[All Components]';
+    
+    console.log(chalk.blue(`🔍 UI Guidelines Validator v2.0 ${validationScope}`));
     console.log(chalk.gray(`Checking against UI Guidelines v${this.guidelines.version}\n`));
 
-    // 컴포넌트 파일 찾기
-    const componentFiles = glob.sync('components/**/*.tsx', {
+    // 컴포넌트 파일 찾기 - 경로 기반 필터링
+    let searchPattern;
+    if (this.targetPath === 'components') {
+      searchPattern = 'components/**/*.tsx';
+    } else {
+      searchPattern = `${this.targetPath}/**/*.tsx`;
+    }
+
+    const componentFiles = glob.sync(searchPattern, {
       ignore: ['**/*.test.tsx', '**/*.stories.tsx'],
     });
 
-    console.log(`Found ${componentFiles.length} component files to validate\n`);
+    const scopeDescription = isModuleValidation ? 
+      `${this.targetPath.replace('components/', '')} module` : 
+      'all components';
+    
+    console.log(`Found ${componentFiles.length} files in ${scopeDescription} to validate\n`);
+
+    if (componentFiles.length === 0) {
+      console.log(chalk.yellow(`No component files found in ${this.targetPath}`));
+      return;
+    }
 
     // 각 파일 검증
     for (const file of componentFiles) {
@@ -36,7 +56,7 @@ class UIGuidelinesValidator {
     }
 
     // 결과 출력
-    this.printResults();
+    this.printResults(scopeDescription);
   }
 
   async validateFile(filePath) {
@@ -238,38 +258,53 @@ class UIGuidelinesValidator {
     }
   }
 
-  printResults() {
-    console.log('\n' + chalk.bold('Validation Results:'));
-    console.log(chalk.gray('─'.repeat(50)));
+  printResults(scopeDescription = 'all components') {
+    console.log('\n' + chalk.bold(`Validation Results for ${scopeDescription}:`));
+    console.log(chalk.gray('─'.repeat(60)));
 
     if (this.errors.length === 0 && this.warnings.length === 0) {
-      console.log(chalk.green('✅ All components follow UI Guidelines!'));
+      console.log(chalk.green(`✅ All components in ${scopeDescription} follow UI Guidelines!`));
+      
+      // 모듈 검증일 경우 다음 단계 제안
+      if (scopeDescription !== 'all components') {
+        console.log(chalk.blue('\n📝 Next steps:'));
+        console.log(chalk.gray('  - Continue implementing other modules'));
+        console.log(chalk.gray('  - Run full validation when all modules complete: npm run validate:ui:full'));
+      }
       return;
     }
 
     // 에러 출력
     if (this.errors.length > 0) {
-      console.log(chalk.red(`\n❌ Errors (${this.errors.length}):`));
+      console.log(chalk.red(`\n❌ Errors in ${scopeDescription} (${this.errors.length}):`));
       this.errors.forEach(error => {
-        console.log(chalk.red(`  • ${error.file}`));
+        console.log(chalk.red(`  • ${error.file.replace('components/', '')}`));
         console.log(chalk.red(`    [${error.type}] ${error.message}`));
       });
     }
 
     // 경고 출력
     if (this.warnings.length > 0) {
-      console.log(chalk.yellow(`\n⚠️  Warnings (${this.warnings.length}):`));
+      console.log(chalk.yellow(`\n⚠️  Warnings in ${scopeDescription} (${this.warnings.length}):`));
       this.warnings.forEach(warning => {
-        console.log(chalk.yellow(`  • ${warning.file}`));
+        console.log(chalk.yellow(`  • ${warning.file.replace('components/', '')}`));
         console.log(chalk.yellow(`    [${warning.type}] ${warning.message}`));
       });
     }
 
     // 요약
-    console.log('\n' + chalk.gray('─'.repeat(50)));
+    console.log('\n' + chalk.gray('─'.repeat(60)));
     console.log(chalk.bold('Summary:'));
+    console.log(`  Scope: ${scopeDescription}`);
     console.log(`  Errors: ${chalk.red(this.errors.length)}`);
     console.log(`  Warnings: ${chalk.yellow(this.warnings.length)}`);
+
+    // 수정 제안
+    if (this.errors.length > 0 || this.warnings.length > 0) {
+      console.log(chalk.blue('\n🔧 Quick fixes:'));
+      console.log(chalk.gray('  - Auto-fix issues: npm run ui:fix'));
+      console.log(chalk.gray(`  - Re-validate module: npm run validate:ui:${scopeDescription.split(' ')[0]}`));
+    }
 
     // 에러가 있으면 실패
     if (this.errors.length > 0) {

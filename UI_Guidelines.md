@@ -454,10 +454,10 @@ All information and UI components must be presentable to users in ways they can 
 .text-accessible-large { font-size: 18px; line-height: 1.4; } /* Large text */
 .text-accessible-caption { font-size: 14px; line-height: 1.6; } /* Minimum for UI text */
 
-/* Large font mode (125% scaling) */
-.large-font-mode .text-accessible-base { font-size: 20px; }
-.large-font-mode .text-accessible-large { font-size: 22px; }
-.large-font-mode .text-accessible-caption { font-size: 18px; }
+/* Large font mode (150% scaling) */
+.large-font-mode .text-accessible-base { font-size: 24px; }
+.large-font-mode .text-accessible-large { font-size: 28px; }
+.large-font-mode .text-accessible-caption { font-size: 21px; }
 ```
 
 ##### Visual Indicators

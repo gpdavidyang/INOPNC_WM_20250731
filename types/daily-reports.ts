@@ -8,6 +8,7 @@ export interface DailyReportFormData {
   work_date: string
   member_name: string
   process_type: string
+  work_section?: string
   total_workers: number
   npc1000_incoming: number
   npc1000_used: number
@@ -22,6 +23,10 @@ export interface DailyReportFormData {
   material_usage?: MaterialUsageData[]
   subcontractor_workers?: SubcontractorWorkerData[]
   partner_companies?: PartnerCompanyWorkerData[]
+  workers?: WorkerData[]
+  before_photos?: PhotoData[]
+  after_photos?: PhotoData[]
+  receipts?: ReceiptData[]
 }
 
 export interface WeatherData {
@@ -123,4 +128,36 @@ export interface FileUploadData {
   file: File
   type: 'before' | 'progress' | 'after' | 'document'
   description?: string
+}
+
+export interface WorkerData {
+  id?: string
+  name: string
+  position?: string
+  hours: number
+  notes?: string
+}
+
+export interface PhotoData {
+  id?: string
+  url?: string
+  path?: string
+  filename: string
+  description?: string
+  type: 'before' | 'after' | 'progress'
+  file_size?: number
+  uploaded_at?: string
+}
+
+export interface ReceiptData {
+  id?: string
+  filename: string
+  url?: string
+  path?: string
+  amount?: number
+  vendor?: string
+  description?: string
+  date?: string
+  file_size?: number
+  uploaded_at?: string
 }

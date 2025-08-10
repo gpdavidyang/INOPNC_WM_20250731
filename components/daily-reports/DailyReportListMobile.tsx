@@ -23,7 +23,9 @@ import {
   AlertCircle,
   X,
   Building2,
-  FileText
+  FileText,
+  Eye,
+  Edit
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
@@ -267,42 +269,48 @@ export function DailyReportListMobile({ currentUser, sites = [] }: DailyReportLi
                   </Link>
                 </div>
 
-                {/* Info Grid */}
-                <div className="grid grid-cols-2 gap-2 mb-2">
-                  <div className="text-center bg-gray-50 dark:bg-gray-700 rounded-lg p-1.5">
-                    <div className="text-xs text-gray-600 dark:text-gray-400">작업자</div>
-                    <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{report.total_workers || 0}명</div>
-                  </div>
-                  <div className="text-center bg-gray-50 dark:bg-gray-700 rounded-lg p-1.5">
-                    <div className="text-xs text-gray-600 dark:text-gray-400">공정</div>
-                    <div className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{report.process_type || '-'}</div>
-                  </div>
+
+                {/* Work Content */}
+                <div className="space-y-1 mb-2">
+                  {/* 작업내용 표시 */}
+                  {(report.member_name || report.process_type) && (
+                    <div className="text-xs text-gray-600 dark:text-gray-400">
+                      <span className="text-gray-700 dark:text-gray-300 font-medium">
+                        작업내용1: {[
+                          report.member_name,
+                          report.process_type
+                        ].filter(Boolean).join(', ')}
+                      </span>
+                    </div>
+                  )}
+                  
+                  {/* 작업자 정보 표시 */}
+                  {report.total_workers && report.total_workers > 0 && (
+                    <div className="text-xs text-gray-600 dark:text-gray-400">
+                      <span className="text-gray-700 dark:text-gray-300 font-medium">
+                        총 작업자: {report.total_workers}명
+                      </span>
+                    </div>
+                  )}
                 </div>
 
-                {/* Issues */}
-                {report.issues && (
-                  <div className="flex items-start gap-1 mb-2">
-                    <AlertCircle className="h-3 w-3 text-orange-500 mt-0.5 flex-shrink-0" />
-                    <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">{report.issues}</p>
-                  </div>
-                )}
 
                 {/* Actions */}
                 <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-700">
                   <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
                     <Clock className="h-3 w-3" />
-                    <span>{format(new Date(report.created_at), 'HH:mm')}</span>
+                    <span>{format(new Date(report.created_at), 'yyyy.MM.dd HH:mm')}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Link href={`/dashboard/daily-reports/${report.id}`}>
-                      <Button variant="ghost" size="sm" className="h-7 px-2 text-xs">
-                        상세보기
+                      <Button variant="ghost" size="compact" className="h-7 w-7 p-0">
+                        <Eye className="h-4 w-4" />
                       </Button>
                     </Link>
                     {canEdit && (
                       <Link href={`/dashboard/daily-reports/${report.id}/edit`}>
-                        <Button variant="ghost" size="sm" className="h-7 px-2 text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400">
-                          편집
+                        <Button variant="ghost" size="compact" className="h-7 w-7 p-0 text-blue-600 hover:text-blue-700 dark:text-blue-400">
+                          <Edit className="h-4 w-4" />
                         </Button>
                       </Link>
                     )}

@@ -14,11 +14,82 @@ The following files contain critical authentication and cookie handling logic th
 - `/middleware.ts` - Session refresh and authentication flow
 - `/app/auth/actions.ts` - Server actions with success/error returns (NO redirects)
 
-Before modifying ANY of these files, you MUST:
-1. Run `npm run test:critical` to verify current state
-2. Explain why the change is necessary
-3. Create a backup with `npm run snapshot:save "reason"`
-4. Get explicit user confirmation
+# Before modifying ANY of these files, you MUST:
+# 1. Run `npm run test:critical` to verify current state
+# 2. Explain why the change is necessary
+# 3. Create a backup with `npm run snapshot:save "reason"`
+# 4. Get explicit user confirmation
+
+Only run `npm run test:critical` and `npm run snapshot:save` before major structural changes 
+(e.g., core logic, DB schema). Minor changes like text, styles, or logging do not require this.
+
+## Development Testing Strategy
+
+### 🚀 Fast Development Mode (Recommended)
+For faster development, use **module/page-level testing** instead of testing every small change:
+
+#### Implementation Phase
+- Focus on implementation without running tests
+- Only run `npm run build` to check for compile errors
+- Quick visual check in browser when needed
+
+#### Testing Phase (After module completion)
+```bash
+# Module-level testing
+npm run test:unit                    # Unit tests for completed modules
+npm run test:integration            # Integration tests for related features
+npm run test:attendance            # Specific module testing (example)
+
+# Page-level testing
+npm run test:e2e -- dashboard      # E2E tests for specific pages
+npm run test:e2e -- auth          # Authentication workflow tests
+
+# Component-level testing
+npm run test -- attendance         # Jest tests for specific components
+npm run test -- daily-reports     # Jest tests for specific features
+```
+
+#### Benefits
+- **2-3x faster development**: No interruptions during implementation
+- **Better focus**: Maintain concentration on coding
+- **Efficient debugging**: Test related features together
+- **Comprehensive validation**: More thorough testing when done in batches
+
+### 🎨 UI Guidelines Validation Strategy
+
+#### Implementation Phase (Skip UI Validation)
+- Focus on functionality and logic implementation
+- Only run `npm run build` for compile error checks
+- Visual verification in browser when needed
+
+#### Module Completion (Batch UI Validation)
+```bash
+# Module-specific UI validation
+npm run validate:ui:attendance  # Attendance module only
+npm run validate:ui:reports     # Daily reports module only
+npm run validate:ui:documents   # Document management module only
+npm run validate:ui:admin       # Admin dashboard module only
+
+# Component-specific validation
+npm run validate:ui -- components/attendance  # Specific folder
+npm run validate:ui -- components/daily-reports
+```
+
+#### Page Completion (Comprehensive UI Review)
+```bash
+# Full page validation
+npm run validate:ui:full        # All components validation
+npm run ui:fix                  # Auto-fix common UI issues
+npm run task:ui-review          # Generate UI review checklist
+```
+
+#### UI Validation Benefits
+- **Focused validation**: Check only completed modules
+- **Batch processing**: More efficient than one-by-one validation  
+- **Contextual feedback**: UI issues grouped by feature
+- **Better debugging**: Related UI problems solved together
+- **2-3x faster development**: No UI validation interruptions during implementation
+- **Higher quality results**: More thorough validation when done in batches
 
 ## Development Commands
 

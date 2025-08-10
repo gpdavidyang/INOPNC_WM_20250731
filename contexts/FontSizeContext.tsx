@@ -94,14 +94,14 @@ export function getFullTypographyClass(
   isLargeFont: boolean
 ): string {
   const sizeMap = {
-    xs: isLargeFont ? 'text-sm' : 'text-xs',
-    sm: isLargeFont ? 'text-base' : 'text-sm', 
-    base: isLargeFont ? 'text-lg' : 'text-base',
-    lg: isLargeFont ? 'text-xl' : 'text-lg',
-    xl: isLargeFont ? 'text-2xl' : 'text-xl',
-    '2xl': isLargeFont ? 'text-3xl' : 'text-2xl',
-    '3xl': isLargeFont ? 'text-4xl' : 'text-3xl',
-    '4xl': isLargeFont ? 'text-5xl' : 'text-4xl'
+    xs: isLargeFont ? 'text-base' : 'text-xs',
+    sm: isLargeFont ? 'text-lg' : 'text-sm', 
+    base: isLargeFont ? 'text-xl' : 'text-base',
+    lg: isLargeFont ? 'text-2xl' : 'text-lg',
+    xl: isLargeFont ? 'text-3xl' : 'text-xl',
+    '2xl': isLargeFont ? 'text-4xl' : 'text-2xl',
+    '3xl': isLargeFont ? 'text-5xl' : 'text-3xl',
+    '4xl': isLargeFont ? 'text-6xl' : 'text-4xl'
   }
 
   const weightMap = {
@@ -129,14 +129,14 @@ export function getTypographyClass(
   const actualSize = sizeMapping[size] || size
   
   const sizeMap = {
-    xs: isLargeFont ? 'text-sm' : 'text-xs',
-    sm: isLargeFont ? 'text-base' : 'text-sm', 
-    base: isLargeFont ? 'text-lg' : 'text-base',
-    lg: isLargeFont ? 'text-xl' : 'text-lg',
-    xl: isLargeFont ? 'text-2xl' : 'text-xl',
-    '2xl': isLargeFont ? 'text-3xl' : 'text-2xl',
-    '3xl': isLargeFont ? 'text-4xl' : 'text-3xl',
-    '4xl': isLargeFont ? 'text-5xl' : 'text-4xl'
+    xs: isLargeFont ? 'text-base' : 'text-xs',
+    sm: isLargeFont ? 'text-lg' : 'text-sm', 
+    base: isLargeFont ? 'text-xl' : 'text-base',
+    lg: isLargeFont ? 'text-2xl' : 'text-lg',
+    xl: isLargeFont ? 'text-3xl' : 'text-xl',
+    '2xl': isLargeFont ? 'text-4xl' : 'text-2xl',
+    '3xl': isLargeFont ? 'text-5xl' : 'text-3xl',
+    '4xl': isLargeFont ? 'text-6xl' : 'text-4xl'
   }
   
   return sizeMap[actualSize as keyof typeof sizeMap] || sizeMap.base

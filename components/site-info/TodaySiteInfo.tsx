@@ -149,10 +149,10 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
 
           {/* Accommodation if exists */}
           {siteInfo.accommodation && (
-            <div className="space-y-1 text-sm">
+            <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <Home className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                <span className="font-medium text-gray-900 dark:text-gray-100">숙소</span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">숙소</span>
                 <div className="flex-1"></div>
                 <button
                   onClick={() => copyToClipboard(siteInfo.accommodation!.full_address, '숙소주소')}
@@ -163,12 +163,12 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
                 </button>
                 <button
                   onClick={() => openTMap(siteInfo.accommodation!.full_address, '숙소')}
-                  className="px-2 py-1 text-xs bg-gray-50 text-gray-600 hover:bg-gray-100 rounded transition-colors"
+                  className="px-2 py-1 text-xs font-medium bg-gray-50 text-gray-600 hover:bg-gray-100 rounded transition-colors"
                 >
                   T맵
                 </button>
               </div>
-              <div className="pl-6 text-gray-600 dark:text-gray-400">
+              <div className="pl-6 text-sm text-gray-600 dark:text-gray-400">
                 {siteInfo.accommodation.full_address}
               </div>
             </div>
@@ -182,7 +182,7 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
                 <div key={index} className="space-y-1 text-sm">
                   <div className="flex items-center gap-2">
                     <User className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                    <span className="font-medium text-gray-900 dark:text-gray-100">건축관리자</span>
+                    <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">건축관리자</span>
                     <div className="flex-1"></div>
                     <button
                       onClick={() => copyToClipboard(manager.phone, '전화번호')}
@@ -209,7 +209,7 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
                 <div key={index} className="space-y-1 text-sm">
                   <div className="flex items-center gap-2">
                     <ShieldCheck className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                    <span className="font-medium text-gray-900 dark:text-gray-100">안전관리자</span>
+                    <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">안전관리자</span>
                     <div className="flex-1"></div>
                     <button
                       onClick={() => copyToClipboard(manager.phone, '전화번호')}
@@ -237,7 +237,7 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
           {/* Work Details */}
           <div className="flex items-center gap-2 text-sm">
             <Wrench className="h-4 w-4 text-gray-400 flex-shrink-0" />
-            <span className="font-medium text-gray-900 dark:text-gray-100">작업내용</span>
+            <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">작업내용</span>
             <span className="text-gray-600 dark:text-gray-400 flex-1 ml-2">
               {siteInfo.process.work_process} • {siteInfo.process.work_section}
             </span>
@@ -246,7 +246,7 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
           {/* Blueprint Document */}
           <div className="flex items-center gap-2 text-sm">
             <Map className="h-4 w-4 text-gray-400 flex-shrink-0" />
-            <span className="font-medium text-gray-900 dark:text-gray-100">현장 공도면</span>
+            <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">현장 공도면</span>
             <div className="flex-1"></div>
             <button
               onClick={() => setShowBlueprintModal(true)}
@@ -260,7 +260,7 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
           {/* PTW Document Preview */}
           <div className="flex items-center gap-2 text-sm">
             <FileText className="h-4 w-4 text-gray-400 flex-shrink-0" />
-            <span className="font-medium text-gray-900 dark:text-gray-100">PTW (작업허가서)</span>
+            <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">PTW (작업허가서)</span>
             <div className="flex-1"></div>
             <button
               onClick={() => setShowPTWModal(true)}
@@ -279,7 +279,7 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
           <div className="bg-white dark:bg-gray-800 rounded-t-2xl sm:rounded-xl shadow-xl w-full sm:max-w-lg max-h-[85vh] sm:max-h-[90vh] overflow-hidden animate-slide-up sm:animate-none">
             {/* Modal Header */}
             <div className="flex items-center justify-between p-4 sm:p-5 border-b border-gray-200 dark:border-gray-700">
-              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                 도면 - 강남 A현장
               </h3>
               <button
@@ -299,10 +299,10 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
                     <Map className="h-6 w-6 sm:h-8 sm:w-8 text-gray-600 dark:text-gray-400" />
                   </div>
                   <div className="flex-1">
-                    <h4 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                       지하 1층 구간 도면
                     </h4>
-                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
                       도면번호: BP-2025-{siteInfo.id?.slice(0, 8)}
                     </p>
                   </div>
@@ -312,29 +312,29 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">작업장소</p>
-                      <p className="text-sm sm:text-base font-medium text-gray-900 dark:text-gray-100">
+                      <p className="text-sm text-gray-500 dark:text-gray-400">작업장소</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                         {siteInfo.name}
                       </p>
                     </div>
                     <div className="space-y-1">
-                      <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">작업일자</p>
-                      <p className="text-sm sm:text-base font-medium text-gray-900 dark:text-gray-100">
+                      <p className="text-sm text-gray-500 dark:text-gray-400">작업일자</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                         {new Date().toLocaleDateString('ko-KR')}
                       </p>
                     </div>
                   </div>
                   
                   <div className="space-y-1">
-                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">작업내용</p>
-                    <p className="text-sm sm:text-base font-medium text-gray-900 dark:text-gray-100">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">작업내용</p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                       {siteInfo.process.work_process} - {siteInfo.process.work_section}
                     </p>
                   </div>
                   
                   <div className="space-y-1">
-                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">작업자</p>
-                    <p className="text-sm sm:text-base font-medium text-gray-900 dark:text-gray-100">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">작업자</p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                       {siteInfo.process.member_name}
                     </p>
                   </div>
@@ -401,7 +401,7 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
         <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm pb-16 sm:pb-0">
           <div className="bg-white dark:bg-gray-800 rounded-t-2xl sm:rounded-xl shadow-xl w-full sm:max-w-lg max-h-[85vh] sm:max-h-[90vh] overflow-hidden animate-slide-up sm:animate-none">
             <div className="flex items-center justify-between p-4 sm:p-5 border-b border-gray-200 dark:border-gray-700">
-              <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                 PTW 작업허가서
               </h3>
               <button
@@ -420,10 +420,10 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
                     <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-gray-600 dark:text-gray-400" />
                   </div>
                   <div className="flex-1">
-                    <h4 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                       작업허가서 (Permit To Work)
                     </h4>
-                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
                       문서번호: PTW-2025-{siteInfo.id?.slice(0, 8)}
                     </p>
                   </div>
@@ -432,29 +432,29 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">작업장소</p>
-                      <p className="text-sm sm:text-base font-medium text-gray-900 dark:text-gray-100">
+                      <p className="text-sm text-gray-500 dark:text-gray-400">작업장소</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                         {siteInfo.name}
                       </p>
                     </div>
                     <div className="space-y-1">
-                      <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">작업일자</p>
-                      <p className="text-sm sm:text-base font-medium text-gray-900 dark:text-gray-100">
+                      <p className="text-sm text-gray-500 dark:text-gray-400">작업일자</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                         {new Date().toLocaleDateString('ko-KR')}
                       </p>
                     </div>
                   </div>
                   
                   <div className="space-y-1">
-                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">작업내용</p>
-                    <p className="text-sm sm:text-base font-medium text-gray-900 dark:text-gray-100">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">작업내용</p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                       {siteInfo.process.work_process} - {siteInfo.process.work_section}
                     </p>
                   </div>
                   
                   <div className="space-y-1">
-                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">작업자</p>
-                    <p className="text-sm sm:text-base font-medium text-gray-900 dark:text-gray-100">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">작업자</p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                       {siteInfo.process.member_name}
                     </p>
                   </div>

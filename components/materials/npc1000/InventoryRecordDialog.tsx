@@ -168,15 +168,20 @@ export default function InventoryRecordDialog({
         recorded_at: new Date().toISOString()
       }
 
-      // This would typically involve:
-      // 1. Insert into npc1000_daily_records or similar table
-      // 2. Update material inventory levels
-      // 3. Create audit trail
-      
-      // For now, we'll simulate success
-      console.log('Inventory record:', recordData)
-      
       const actionText = activeTab === 'incoming' ? '입고' : '출고'
+      
+      // Create material transaction using server action
+      const transactionResult = await createMaterialTransaction({
+        transaction_type: activeTab === 'incoming' ? 'in' : 'out',
+        site_id: siteId,
+        material_id: selectedMaterial,
+        quantity: quantityNum,
+        notes: `${actionText} 기록 - ${material.material_name}${notes ? ' | ' + notes : ''}${supplier ? ' | 공급업체: ' + supplier : ''}`
+      })
+
+      if (!transactionResult.success) {
+        throw new Error(transactionResult.error || '거래 기록에 실패했습니다.')
+      }
       toast.success(`${actionText} 기록이 성공적으로 저장되었습니다.`)
       
       onSuccess?.()

@@ -176,11 +176,12 @@ export function MaterialRequests({ materials, currentUser, currentSite }: Materi
 
   const handleCreateRequest = async () => {
     try {
-      // Get current user from session
-      const { data: { user } } = await (await fetch('/api/auth/user')).json()
-      
       const result = await createMaterialRequest({
-        ...requestForm
+        site_id: requestForm.site_id,
+        priority: requestForm.priority,
+        needed_by: requestForm.required_date, // Map required_date to needed_by
+        notes: requestForm.notes,
+        items: requestForm.items
       })
 
       if (result.success) {

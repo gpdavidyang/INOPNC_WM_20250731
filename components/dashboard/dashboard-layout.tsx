@@ -52,55 +52,58 @@ export default function DashboardLayout({ user, profile, children, initialActive
     } else if (pathname === '/dashboard') {
       setActiveTab('home')
     }
-  }, [pathname, children])
+  }, [pathname]) // ✅ Removed children dependency
 
   // Handle tab changes when children are provided (dedicated pages)
   useEffect(() => {
-    if (children && activeTab !== initialActiveTab) {
-      // When activeTab changes and we have children (dedicated page), navigate to appropriate route
-      // But don't navigate if we're already on the correct page
-      switch (activeTab) {
-        case 'home':
-          if (pathname !== '/dashboard') {
-            router.push('/dashboard')
-          }
-          break
-        case 'daily-reports':
-          // Don't navigate if we're on a daily-reports sub-page (like /new)
-          if (!pathname.includes('/dashboard/daily-reports')) {
-            router.push('/dashboard/daily-reports')
-          }
-          break
-        case 'attendance':
-          if (pathname !== '/dashboard/attendance') {
-            router.push('/dashboard/attendance')
-          }
-          break
-        case 'documents-unified':
-        case 'documents':
-          if (!pathname.includes('/dashboard/documents')) {
-            router.push('/dashboard/documents')
-          }
-          break
-        case 'shared-documents':
-          if (pathname !== '/dashboard/documents' || !window.location.search.includes('tab=shared')) {
-            router.push('/dashboard/documents?tab=shared')
-          }
-          break
-        case 'site-info':
-          // Don't navigate if we're already on site-info page
-          if (!pathname.includes('/dashboard/site-info')) {
-            router.push('/dashboard/site-info')
-          }
-          break
-        case 'blueprint-markup':
-          if (!window.location.search.includes('tab=markup')) {
-            router.push('/dashboard/documents?tab=markup')
-          }
-          break
-      }
+    // Only run this effect when we have children (dedicated pages) and tab actually changed
+    if (!children || activeTab === initialActiveTab) {
+      return
     }
-  }, [activeTab, children, initialActiveTab, router, pathname])
+
+    // When activeTab changes and we have children (dedicated page), navigate to appropriate route
+    // But don't navigate if we're already on the correct page
+    switch (activeTab) {
+      case 'home':
+        if (pathname !== '/dashboard') {
+          router.push('/dashboard')
+        }
+        break
+      case 'daily-reports':
+        // Don't navigate if we're on a daily-reports sub-page (like /new)
+        if (!pathname.includes('/dashboard/daily-reports')) {
+          router.push('/dashboard/daily-reports')
+        }
+        break
+      case 'attendance':
+        if (pathname !== '/dashboard/attendance') {
+          router.push('/dashboard/attendance')
+        }
+        break
+      case 'documents-unified':
+      case 'documents':
+        if (!pathname.includes('/dashboard/documents')) {
+          router.push('/dashboard/documents')
+        }
+        break
+      case 'shared-documents':
+        if (pathname !== '/dashboard/documents' || !window.location.search.includes('tab=shared')) {
+          router.push('/dashboard/documents?tab=shared')
+        }
+        break
+      case 'site-info':
+        // Don't navigate if we're already on site-info page
+        if (!pathname.includes('/dashboard/site-info')) {
+          router.push('/dashboard/site-info')
+        }
+        break
+      case 'blueprint-markup':
+        if (!window.location.search.includes('tab=markup')) {
+          router.push('/dashboard/documents?tab=markup')
+        }
+        break
+    }
+  }, [activeTab, pathname]) // ✅ Removed children, initialActiveTab, and router dependencies
 
   // Handle case where profile is not loaded yet
   if (!profile) {

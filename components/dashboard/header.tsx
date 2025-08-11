@@ -9,7 +9,7 @@ import { ProfileDropdown } from '@/components/ui/profile-dropdown'
 
 interface HeaderProps {
   profile: Profile
-  onMenuClick: () => void
+  onMenuClick?: () => void
   isSidebarOpen?: boolean
 }
 

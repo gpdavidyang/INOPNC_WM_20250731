@@ -88,9 +88,7 @@ export default async function DailyReportDetailPage({
       <div className="lg:hidden">
         {/* Header 섹션 추가 */}
         <Header 
-          profile={profile as any} 
-          onMenuClick={() => {}} 
-          isSidebarOpen={false}
+          profile={profile as any}
         />
         <DailyReportDetailMobile
           report={report as any}
@@ -132,7 +130,9 @@ export default async function DailyReportDetailPage({
         {/* Main Content */}
         <div className="ml-64">
           {/* Header */}
-          <Header user={user} profile={profile as any} />
+          <Header 
+            profile={profile as any}
+          />
           
           {/* Page Content */}
           <main className="p-6">

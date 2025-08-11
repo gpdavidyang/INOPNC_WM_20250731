@@ -36,72 +36,7 @@
           2
         ],
         "status": "done",
-        "subtasks": [
-          {
-            "id": 1,
-            "title": "Set up Service Worker with Web Push API Integration",
-            "description": "Create and configure service worker to handle push notifications using Web Push API",
-            "dependencies": [],
-            "details": "Extend the existing service worker from Task 2 to include push notification handling. Implement push event listener to receive and display notifications. Add notificationclick event handler for user interactions. Configure service worker to handle background notifications when app is closed. Implement notification badge updates and silent notification processing. Set up proper service worker lifecycle management for push notifications.",
-            "status": "done",
-            "testStrategy": "Test push event handling in service worker using Chrome DevTools. Verify notifications display correctly when app is in foreground, background, and closed states. Test notification click handlers and deep linking. Validate badge updates work across different browsers. Test silent notifications update app state without user disturbance."
-          },
-          {
-            "id": 2,
-            "title": "Create Notification Permission Flow and UI",
-            "description": "Design and implement user-friendly notification permission request flow with clear value proposition",
-            "dependencies": [],
-            "details": "Create notification permission component with compelling value proposition explaining benefits (instant material approvals, safety alerts, work reminders). Implement progressive permission strategy - ask after user engagement, not on first visit. Design permission UI that matches app's construction theme. Handle permission states: default, granted, denied with appropriate messaging. Create re-engagement strategy for users who initially deny. Store permission preferences in user profile.",
-            "status": "done",
-            "testStrategy": "Test permission flow on fresh browser profiles. Verify permission UI appears at appropriate times based on user engagement. Test all permission states and transitions. Validate permission persistence across sessions. Test re-engagement flow for denied permissions. Verify UI displays correctly on mobile and desktop."
-          },
-          {
-            "id": 3,
-            "title": "Implement Server-side Push Notification Service",
-            "description": "Set up backend infrastructure for sending push notifications using Supabase Edge Functions or external service",
-            "dependencies": [
-              "3.1"
-            ],
-            "details": "Evaluate and choose between Supabase Edge Functions vs external services (OneSignal/FCM) based on scalability and cost. Implement VAPID key generation and management. Create notification sending API endpoints with authentication. Set up notification queue system for reliable delivery. Implement retry logic for failed notifications. Create notification templates for different types. Set up notification analytics and delivery tracking. Handle subscription management and cleanup for expired endpoints.",
-            "status": "done",
-            "testStrategy": "Test notification sending API with various payloads. Verify authentication and authorization for API endpoints. Test notification delivery to multiple devices/browsers. Validate retry mechanism for failed deliveries. Test subscription cleanup for expired endpoints. Monitor delivery rates and latency metrics."
-          },
-          {
-            "id": 4,
-            "title": "Define and Implement Notification Types and Templates",
-            "description": "Create notification system for different construction site events with appropriate templates and actions",
-            "dependencies": [
-              "3.3"
-            ],
-            "details": "Define notification categories: material request approvals (urgent), daily report reminders (scheduled), safety alerts (critical), equipment maintenance due (preventive), site announcements (informational). Create notification payload structure with title, body, icon, badge, data for deep linking. Implement urgency levels with different sounds/vibrations. Design notification templates with construction-specific language and icons. Set up notification grouping and stacking for multiple notifications. Create rich notifications with actions (approve/reject for material requests).",
-            "status": "done",
-            "testStrategy": "Test each notification type with appropriate payload structure. Verify notification appearance and behavior matches intended urgency. Test notification grouping when multiple notifications arrive. Validate rich notification actions work correctly. Test notification templates render properly across devices. Verify deep linking data is preserved through notification lifecycle."
-          },
-          {
-            "id": 5,
-            "title": "Build Notification Preferences Management UI",
-            "description": "Create comprehensive notification settings interface for users to control notification types and delivery",
-            "dependencies": [
-              "3.2",
-              "3.4"
-            ],
-            "details": "Design notification preferences UI in settings page with toggle switches for each notification type. Implement granular controls: by notification category, by site, by time (quiet hours), by urgency level. Create notification frequency settings to prevent notification fatigue. Add preview functionality to test notifications. Implement preferences sync across devices. Store preferences in Supabase with real-time sync. Add bulk actions for enabling/disabling multiple notification types.",
-            "status": "done",
-            "testStrategy": "Test preference toggles update correctly in database. Verify preferences are respected when sending notifications. Test quiet hours functionality blocks non-urgent notifications. Validate preferences sync across multiple devices/sessions. Test preview notifications work without affecting production. Verify bulk actions apply changes correctly."
-          },
-          {
-            "id": 6,
-            "title": "Implement Deep Linking and Notification Analytics",
-            "description": "Set up notification click handling with deep linking and comprehensive analytics tracking",
-            "dependencies": [
-              "3.4",
-              "3.5"
-            ],
-            "details": "Implement deep linking system to navigate users to specific app sections based on notification type (material request → approval page, safety alert → incident details). Create URL routing scheme for different notification actions. Handle app state restoration when launched from notification. Implement notification analytics: delivery rates, open rates, action rates, dismissal rates. Track user engagement by notification type. Create dashboard for notification performance metrics. Set up A/B testing framework for notification content optimization.",
-            "status": "done",
-            "testStrategy": "Test deep links work correctly from all app states (foreground, background, closed). Verify correct page loads with proper context/data. Test analytics events fire correctly for all notification interactions. Validate metrics accuracy in analytics dashboard. Test A/B testing framework delivers variants correctly. Verify deep links work across different browsers and devices."
-          }
-        ]
+        "subtasks": []
       },
       {
         "id": 4,
@@ -175,64 +110,7 @@
           8
         ],
         "priority": "medium",
-        "subtasks": [
-          {
-            "id": 1,
-            "title": "Set Up Test Infrastructure and Utilities",
-            "description": "Create comprehensive test utilities, helpers, and infrastructure setup to standardize test patterns across the codebase",
-            "dependencies": [],
-            "details": "Create __tests__/utils/ directory with test helpers for common patterns. Implement authenticated user setup utility that properly mocks Supabase auth state. Create form submission helpers with act() wrapper integration. Set up MSW (Mock Service Worker) for consistent API mocking across all tests. Configure test environment variables in jest.setup.js. Create custom render functions that include necessary providers (auth context, theme, etc.). Implement utilities for mocking dates, timers, and other time-dependent operations. Set up test data factories for consistent mock data generation.",
-            "status": "done",
-            "testStrategy": "Verify utilities work correctly by creating sample tests. Ensure MSW intercepts all network requests during tests. Validate that custom render functions properly wrap components with required providers. Test that timer mocking doesn't interfere with React Testing Library's async utilities."
-          },
-          {
-            "id": 2,
-            "title": "Fix React Testing Library act() Warnings",
-            "description": "Systematically address all act() wrapper warnings in React component tests by properly handling state updates and effects",
-            "dependencies": [
-              "9.1"
-            ],
-            "details": "Audit all test files for act() warnings, focusing on components with state updates, useEffect hooks, and async operations. Wrap all state updates in act() blocks, including form submissions, button clicks, and input changes. Replace getBy queries with findBy for elements that appear after async operations. Use waitFor() for assertions on async state changes. Implement proper cleanup in afterEach hooks using cleanup() and clearing all mocks. Fix components that update state after unmounting by using AbortController or cleanup flags. Special attention to components using setTimeout, setInterval, or promises.",
-            "status": "done",
-            "testStrategy": "Run tests with --verbose flag to identify all act() warnings. Create a checklist of affected files and fix incrementally. Verify each fix by running individual test files. Use React DevTools Profiler to identify components causing warnings. Ensure no new warnings are introduced."
-          },
-          {
-            "id": 3,
-            "title": "Resolve Timeout Issues and Optimize Slow Tests",
-            "description": "Fix timeout problems in integration and E2E tests by optimizing performance and configuring appropriate timeout values",
-            "dependencies": [
-              "9.1"
-            ],
-            "details": "Identify tests exceeding default 5000ms timeout using jest --verbose output. Increase jest.setTimeout for integration tests that legitimately need more time (database operations, file uploads). Mock external dependencies like Supabase, file systems, and third-party APIs to reduce test execution time. Implement connection pooling for database tests if not mocked. Optimize component tests by mocking heavy child components. Use jest.mock() for modules that perform expensive operations. Configure different timeout values for unit (5s), integration (10s), and E2E tests (30s). Parallelize test execution using jest --maxWorkers flag.",
-            "status": "done",
-            "testStrategy": "Benchmark current test suite execution time. Set performance budget of <2 minutes for unit tests, <5 minutes for integration tests. Monitor individual test execution times using jest --verbose. Verify mocked dependencies return realistic responses. Ensure parallelization doesn't cause test interference."
-          },
-          {
-            "id": 4,
-            "title": "Fix Asynchronous Operation Handling",
-            "description": "Properly handle all asynchronous operations in tests including API calls, timers, and promise-based operations",
-            "dependencies": [
-              "9.1",
-              "9.2"
-            ],
-            "details": "Replace all synchronous queries (getBy, queryBy) with async queries (findBy, waitFor) for elements that depend on async operations. Properly await all Supabase operations and ensure consistent mock responses. Implement proper promise handling with async/await in all test cases. Mock and control all timers using jest.useFakeTimers() and jest.runAllTimers(). Handle debounced operations by advancing timers appropriately. Fix race conditions in tests by ensuring operations complete in expected order. Create helper functions for common async patterns like waiting for loading states to disappear. Handle rejected promises properly with expect().rejects patterns.",
-            "status": "done",
-            "testStrategy": "Add console logging to identify unhandled promise rejections. Use jest --detectOpenHandles to find hanging async operations. Verify all async operations complete before test ends. Test both success and error scenarios for async operations. Monitor for flaky tests that pass/fail intermittently."
-          },
-          {
-            "id": 5,
-            "title": "Implement CI/CD Test Optimization and Monitoring",
-            "description": "Configure test suite for optimal CI/CD performance with parallelization, caching, and retry mechanisms",
-            "dependencies": [
-              "9.2",
-              "9.3",
-              "9.4"
-            ],
-            "details": "Configure GitHub Actions to run tests in parallel across multiple jobs (unit, integration, E2E separately). Implement test result caching using actions/cache for node_modules and Jest cache. Set up test retry mechanism for flaky tests using jest-retry or GitHub Actions retry feature. Configure test reporters for better visibility (jest-junit for XML reports, jest-html-reporter for HTML). Implement test coverage thresholds and fail builds if coverage drops. Set up test result trends and failure notifications to Slack/Discord. Create test performance dashboard to monitor execution times. Optimize CI environment with appropriate Node.js version and memory allocation.",
-            "status": "done",
-            "testStrategy": "Compare CI test execution time with local execution. Verify cache hit rates are >90% for dependencies. Test retry mechanism with intentionally flaky test. Monitor test failure patterns across multiple runs. Validate coverage reports are accurate and accessible. Ensure notifications trigger only for legitimate failures."
-          }
-        ]
+        "subtasks": []
       },
       {
         "id": 10,
@@ -243,65 +121,7 @@
         "priority": "high",
         "dependencies": [],
         "status": "done",
-        "subtasks": [
-          {
-            "id": 1,
-            "title": "Create Testing Utilities Directory Structure and Core Mock Framework",
-            "description": "Set up the foundational testing infrastructure by creating the test utilities directory structure and implementing the core Supabase mock client with comprehensive auth and database operation mocking",
-            "dependencies": [],
-            "details": "Create `/lib/test-utils/` directory with initial files: `supabase-mock.ts`, `auth-helpers.ts`, `render-helpers.tsx`, and `async-helpers.ts`. Implement `createMockSupabaseClient()` function in `supabase-mock.ts` with full auth object mocking (getSession, signIn, signOut, onAuthStateChange) and database operation mocking (from, select, insert, update, delete, eq, single). Ensure all methods return properly structured promises and support method chaining. Add TypeScript types to match actual Supabase client interface.",
-            "status": "done",
-            "testStrategy": "Create unit tests in `__tests__/lib/test-utils/supabase-mock.test.ts` to verify each mocked method returns expected data structures and supports proper chaining"
-          },
-          {
-            "id": 2,
-            "title": "Fix Jest Configuration and Setup Files",
-            "description": "Resolve existing Jest configuration issues by properly configuring module aliases, environment variables, async timeouts, and creating setup files for consistent test initialization",
-            "dependencies": [
-              "10.1"
-            ],
-            "details": "Update `jest.config.js` to include proper moduleNameMapper for '@/' alias resolution, set testEnvironment to 'jsdom', configure setupFilesAfterEnv to point to setup files. Create `jest.setup.js` to initialize global mocks, set default async timeout to 10000ms, and configure environment variables. Add `jest-environment-jsdom` package if not present. Create `.env.test` file with test-specific environment variables. Ensure proper transform configuration for TypeScript and JSX files.",
-            "status": "done",
-            "testStrategy": "Run a simple test file importing from '@/' alias to verify resolution works. Test that async operations don't timeout prematurely. Verify environment variables are accessible in tests"
-          },
-          {
-            "id": 3,
-            "title": "Implement Test Data Factories with Faker",
-            "description": "Create comprehensive test data factories using @faker-js/faker to generate realistic test data for users, organizations, sites, documents, and reports with proper TypeScript typing",
-            "dependencies": [
-              "10.1",
-              "10.2"
-            ],
-            "details": "Install `@faker-js/faker` as dev dependency. Create `/lib/test-utils/factories/` directory with separate factory files: `user.factory.ts` (with role variations), `organization.factory.ts`, `site.factory.ts`, `document.factory.ts`, and `report.factory.ts`. Each factory should export functions like `createMockUser()`, `createMockOrganization()` with optional override parameters. Ensure factories generate data matching actual database schemas and include relationships between entities. Add utility functions for creating related entity sets.",
-            "status": "done",
-            "testStrategy": "Write tests to verify factories generate valid data matching TypeScript interfaces, test that override parameters work correctly, and verify relationships between entities are properly established"
-          },
-          {
-            "id": 4,
-            "title": "Set Up Mock Service Worker (MSW) for API Mocking",
-            "description": "Implement MSW to intercept and mock all API requests during testing, creating handlers for authentication, CRUD operations, and file uploads with scenario-based responses",
-            "dependencies": [
-              "10.1",
-              "10.3"
-            ],
-            "details": "Install `msw` as dev dependency. Create `/lib/test-utils/msw/` directory with `handlers.ts` for request handlers and `server.ts` for Node environment setup. Implement handlers for all API routes: `/api/auth/*`, `/api/markup-documents/*`, and Supabase REST endpoints. Create scenario generators in `scenarios.ts` for success/error responses, pagination, and edge cases. Configure MSW in jest setup files and create browser worker for component testing. Use factories from previous subtask to generate response data.",
-            "status": "done",
-            "testStrategy": "Test that MSW intercepts requests correctly, verify different scenarios return appropriate responses, test error handling paths, and ensure no actual network requests are made during tests"
-          },
-          {
-            "id": 5,
-            "title": "Create Authentication and Rendering Test Helpers",
-            "description": "Implement specialized test helpers for authentication flows and React component rendering with proper providers, creating a comprehensive testing toolkit for the entire application",
-            "dependencies": [
-              "10.1",
-              "10.2",
-              "10.4"
-            ],
-            "details": "In `auth-helpers.ts`, create functions like `mockAuthenticatedUser()`, `mockUnauthenticatedState()`, `setupAuthFlow()` that integrate with Supabase mocks. In `render-helpers.tsx`, implement `renderWithProviders()` that wraps components with necessary providers (Router, Auth context, etc.). In `async-helpers.ts`, create utilities like `waitForLoadingToFinish()`, `waitForElement()`, and `flushPromises()`. Add custom Jest matchers for common assertions. Document all helpers with JSDoc comments and usage examples.",
-            "status": "done",
-            "testStrategy": "Create integration tests using these helpers with actual application components, verify auth state changes are properly reflected, test that async helpers correctly wait for operations, and ensure custom matchers work as expected"
-          }
-        ]
+        "subtasks": []
       },
       {
         "id": 11,
@@ -314,64 +134,7 @@
           10
         ],
         "status": "done",
-        "subtasks": [
-          {
-            "id": 1,
-            "title": "Set up authentication test infrastructure and mock utilities",
-            "description": "Create comprehensive mock implementations and test utilities for Supabase authentication, cookie handling, and session management to enable isolated testing of auth components",
-            "dependencies": [],
-            "details": "Create test/utils/auth-mocks.ts with: 1) createMockSupabaseClient() that mocks auth.getUser(), auth.signIn(), auth.signUp(), auth.signOut(), auth.resetPasswordForEmail() methods with configurable responses 2) createMockCookieStore() for testing cookie operations with get/set/delete methods 3) createMockSession() and createMockUser() factories for consistent test data 4) mockNextRequest() and mockNextResponse() for middleware testing 5) Test error scenarios like network failures, invalid tokens, expired sessions. Include TypeScript types for all mocks matching Supabase interfaces exactly",
-            "status": "done",
-            "testStrategy": "Write unit tests for the mock utilities themselves to ensure they properly simulate both success and failure scenarios. Verify mocks throw errors when configured to test error handling paths"
-          },
-          {
-            "id": 2,
-            "title": "Test Supabase server client cookie handling and error resilience",
-            "description": "Create comprehensive tests for /lib/supabase/server.ts focusing on cookie operations, error handling, and ensuring authentication flow continues even when cookie operations fail",
-            "dependencies": [
-              "11.1"
-            ],
-            "details": "Create lib/supabase/__tests__/server.test.ts: 1) Test createClient() initialization with proper cookie handling 2) Mock cookie.get(), cookie.set(), cookie.delete() operations and verify try-catch blocks handle errors gracefully 3) Test scenarios: missing cookies, malformed cookie data, cookie storage failures, concurrent cookie operations 4) Verify auth operations continue working even when cookies fail 5) Test session persistence and refresh token handling 6) Ensure proper TypeScript types are maintained throughout error scenarios",
-            "status": "done",
-            "testStrategy": "Use Jest with mock cookie store from subtask 11.1. Test each cookie operation in isolation and in combination. Verify error logs are generated but auth flow continues. Measure code coverage specifically for error handling branches"
-          },
-          {
-            "id": 3,
-            "title": "Test middleware authentication and route protection logic",
-            "description": "Implement comprehensive tests for /middleware.ts covering all authentication scenarios, protected route patterns, session refresh, and proper redirect behavior",
-            "dependencies": [
-              "11.1"
-            ],
-            "details": "Create middleware.test.ts: 1) Test unauthenticated requests to protected routes redirect to /auth/login with proper return URL 2) Test authenticated requests pass through with updated session 3) Test public routes (/auth/*, /api/*, static assets) are accessible without auth 4) Test session refresh logic when tokens are near expiry 5) Test role-based route protection (admin routes, site-specific routes) 6) Test CORS headers and security headers are properly set 7) Mock various auth states: valid session, expired session, invalid session, no session 8) Test middleware performance doesn't block requests unnecessarily",
-            "status": "done",
-            "testStrategy": "Use NextRequest/NextResponse mocks to simulate middleware environment. Test with various URL patterns and auth states. Verify redirect URLs preserve original destination. Monitor middleware execution time stays under 50ms"
-          },
-          {
-            "id": 4,
-            "title": "Test authentication server actions and form validations",
-            "description": "Create comprehensive tests for /app/auth/actions.ts covering all authentication flows, input validation, error handling, and ensuring no redirect() calls that could break the app",
-            "dependencies": [
-              "11.1",
-              "11.2"
-            ],
-            "details": "Create app/auth/__tests__/actions.test.ts: 1) Test signIn(): valid credentials, invalid email/password, rate limiting, account locked scenarios 2) Test signUp(): email validation, password strength requirements, duplicate email handling, profile creation 3) Test signOut(): session cleanup, cookie removal, error handling 4) Test resetPassword(): email validation, rate limiting, success/failure responses 5) Verify ALL actions return {success: boolean, error?: string} objects 6) Ensure NO redirect() or revalidatePath() calls that could cause hydration errors 7) Test concurrent action calls don't interfere 8) Validate all user inputs are properly sanitized",
-            "status": "done",
-            "testStrategy": "Mock Supabase client responses for each scenario. Use form data mocks to test validation. Verify TypeScript types for all return values. Test with malformed inputs and SQL injection attempts. Check for XSS prevention in error messages"
-          },
-          {
-            "id": 5,
-            "title": "Test protected route components and role-based access control",
-            "description": "Implement tests for all protected route components, authentication hooks, loading states, and role-based UI rendering to ensure proper access control throughout the application",
-            "dependencies": [
-              "11.1",
-              "11.3",
-              "11.4"
-            ],
-            "details": "Create tests for: 1) useAuth() hook in components/auth/use-auth.test.tsx - test session loading, error states, refresh logic 2) ProtectedRoute component - verify redirect for unauthenticated users, loading states, role checking 3) Test dashboard routes require authentication 4) Test role-based components only render for authorized roles (admin panels, site manager views) 5) Test auth state persistence across navigation 6) Test loading skeletons show during auth checks 7) Verify no sensitive data leaks during loading states 8) Test deep linking to protected routes preserves destination after login",
-            "status": "done",
-            "testStrategy": "Use React Testing Library with auth context providers. Mock different auth states and verify component behavior. Test with @testing-library/user-event for realistic interactions. Verify no flashing of protected content before redirects"
-          }
-        ]
+        "subtasks": []
       },
       {
         "id": 12,
@@ -384,64 +147,7 @@
           11
         ],
         "status": "done",
-        "subtasks": [
-          {
-            "id": 1,
-            "title": "Set Up API Testing Infrastructure and Helper Utilities",
-            "description": "Create the foundational testing infrastructure for API endpoint testing including test database setup, request helpers, and mock data factories",
-            "dependencies": [],
-            "details": "Create test/api/helpers.ts with authenticated request wrappers (GET, POST, PUT, DELETE) that handle Supabase auth headers. Set up test database isolation using beforeEach/afterEach hooks with transactions. Implement factory functions for creating test data (createMarkupDocumentPayload, createTestUser, createTestSite). Configure MSW (Mock Service Worker) for intercepting external API calls. Create response type validators using zod or similar to ensure API responses match TypeScript interfaces. Set up test environment variables and database connection pooling for parallel test execution.",
-            "status": "done",
-            "testStrategy": "Verify helper functions work correctly by testing them in isolation. Ensure database transactions properly rollback between tests. Test that auth headers are correctly attached to requests."
-          },
-          {
-            "id": 2,
-            "title": "Implement Markup Documents API CRUD Operation Tests",
-            "description": "Write comprehensive tests for all markup-documents API endpoints including GET (list/single), POST (create), PUT (update), and DELETE operations",
-            "dependencies": [
-              "12.1"
-            ],
-            "details": "Create test/api/markup-documents.test.ts implementing: GET /api/markup-documents with pagination tests (page boundaries, limit validation, total count accuracy). GET /api/markup-documents/[id] for single document retrieval with 404 handling. POST /api/markup-documents with valid payload creation, file upload simulation, and metadata validation. PUT /api/markup-documents/[id] for updates with partial data and version conflict handling. DELETE /api/markup-documents/[id] for soft deletion and cascade behavior. Test search functionality with various query parameters. Verify response schemas match MarkupDocument TypeScript interface using runtime validation.",
-            "status": "done",
-            "testStrategy": "Use real database with test transactions. Create 50+ test documents for pagination testing. Test each endpoint with valid and invalid inputs. Verify database state after each operation."
-          },
-          {
-            "id": 3,
-            "title": "Test Request Validation and Error Handling",
-            "description": "Implement comprehensive validation testing for all API endpoints including type validation, SQL injection prevention, and proper error responses",
-            "dependencies": [
-              "12.1"
-            ],
-            "details": "Test invalid request payloads: missing required fields (title, blueprint_url), incorrect data types, oversized payloads (>10MB), malformed JSON. Implement SQL injection tests with common attack vectors in query parameters and request bodies. Test XSS prevention in text fields. Verify proper HTTP status codes: 400 for validation errors, 401 for auth failures, 403 for permission denied, 404 for not found, 500 for server errors. Test rate limiting if implemented. Verify error messages don't leak sensitive information. Test CORS headers and OPTIONS requests. Implement tests for malformed IDs (non-UUID formats).",
-            "status": "done",
-            "testStrategy": "Create a comprehensive set of malicious payloads. Use parameterized tests for multiple invalid inputs. Verify error responses have consistent structure. Test that errors are properly logged."
-          },
-          {
-            "id": 4,
-            "title": "Implement RLS and Permission Testing",
-            "description": "Test Row Level Security policies ensuring users can only access appropriate data based on their roles and site assignments",
-            "dependencies": [
-              "12.1",
-              "12.2"
-            ],
-            "details": "Create test users with different roles: worker (basic access), site_manager (site-specific access), admin (organization-wide access), system_admin (full access). Test personal document isolation: users can only see their own personal documents. Test shared document access: only users from the same site can access shared documents. Test cross-organization isolation: users from different organizations cannot access each other's data. Implement permission matrix tests covering all CRUD operations per role. Test site-based filtering in list endpoints. Verify admin override permissions work correctly. Test edge cases: user with no site assignment, user with multiple site assignments.",
-            "status": "done",
-            "testStrategy": "Create multiple test organizations, sites, and users. Use different authenticated sessions for each test. Verify both positive (can access) and negative (cannot access) cases for each role."
-          },
-          {
-            "id": 5,
-            "title": "Performance and Stress Testing for API Endpoints",
-            "description": "Implement performance benchmarks and stress tests to ensure API endpoints meet response time requirements and handle concurrent load",
-            "dependencies": [
-              "12.2",
-              "12.3",
-              "12.4"
-            ],
-            "details": "Implement response time tests: GET requests < 200ms, POST/PUT requests < 500ms, pagination with 1000+ records < 300ms. Test concurrent request handling: 50 simultaneous GET requests, 20 simultaneous POST requests, mixed read/write operations. Test database connection pooling behavior under load. Implement query performance tests: verify indexes are used, no N+1 queries, efficient pagination queries. Test large payload handling: documents with extensive markup_data JSON. Test memory usage during bulk operations. Create performance regression tests to catch slowdowns. Test graceful degradation under extreme load.",
-            "status": "done",
-            "testStrategy": "Use jest-performance or similar for timing assertions. Create large datasets (5000+ documents) for realistic testing. Use parallel test execution to simulate concurrent users. Monitor database query logs during tests."
-          }
-        ]
+        "subtasks": []
       },
       {
         "id": 13,
@@ -454,63 +160,7 @@
           12
         ],
         "status": "done",
-        "subtasks": [
-          {
-            "id": 1,
-            "title": "Create comprehensive test suite for daily report server actions",
-            "description": "Implement full test coverage for all daily report operations including creation, updates, weather data integration, and worker assignment",
-            "dependencies": [],
-            "details": "Set up test file `/app/actions/__tests__/daily-reports.test.ts` with proper mocking utilities from task 10. Test scenarios: 1) Create report with valid data including weather and multiple workers, 2) Update existing report with new workers, 3) Handle concurrent edit conflicts, 4) Validate weather data integration, 5) Test date validation with timezone handling, 6) Error cases like duplicate reports for same date/site, 7) Test pagination and filtering for report lists, 8) Verify audit trail generation for all operations",
-            "status": "done",
-            "testStrategy": "Use beforeEach to set up clean database state, create factory functions for test data generation, use transaction rollback for test isolation, verify both success responses and database state changes"
-          },
-          {
-            "id": 2,
-            "title": "Implement attendance and labor hours calculation tests",
-            "description": "Create comprehensive tests for attendance tracking and Korean labor hours (공수) calculation system including overtime, monthly aggregations, and holiday handling",
-            "dependencies": [],
-            "details": "Create `/app/actions/__tests__/attendance.test.ts` to test: 1) Labor hours conversion (1.0 공수 = 8 hours, 0.5 = 4 hours, etc.), 2) Overtime calculations for >1.0 공수 per day, 3) Monthly aggregation calculations with proper rounding, 4) Holiday detection and special handling for Korean public holidays, 5) Weekend vs weekday calculations, 6) Multi-site attendance validation (worker can't be at two sites simultaneously), 7) Attendance record updates and history tracking, 8) Test edge cases like daylight saving time transitions",
-            "status": "done",
-            "testStrategy": "Create parameterized tests for various labor hour scenarios, use fixed dates to avoid timezone issues, test with multiple Korean holidays, verify calculations match business requirements exactly"
-          },
-          {
-            "id": 3,
-            "title": "Test notification system and triggers",
-            "description": "Implement tests for the notification system including creation triggers, batch operations, status management, and push notification integration",
-            "dependencies": [
-              "13.1"
-            ],
-            "details": "Create `/app/actions/__tests__/notifications.test.ts` covering: 1) Notification triggers on daily report submission, approval requests, and safety alerts, 2) Batch notification creation for multiple recipients, 3) Read/unread status updates and bulk operations, 4) Push notification service integration mocking (OneSignal/FCM), 5) Notification preferences enforcement, 6) Deep linking data in notification payloads, 7) Notification scheduling and time-based delivery, 8) Rate limiting to prevent notification spam, 9) Test notification templates with Korean/English content",
-            "status": "done",
-            "testStrategy": "Mock external push services, use spy functions to verify notification triggers, test with different user roles and preferences, verify database triggers create notifications correctly"
-          },
-          {
-            "id": 4,
-            "title": "Create document operations and file handling tests",
-            "description": "Test document management including file uploads, virus scanning, permissions, soft delete, and storage quota enforcement",
-            "dependencies": [
-              "13.1",
-              "13.2"
-            ],
-            "details": "Implement `/app/actions/__tests__/documents.test.ts` with tests for: 1) File upload with mock virus scanning service, 2) Document permission checks based on user roles and site access, 3) Soft delete functionality with recovery window, 4) Storage quota calculation and enforcement per organization, 5) File type validation and size limits, 6) Document versioning and history tracking, 7) Batch document operations (bulk download/delete), 8) Integration with Supabase Storage including presigned URLs, 9) Document search and filtering with Korean text support",
-            "status": "done",
-            "testStrategy": "Mock file upload streams and virus scanning API, test with various file types and sizes, verify storage calculations are accurate, test permission matrix comprehensively"
-          },
-          {
-            "id": 5,
-            "title": "Test complex business workflows and data validation",
-            "description": "Implement tests for multi-step workflows, concurrent operations, data consistency, and Korean-specific data validation rules",
-            "dependencies": [
-              "13.1",
-              "13.2",
-              "13.3",
-              "13.4"
-            ],
-            "details": "Create `/app/actions/__tests__/workflows.test.ts` and `/app/actions/__tests__/validation.test.ts` covering: 1) Multi-step approval workflows with role-based progression, 2) Concurrent edit handling using optimistic locking, 3) Cross-entity data consistency (e.g., deleting site cascades properly), 4) Audit trail generation for all business operations, 5) Korean phone number validation (010-XXXX-XXXX patterns), 6) Business registration number checksum validation, 7) Date/time handling with KST timezone, 8) Transaction rollback on partial failures, 9) Data migration scenarios and backwards compatibility",
-            "status": "done",
-            "testStrategy": "Use database snapshots for complex state setup, test with race conditions using Promise.all, verify audit logs capture all required fields, use comprehensive validation test cases from production data patterns"
-          }
-        ]
+        "subtasks": []
       },
       {
         "id": 14,
@@ -523,63 +173,7 @@
           13
         ],
         "status": "done",
-        "subtasks": [
-          {
-            "id": 1,
-            "title": "Set up Component Testing Infrastructure and Critical Component Tests",
-            "description": "Configure React Testing Library with custom render providers and create comprehensive tests for critical UI components including MarkupCanvas, calendar with 공수 visualization, and data tables",
-            "dependencies": [],
-            "details": "Install @testing-library/react, @testing-library/jest-dom, and @testing-library/user-event. Create test-utils.tsx with renderWithProviders wrapper that includes all necessary contexts (auth, theme, etc.). Implement tests for MarkupCanvas covering all drawing tools (box, text, pen), zoom/pan functionality, and touch gestures. Test calendar component with 공수 color indicators (green/yellow/orange/gray), date selection, and navigation. Test data tables with sorting, filtering, pagination, and row selection. Ensure all tests handle async operations properly and mock Supabase client appropriately.",
-            "status": "done",
-            "testStrategy": "Use React Testing Library for component interaction testing, mock all external dependencies, test both user interactions and component state changes, aim for 90%+ coverage on critical components"
-          },
-          {
-            "id": 2,
-            "title": "Implement Form Components and File Upload Testing",
-            "description": "Create comprehensive tests for all form components including validation logic, error states, and file upload functionality with progress tracking",
-            "dependencies": [
-              "14.1"
-            ],
-            "details": "Test all form components in the application: daily report forms, attendance forms with 공수 input, material request forms, and authentication forms. Implement validation testing for required fields, format validation (email, phone), and business logic validation (공수 ranges: 0.25, 0.5, 1.0). Test file upload component with drag-and-drop, file type validation, size limits, upload progress, and error handling. Mock file upload API calls and test retry logic. Test form submission with both success and failure scenarios, ensuring proper error message display and loading states.",
-            "status": "done",
-            "testStrategy": "Test all form states (pristine, dirty, submitting, error), validate accessibility with screen reader testing, ensure keyboard navigation works properly"
-          },
-          {
-            "id": 3,
-            "title": "Create E2E Test Suite with Playwright for Critical User Flows",
-            "description": "Implement comprehensive end-to-end tests using Playwright covering authentication, daily report submission, markup tool usage, and document management flows",
-            "dependencies": [
-              "14.1",
-              "14.2"
-            ],
-            "details": "Set up Playwright with TypeScript configuration and page object pattern. Create E2E tests for: 1) Complete authentication flow (login, logout, password reset), 2) Daily report creation with 공수 entry and submission, 3) Markup tool workflow (upload blueprint, add markings, save document, retrieve from list), 4) Attendance management with calendar interaction, 5) Document upload and management. Implement helper functions for common actions (login, navigation, form filling). Configure tests to run against different user roles (worker, manager, admin). Set up test data seeding and cleanup strategies.",
-            "status": "done",
-            "testStrategy": "Use page object pattern for maintainability, implement retry logic for flaky tests, capture screenshots on failure, run tests in parallel where possible"
-          },
-          {
-            "id": 4,
-            "title": "Implement Cross-Browser and Mobile Testing Suite",
-            "description": "Configure and execute tests across Chrome, Firefox, Safari, and mobile browsers, ensuring responsive behavior and touch gesture support",
-            "dependencies": [
-              "14.3"
-            ],
-            "details": "Configure Playwright to run tests on Chrome, Firefox, and WebKit (Safari). Set up mobile viewport testing for common devices (iPhone 12/13/14, Samsung Galaxy, iPad). Test responsive breakpoints for all major components. Implement touch gesture tests for markup canvas (pinch zoom, pan, draw). Test PWA functionality: installation prompts, offline mode, push notifications. Verify mobile-specific features like camera integration for photo uploads. Test performance on mobile devices with throttled network conditions. Ensure all interactive elements meet minimum touch target sizes (44x44px).",
-            "status": "done",
-            "testStrategy": "Run cross-browser tests in CI pipeline, use device emulation for mobile testing, test on real devices for critical flows"
-          },
-          {
-            "id": 5,
-            "title": "Set up Performance and Accessibility Testing with Monitoring",
-            "description": "Implement automated performance testing, accessibility compliance checks, and continuous monitoring to ensure application meets quality standards",
-            "dependencies": [
-              "14.3",
-              "14.4"
-            ],
-            "details": "Set up Lighthouse CI for automated performance audits targeting: LCP < 2.5s, FID < 100ms, CLS < 0.1. Implement performance tests using Playwright's performance API to measure initial load time < 3s, time to interactive < 5s, and smooth 60fps scrolling. Create memory leak detection tests for long-running sessions. Set up axe-core for accessibility testing: WCAG 2.1 AA compliance, screen reader compatibility, keyboard navigation coverage, color contrast ratios. Implement visual regression testing with Percy or Chromatic. Configure CI pipeline to fail on performance regressions or accessibility violations. Set up monitoring dashboards for test metrics and coverage reports.",
-            "status": "done",
-            "testStrategy": "Run performance tests against production builds, test accessibility with actual screen readers (NVDA, JAWS), establish performance budgets and enforce in CI"
-          }
-        ]
+        "subtasks": []
       },
       {
         "id": 15,
@@ -590,109 +184,7 @@
         "priority": "high",
         "dependencies": [],
         "status": "done",
-        "subtasks": [
-          {
-            "id": 1,
-            "title": "Create Core Mock Framework Structure and Supabase Client Mock",
-            "description": "Set up the foundational test utilities directory structure and implement the comprehensive Supabase client mock with full auth and database mocking capabilities",
-            "dependencies": [],
-            "details": "Create /lib/test-utils/ directory with subdirectories: factories/, mocks/, helpers/. Implement createMockSupabaseClient() in mocks/supabase.mock.ts with complete auth object (getSession, signIn, signOut, onAuthStateChange), from() method returning chainable query builder with select, insert, update, delete, eq, single, and proper error/data response structure. Include TypeScript interfaces matching actual Supabase types.",
-            "status": "done",
-            "testStrategy": "Unit test the mock client to ensure all methods return expected structures. Verify auth state changes trigger callbacks. Test query builder chaining works correctly. Validate TypeScript types match Supabase SDK."
-          },
-          {
-            "id": 2,
-            "title": "Implement Labor Hours System Mock Factories",
-            "description": "Create comprehensive mock factories for the labor hours (공수) system including attendance records with labor hours and payslip generation",
-            "dependencies": [
-              "15.1"
-            ],
-            "details": "In lib/test-utils/factories/attendance.factory.ts, implement createMockAttendanceWithLaborHours() using faker for realistic data. Include proper labor_hours values (0.25, 0.5, 0.75, 1.0, 1.25, 1.5), work_date, site_name, status fields. Create createMockPayslip() with month, total_labor_hours, total_hours_worked (using 1.0 공수 = 8 hours conversion), basic_salary, overtime_pay, total_pay calculations. Add createMockAttendanceList() for multiple records.",
-            "status": "done",
-            "testStrategy": "Test labor hours to work hours conversion accuracy. Verify payslip calculations are correct. Test that mock data includes all required fields. Validate date formatting and realistic value ranges."
-          },
-          {
-            "id": 3,
-            "title": "Create Unified Documents System Mocks with Card UI Fields",
-            "description": "Implement mock factories for the unified documents system including all document types with card UI specific fields",
-            "dependencies": [
-              "15.1"
-            ],
-            "details": "In lib/test-utils/factories/documents.factory.ts, create factories for daily_reports, approval_documents, material_management_docs with card UI fields: preview_image_url, icon, status_badge, last_modified. Implement createMockDailyReport(), createMockApprovalDocument(), createMockMaterialDocument() with proper type-specific fields. Add createMockDocumentCard() for unified card representation with title, description, category, created_at fields.",
-            "status": "done",
-            "testStrategy": "Verify all document types have required card UI fields. Test that mock data reflects actual database schema. Validate status values and category assignments. Test preview URL generation."
-          },
-          {
-            "id": 4,
-            "title": "Implement PWA Testing Infrastructure",
-            "description": "Create comprehensive PWA testing utilities including service worker mocks, push notification mocks, and installation state testing",
-            "dependencies": [
-              "15.1"
-            ],
-            "details": "In lib/test-utils/mocks/pwa.mock.ts, implement mockServiceWorker with register(), update(), sync() methods. Create mockPushManager with subscribe(), getSubscription(), permissionState(). Add mockBeforeInstallPrompt event handler. In lib/test-utils/pwa-setup.ts, set up global PWA objects for test environment. Include mockNotification API with show(), requestPermission(). Create installation state helpers (isInstalled, canInstall).",
-            "status": "done",
-            "testStrategy": "Test service worker registration flow in different states. Verify push subscription mock behavior. Test notification permission states (granted, denied, default). Validate beforeinstallprompt event handling."
-          },
-          {
-            "id": 5,
-            "title": "Create Analytics API Mock Infrastructure",
-            "description": "Implement comprehensive mocks for Analytics API including metrics collection, web vitals, and real-time analytics",
-            "dependencies": [
-              "15.1"
-            ],
-            "details": "In lib/test-utils/mocks/analytics.mock.ts, create mockAnalyticsAPI with track(), pageView(), webVitals() methods. Implement mockMetricsCollector for LCP, FID, CLS, TTFB values. Add mockRealtimeAnalytics with activeUsers, pageViews, events tracking. Create factories for analytics events, page metrics, user sessions. Include time-series data generation for charts. Mock Vercel Analytics and Google Analytics integrations.",
-            "status": "done",
-            "testStrategy": "Test metrics collection with realistic web vitals values. Verify event tracking captures all required fields. Test real-time data updates. Validate analytics event batching behavior."
-          },
-          {
-            "id": 6,
-            "title": "Implement Test Helper Utilities and Async Handlers",
-            "description": "Create comprehensive test helper utilities for common testing scenarios including async operations, auth states, and render wrappers",
-            "dependencies": [
-              "15.1",
-              "15.2",
-              "15.3",
-              "15.4",
-              "15.5"
-            ],
-            "details": "In lib/test-utils/helpers/, create auth-helpers.ts with mockAuthState(), createMockSession(), waitForAuth(). Implement render-helpers.tsx with renderWithProviders() including Supabase context, auth state, and theme providers. Add async-helpers.ts with waitForLoadingToFinish(), waitForElement(), flushPromises(). Create test-data-builders.ts consolidating all factory imports. Include custom testing library queries for common patterns.",
-            "status": "done",
-            "testStrategy": "Test async helpers handle timeouts correctly. Verify render wrappers provide all necessary contexts. Test auth state transitions work properly. Validate custom queries find elements reliably."
-          },
-          {
-            "id": 7,
-            "title": "Create TypeScript Type Definitions for Test Utilities",
-            "description": "Implement comprehensive TypeScript type definitions and interfaces for all test utilities ensuring type safety and IntelliSense support",
-            "dependencies": [
-              "15.1",
-              "15.2",
-              "15.3",
-              "15.4",
-              "15.5",
-              "15.6"
-            ],
-            "details": "In lib/test-utils/types.ts, define MockSupabaseClient interface extending actual Supabase types. Create factory return types for all mock factories. Define test helper function signatures with proper generics. Add JSDoc comments for all exported functions. Create index.ts barrel export with proper type exports. Ensure all mocks maintain type compatibility with production code. Include utility types for partial mocks and overrides.",
-            "status": "done",
-            "testStrategy": "Verify TypeScript compilation passes without errors. Test that IntelliSense works correctly in test files. Validate type inference works for factory overrides. Check that mock types are assignable to production types."
-          },
-          {
-            "id": 8,
-            "title": "Create Integration Test Examples and Documentation",
-            "description": "Implement example integration tests demonstrating usage of all test utilities and create comprehensive documentation for the testing framework",
-            "dependencies": [
-              "15.1",
-              "15.2",
-              "15.3",
-              "15.4",
-              "15.5",
-              "15.6",
-              "15.7"
-            ],
-            "details": "Create lib/test-utils/examples/ with component.test.tsx showing labor hours calendar testing, documents.test.tsx for unified documents UI, pwa.test.tsx for PWA features, analytics.test.tsx for metrics. Write README.md in test-utils/ documenting all utilities, usage patterns, best practices. Include troubleshooting guide for common issues. Add migration guide from old test setup. Create test-utils.test.ts validating all exports work correctly.",
-            "status": "done",
-            "testStrategy": "Verify all example tests pass successfully. Test that documentation code samples are accurate. Validate examples cover common use cases. Check that migration guide helps transition existing tests."
-          }
-        ]
+        "subtasks": []
       },
       {
         "id": 16,
@@ -764,61 +256,7 @@
           13
         ],
         "priority": "medium",
-        "subtasks": [
-          {
-            "id": 1,
-            "title": "Create Database Schema and Storage Configuration",
-            "description": "Set up the site_documents table with proper constraints and RLS policies, and configure Supabase Storage bucket for document uploads",
-            "dependencies": [],
-            "details": "Create the site_documents table with fields for site_id, document_type (ptw/blueprint/other), file metadata (name, URL, size, MIME type), upload tracking, and active status. Implement RLS policies allowing admins full access and authenticated users read access to active documents. Set up the 'site-documents' storage bucket in Supabase with proper CORS configuration and public access policies. Create the storage helper functions in lib/supabase/storage.ts for uploading files with proper path structure (siteId/documentType/timestamp).",
-            "status": "done",
-            "testStrategy": "Write tests to verify table creation, constraint enforcement, and RLS policy behavior. Test storage bucket creation and file upload functionality with different file types and sizes. Verify that only admins can write while all authenticated users can read active documents."
-          },
-          {
-            "id": 2,
-            "title": "Build Document Upload Component and File Validation",
-            "description": "Create the drag-and-drop document upload component with file type selection and implement comprehensive file validation for security",
-            "dependencies": [
-              "20.1"
-            ],
-            "details": "Develop DocumentUploadZone component with drag-and-drop functionality, visual feedback for drag states, and document type selection (PTW/Blueprint/Other). Implement file validation in lib/validators/file.ts to check file size (max 10MB), allowed MIME types (PDF, JPG, PNG), and potentially malicious content. Create proper error handling and user feedback for validation failures. Style the component with Tailwind CSS following the project's design system, ensuring mobile responsiveness.",
-            "status": "done",
-            "testStrategy": "Test drag-and-drop functionality with various file types and sizes. Verify file validation rejects oversized files and unsupported formats. Test error handling and user feedback messages. Ensure component accessibility with keyboard navigation support."
-          },
-          {
-            "id": 3,
-            "title": "Implement Document Management UI and CRUD Operations",
-            "description": "Build the complete document management interface for listing, viewing, deleting, and setting active documents per site",
-            "dependencies": [
-              "20.2"
-            ],
-            "details": "Create SiteDocumentManagement component that displays all documents for a site in a organized list/grid view. Implement DocumentList component showing document thumbnails, metadata (type, size, upload date, uploader), and action buttons. Add functionality to set documents as active/inactive, delete documents (with confirmation dialog), and preview documents in modal. Implement proper loading states, error handling, and empty states. Ensure the UI updates in real-time when documents are added or modified.",
-            "status": "done",
-            "testStrategy": "Test CRUD operations for documents including upload, list, delete, and status updates. Verify UI updates correctly after each operation. Test error scenarios like network failures or permission errors. Validate that document previews work for all supported file types."
-          },
-          {
-            "id": 4,
-            "title": "Create Admin Dashboard Integration and Routing",
-            "description": "Integrate the document management system into the admin dashboard with proper routing and navigation",
-            "dependencies": [
-              "20.3"
-            ],
-            "details": "Create the admin route at app/dashboard/admin/sites/[id]/documents/page.tsx for site-specific document management. Add navigation links in the admin site management section to access document management. Implement breadcrumb navigation for better UX. Create proper loading and error boundaries. Add role-based access control to ensure only admins can access these pages. Include site context information (name, ID) in the page header for clarity.",
-            "status": "done",
-            "testStrategy": "Test routing and navigation to document management pages. Verify role-based access control prevents non-admin access. Test page loading states and error handling. Ensure breadcrumb navigation works correctly and site context is displayed properly."
-          },
-          {
-            "id": 5,
-            "title": "Update Site Info Component to Use Dynamic Documents",
-            "description": "Modify the existing TodaySiteInfo component to fetch and display documents from the database instead of hardcoded files",
-            "dependencies": [
-              "20.4"
-            ],
-            "details": "Update TodaySiteInfo component to query site_documents table for active PTW and blueprint documents. Modify BlueprintModal and PTWModal components to accept dynamic document URLs. Implement fallback behavior when no documents are set (show placeholder or message). Add proper error handling for missing documents. Ensure the component refreshes when documents are updated in the admin panel. Optimize queries to prevent N+1 problems when loading multiple sites.",
-            "status": "done",
-            "testStrategy": "Test that Site Info correctly displays documents from the database. Verify fallback behavior when no documents are assigned. Test that updates in admin panel reflect in Site Info view. Check performance with multiple concurrent users accessing different sites."
-          }
-        ]
+        "subtasks": []
       }
     ],
     "metadata": {

@@ -107,7 +107,7 @@ export default async function DailyReportsPage() {
       {/* Main Content */}
       <div className="lg:ml-64">
         {/* Header */}
-        <Header user={user} profile={profile as any} />
+        <Header profile={profile as any} />
         
         {/* Page Content */}
         <main className="pt-3 px-3 sm:px-4 lg:px-6 pb-16 lg:pb-0">

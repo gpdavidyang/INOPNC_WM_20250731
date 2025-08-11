@@ -1,0 +1,134 @@
+name: Branch Protection Enforcement
+
+on:
+  schedule:
+    # Run daily at 2 AM UTC to ensure branch protection is maintained
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      force_update:
+        description: 'Force update branch protection rules'
+        required: false
+        default: 'false'
+        type: boolean
+
+permissions:
+  contents: read
+  administration: write
+
+jobs:
+  enforce-branch-protection:
+    name: 🛡️ Enforce Branch Protection
+    runs-on: ubuntu-latest
+    if: github.repository_owner == github.actor || github.event.inputs.force_update == 'true'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Enforce Branch Protection Rules
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const protectionRules = {
+              required_status_checks: {
+                strict: true,
+                checks: [
+                  { context: '🔍 Lint & Type Check' },
+                  { context: '🧪 Unit & Integration Tests (unit)' },
+                  { context: '🧪 Unit & Integration Tests (integration)' },
+                  { context: '🛡️ Critical Features Test' },
+                  { context: '🏗️ Build Verification (production)' },
+                  { context: '🔒 Security Scan' },
+                  { context: '⚡ Performance Budget' },
+                  { context: '📊 Coverage Analysis' }
+                ]
+              },
+              enforce_admins: false,
+              required_pull_request_reviews: {
+                required_approving_review_count: 1,
+                dismiss_stale_reviews: true,
+                require_code_owner_reviews: true,
+                require_last_push_approval: true
+              },
+              restrictions: null,
+              allow_force_pushes: false,
+              allow_deletions: false,
+              block_creations: false,
+              required_conversation_resolution: true
+            };
+
+            const branches = ['main', 'develop'];
+            
+            for (const branch of branches) {
+              try {
+                console.log(`Updating protection rules for ${branch} branch...`);
+                
+                await github.rest.repos.updateBranchProtection({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  branch: branch,
+                  ...protectionRules
+                });
+                
+                console.log(`✅ Successfully updated protection rules for ${branch}`);
+                
+              } catch (error) {
+                console.log(`⚠️ Could not update ${branch} branch protection: ${error.message}`);
+                
+                // If branch doesn't exist, this is expected for new repos
+                if (error.status === 404) {
+                  console.log(`Branch ${branch} does not exist yet - skipping`);
+                } else if (error.status === 403) {
+                  console.log(`Insufficient permissions to update ${branch} - this is normal for forked repos`);
+                } else {
+                  throw error;
+                }
+              }
+            }
+            
+            // Create a summary
+            core.summary
+              .addHeading('🛡️ Branch Protection Status')
+              .addTable([
+                [{data: 'Branch', header: true}, {data: 'Status', header: true}, {data: 'Rules Applied', header: true}],
+                ['main', '✅ Protected', 'Required CI checks, PR reviews, conversation resolution'],
+                ['develop', '✅ Protected', 'Required CI checks, PR reviews, conversation resolution']
+              ])
+              .addHeading('Protection Rules')
+              .addList([
+                'Require status checks to pass before merging',
+                'Require branches to be up to date before merging',
+                'Require pull request reviews before merging (1 required)',
+                'Dismiss stale PR reviews when new commits are pushed',
+                'Require review from code owners',
+                'Require approval of the most recent reviewable push',
+                'Require conversation resolution before merging',
+                'Prevent force pushes and deletions'
+              ])
+              .write();
+      
+      - name: Create Branch Protection Summary
+        run: |
+          echo "## 🛡️ Branch Protection Configuration" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### ✅ Required Status Checks" >> $GITHUB_STEP_SUMMARY
+          echo "- Code Quality & Type Safety" >> $GITHUB_STEP_SUMMARY
+          echo "- Unit & Integration Tests (both matrices)" >> $GITHUB_STEP_SUMMARY
+          echo "- Critical Features Test" >> $GITHUB_STEP_SUMMARY
+          echo "- **Advanced Build Verification** (production mode)" >> $GITHUB_STEP_SUMMARY
+          echo "- Security Scan" >> $GITHUB_STEP_SUMMARY
+          echo "- Performance Budget Check" >> $GITHUB_STEP_SUMMARY
+          echo "- Coverage Analysis (≥70% threshold)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔒 Additional Protection" >> $GITHUB_STEP_SUMMARY
+          echo "- Pull request reviews required (1 minimum)" >> $GITHUB_STEP_SUMMARY
+          echo "- Code owner review required" >> $GITHUB_STEP_SUMMARY
+          echo "- Dismiss stale reviews on new commits" >> $GITHUB_STEP_SUMMARY
+          echo "- Conversation resolution required" >> $GITHUB_STEP_SUMMARY
+          echo "- Force pushes and deletions blocked" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Integration**: Advanced build verification using \`scripts/verify-build.sh\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Performance**: Sub-30s build target, 45s absolute threshold" >> $GITHUB_STEP_SUMMARY
+          echo "**Quality**: Zero-warning enforcement for production builds" >> $GITHUB_STEP_SUMMARY

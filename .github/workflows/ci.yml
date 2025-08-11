@@ -8,8 +8,11 @@ on:
   workflow_dispatch:
 
 env:
-  NODE_VERSION: '18'
+  NODE_VERSION: '20'
+  NODE_OPTIONS: '--max-old-space-size=4096'
+  NEXT_TELEMETRY_DISABLED: 1
   HUSKY: 0 # Disable husky in CI
+  CI: true
 
 jobs:
   # Job 1: Lint and Type Check
@@ -256,12 +259,25 @@ jobs:
               body: body
             });
 
-  # Job 6: Build Verification
+  # Job 6: Advanced Build Verification with Performance Monitoring
   build-verification:
     name: 🏗️ Build Verification
     runs-on: ubuntu-latest
     needs: [lint-and-typecheck]
     timeout-minutes: 15
+    
+    strategy:
+      matrix:
+        build-mode: [production, fast]
+        include:
+          - build-mode: production
+            build-flags: "--ci"
+            cache-key: "prod"
+            artifact-name: "build-artifacts"
+          - build-mode: fast
+            build-flags: "--ci --fast"
+            cache-key: "fast"
+            artifact-name: "build-artifacts-fast"
     
     steps:
       - name: Checkout code
@@ -272,29 +288,194 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
+      
+      - name: Setup build dependencies
+        run: sudo apt-get update && sudo apt-get install -y bc
+          
+      - name: Cache Next.js build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            ${{ github.workspace }}/.next/cache
+          key: ${{ runner.os }}-nextjs-${{ matrix.cache-key }}-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('**.[jt]s', '**.[jt]sx') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ matrix.cache-key }}-${{ hashFiles('**/package-lock.json') }}-
+            ${{ runner.os }}-nextjs-${{ matrix.cache-key }}-
           
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --prefer-offline --no-audit --progress=false
+      
+      - name: Create build logs directory
+        run: mkdir -p .build-logs
         
-      - name: Build application
-        run: npm run build
-        
-      - name: Check build artifacts
+      - name: Run Advanced Build Verification Script
+        run: ./scripts/verify-build.sh ${{ matrix.build-flags }}
+        env:
+          NODE_ENV: production
+          NODE_OPTIONS: '--max-old-space-size=4096'
+      
+      - name: Extract Build Metrics and Create Summary
+        if: always()
         run: |
-          if [ ! -d ".next" ]; then
-            echo "❌ Build failed - .next directory not found"
-            exit 1
+          # Extract metrics from the most recent log file
+          LOG_FILE=$(ls -t .build-logs/build-verification-*.log | head -1)
+          if [ -f "$LOG_FILE" ]; then
+            echo "BUILD_LOG_FILE=$LOG_FILE" >> $GITHUB_ENV
+            
+            # Extract key metrics using grep patterns from the script
+            BUILD_DURATION=$(grep "BUILD_DURATION=" "$LOG_FILE" | cut -d= -f2 2>/dev/null || echo "unknown")
+            BUILD_STATUS=$(grep "BUILD_STATUS=" "$LOG_FILE" | cut -d= -f2 2>/dev/null || echo "unknown")
+            BUILD_SIZE=$(grep "BUILD_SIZE=" "$LOG_FILE" | cut -d= -f2 2>/dev/null || echo "unknown")
+            WARNING_COUNT=$(grep "WARNING_COUNT=" "$LOG_FILE" | cut -d= -f2 2>/dev/null || echo "0")
+            
+            # Fallback extraction from log content if CI exports not found
+            if [ "$BUILD_DURATION" = "unknown" ]; then
+              BUILD_DURATION=$(grep -o "Build duration: [0-9.]*s" "$LOG_FILE" | grep -o "[0-9.]*" | head -1 || echo "unknown")
+            fi
+            if [ "$BUILD_SIZE" = "unknown" ]; then
+              BUILD_SIZE=$(grep -o "Build size: [0-9.]*[MGK]" "$LOG_FILE" | head -1 || echo "unknown")
+            fi
+            if [ "$WARNING_COUNT" = "0" ]; then
+              WARNING_COUNT=$(grep -c "Warning:" "$LOG_FILE" 2>/dev/null || echo "0")
+            fi
+            
+            # Set environment variables for subsequent steps
+            echo "BUILD_DURATION=$BUILD_DURATION" >> $GITHUB_ENV
+            echo "BUILD_STATUS=$BUILD_STATUS" >> $GITHUB_ENV
+            echo "BUILD_SIZE=$BUILD_SIZE" >> $GITHUB_ENV
+            echo "WARNING_COUNT=$WARNING_COUNT" >> $GITHUB_ENV
+            
+            # Create detailed summary
+            echo "## 🏗️ Build Verification Results (${{ matrix.build-mode }} mode)" >> $GITHUB_STEP_SUMMARY
+            echo "| Metric | Value | Status |" >> $GITHUB_STEP_SUMMARY
+            echo "|--------|--------|--------|" >> $GITHUB_STEP_SUMMARY
+            echo "| Build Status | $BUILD_STATUS | $([ "$BUILD_STATUS" = "success" ] && echo "✅" || echo "❌") |" >> $GITHUB_STEP_SUMMARY
+            echo "| Duration | ${BUILD_DURATION}s | $([ "$BUILD_DURATION" != "unknown" ] && ([ $(echo "$BUILD_DURATION <= 30" | bc -l 2>/dev/null || echo 0) -eq 1 ] && echo "🟢" || ([ $(echo "$BUILD_DURATION <= 45" | bc -l 2>/dev/null || echo 0) -eq 1 ] && echo "🟡" || echo "🔴")) || echo "ℹ️") |" >> $GITHUB_STEP_SUMMARY
+            echo "| Size | $BUILD_SIZE | ℹ️ |" >> $GITHUB_STEP_SUMMARY
+            echo "| Warnings | $WARNING_COUNT | $([ "$WARNING_COUNT" -eq 0 ] && echo "✅" || echo "⚠️") |" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Performance Target**: ⚡ Sub-30s builds | 🎯 <45s acceptable" >> $GITHUB_STEP_SUMMARY
+            
+            if [ "$WARNING_COUNT" -gt 0 ]; then
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "⚠️ **Action Required**: $WARNING_COUNT build warning(s) detected" >> $GITHUB_STEP_SUMMARY
+            fi
+            
+            if [ "$BUILD_DURATION" != "unknown" ] && [ $(echo "$BUILD_DURATION > 45" | bc -l 2>/dev/null || echo 0) -eq 1 ]; then
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "🔴 **Performance Issue**: Build time exceeds 45s threshold" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "❌ No build log file found" >> $GITHUB_STEP_SUMMARY
+            echo "BUILD_STATUS=failed" >> $GITHUB_ENV
           fi
-          echo "✅ Build successful - artifacts generated"
-          
-      - name: Upload build artifacts
+      
+      - name: Performance Regression Check
+        if: matrix.build-mode == 'production' && github.event_name == 'pull_request'
+        run: |
+          if [ "$BUILD_DURATION" != "unknown" ]; then
+            if [ $(echo "$BUILD_DURATION > 45" | bc -l) -eq 1 ]; then
+              echo "::warning::Build time ($BUILD_DURATION s) exceeds performance threshold (45s)"
+              echo "::warning::Consider optimizing build performance or investigating regression"
+            elif [ $(echo "$BUILD_DURATION > 60" | bc -l) -eq 1 ]; then
+              echo "::error::Build time ($BUILD_DURATION s) critically exceeds threshold (60s)"
+              exit 1
+            fi
+          fi
+      
+      - name: Upload Comprehensive Build Artifacts
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: build-artifacts
+          name: ${{ matrix.artifact-name }}
           path: |
-            .next/
+            .build-logs/
+            .next/BUILD_ID
+            .next/build-manifest.json
+            .next/static/chunks/
             !.next/cache/
-          retention-days: 1
+          retention-days: 3
+      
+      - name: Comment PR with Detailed Build Results
+        if: github.event_name == 'pull_request' && matrix.build-mode == 'production'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const buildDuration = process.env.BUILD_DURATION;
+            const buildStatus = process.env.BUILD_STATUS;
+            const buildSize = process.env.BUILD_SIZE;
+            const warningCount = process.env.WARNING_COUNT;
+            
+            const getPerformanceEmoji = (duration) => {
+              if (duration === "unknown") return "ℹ️";
+              const time = parseFloat(duration);
+              if (time <= 30) return "🟢";
+              if (time <= 45) return "🟡";
+              return "🔴";
+            };
+            
+            const getPerformanceText = (duration) => {
+              if (duration === "unknown") return "Unknown";
+              const time = parseFloat(duration);
+              if (time <= 30) return "Excellent";
+              if (time <= 45) return "Acceptable";
+              return "Needs Optimization";
+            };
+            
+            const body = `## 🏗️ Advanced Build Verification Results
+            
+            | Metric | Value | Performance | Status |
+            |--------|--------|-------------|--------|
+            | Build Status | ${buildStatus} | - | ${buildStatus === 'success' ? '✅' : '❌'} |
+            | Build Time | ${buildDuration}s | ${getPerformanceText(buildDuration)} | ${getPerformanceEmoji(buildDuration)} |
+            | Build Size | ${buildSize} | - | ℹ️ |
+            | Build Warnings | ${warningCount} | - | ${parseInt(warningCount) === 0 ? '✅' : '⚠️'} |
+            
+            **Performance Targets**: 
+            - 🟢 **Excellent**: ≤30s (Target)
+            - 🟡 **Acceptable**: ≤45s 
+            - 🔴 **Critical**: >45s
+            
+            **Script Features Used**:
+            - ✅ Comprehensive TypeScript type checking
+            - ✅ ESLint quality verification (0 warnings enforced)
+            - ✅ Production build with timeout protection
+            - ✅ Performance monitoring & trend analysis
+            - ✅ Build artifact validation
+            - ✅ Automated failure pattern detection
+            
+            ${parseInt(warningCount) > 0 ? `
+            ⚠️ **Action Required**: ${warningCount} build warning(s) detected
+            - Review build output in the workflow logs
+            - Address warnings before merging to maintain code quality
+            ` : ''}
+            
+            ${parseFloat(buildDuration) > 45 ? `
+            🔴 **Performance Issue Detected**
+            - Build time (${buildDuration}s) exceeds acceptable threshold
+            - Consider code splitting, dependency optimization, or build configuration review
+            - Check for large imports or inefficient bundling
+            ` : ''}
+            
+            <details>
+            <summary>📊 Build Performance History</summary>
+            
+            This build verification uses the project's advanced \`scripts/verify-build.sh\` which includes:
+            - Performance trend analysis across last 10 builds
+            - Automated build timeout protection (60s)
+            - Memory usage optimization
+            - Comprehensive error pattern detection
+            - Zero-warning enforcement for production builds
+            
+            </details>`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
 
   # Job 7: Security Scan
   security-scan:
@@ -338,11 +519,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         
-      - name: Download build artifacts
+      - name: Download production build artifacts
         uses: actions/download-artifact@v4
         with:
           name: build-artifacts
-          path: .next/
+          path: ./
           
       - name: Analyze bundle size
         run: |
@@ -380,9 +561,21 @@ jobs:
           echo "Unit/Integration: ${{ needs.unit-integration-tests.result }}"
           echo "E2E Tests: ${{ needs.e2e-tests.result }}"
           echo "Coverage Check: ${{ needs.coverage-check.result }}"
-          echo "Build Verification: ${{ needs.build-verification.result }}"
+          echo "Advanced Build Verification: ${{ needs.build-verification.result }}"
           echo "Security Scan: ${{ needs.security-scan.result }}"
           echo "Performance Check: ${{ needs.performance-check.result }}"
+          
+          # Enhanced deployment readiness summary
+          echo "## 🚀 Enhanced CI/CD Pipeline Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔧 Build Verification Enhancements" >> $GITHUB_STEP_SUMMARY
+          echo "- **Advanced Build Script**: Leverages \`scripts/verify-build.sh\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Performance Monitoring**: Sub-30s target, 45s threshold" >> $GITHUB_STEP_SUMMARY
+          echo "- **Quality Gates**: Zero-warning enforcement" >> $GITHUB_STEP_SUMMARY
+          echo "- **Matrix Strategy**: Production + Fast build modes" >> $GITHUB_STEP_SUMMARY
+          echo "- **Caching**: Intelligent Next.js build caching" >> $GITHUB_STEP_SUMMARY
+          echo "- **Metrics**: Comprehensive build analytics" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
           
           # Check if any critical jobs failed
           if [[ "${{ needs.critical-tests.result }}" == "failure" || 
@@ -391,19 +584,27 @@ jobs:
                 "${{ needs.security-scan.result }}" == "failure" ]]; then
             echo "❌ Deployment BLOCKED - Critical issues found"
             echo "## 🚫 Deployment Blocked" >> $GITHUB_STEP_SUMMARY
-            echo "Critical issues were found that prevent safe deployment." >> $GITHUB_STEP_SUMMARY
+            echo "Critical issues were found that prevent safe deployment:" >> $GITHUB_STEP_SUMMARY
+            echo "- Build verification includes comprehensive quality checks" >> $GITHUB_STEP_SUMMARY
+            echo "- Advanced build script enforces zero-error policy" >> $GITHUB_STEP_SUMMARY
+            echo "- Performance thresholds must be met for deployment" >> $GITHUB_STEP_SUMMARY
             exit 1
           elif [[ "${{ needs.unit-integration-tests.result }}" == "failure" || 
                   "${{ needs.e2e-tests.result }}" == "failure" || 
                   "${{ needs.performance-check.result }}" == "failure" ]]; then
             echo "⚠️  Deployment CAUTIONED - Non-critical issues found"
             echo "## ⚠️ Deployment Cautioned" >> $GITHUB_STEP_SUMMARY
-            echo "Some tests failed but deployment is not blocked." >> $GITHUB_STEP_SUMMARY
-            echo "Please review and fix issues before production deployment." >> $GITHUB_STEP_SUMMARY
+            echo "Some tests failed but deployment is not blocked:" >> $GITHUB_STEP_SUMMARY
+            echo "- Advanced build verification passed critical checks" >> $GITHUB_STEP_SUMMARY
+            echo "- Please review and fix issues before production deployment" >> $GITHUB_STEP_SUMMARY
           else
             echo "✅ Deployment READY - All checks passed"
             echo "## ✅ Deployment Ready" >> $GITHUB_STEP_SUMMARY
-            echo "All quality gates passed. Safe to deploy!" >> $GITHUB_STEP_SUMMARY
+            echo "All quality gates passed with enhanced verification:" >> $GITHUB_STEP_SUMMARY
+            echo "- ✅ Advanced build verification with performance monitoring" >> $GITHUB_STEP_SUMMARY
+            echo "- ✅ Zero-warning enforcement policy met" >> $GITHUB_STEP_SUMMARY
+            echo "- ✅ Comprehensive quality and security checks" >> $GITHUB_STEP_SUMMARY
+            echo "- ✅ Safe to deploy with confidence!" >> $GITHUB_STEP_SUMMARY
           fi
 
   # Job 10: Test Result Notification

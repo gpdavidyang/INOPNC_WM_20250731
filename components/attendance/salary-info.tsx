@@ -44,19 +44,7 @@ interface SalaryData {
 }
 
 export function SalaryInfo({ profile, isPartnerView }: SalaryInfoProps) {
-  // Early return if no profile
-  if (!profile?.id) {
-    console.error('❌ SalaryInfo: No profile ID provided')
-    return (
-      <div className="flex items-center justify-center p-8">
-        <div className="text-center">
-          <p className="text-red-600 dark:text-red-400">프로필 정보를 불러올 수 없습니다.</p>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">페이지를 새로고침해 주세요.</p>
-        </div>
-      </div>
-    )
-  }
-
+  // All hooks must be called before any conditional returns
   const { isLargeFont } = useFontSize()
   const { touchMode } = useTouchMode()
   const [selectedPeriod, setSelectedPeriod] = useState('site') // 'site' or 'month'
@@ -72,14 +60,32 @@ export function SalaryInfo({ profile, isPartnerView }: SalaryInfoProps) {
     pendingAmount: 0,
     paidAmount: 0
   })
+  
+  // All useEffect hooks must be before early return
+  useEffect(() => {
+    if (profile?.id) {
+      loadSites()
+    }
+  }, [profile?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    loadSites()
-  }, [])
-
-  useEffect(() => {
-    loadSalaryData()
-  }, [selectedPeriod, selectedSite, selectedMonth])
+    if (profile?.id && (selectedSite || selectedMonth)) {
+      loadSalaryData()
+    }
+  }, [selectedPeriod, selectedSite, selectedMonth, profile?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+  
+  // Early return if no profile
+  if (!profile?.id) {
+    console.error('❌ SalaryInfo: No profile ID provided')
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="text-center">
+          <p className="text-red-600 dark:text-red-400">프로필 정보를 불러올 수 없습니다.</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">페이지를 새로고침해 주세요.</p>
+        </div>
+      </div>
+    )
+  }
 
   const loadSites = async () => {
     const result = await getSites()

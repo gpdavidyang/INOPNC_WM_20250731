@@ -32,31 +32,11 @@ import type { AttendanceCalendarProps, AttendanceRecord } from '@/types/attendan
 import type { Site } from '@/types'
 
 export function AttendanceCalendar({ profile, isPartnerView }: AttendanceCalendarProps) {
-  // Early return if no profile
-  if (!profile?.id) {
-    console.error('❌ AttendanceCalendar: No profile ID provided')
-    return (
-      <div className="flex items-center justify-center p-8">
-        <div className="text-center">
-          <p className="text-red-600 dark:text-red-400">프로필 정보를 불러올 수 없습니다.</p>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">페이지를 새로고침해 주세요.</p>
-        </div>
-      </div>
-    )
-  }
-
+  // All hooks must be called before any conditional returns
   const { isLargeFont } = useFontSize()
   const { touchMode } = useTouchMode()
   // 2025년 8월로 초기화 (테스트 데이터가 있는 달)
   const [currentDate, setCurrentDate] = useState(new Date('2025-08-01'))
-
-  console.log('AttendanceCalendar: Received profile:', {
-    hasProfile: !!profile,
-    profileId: profile?.id,
-    profileRole: profile?.role,
-    profileSiteId: profile?.site_id,
-    isPartnerView
-  })
   const [selectedSite, setSelectedSite] = useState<string>('')
   const [sites, setSites] = useState<Site[]>([])
   const [attendanceData, setAttendanceData] = useState<AttendanceRecord[]>([])
@@ -68,7 +48,7 @@ export function AttendanceCalendar({ profile, isPartnerView }: AttendanceCalenda
     totalWorkers: 0
   })
   
-  // Debug state changes
+  // Debug state changes - all useEffect hooks must be before early return
   useEffect(() => {
     console.log('📦 State updated - attendanceData:', attendanceData.length, 'records')
     if (attendanceData.length > 0) {
@@ -83,24 +63,47 @@ export function AttendanceCalendar({ profile, isPartnerView }: AttendanceCalenda
 
   useEffect(() => {
     console.log('🌐 Initial load - loading sites')
-    loadSites()
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+    if (profile?.id) {
+      loadSites()
+    }
+  }, [profile?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     console.log('🔄 useEffect triggered for attendance data', {
       selectedSite,
       isPartnerView,
-      profileSiteId: profile.site_id,
-      shouldLoad: selectedSite || (!isPartnerView && profile.site_id)
+      profileSiteId: profile?.site_id,
+      shouldLoad: selectedSite || (!isPartnerView && profile?.site_id)
     })
     
-    if (selectedSite || (!isPartnerView && profile.site_id)) {
+    if (profile?.id && (selectedSite || (!isPartnerView && profile.site_id))) {
       console.log('✅ Calling loadAttendanceData')
       loadAttendanceData()
     } else {
-      console.log('⚠️ Skipping loadAttendanceData - no site selected')
+      console.log('⚠️ Skipping loadAttendanceData - no site selected or no profile')
     }
-  }, [currentDate, selectedSite, isPartnerView, profile.site_id]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [currentDate, selectedSite, isPartnerView, profile?.site_id, profile?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+  
+  // Early return if no profile
+  if (!profile?.id) {
+    console.error('❌ AttendanceCalendar: No profile ID provided')
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="text-center">
+          <p className="text-red-600 dark:text-red-400">프로필 정보를 불러올 수 없습니다.</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">페이지를 새로고침해 주세요.</p>
+        </div>
+      </div>
+    )
+  }
+
+  console.log('AttendanceCalendar: Received profile:', {
+    hasProfile: !!profile,
+    profileId: profile?.id,
+    profileRole: profile?.role,
+    profileSiteId: profile?.site_id,
+    isPartnerView
+  })
 
   const loadSites = async () => {
     console.log('🏢 Loading sites...')

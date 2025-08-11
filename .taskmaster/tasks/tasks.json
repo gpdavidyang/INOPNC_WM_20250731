@@ -249,7 +249,7 @@
         "description": "Implement a complete document management system in the admin dashboard for uploading, managing, and selecting PTW and blueprint documents per site. Replace hardcoded file previews with dynamic document selection using Supabase Storage.",
         "details": "Build a comprehensive document management system integrated with Supabase Storage:\n\n1. Database Schema Updates:\n```sql\n-- Create site_documents table\nCREATE TABLE site_documents (\n  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n  site_id UUID REFERENCES sites(id) ON DELETE CASCADE,\n  document_type VARCHAR(50) CHECK (document_type IN ('ptw', 'blueprint', 'other')),\n  file_name VARCHAR(255) NOT NULL,\n  file_url TEXT NOT NULL,\n  file_size INTEGER,\n  mime_type VARCHAR(100),\n  uploaded_by UUID REFERENCES profiles(id),\n  is_active BOOLEAN DEFAULT true,\n  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),\n  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()\n);\n\n-- Add RLS policies\nCREATE POLICY \"Admins can manage site documents\" ON site_documents\n  FOR ALL USING (EXISTS (\n    SELECT 1 FROM profiles WHERE profiles.id = auth.uid() \n    AND profiles.role IN ('admin', 'system_admin')\n  ));\n\nCREATE POLICY \"All authenticated users can view active documents\" ON site_documents\n  FOR SELECT USING (is_active = true AND auth.uid() IS NOT NULL);\n```\n\n2. Supabase Storage Setup:\n```typescript\n// lib/supabase/storage.ts\nexport const STORAGE_BUCKETS = {\n  SITE_DOCUMENTS: 'site-documents'\n} as const;\n\nexport async function uploadSiteDocument(\n  file: File,\n  siteId: string,\n  documentType: 'ptw' | 'blueprint' | 'other'\n) {\n  const fileExt = file.name.split('.').pop();\n  const fileName = `${siteId}/${documentType}/${Date.now()}.${fileExt}`;\n  \n  const { data, error } = await supabase.storage\n    .from(STORAGE_BUCKETS.SITE_DOCUMENTS)\n    .upload(fileName, file);\n    \n  if (error) throw error;\n  \n  const { data: { publicUrl } } = supabase.storage\n    .from(STORAGE_BUCKETS.SITE_DOCUMENTS)\n    .getPublicUrl(fileName);\n    \n  return { fileName, publicUrl };\n}\n```\n\n3. Admin Document Management UI:\n```typescript\n// components/admin/SiteDocumentManagement.tsx\nexport function SiteDocumentManagement({ siteId }: { siteId: string }) {\n  const [documents, setDocuments] = useState<SiteDocument[]>([]);\n  const [uploading, setUploading] = useState(false);\n  \n  const handleUpload = async (file: File, type: DocumentType) => {\n    setUploading(true);\n    try {\n      const { fileName, publicUrl } = await uploadSiteDocument(file, siteId, type);\n      \n      const { data, error } = await supabase\n        .from('site_documents')\n        .insert({\n          site_id: siteId,\n          document_type: type,\n          file_name: file.name,\n          file_url: publicUrl,\n          file_size: file.size,\n          mime_type: file.type,\n          uploaded_by: user.id\n        })\n        .select()\n        .single();\n        \n      if (error) throw error;\n      setDocuments([...documents, data]);\n    } catch (error) {\n      toast.error('Upload failed');\n    } finally {\n      setUploading(false);\n    }\n  };\n  \n  return (\n    <div className=\"space-y-6\">\n      <DocumentUploadZone onUpload={handleUpload} disabled={uploading} />\n      <DocumentList \n        documents={documents} \n        onDelete={handleDelete}\n        onSetActive={handleSetActive}\n      />\n    </div>\n  );\n}\n```\n\n4. Document Upload Component:\n```typescript\n// components/admin/DocumentUploadZone.tsx\nexport function DocumentUploadZone({ onUpload, disabled }: Props) {\n  const [dragActive, setDragActive] = useState(false);\n  const [documentType, setDocumentType] = useState<DocumentType>('ptw');\n  \n  const handleDrop = (e: React.DragEvent) => {\n    e.preventDefault();\n    const file = e.dataTransfer.files[0];\n    if (file) onUpload(file, documentType);\n  };\n  \n  return (\n    <div className=\"space-y-4\">\n      <Select value={documentType} onValueChange={setDocumentType}>\n        <SelectTrigger>\n          <SelectValue />\n        </SelectTrigger>\n        <SelectContent>\n          <SelectItem value=\"ptw\">PTW (작업허가서)</SelectItem>\n          <SelectItem value=\"blueprint\">공사도면</SelectItem>\n          <SelectItem value=\"other\">기타 문서</SelectItem>\n        </SelectContent>\n      </Select>\n      \n      <div\n        className={cn(\n          \"border-2 border-dashed rounded-lg p-8 text-center\",\n          dragActive && \"border-primary bg-primary/5\",\n          disabled && \"opacity-50 cursor-not-allowed\"\n        )}\n        onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}\n        onDragLeave={() => setDragActive(false)}\n        onDrop={handleDrop}\n      >\n        <Upload className=\"mx-auto h-12 w-12 text-muted-foreground\" />\n        <p className=\"mt-2\">드래그 앤 드롭 또는 클릭하여 파일 선택</p>\n        <p className=\"text-sm text-muted-foreground\">PDF, JPG, PNG (최대 10MB)</p>\n      </div>\n    </div>\n  );\n}\n```\n\n5. Update Site Info Component to Use Dynamic Documents:\n```typescript\n// components/site-info/TodaySiteInfo.tsx\nconst { data: activeDocuments } = await supabase\n  .from('site_documents')\n  .select('*')\n  .eq('site_id', siteId)\n  .eq('is_active', true);\n\nconst ptwDocument = activeDocuments?.find(doc => doc.document_type === 'ptw');\nconst blueprintDocument = activeDocuments?.find(doc => doc.document_type === 'blueprint');\n\n// Use document URLs in modals\n<BlueprintModal \n  isOpen={showBlueprint}\n  onClose={() => setShowBlueprint(false)}\n  blueprintUrl={blueprintDocument?.file_url || '/placeholder-blueprint.jpg'}\n/>\n```\n\n6. Admin Dashboard Integration:\n```typescript\n// app/dashboard/admin/sites/[id]/documents/page.tsx\nexport default async function SiteDocumentsPage({ params }: { params: { id: string } }) {\n  const site = await getSiteById(params.id);\n  \n  return (\n    <div className=\"container mx-auto py-6\">\n      <h1 className=\"text-2xl font-bold mb-6\">\n        {site.name} - 문서 관리\n      </h1>\n      <SiteDocumentManagement siteId={params.id} />\n    </div>\n  );\n}\n```\n\n7. File Validation and Security:\n```typescript\n// lib/validators/file.ts\nexport const validateDocument = (file: File) => {\n  const MAX_SIZE = 10 * 1024 * 1024; // 10MB\n  const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/png'];\n  \n  if (file.size > MAX_SIZE) {\n    throw new Error('파일 크기는 10MB를 초과할 수 없습니다');\n  }\n  \n  if (!ALLOWED_TYPES.includes(file.type)) {\n    throw new Error('PDF, JPG, PNG 파일만 업로드 가능합니다');\n  }\n  \n  return true;\n};\n```",
         "testStrategy": "Comprehensive testing approach for document management system:\n\n1. Database Tests:\n- Verify site_documents table creation and constraints\n- Test RLS policies for admin-only write access\n- Verify authenticated users can read active documents\n- Test cascade deletion when site is deleted\n\n2. Storage Integration Tests:\n- Test file upload to Supabase Storage with correct bucket structure\n- Verify public URL generation works correctly\n- Test file size and type validation\n- Verify error handling for upload failures\n\n3. Component Tests:\n- Test DocumentUploadZone drag-and-drop functionality\n- Verify file type selection updates correctly\n- Test upload progress indication\n- Verify document list displays uploaded files\n- Test delete and set-active functionality\n\n4. Integration Tests:\n- Upload a PTW document and verify it appears in site info\n- Upload a blueprint and test preview modal displays correct file\n- Test replacing an active document with a new version\n- Verify non-admin users cannot access upload interface\n\n5. E2E Tests:\n- Complete workflow: Admin uploads PTW → Worker views in site info\n- Test multiple file uploads and active document selection\n- Verify proper error messages for invalid files\n- Test document persistence across sessions",
-        "status": "pending",
+        "status": "in-progress",
         "dependencies": [
           3,
           9,
@@ -257,11 +257,133 @@
         ],
         "priority": "medium",
         "subtasks": []
+      },
+      {
+        "id": 21,
+        "title": "Critical Stability Issues Resolution - Zero Build Errors",
+        "description": "Fix all build-blocking errors including React Hooks conditional calls, TypeScript parsing errors, and component definition issues to achieve zero build errors and successful production build under 30 seconds",
+        "details": "Comprehensive build stabilization focusing on critical errors:\n\n1. React Hooks Violations:\n```typescript\n// Identify and fix conditional hook calls\n// Before:\nif (condition) {\n  useEffect(() => {}, []); // ERROR: Conditional hook\n}\n\n// After:\nuseEffect(() => {\n  if (condition) {\n    // Logic here\n  }\n}, [condition]);\n```\n\n2. TypeScript Parsing Errors:\n- Fix missing type imports and circular dependencies\n- Resolve 'any' type usage in strict mode\n- Fix generic type parameter issues\n- Address module resolution errors\n```typescript\n// Add proper type exports/imports\nexport type { MarkupDocument } from './types';\nimport type { Database } from '@/types/supabase';\n```\n\n3. Component Definition Issues:\n- Fix missing or duplicate component exports\n- Resolve forward ref issues\n- Fix HOC type definitions\n```typescript\n// Proper component typing\nconst MyComponent = forwardRef<HTMLDivElement, Props>(\n  ({ children, ...props }, ref) => {\n    return <div ref={ref} {...props}>{children}</div>;\n  }\n);\nMyComponent.displayName = 'MyComponent';\n```\n\n4. Build Configuration:\n- Update next.config.js for proper module resolution\n- Fix webpack configuration issues\n- Optimize build performance settings\n```javascript\n// next.config.js\nmodule.exports = {\n  typescript: {\n    ignoreBuildErrors: false,\n  },\n  eslint: {\n    ignoreDuringBuilds: false,\n  },\n  swcMinify: true,\n  compiler: {\n    removeConsole: process.env.NODE_ENV === 'production',\n  },\n};\n```\n\n5. Dependency Issues:\n- Update mismatched dependency versions\n- Fix peer dependency warnings\n- Resolve module not found errors\n\n6. ESLint Configuration:\n- Fix ESLint rules causing build failures\n- Add proper ignores for generated files\n- Configure rules for React 18+ patterns",
+        "testStrategy": "1. Baseline Build Analysis:\n- Run `npm run build` and capture all error types\n- Categorize errors by type (Hooks, TypeScript, Components)\n- Document error counts for progress tracking\n\n2. Incremental Fix Verification:\n- Fix one category at a time\n- Run `npm run build` after each fix category\n- Ensure no regression in other areas\n\n3. TypeScript Validation:\n- Run `npx tsc --noEmit` for pure type checking\n- Verify no TypeScript errors remain\n- Check strict mode compliance\n\n4. Linting Validation:\n- Run `npm run lint` with --max-warnings 0\n- Fix all ESLint errors and warnings\n- Verify no linting issues block build\n\n5. Production Build Testing:\n- Time production builds: `time npm run build`\n- Target: Under 30 seconds for full build\n- Verify build output size is reasonable\n\n6. Build Output Verification:\n- Check .next/build-manifest.json for all pages\n- Verify static pages are properly generated\n- Ensure API routes are included\n\n7. Development Mode Testing:\n- Run `npm run dev` and verify no runtime errors\n- Test hot module replacement works\n- Verify no console errors in browser\n\n8. CI/CD Integration:\n- Run build in GitHub Actions\n- Ensure build passes in clean environment\n- Verify no environment-specific issues",
+        "status": "done",
+        "dependencies": [
+          9,
+          16
+        ],
+        "priority": "high",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Fix React Hooks Violations and Rules of Hooks Errors",
+            "description": "Identify and fix all conditional hook calls, hooks called inside loops, and hooks called after early returns to comply with React's Rules of Hooks",
+            "dependencies": [],
+            "details": "Scan entire codebase for React Hooks violations using ESLint react-hooks/rules-of-hooks rule. Common patterns to fix: 1) Conditional hooks - move conditions inside hook callbacks, 2) Hooks in loops - restructure to use single hook with array dependencies, 3) Hooks after returns - ensure all hooks are called at top level before any conditional returns. Focus on components in /components and /app directories. Use automated tools like eslint --fix where possible, but manually verify each fix to ensure logic remains correct.",
+            "status": "done",
+            "testStrategy": "Run npm run lint to identify all hooks violations. After fixes, run npm run build to verify no hooks errors remain. Create unit tests for refactored components to ensure behavior unchanged. Use React Testing Library to test hook-dependent functionality."
+          },
+          {
+            "id": 2,
+            "title": "Resolve TypeScript Type Errors and Missing Type Definitions",
+            "description": "Fix all TypeScript parsing errors including missing type imports, circular dependencies, implicit 'any' types, and generic type parameter issues",
+            "dependencies": [],
+            "details": "Address TypeScript errors systematically: 1) Fix missing type imports by adding proper import type statements, 2) Resolve circular dependencies by extracting shared types to separate files, 3) Replace implicit 'any' with proper types or explicit type annotations, 4) Fix generic type parameters in component props and function signatures, 5) Ensure all .d.ts files are properly referenced in tsconfig.json, 6) Update module resolution for @/ aliases, 7) Fix type exports to use 'export type' for type-only exports. Priority files: /types/index.ts, /types/supabase.ts, component prop interfaces.",
+            "status": "done",
+            "testStrategy": "Run tsc --noEmit to check TypeScript compilation without emitting files. Fix errors iteratively by category. Verify no type errors with npm run type-check. Test that IDE type inference works correctly after fixes."
+          },
+          {
+            "id": 3,
+            "title": "Fix Component Definition and Export Issues",
+            "description": "Resolve all component definition problems including missing exports, duplicate exports, forward ref issues, and HOC type definitions",
+            "dependencies": [
+              "21.1",
+              "21.2"
+            ],
+            "details": "Systematic component fixes: 1) Scan for missing default/named exports and add proper export statements, 2) Remove duplicate component exports causing conflicts, 3) Fix forwardRef components with proper type annotations and displayName, 4) Update HOC definitions with correct TypeScript generics, 5) Ensure all lazy-loaded components have proper Suspense boundaries, 6) Fix component file naming to match export names, 7) Add displayName to all components for better debugging. Focus on high-usage components first: page layouts, form components, dashboard tabs.",
+            "status": "done",
+            "testStrategy": "Create a component inventory script to verify all components export correctly. Test each fixed component renders without errors. Use React DevTools to verify displayNames appear correctly. Run build to ensure no component errors."
+          },
+          {
+            "id": 4,
+            "title": "Update Build Configuration and Dependencies",
+            "description": "Fix build configuration issues in next.config.js, resolve dependency conflicts, and optimize build performance settings",
+            "dependencies": [
+              "21.3"
+            ],
+            "details": "Build configuration updates: 1) Update next.config.js with proper webpack configuration for module resolution, 2) Configure SWC minifier settings for optimal performance, 3) Fix peer dependency warnings by updating package versions, 4) Resolve conflicting dependency versions using npm dedupe, 5) Update ESLint config to prevent build-blocking rules, 6) Configure proper ignores for generated files (.next, node_modules), 7) Set up proper environment variable validation, 8) Enable strict mode for better error catching, 9) Configure proper publicRuntimeConfig and serverRuntimeConfig.",
+            "status": "done",
+            "testStrategy": "Run npm run build after each configuration change. Measure build time to ensure under 30 seconds target. Test production build with npm run start. Verify no console errors in production mode."
+          },
+          {
+            "id": 5,
+            "title": "Implement Build Verification and CI Protection",
+            "description": "Create comprehensive build verification tests and CI pipeline to prevent future build-breaking changes",
+            "dependencies": [
+              "21.4"
+            ],
+            "details": "Build protection implementation: 1) Create pre-commit hooks using husky to run build checks, 2) Set up GitHub Actions workflow for build verification on every PR, 3) Implement build time monitoring to alert if exceeds 30 seconds, 4) Create automated tests that verify critical paths compile correctly, 5) Set up error reporting to track any build failures in CI, 6) Configure branch protection rules requiring successful builds, 7) Create build performance dashboard to track metrics over time, 8) Document common build errors and fixes in troubleshooting guide.",
+            "status": "done",
+            "testStrategy": "Test pre-commit hooks work by intentionally introducing build errors. Verify GitHub Actions catches build failures in PRs. Run load tests on build pipeline to ensure scalability. Monitor build times across different environments."
+          }
+        ]
+      },
+      {
+        "id": 22,
+        "title": "Phase 2: Data Completion - Generate Realistic Construction Site Data and Complete Business Logic",
+        "description": "Implement comprehensive data generation for construction sites including worker profiles, daily reports, attendance records with labor hours, and complete business logic for payroll calculation and material management workflows",
+        "details": "Implement realistic data generation and complete business logic systems:\n\n1. Data Generation Infrastructure:\n```typescript\n// lib/data-generation/generators.ts\nexport class ConstructionDataGenerator {\n  // Generate realistic Korean names for workers\n  generateWorkerProfile(): WorkerProfile {\n    return {\n      name: this.generateKoreanName(),\n      phone: this.generateKoreanPhone(),\n      role: this.selectRole(),\n      site_id: this.selectSite(),\n      skills: this.generateSkills(),\n      certifications: this.generateCertifications()\n    };\n  }\n\n  // Generate daily reports with realistic construction data\n  generateDailyReport(date: Date, siteId: string): DailyReport {\n    return {\n      date,\n      site_id: siteId,\n      weather: this.generateWeather(),\n      work_description: this.generateWorkDescription(),\n      materials_used: this.generateMaterialUsage(),\n      equipment_used: this.generateEquipmentUsage(),\n      safety_incidents: this.generateSafetyData(),\n      progress_percentage: this.calculateProgress()\n    };\n  }\n}\n```\n\n2. Payroll Calculation System:\n```typescript\n// lib/payroll/calculator.ts\nexport class PayrollCalculator {\n  calculateMonthlyPayroll(workerId: string, month: Date): PayrollResult {\n    const attendanceRecords = await this.getAttendanceRecords(workerId, month);\n    const totalLaborHours = attendanceRecords.reduce((sum, record) => sum + record.labor_hours, 0);\n    \n    const baseRate = await this.getWorkerBaseRate(workerId);\n    const overtimeHours = this.calculateOvertime(totalLaborHours);\n    const regularPay = (totalLaborHours - overtimeHours) * 8 * baseRate;\n    const overtimePay = overtimeHours * 8 * baseRate * 1.5;\n    \n    const deductions = this.calculateDeductions(regularPay + overtimePay);\n    const netPay = regularPay + overtimePay - deductions.total;\n    \n    return {\n      totalLaborHours,\n      regularPay,\n      overtimePay,\n      deductions,\n      netPay,\n      paymentDate: this.getPaymentDate(month)\n    };\n  }\n}\n```\n\n3. Material Management Workflow:\n```typescript\n// lib/materials/workflow.ts\nexport class MaterialManagementWorkflow {\n  async createMaterialRequest(request: MaterialRequestInput): Promise<MaterialRequest> {\n    // Validate inventory availability\n    const availability = await this.checkInventory(request.materials);\n    \n    // Create request with approval workflow\n    const materialRequest = await this.db.material_requests.create({\n      ...request,\n      status: 'pending_approval',\n      approval_levels: this.determineApprovalLevels(request.total_amount)\n    });\n    \n    // Notify approvers\n    await this.notifyApprovers(materialRequest);\n    \n    return materialRequest;\n  }\n  \n  async processMaterialApproval(requestId: string, approverId: string, decision: 'approve' | 'reject') {\n    const request = await this.getMaterialRequest(requestId);\n    \n    if (decision === 'approve') {\n      const allApproved = await this.checkAllApprovals(request);\n      if (allApproved) {\n        await this.fulfillMaterialRequest(request);\n        await this.updateInventory(request.materials);\n      }\n    }\n    \n    await this.notifyRequestor(request, decision);\n  }\n}\n```\n\n4. Seed Data Scripts:\n```typescript\n// scripts/seed-construction-data.ts\nasync function seedConstructionData() {\n  const generator = new ConstructionDataGenerator();\n  \n  // Generate 5 construction sites\n  const sites = await Promise.all(\n    Array(5).fill(null).map(() => generator.generateSite())\n  );\n  \n  // Generate 50 workers distributed across sites\n  const workers = await Promise.all(\n    Array(50).fill(null).map(() => generator.generateWorkerProfile())\n  );\n  \n  // Generate 6 months of historical data\n  for (const site of sites) {\n    await generateHistoricalData(site.id, 180);\n  }\n  \n  // Generate material inventory\n  await seedMaterialInventory();\n  \n  // Generate sample material requests with approval workflows\n  await generateMaterialRequests();\n}\n```\n\n5. Business Logic Integration:\n```typescript\n// app/api/payroll/generate/route.ts\nexport async function POST(request: Request) {\n  const { workerId, month } = await request.json();\n  const calculator = new PayrollCalculator();\n  \n  const payroll = await calculator.calculateMonthlyPayroll(workerId, month);\n  const pdf = await generatePayrollPDF(payroll);\n  \n  return new Response(pdf, {\n    headers: {\n      'Content-Type': 'application/pdf',\n      'Content-Disposition': `attachment; filename=\"payroll-${workerId}-${month}.pdf\"`\n    }\n  });\n}\n```",
+        "testStrategy": "Comprehensive testing for data generation and business logic:\n\n1. Data Generation Tests:\n- Verify generated worker profiles have valid Korean names and phone numbers\n- Test daily report generation produces realistic construction data\n- Validate attendance records include proper labor hours (0.25, 0.5, 1.0 공수)\n- Ensure generated data maintains referential integrity\n\n2. Payroll Calculation Tests:\n- Test accurate labor hours to payment calculation\n- Verify overtime calculation (>22 days/month)\n- Test tax and insurance deduction calculations\n- Validate payroll PDF generation with correct formatting\n- Test edge cases: partial months, no attendance, maximum overtime\n\n3. Material Management Tests:\n- Test material request creation with inventory validation\n- Verify approval workflow routing based on amount thresholds\n- Test notification system for approvers and requestors\n- Validate inventory updates after approval\n- Test rejection flow and re-submission\n\n4. Integration Tests:\n- End-to-end test: Worker attendance → Payroll calculation → PDF generation\n- Material request → Multi-level approval → Inventory update\n- Test data consistency across related tables\n- Verify business rules enforcement\n\n5. Performance Tests:\n- Measure payroll calculation time for 100+ workers\n- Test material workflow with concurrent requests\n- Validate data generation doesn't exceed memory limits",
+        "status": "pending",
+        "dependencies": [
+          9,
+          13,
+          20,
+          21
+        ],
+        "priority": "high",
+        "subtasks": []
+      },
+      {
+        "id": 23,
+        "title": "Phase 3: Performance Optimization",
+        "description": "Improve Core Web Vitals and optimize database queries",
+        "details": "",
+        "testStrategy": "",
+        "status": "pending",
+        "dependencies": [
+          "22"
+        ],
+        "priority": "medium",
+        "subtasks": []
+      },
+      {
+        "id": 24,
+        "title": "Phase 4: User Experience Completion",
+        "description": "Complete mobile UX optimization, PWA features, accessibility compliance, and Korean localization",
+        "details": "",
+        "testStrategy": "",
+        "status": "pending",
+        "dependencies": [
+          "23"
+        ],
+        "priority": "medium",
+        "subtasks": []
+      },
+      {
+        "id": 25,
+        "title": "Phase 5: Production Deployment and Operations",
+        "description": "Configure production environment, setup monitoring, implement backup and security measures for final deployment",
+        "details": "",
+        "testStrategy": "",
+        "status": "pending",
+        "dependencies": [
+          "24"
+        ],
+        "priority": "high",
+        "subtasks": []
       }
     ],
     "metadata": {
       "created": "2025-08-02T09:20:48.397Z",
-      "updated": "2025-08-11T00:21:47.433Z",
+      "updated": "2025-08-11T13:17:39.856Z",
       "description": "Tasks for master context"
     }
   }

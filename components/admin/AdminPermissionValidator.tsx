@@ -201,6 +201,7 @@ export default function AdminPermissionValidator({ profile }: AdminPermissionVal
 
   useEffect(() => {
     setTests(initialTests)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const runTest = async (testId: string): Promise<TestResult> => {

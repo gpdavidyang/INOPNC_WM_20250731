@@ -23,94 +23,60 @@ The following files contain critical authentication and cookie handling logic th
 Only run `npm run test:critical` and `npm run snapshot:save` before major structural changes 
 (e.g., core logic, DB schema). Minor changes like text, styles, or logging do not require this.
 
-## Development Testing Strategy
+## Development Workflow (핵심 원칙: 구현 집중 → 배치 검증)
 
-### 🚀 Fast Development Mode (Recommended)
-For faster development, use **module/page-level testing** instead of testing every small change:
+### 🚀 Streamlined Development Process
 
-#### Implementation Phase
-- Focus on implementation without running tests
-- Only run `npm run build` to check for compile errors
-- Quick visual check in browser when needed
+**개발 철학: 구현 중단 최소화, 모듈 완성 후 종합 검증**
 
-#### Testing Phase (After module completion)
+#### 1️⃣ 구현 단계 (Implementation Focus)
 ```bash
-# Module-level testing
-npm run test:unit                    # Unit tests for completed modules
-npm run test:integration            # Integration tests for related features
-npm run test:attendance            # Specific module testing (example)
+# 구현 중에는 최소한의 체크만 실행
+npm run build              # 컴파일 에러 체크 (필수)
 
-# Page-level testing
-npm run test:e2e -- dashboard      # E2E tests for specific pages
-npm run test:e2e -- auth          # Authentication workflow tests
-
-# Component-level testing
-npm run test -- attendance         # Jest tests for specific components
-npm run test -- daily-reports     # Jest tests for specific features
+# 브라우저에서 빠른 시각적 확인만 진행
+# ❌ 이 단계에서는 테스트 실행 금지
 ```
 
-#### Benefits
-- **2-3x faster development**: No interruptions during implementation
-- **Better focus**: Maintain concentration on coding
-- **Efficient debugging**: Test related features together
-- **Comprehensive validation**: More thorough testing when done in batches
-
-### 🎨 UI Guidelines Validation Strategy
-
-#### Implementation Phase (Skip UI Validation)
-- Focus on functionality and logic implementation
-- Only run `npm run build` for compile error checks
-- Visual verification in browser when needed
-
-#### Module Completion (Batch UI Validation)
+#### 2️⃣ 모듈 완성 후 (Batch Validation)
 ```bash
-# Module-specific UI validation
-npm run validate:ui:attendance  # Attendance module only
-npm run validate:ui:reports     # Daily reports module only
-npm run validate:ui:documents   # Document management module only
-npm run validate:ui:admin       # Admin dashboard module only
-
-# Component-specific validation
-npm run validate:ui -- components/attendance  # Specific folder
-npm run validate:ui -- components/daily-reports
+# 모듈/기능 단위로 한 번에 검증
+npm run test:unit                    # 완성된 모듈 유닛 테스트
+npm run test:integration            # 관련 기능 통합 테스트
+npm run test:e2e -- [specific-page] # 특정 페이지 E2E 테스트
 ```
 
-#### Page Completion (Comprehensive UI Review)
+#### 3️⃣ 핵심 효과
+- **🚀 2-3배 빠른 개발**: 구현 중 방해 요소 완전 제거
+- **🎯 집중력 극대화**: 코딩에만 온전히 집중 가능
+- **🔧 효율적 디버깅**: 관련 기능을 묶어서 체계적 검증
+- **✅ 높은 품질**: 배치 테스트로 더 철저한 검증 가능
+
+
+## Essential Commands (간소화된 명령어 세트)
+
+### 🔧 일상 개발용 (Daily Development)
 ```bash
-# Full page validation
-npm run validate:ui:full        # All components validation
-npm run ui:fix                  # Auto-fix common UI issues
-npm run task:ui-review          # Generate UI review checklist
+npm run dev              # 개발 서버 시작 (http://localhost:3000)
+npm run build            # 컴파일 에러 체크용 (구현 중 사용)
 ```
 
-#### UI Validation Benefits
-- **Focused validation**: Check only completed modules
-- **Batch processing**: More efficient than one-by-one validation  
-- **Contextual feedback**: UI issues grouped by feature
-- **Better debugging**: Related UI problems solved together
-- **2-3x faster development**: No UI validation interruptions during implementation
-- **Higher quality results**: More thorough validation when done in batches
-
-## Development Commands
-
+### 🧪 모듈 완성 후 검증 (Module Completion Testing)
 ```bash
-# Development
-npm run dev              # Start development server (default: http://localhost:3000)
-
-# Building & Testing
-npm run build            # Create production build
-npm run start            # Start production server
-npm run lint             # Run ESLint
-npm run test             # Run Jest tests
-npm run test:watch       # Run Jest in watch mode
-npm run test:e2e         # Run Playwright E2E tests
-npm run test:e2e:ui      # Run Playwright with UI
-npm run test:critical    # Test critical authentication features
-
-# Code Protection
-npm run snapshot:save "reason"  # Save code snapshot before critical changes
-npm run protect:check          # Verify critical features are working
+npm run test             # Jest 유닛 테스트
+npm run test:integration # 통합 테스트 (관련 기능)
+npm run test:e2e         # E2E 테스트 (특정 페이지)
+npm run lint             # 코드 스타일 검사
 ```
+
+### 🛡️ 중요 변경 전용 (Critical Changes Only)
+```bash
+npm run test:critical              # 핵심 인증 기능 테스트
+npm run snapshot:save "reason"     # 중요 변경 전 백업
+npm run protect:check              # 핵심 기능 동작 확인
+```
+
+> **⚡ 핵심 규칙**: 구현 중에는 `npm run build`만 사용, 모듈 완성 후에만 테스트 실행
 
 ## Recent Updates
 

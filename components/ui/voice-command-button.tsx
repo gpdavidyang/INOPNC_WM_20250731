@@ -219,8 +219,8 @@ export function VoiceCommandButton({
         <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-black text-white text-xs rounded-md whitespace-nowrap z-50">
           <div className="text-center">
             <p className="font-semibold mb-1">사용 가능한 명령어:</p>
-            <p>"시작", "완료", "저장", "취소"</p>
-            <p>"작업일지", "안전점검", "품질관리"</p>
+            <p>&quot;시작&quot;, &quot;완료&quot;, &quot;저장&quot;, &quot;취소&quot;</p>
+            <p>&quot;작업일지&quot;, &quot;안전점검&quot;, &quot;품질관리&quot;</p>
           </div>
           <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-black"></div>
         </div>

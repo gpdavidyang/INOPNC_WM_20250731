@@ -17,7 +17,12 @@ try {
   ThemeProvider = nextThemes.ThemeProvider
 } catch {
   // next-themes not available, use mock provider
-  ThemeProvider = ({ children }: { children: ReactNode }) => <>{children}</>
+  const MockThemeProviderComponent = React.forwardRef<any, { children: ReactNode }>(
+    function MockThemeProvider({ children }, ref) {
+      return <>{children}</>
+    }
+  )
+  ThemeProvider = MockThemeProviderComponent
 }
 
 // Re-export for convenience

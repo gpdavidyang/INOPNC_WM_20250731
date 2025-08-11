@@ -20,7 +20,8 @@ import {
   ChevronUp,
   ChevronDown,
   Copy,
-  Phone
+  Phone,
+  Navigation
 } from 'lucide-react'
 import { CurrentUserSite, UserSiteHistory, Profile } from '@/types'
 import { selectUserSite } from '@/app/actions/site-info'

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Profile } from '@/types'
 import DocumentUploadZone from './DocumentUploadZone'
 import { FileText, Download, Eye, Trash2, Upload, Settings, ExternalLink, Search, Filter, CheckSquare, Square, X, AlertCircle } from 'lucide-react'
@@ -53,7 +53,7 @@ export default function SiteDocumentManagement({ profile }: SiteDocumentManageme
   const supabase = createClient()
 
   // Load all sites that the user can manage
-  const loadSites = async () => {
+  const loadSites = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('sites')
@@ -71,10 +71,10 @@ export default function SiteDocumentManagement({ profile }: SiteDocumentManageme
       setError('사이트 목록을 불러오는데 실패했습니다.')
       console.error('Site loading error:', err)
     }
-  }
+  }, [selectedSite, supabase])
 
   // Load documents for selected site
-  const loadDocuments = async () => {
+  const loadDocuments = useCallback(async () => {
     if (!selectedSite) return
 
     setLoading(true)
@@ -107,17 +107,17 @@ export default function SiteDocumentManagement({ profile }: SiteDocumentManageme
     } finally {
       setLoading(false)
     }
-  }
+  }, [selectedSite, supabase])
 
   useEffect(() => {
     loadSites()
-  }, [])
+  }, [loadSites])
 
   useEffect(() => {
     if (selectedSite) {
       loadDocuments()
     }
-  }, [selectedSite])
+  }, [selectedSite, loadDocuments])
 
   // Handle document activation toggle
   const handleToggleActive = async (documentId: string, currentActive: boolean) => {
@@ -493,7 +493,7 @@ export default function SiteDocumentManagement({ profile }: SiteDocumentManageme
                   이 현장에 등록된 문서가 없습니다.
                 </p>
                 <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
-                  상단의 "문서 업로드" 버튼을 클릭하여 문서를 추가하세요.
+                  상단의 &quot;문서 업로드&quot; 버튼을 클릭하여 문서를 추가하세요.
                 </p>
               </div>
             </div>

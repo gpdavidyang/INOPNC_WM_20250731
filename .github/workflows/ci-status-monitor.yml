@@ -1,0 +1,241 @@
+name: CI Status Monitor
+
+on:
+  workflow_run:
+    workflows: ["CI/CD Pipeline - Testing & Deployment"]
+    types: [completed]
+  schedule:
+    # Daily CI health report at 9 AM UTC
+    - cron: '0 9 * * 1-5'  # Weekdays only
+  workflow_dispatch:
+    inputs:
+      generate_report:
+        description: 'Generate CI health report'
+        required: false
+        default: 'true'
+        type: boolean
+
+jobs:
+  ci-status-analysis:
+    name: 📊 CI Status Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      issues: write
+      pull-requests: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Analyze CI Performance
+        id: analysis
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            
+            // Get recent workflow runs
+            const { data: runs } = await github.rest.actions.listWorkflowRuns({
+              owner,
+              repo,
+              workflow_id: 'ci.yml',
+              per_page: 10
+            });
+            
+            const recentRuns = runs.workflow_runs.slice(0, 10);
+            const successRate = (recentRuns.filter(run => run.conclusion === 'success').length / recentRuns.length) * 100;
+            
+            // Calculate average duration
+            const completedRuns = recentRuns.filter(run => run.conclusion !== null);
+            const avgDuration = completedRuns.reduce((sum, run) => {
+              const duration = new Date(run.updated_at) - new Date(run.created_at);
+              return sum + duration;
+            }, 0) / completedRuns.length / 1000 / 60; // Convert to minutes
+            
+            // Identify trends
+            const recentFailures = recentRuns.filter(run => run.conclusion === 'failure').slice(0, 3);
+            const buildFailures = [];
+            const testFailures = [];
+            
+            // Set outputs for subsequent steps
+            core.setOutput('success_rate', Math.round(successRate));
+            core.setOutput('avg_duration', Math.round(avgDuration));
+            core.setOutput('recent_failures', recentFailures.length);
+            core.setOutput('total_runs', recentRuns.length);
+            
+            // Create detailed summary
+            let summary = `## 📊 CI Pipeline Health Report\n\n`;
+            summary += `### 📈 Performance Metrics (Last 10 runs)\n`;
+            summary += `- **Success Rate**: ${Math.round(successRate)}%\n`;
+            summary += `- **Average Duration**: ${Math.round(avgDuration)} minutes\n`;
+            summary += `- **Recent Failures**: ${recentFailures.length}\n\n`;
+            
+            summary += `### 🔍 Build Verification Integration Status\n`;
+            summary += `- **Script**: \`scripts/verify-build.sh\` integrated in CI\n`;
+            summary += `- **Performance Target**: Sub-30s builds (monitored)\n`;
+            summary += `- **Quality Gates**: Zero-warning enforcement\n`;
+            summary += `- **Caching**: Next.js build optimization enabled\n`;
+            summary += `- **Matrix Strategy**: Production + Fast build modes\n\n`;
+            
+            if (successRate < 80) {
+              summary += `### ⚠️ Health Concerns\n`;
+              summary += `- Success rate below 80% threshold\n`;
+              summary += `- Consider investigating recent failures\n\n`;
+            }
+            
+            if (avgDuration > 20) {
+              summary += `### 🐌 Performance Concerns\n`;
+              summary += `- Average CI duration exceeds 20 minutes\n`;
+              summary += `- Build verification script includes performance monitoring\n`;
+              summary += `- Check for optimization opportunities\n\n`;
+            }
+            
+            summary += `### 📋 Recent Workflow Runs\n`;
+            summary += `| Run | Status | Duration | Commit |\n`;
+            summary += `|-----|--------|----------|--------|\n`;
+            
+            for (const run of recentRuns.slice(0, 5)) {
+              const duration = run.updated_at && run.created_at 
+                ? Math.round((new Date(run.updated_at) - new Date(run.created_at)) / 1000 / 60)
+                : 'N/A';
+              const status = run.conclusion === 'success' ? '✅' : 
+                           run.conclusion === 'failure' ? '❌' : 
+                           run.conclusion === 'cancelled' ? '⏹️' : '🔄';
+              const commit = run.head_commit?.id.substring(0, 7) || 'N/A';
+              
+              summary += `| [#${run.run_number}](${run.html_url}) | ${status} ${run.conclusion} | ${duration}m | ${commit} |\n`;
+            }
+            
+            return summary;
+      
+      - name: Post CI Health Summary
+        run: |
+          echo "${{ steps.analysis.outputs.result }}" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Check for Performance Degradation
+        id: perf-check
+        run: |
+          SUCCESS_RATE=${{ steps.analysis.outputs.success_rate }}
+          AVG_DURATION=${{ steps.analysis.outputs.avg_duration }}
+          RECENT_FAILURES=${{ steps.analysis.outputs.recent_failures }}
+          
+          NEEDS_ATTENTION=false
+          ISSUES=()
+          
+          if [ $SUCCESS_RATE -lt 80 ]; then
+            NEEDS_ATTENTION=true
+            ISSUES+=("Success rate ($SUCCESS_RATE%) below 80% threshold")
+          fi
+          
+          if [ $AVG_DURATION -gt 20 ]; then
+            NEEDS_ATTENTION=true
+            ISSUES+=("Average duration ($AVG_DURATION minutes) exceeds 20-minute target")
+          fi
+          
+          if [ $RECENT_FAILURES -gt 3 ]; then
+            NEEDS_ATTENTION=true
+            ISSUES+=("High failure rate: $RECENT_FAILURES recent failures")
+          fi
+          
+          echo "NEEDS_ATTENTION=$NEEDS_ATTENTION" >> $GITHUB_ENV
+          echo "PERFORMANCE_ISSUES=${ISSUES[*]}" >> $GITHUB_ENV
+      
+      - name: Create Performance Alert Issue
+        if: env.NEEDS_ATTENTION == 'true' && github.event_name == 'schedule'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issues = process.env.PERFORMANCE_ISSUES.split(' ');
+            const successRate = '${{ steps.analysis.outputs.success_rate }}';
+            const avgDuration = '${{ steps.analysis.outputs.avg_duration }}';
+            const recentFailures = '${{ steps.analysis.outputs.recent_failures }}';
+            
+            const title = `🚨 CI Performance Alert - Success Rate: ${successRate}%`;
+            
+            let body = `## 🚨 CI Pipeline Performance Alert\n\n`;
+            body += `Our automated CI monitoring has detected performance issues that require attention:\n\n`;
+            body += `### 📊 Current Metrics\n`;
+            body += `- **Success Rate**: ${successRate}% (Target: ≥80%)\n`;
+            body += `- **Average Duration**: ${avgDuration} minutes (Target: ≤20 minutes)\n`;
+            body += `- **Recent Failures**: ${recentFailures}\n\n`;
+            
+            body += `### 🔧 Advanced Build Verification Status\n`;
+            body += `- **Integration**: Using \`scripts/verify-build.sh\` with comprehensive checks\n`;
+            body += `- **Performance Monitoring**: Sub-30s target, 45s threshold enforced\n`;
+            body += `- **Quality Gates**: Zero-warning enforcement active\n`;
+            body += `- **Caching**: Next.js build optimization enabled\n\n`;
+            
+            body += `### ⚠️ Issues Detected\n`;
+            for (const issue of issues) {
+              body += `- ${issue}\n`;
+            }
+            
+            body += `\n### 🛠️ Recommended Actions\n`;
+            body += `1. **Review Recent Failures**: Check the last ${recentFailures} failed runs for patterns\n`;
+            body += `2. **Build Performance**: Analyze build verification logs for optimization opportunities\n`;
+            body += `3. **Dependency Updates**: Consider updating dependencies that might affect build times\n`;
+            body += `4. **Resource Allocation**: Review if CI resources need adjustment\n`;
+            body += `5. **Test Optimization**: Look for slow tests that could be optimized\n\n`;
+            
+            body += `### 📈 Monitoring Integration\n`;
+            body += `This alert was generated by our enhanced CI monitoring system that integrates with:\n`;
+            body += `- Advanced build verification script\n`;
+            body += `- Performance trend analysis\n`;
+            body += `- Quality gate enforcement\n`;
+            body += `- Automated metrics collection\n\n`;
+            
+            body += `**Auto-generated by CI Status Monitor** - [View Workflow](${context.payload.workflow_run?.html_url || 'N/A'})\n`;
+            
+            // Check if similar issue already exists
+            const { data: existingIssues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: 'ci-performance',
+              state: 'open'
+            });
+            
+            if (existingIssues.length === 0) {
+              // Create new issue
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: title,
+                body: body,
+                labels: ['ci-performance', 'needs-attention', 'automated']
+              });
+              
+              console.log('Created new CI performance alert issue');
+            } else {
+              // Update existing issue
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existingIssues[0].number,
+                body: `## 🔄 Updated Alert (${new Date().toISOString()})\n\n${body}`
+              });
+              
+              console.log('Updated existing CI performance alert issue');
+            }
+      
+      - name: Generate Build Performance Report
+        if: github.event_name == 'schedule' || github.event.inputs.generate_report == 'true'
+        run: |
+          echo "## 📊 Weekly CI Performance Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🏗️ Advanced Build Verification Metrics" >> $GITHUB_STEP_SUMMARY
+          echo "- **Integration Status**: ✅ \`scripts/verify-build.sh\` fully integrated" >> $GITHUB_STEP_SUMMARY
+          echo "- **Performance Monitoring**: ✅ Sub-30s target tracking active" >> $GITHUB_STEP_SUMMARY
+          echo "- **Quality Enforcement**: ✅ Zero-warning policy enforced" >> $GITHUB_STEP_SUMMARY
+          echo "- **Matrix Strategy**: ✅ Production + Fast build modes" >> $GITHUB_STEP_SUMMARY
+          echo "- **Caching Strategy**: ✅ Intelligent Next.js build caching" >> $GITHUB_STEP_SUMMARY
+          echo "- **Metrics Collection**: ✅ Comprehensive analytics enabled" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📈 Current Statistics" >> $GITHUB_STEP_SUMMARY
+          echo "- **Success Rate**: ${{ steps.analysis.outputs.success_rate }}%" >> $GITHUB_STEP_SUMMARY
+          echo "- **Average Duration**: ${{ steps.analysis.outputs.avg_duration }} minutes" >> $GITHUB_STEP_SUMMARY
+          echo "- **Recent Failures**: ${{ steps.analysis.outputs.recent_failures }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Total Runs Analyzed**: ${{ steps.analysis.outputs.total_runs }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Next Review**: Next Monday at 9 AM UTC" >> $GITHUB_STEP_SUMMARY

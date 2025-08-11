@@ -253,7 +253,7 @@ export function DocumentsPageImproved({ profile }: DocumentsPageImprovedProps) {
       {/* Content Area */}
       <div className="p-4">
         {activeTab === 'my-documents' && documents.length === 0 ? (
-          {/* Compact Upload Area - Only show when no documents */}
+          // Compact Upload Area - Only show when no documents
           <div
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
@@ -282,7 +282,7 @@ export function DocumentsPageImproved({ profile }: DocumentsPageImprovedProps) {
             </div>
           </div>
         ) : (
-          {/* Document List - Compact Design */}
+          // Document List - Compact Design
           <div className="space-y-2">
             {/* Quick Stats Bar */}
             <div className="flex items-center justify-between px-2 py-1 text-sm text-gray-600 dark:text-gray-400">
@@ -350,7 +350,7 @@ export function DocumentsPageImproved({ profile }: DocumentsPageImprovedProps) {
                 ))}
               </div>
             ) : (
-              {/* Grid View */}
+              // Grid View
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                 {documents.map((doc) => (
                   <Card

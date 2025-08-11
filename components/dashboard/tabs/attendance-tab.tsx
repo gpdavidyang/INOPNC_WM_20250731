@@ -57,18 +57,7 @@ interface Site {
 }
 
 export default function AttendanceTab({ profile }: AttendanceTabProps) {
-  // Early return if no profile
-  if (!profile?.id) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <div className="text-center">
-          <p className="text-red-600 dark:text-red-400">프로필 정보를 불러올 수 없습니다.</p>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">페이지를 새로고침해 주세요.</p>
-        </div>
-      </div>
-    )
-  }
-
+  // All hooks must be called before any conditional returns
   const [activeTab, setActiveTab] = useState<'print' | 'salary'>('print')
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [selectedSite, setSelectedSite] = useState<string>('all')
@@ -104,6 +93,18 @@ export default function AttendanceTab({ profile }: AttendanceTabProps) {
   useEffect(() => {
     filterSalaryData()
   }, [salaryInfo, salaryFilter])
+
+  // Early return if no profile (after all hooks)
+  if (!profile?.id) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="text-center">
+          <p className="text-red-600 dark:text-red-400">프로필 정보를 불러올 수 없습니다.</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">페이지를 새로고침해 주세요.</p>
+        </div>
+      </div>
+    )
+  }
 
   const filterRecordsByMonth = () => {
     if (selectedDate) {

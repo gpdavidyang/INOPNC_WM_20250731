@@ -80,7 +80,7 @@ export const MarkupCanvas = forwardRef<HTMLCanvasElement, MarkupCanvasProps>(
         }
         img.src = blueprintUrl
       }
-    }, [blueprintUrl, canvas, containerRef, onStateChange])
+    }, [blueprintUrl, canvas, containerRef, onStateChange, redrawCanvas])
 
     // 캔버스 크기 조정
     useEffect(() => {
@@ -152,7 +152,7 @@ export const MarkupCanvas = forwardRef<HTMLCanvasElement, MarkupCanvasProps>(
         window.removeEventListener('resize', resizeCanvas)
         clearTimeout(timeoutId)
       }
-    }, [canvas, containerRef, onStateChange])
+    }, [canvas, containerRef, onStateChange, redrawCanvas])
 
     // 캔버스 좌표 변환
     const getCanvasCoordinates = useCallback((e: React.MouseEvent | MouseEvent) => {
@@ -508,7 +508,7 @@ export const MarkupCanvas = forwardRef<HTMLCanvasElement, MarkupCanvasProps>(
     useEffect(() => {
       console.log('State changed, triggering redraw') // 디버깅용
       redrawCanvas()
-    }, [editorState.markupObjects, editorState.viewerState, editorState.selectedObjects, currentDrawing, blueprintImageRef.current])
+    }, [editorState.markupObjects, editorState.viewerState, editorState.selectedObjects, currentDrawing, redrawCanvas])
 
     // currentDrawing 상태 변경 감지
     useEffect(() => {
@@ -526,7 +526,7 @@ export const MarkupCanvas = forwardRef<HTMLCanvasElement, MarkupCanvasProps>(
         containerRect: containerRef.current?.getBoundingClientRect(),
         activeTool: editorState.toolState.activeTool
       })
-    }, [canvas, editorState.toolState.activeTool])
+    }, [canvas, containerRef, editorState.toolState.activeTool])
 
     return (
       <>

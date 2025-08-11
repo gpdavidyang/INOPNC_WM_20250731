@@ -414,4 +414,94 @@ These commands make AI calls and may take up to a minute:
 
 ---
 
+## Task Master AI 최소 기능 사용 가이드
+
+### 🎯 목적: 워크플로 관리 & 완료 기록 전용
+
+성능에 영향을 주지 않으면서 워크플로 관리 용도로만 사용하는 최적화 가이드입니다.
+
+### ✅ 권장 사용 명령어 (빠르고 효율적)
+
+#### 1. 일상 워크플로 명령어
+```bash
+# 작업 목록 확인 (즉시 응답)
+task-master list
+mcp__task_master_ai__get_tasks
+
+# 다음 작업 확인 (즉시 응답)  
+task-master next
+mcp__task_master_ai__next_task
+
+# 특정 작업 상세보기 (즉시 응답)
+task-master show <id>
+mcp__task_master_ai__get_task
+
+# 작업 완료 기록 (즉시 응답)
+task-master set-status --id=<id> --status=done
+mcp__task_master_ai__set_task_status
+```
+
+#### 2. 간단한 작업 관리
+```bash
+# 새 작업 추가 (간단한 것만, --research 금지)
+task-master add-task --prompt="간단한 작업 설명"
+
+# 작업 이동 (즉시 응답)
+task-master move --from=<id> --to=<id>
+
+# 종속성 추가/제거 (즉시 응답)
+task-master add-dependency --id=<id> --depends-on=<id>
+task-master remove-dependency --id=<id> --depends-on=<id>
+```
+
+### ❌ 피해야 할 명령어 (성능에 영향)
+
+```bash
+# 이런 명령어들은 사용 금지:
+task-master analyze-complexity --research     # 30초-1분 소요
+task-master expand --all --research          # 1-3분 소요  
+task-master expand --id=<id> --research      # 30초-1분 소요
+task-master update --from=<id> --research    # 30초-1분 소요
+
+# --research 플래그 사용 금지
+task-master add-task --prompt="..." --research    # 느림
+task-master update-task --id=<id> --research      # 느림
+```
+
+### 🚀 최적 사용 패턴
+
+#### 개발 세션 시작
+```bash
+1. task-master next                    # 다음 작업 확인
+2. task-master show <id>              # 작업 상세 확인
+3. task-master set-status --id=<id> --status=in-progress
+```
+
+#### 개발 완료
+```bash
+1. task-master set-status --id=<id> --status=done
+2. task-master next                   # 다음 작업 확인
+```
+
+### 📊 성능 영향 비교
+
+| 명령어 유형 | 응답 시간 | MCP 호출 | AI 사용 | 권장도 |
+|------------|----------|----------|---------|--------|
+| **list, next, show** | 즉시 (1-2초) | 최소 | 없음 | ✅ 적극 권장 |
+| **set-status** | 즉시 (1-2초) | 최소 | 없음 | ✅ 적극 권장 |
+| **add-task (단순)** | 3-5초 | 보통 | 최소 | ⚠️ 필요시만 |
+| **expand --research** | 30초-3분 | 높음 | 높음 | ❌ 금지 |
+| **analyze-complexity** | 30초-1분 | 높음 | 높음 | ❌ 금지 |
+
+### 🎯 핵심 원칙
+
+1. **속도 우선**: AI 분석이 필요한 기능은 피하기
+2. **단순 관리**: 작업 상태 관리와 기록에만 집중
+3. **수동 생성**: 복잡한 작업은 수동으로 생성하고 Task Master는 추적만
+4. **즉시 응답**: 1-2초 내 응답되는 명령어만 사용
+
+**핵심**: Task Master AI를 "할일 목록 관리자"로만 사용하고, "AI 분석가"로는 사용하지 않기.
+
+---
+
 _This guide ensures Claude Code has immediate access to Task Master's essential functionality for agentic development workflows._

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Profile } from '@/types'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -116,7 +116,7 @@ export default function AnalyticsDashboard({ profile }: AnalyticsDashboardProps)
   const COLORS = ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4']
   
   // Load all analytics data
-  const loadAnalyticsData = async () => {
+  const loadAnalyticsData = useCallback(async () => {
     try {
       setError(null)
       const [kpiRes, productivityRes, costRes, performanceRes] = await Promise.all([
@@ -187,11 +187,11 @@ export default function AnalyticsDashboard({ profile }: AnalyticsDashboardProps)
       setLoading(false)
       setRefreshing(false)
     }
-  }
+  }, [dateFrom, dateTo])
   
   useEffect(() => {
     loadAnalyticsData()
-  }, [dateFrom, dateTo])
+  }, [dateFrom, dateTo, loadAnalyticsData])
   
   const handleRefresh = () => {
     setRefreshing(true)

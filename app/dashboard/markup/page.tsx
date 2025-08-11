@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Profile } from '@/types'
@@ -18,7 +18,7 @@ export default function MarkupPage() {
 
   useEffect(() => {
     loadProfile()
-  }, [])
+  }, [loadProfile])
 
   useEffect(() => {
     if (fileId && profile) {
@@ -26,7 +26,7 @@ export default function MarkupPage() {
     }
   }, [fileId, profile])
 
-  const loadProfile = async () => {
+  const loadProfile = useCallback(async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser()
       
@@ -52,7 +52,7 @@ export default function MarkupPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [supabase, router])
 
   const loadDocument = async (documentId: string) => {
     try {

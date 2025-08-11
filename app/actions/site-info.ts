@@ -109,6 +109,41 @@ export async function getCurrentUserSite() {
       return { success: true, data: null }
     }
 
+    // Fetch site documents (PTW and Blueprint) for the current site
+    try {
+      log('getCurrentUserSite: Fetching site documents for site_id:', siteData.site_id)
+      
+      const { data: documents, error: documentsError } = await supabase
+        .from('site_documents')
+        .select('id, title, file_name, file_url, document_type, description, created_at')
+        .eq('site_id', siteData.site_id)
+        .in('document_type', ['ptw', 'blueprint'])
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+
+      if (documentsError) {
+        log('getCurrentUserSite: Document query error (non-fatal):', documentsError)
+      } else {
+        log('getCurrentUserSite: Found documents:', documents?.length || 0)
+        
+        // Add documents to site data
+        const ptwDocument = documents?.find(doc => doc.document_type === 'ptw')
+        const blueprintDocument = documents?.find(doc => doc.document_type === 'blueprint')
+        
+        if (ptwDocument) {
+          siteData.ptw_document = ptwDocument
+          log('getCurrentUserSite: Added PTW document:', ptwDocument.title)
+        }
+        
+        if (blueprintDocument) {
+          siteData.blueprint_document = blueprintDocument
+          log('getCurrentUserSite: Added blueprint document:', blueprintDocument.title)
+        }
+      }
+    } catch (docError) {
+      log('getCurrentUserSite: Error fetching documents (non-fatal):', docError)
+    }
+
     log('getCurrentUserSite: Success')
     return { success: true, data: siteData }
   } catch (error) {

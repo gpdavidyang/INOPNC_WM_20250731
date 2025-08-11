@@ -87,8 +87,10 @@ export default function SiteInfoContent({
         start_date: site.start_date,
         end_date: site.end_date || ''
       },
-      is_active: site.site_status === 'active'
-      // Document fields excluded to match Home screen appearance
+      is_active: site.site_status === 'active',
+      // Include document fields for dynamic document display
+      ptw_document: site.ptw_document || null,
+      blueprint_document: site.blueprint_document || null
     }
   }
 

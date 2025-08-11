@@ -7,7 +7,8 @@ import { validateFile, ValidationResult, FileValidationError } from '@/lib/valid
 import { cn } from '@/lib/utils'
 
 interface DocumentUploadZoneProps {
-  onUpload: (file: File, documentType: SiteDocumentType) => Promise<void>
+  siteId: string
+  onUploadComplete?: () => void
   disabled?: boolean
   className?: string
 }
@@ -20,7 +21,8 @@ interface FilePreview {
 }
 
 export default function DocumentUploadZone({ 
-  onUpload, 
+  siteId,
+  onUploadComplete, 
   disabled = false, 
   className 
 }: DocumentUploadZoneProps) {
@@ -107,7 +109,7 @@ export default function DocumentUploadZone({
     }
   }, [handleFiles])
 
-  // Handle individual file upload
+  // Handle individual file upload to site_documents table
   const handleUploadFile = useCallback(async (index: number) => {
     const filePreview = filePreviews[index]
     if (!filePreview || !filePreview.validationResult.isValid || filePreview.uploading) return
@@ -118,8 +120,26 @@ export default function DocumentUploadZone({
     ))
 
     try {
-      await onUpload(filePreview.file, documentType)
+      const { createClient } = await import('@/lib/supabase/client')
+      const supabase = createClient()
+
+      // Create form data for file upload
+      const formData = new FormData()
+      formData.append('file', filePreview.file)
+      formData.append('siteId', siteId)
+      formData.append('documentType', documentType)
       
+      // Upload file via API route
+      const response = await fetch('/api/site-documents/upload', {
+        method: 'POST',
+        body: formData
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || '업로드에 실패했습니다')
+      }
+
       // Remove file from preview after successful upload
       setFilePreviews(prev => prev.filter((_, i) => i !== index))
       
@@ -127,6 +147,10 @@ export default function DocumentUploadZone({
       if (filePreview.preview) {
         URL.revokeObjectURL(filePreview.preview)
       }
+
+      // Notify parent component
+      onUploadComplete?.()
+      
     } catch (error) {
       // Update with error in validation result
       setFilePreviews(prev => prev.map((fp, i) => 
@@ -147,7 +171,7 @@ export default function DocumentUploadZone({
         } : fp
       ))
     }
-  }, [filePreviews, documentType, onUpload])
+  }, [filePreviews, documentType, siteId, onUploadComplete])
 
   // Remove file from preview
   const removeFile = useCallback((index: number) => {

@@ -13,7 +13,7 @@ import {
   CreateSiteData,
   UpdateSiteData 
 } from '@/app/actions/admin/sites'
-import { Plus, Search, Filter, Eye, Edit, MapPin, Calendar, Phone, Users } from 'lucide-react'
+import { Plus, Search, Filter, Eye, Edit, MapPin, Calendar, Phone, Users, FileText } from 'lucide-react'
 
 interface SiteManagementProps {
   profile: Profile
@@ -133,6 +133,11 @@ export default function SiteManagement({ profile }: SiteManagementProps) {
   const handleViewSite = (site: Site) => {
     // TODO: Implement site detail view
     alert(`현장 상세 정보: ${site.name}`)
+  }
+
+  // Handle document management navigation
+  const handleDocumentManagement = (site: Site) => {
+    window.location.href = `/dashboard/admin/sites/${site.id}/documents`
   }
 
   // Define table columns
@@ -288,6 +293,14 @@ export default function SiteManagement({ profile }: SiteManagementProps) {
             getRowId={(site: Site) => site.id}
             onView={handleViewSite}
             onEdit={handleEditSite}
+            customActions={[
+              {
+                icon: FileText,
+                label: '문서 관리',
+                onClick: handleDocumentManagement,
+                variant: 'default' as const
+              }
+            ]}
             currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={setCurrentPage}

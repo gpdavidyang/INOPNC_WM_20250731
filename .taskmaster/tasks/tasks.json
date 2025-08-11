@@ -793,7 +793,7 @@
               "20.2"
             ],
             "details": "Create SiteDocumentManagement component that displays all documents for a site in a organized list/grid view. Implement DocumentList component showing document thumbnails, metadata (type, size, upload date, uploader), and action buttons. Add functionality to set documents as active/inactive, delete documents (with confirmation dialog), and preview documents in modal. Implement proper loading states, error handling, and empty states. Ensure the UI updates in real-time when documents are added or modified.",
-            "status": "in-progress",
+            "status": "done",
             "testStrategy": "Test CRUD operations for documents including upload, list, delete, and status updates. Verify UI updates correctly after each operation. Test error scenarios like network failures or permission errors. Validate that document previews work for all supported file types."
           },
           {
@@ -804,7 +804,7 @@
               "20.3"
             ],
             "details": "Create the admin route at app/dashboard/admin/sites/[id]/documents/page.tsx for site-specific document management. Add navigation links in the admin site management section to access document management. Implement breadcrumb navigation for better UX. Create proper loading and error boundaries. Add role-based access control to ensure only admins can access these pages. Include site context information (name, ID) in the page header for clarity.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test routing and navigation to document management pages. Verify role-based access control prevents non-admin access. Test page loading states and error handling. Ensure breadcrumb navigation works correctly and site context is displayed properly."
           },
           {
@@ -815,7 +815,7 @@
               "20.4"
             ],
             "details": "Update TodaySiteInfo component to query site_documents table for active PTW and blueprint documents. Modify BlueprintModal and PTWModal components to accept dynamic document URLs. Implement fallback behavior when no documents are set (show placeholder or message). Add proper error handling for missing documents. Ensure the component refreshes when documents are updated in the admin panel. Optimize queries to prevent N+1 problems when loading multiple sites.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": "Test that Site Info correctly displays documents from the database. Verify fallback behavior when no documents are assigned. Test that updates in admin panel reflect in Site Info view. Check performance with multiple concurrent users accessing different sites."
           }
         ]
@@ -823,7 +823,7 @@
     ],
     "metadata": {
       "created": "2025-08-02T09:20:48.397Z",
-      "updated": "2025-08-10T22:44:38.616Z",
+      "updated": "2025-08-11T00:21:47.433Z",
       "description": "Tasks for master context"
     }
   }

@@ -65,10 +65,16 @@ const nextConfig = {
   },
   
   
-  // 이미지 최적화
+  // 이미지 최적화 - 프로덕션 품질 향상 설정
   images: {
-    domains: ['localhost', 'your-supabase-url.supabase.co'],
     formats: ['image/avif', 'image/webp'],
+    domains: ['localhost', 'your-supabase-url.supabase.co'],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    minimumCacheTTL: 86400, // 24시간 캐시
+    dangerouslyAllowSVG: true,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    unoptimized: false, // 최적화 활성화
   },
   
   // PWA 지원을 위한 설정

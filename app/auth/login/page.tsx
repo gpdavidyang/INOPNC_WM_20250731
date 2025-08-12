@@ -56,48 +56,61 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 px-4">
       <div className="w-full max-w-md">
         {/* 로고 및 타이틀 */}
         <div className="text-center mb-8">
-          <div className="mx-auto w-20 h-20 mb-4 flex items-center justify-center">
+          <div className="mx-auto w-24 h-24 mb-6 flex items-center justify-center bg-white rounded-2xl shadow-lg">
             <Image
               src="/INOPNC_logo.png"
               alt="INOPNC 로고"
-              width={80}
-              height={80}
+              width={60}
+              height={60}
               className="object-contain"
             />
           </div>
-          <p className="text-gray-600 mt-2">건설 작업일지 관리 시스템</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">INOPNC</h1>
+          <p className="text-gray-600">건설 작업일지 관리 시스템</p>
         </div>
 
         {/* 로그인 폼 */}
-        <div className="bg-white rounded-lg shadow-xl p-8">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-6">로그인</h2>
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
+          <h2 className="text-xl font-semibold text-gray-900 mb-8 text-center">로그인</h2>
           
           <form action={handleLogin} className="space-y-6">
-            <div>
+            <div className="space-y-2">
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                 이메일
               </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                required
-                defaultValue={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
-                placeholder="email@example.com"
-              />
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                  </svg>
+                </div>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  required
+                  defaultValue={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="block w-full pl-10 pr-3 py-3.5 border-2 border-gray-300 rounded-xl shadow-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white transition-all duration-200 text-base font-medium"
+                  placeholder="email@example.com"
+                />
+              </div>
             </div>
 
-            <div>
+            <div className="space-y-2">
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                 비밀번호
               </label>
-              <div className="mt-1 relative">
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                </div>
                 <input
                   id="password"
                   name="password"
@@ -105,13 +118,13 @@ export default function LoginPage() {
                   required
                   defaultValue={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
+                  className="block w-full pl-10 pr-16 py-3.5 border-2 border-gray-300 rounded-xl shadow-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white transition-all duration-200 text-base font-medium"
                   placeholder="••••••••"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
                 >
                   {showPassword ? (
                     <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -128,60 +141,102 @@ export default function LoginPage() {
             </div>
 
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm">
-                {error}
+              <div className="bg-red-50 border-l-4 border-red-400 text-red-700 px-4 py-3 rounded-lg text-sm flex items-center space-x-2">
+                <svg className="h-5 w-5 text-red-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>{error}</span>
               </div>
             )}
 
             <button
               type="submit"
               disabled={isPending}
-              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-base font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
             >
-              {isPending ? '로그인 중...' : '로그인'}
+              {isPending ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  로그인 중...
+                </>
+              ) : (
+                '로그인'
+              )}
             </button>
           </form>
 
-          <div className="mt-6">
+          <div className="mt-8">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
+                <div className="w-full border-t border-gray-200" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">또는</span>
+                <span className="px-4 bg-white text-gray-500">또는</span>
               </div>
             </div>
 
-            <div className="mt-6 space-y-2 text-center">
-              <Link href="/auth/signup" className="block text-sm text-blue-600 hover:text-blue-500">
+            <div className="mt-6 space-y-3 text-center">
+              <Link 
+                href="/auth/signup" 
+                className="block text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
+              >
                 계정이 없으신가요? 회원가입
               </Link>
-              <Link href="/auth/reset-password" className="block text-sm text-gray-600 hover:text-gray-800">
+              <Link 
+                href="/auth/reset-password" 
+                className="block text-sm text-gray-600 hover:text-gray-800 transition-colors"
+              >
                 비밀번호를 잊으셨나요?
               </Link>
             </div>
           </div>
 
           {/* 데모 계정 정보 */}
-          <div className="mt-8 p-4 bg-gray-50 rounded-md">
-            <div className="flex justify-between items-center mb-2">
-              <p className="text-xs text-gray-600">데모 계정:</p>
+          <div className="mt-8 p-5 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex items-center space-x-2">
+                <svg className="h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p className="text-sm font-medium text-blue-900">데모 계정</p>
+              </div>
               <button
                 type="button"
                 onClick={handleSeedData}
                 disabled={seedLoading}
-                className="text-xs text-blue-600 hover:text-blue-700 disabled:text-gray-400"
+                className="text-xs px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition-colors"
               >
                 {seedLoading ? '생성 중...' : '데모 데이터 생성'}
               </button>
             </div>
-            <div className="space-y-1 text-xs text-gray-500">
-              <p>작업자: worker@inopnc.com / password123</p>
-              <p>현장관리자: manager@inopnc.com / password123</p>
-              <p>생산관리자: production@inopnc.com / password123</p>
-              <p>파트너사: customer@partner.com / password123</p>
-              <p>관리자: admin@inopnc.com / password123</p>
-              <p>시스템관리자: system@inopnc.com / password123</p>
+            <div className="grid grid-cols-1 gap-2 text-xs text-blue-800">
+              <div className="flex justify-between">
+                <span className="font-medium">작업자:</span>
+                <span className="font-mono">worker@inopnc.com / password123</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="font-medium">현장관리자:</span>
+                <span className="font-mono">manager@inopnc.com / password123</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="font-medium">생산관리자:</span>
+                <span className="font-mono">production@inopnc.com / password123</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="font-medium">파트너사:</span>
+                <span className="font-mono">customer@partner.com / password123</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="font-medium">관리자:</span>
+                <span className="font-mono">admin@inopnc.com / password123</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="font-medium">시스템관리자:</span>
+                <span className="font-mono">system@inopnc.com / password123</span>
+              </div>
             </div>
           </div>
         </div>

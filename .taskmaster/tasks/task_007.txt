@@ -1,0 +1,11 @@
+# Task ID: 7
+# Title: Production Environment Setup and Security Hardening
+# Status: done
+# Dependencies: 6
+# Priority: high
+# Description: Configure production infrastructure with security best practices and monitoring
+# Details:
+Set up production Supabase project with proper RLS policies review. Configure production environment variables and secrets management. Implement API rate limiting and DDoS protection. Set up WAF rules for common attacks. Configure CORS policies for production domains. Implement request signing for sensitive operations. Set up automated security scanning (OWASP ZAP, Snyk). Configure backup automation with point-in-time recovery. Implement audit logging for compliance. Set up VPN access for admin operations.
+
+# Test Strategy:
+Perform penetration testing on production setup. Test backup and recovery procedures. Verify rate limiting works without affecting legitimate users. Test RLS policies with different user roles. Validate audit logs capture required events. Test disaster recovery runbook. Verify security headers are properly set.

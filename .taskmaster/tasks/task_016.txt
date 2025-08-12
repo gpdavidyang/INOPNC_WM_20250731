@@ -1,0 +1,47 @@
+# Task ID: 16
+# Title: Jest Configuration for Modern Features
+# Status: done
+# Dependencies: 15
+# Priority: high
+# Description: Update Jest configuration to support PWA testing, Analytics, and modern React features with proper module resolution and environment setup
+# Details:
+Update jest.config.js with:
+
+1. Setup Files:
+```javascript
+setupFilesAfterEnv: [
+  '<rootDir>/jest.setup.js',
+  '<rootDir>/lib/test-utils/pwa-setup.ts'
+]
+```
+
+2. Module Name Mapping:
+```javascript
+moduleNameMapper: {
+  '^@/lib/test-utils/(.*)$': '<rootDir>/lib/test-utils/$1'
+}
+```
+
+3. Test Environment Options:
+```javascript
+testEnvironmentOptions: {
+  customExportConditions: [''],
+  url: 'https://localhost:3000'
+}
+```
+
+4. TypeScript Configuration:
+```javascript
+globals: {
+  'ts-jest': {
+    tsconfig: {
+      jsx: 'react-jsx'
+    }
+  }
+}
+```
+
+5. Create pwa-setup.ts for service worker and navigator mocking
+
+# Test Strategy:
+Verify Jest can properly import and use test utilities. Test that PWA globals are available in test environment. Ensure TypeScript compilation works correctly with JSX. Validate module resolution for test utilities. Test that mock service worker setup doesn't interfere with other tests.

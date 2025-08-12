@@ -1,0 +1,42 @@
+# Task ID: 15
+# Title: Enhanced Testing Utilities and Mock Framework
+# Status: done
+# Dependencies: None
+# Priority: high
+# Description: Create a robust testing infrastructure with comprehensive mock utilities that support all recent system changes including labor hours system, unified documents UI, PWA features, and Analytics API
+# Details:
+Create /lib/test-utils/ directory structure and implement comprehensive mocking framework:
+
+1. Core Mock Framework:
+- createMockSupabaseClient() with full auth and database mocking
+- TypeScript types matching actual Supabase interfaces
+
+2. Labor Hours (공수) System Mocks:
+```typescript
+// lib/test-utils/factories/attendance.factory.ts
+export const createMockAttendanceWithLaborHours = (overrides?: Partial<AttendanceRecord>) => ({
+  id: faker.string.uuid(),
+  work_date: faker.date.recent().toISOString(),
+  labor_hours: faker.helpers.arrayElement([0.25, 0.5, 0.75, 1.0, 1.25, 1.5]),
+  hours_worked: null,
+  site_name: faker.company.name(),
+  status: 'present',
+  ...overrides
+})
+
+export const createMockPayslip = () => ({
+  month: '2025-08',
+  total_labor_hours: 22.5,
+  total_hours_worked: 180,
+  basic_salary: 3000000,
+  overtime_pay: 500000,
+  total_pay: 3500000
+})
+```
+
+3. Unified Documents System Mocks with card UI fields
+4. PWA Testing Infrastructure with service worker and push notification mocks
+5. Analytics API Mocks for metrics and web vitals
+
+# Test Strategy:
+Unit test all mock utilities to ensure they reflect actual data structures. Test labor hours calculations (1.0 공수 = 8 hours conversion). Verify PDF generation mocks work correctly. Test PWA mock behavior in different states (online/offline, installed/not installed). Validate Analytics mock responses match actual API structure.

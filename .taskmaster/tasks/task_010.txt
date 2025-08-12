@@ -1,0 +1,57 @@
+# Task ID: 10
+# Title: Setup Comprehensive Testing Infrastructure and Mock Utilities
+# Status: done
+# Dependencies: None
+# Priority: high
+# Description: Create robust testing infrastructure with proper Supabase mocking, test utilities, and fix existing test configuration issues to enable reliable test execution
+# Details:
+1. Create testing utilities directory structure:
+   - `/lib/test-utils/supabase-mock.ts` - Comprehensive Supabase client mock
+   - `/lib/test-utils/auth-helpers.ts` - Authentication test utilities
+   - `/lib/test-utils/render-helpers.tsx` - React component test wrappers
+   - `/lib/test-utils/async-helpers.ts` - Async operation utilities
+
+2. Implement `createMockSupabaseClient()`:
+   ```typescript
+   export const createMockSupabaseClient = () => {
+     return {
+       auth: {
+         getSession: jest.fn().mockResolvedValue({ data: { session: mockSession }, error: null }),
+         signIn: jest.fn(),
+         signOut: jest.fn(),
+         onAuthStateChange: jest.fn(() => ({ data: { subscription: { unsubscribe: jest.fn() } } }))
+       },
+       from: jest.fn(() => ({
+         select: jest.fn().mockReturnThis(),
+         insert: jest.fn().mockReturnThis(),
+         update: jest.fn().mockReturnThis(),
+         delete: jest.fn().mockReturnThis(),
+         eq: jest.fn().mockReturnThis(),
+         single: jest.fn()
+       }))
+     };
+   };
+   ```
+
+3. Fix jest.config.js and setup files:
+   - Configure module aliases properly
+   - Set up global test environment variables
+   - Configure proper async timeout handling
+   - Add setup files for consistent mock initialization
+
+4. Create test data factories using @faker-js/faker:
+   - User factory with roles
+   - Organization/Site factories
+   - Document/Report factories
+
+5. Implement MSW (Mock Service Worker) for API mocking:
+   - Set up request handlers for all API endpoints
+   - Create scenario-based response generators
+   - Configure for both Node and browser environments
+
+# Test Strategy:
+1. Unit test all mock utilities to ensure they behave like real Supabase client
+2. Create integration tests verifying mock utilities work with actual components
+3. Test that async helpers properly handle timeouts and loading states
+4. Verify test isolation - no test should affect another
+5. Benchmark test execution time to ensure <30s for full suite

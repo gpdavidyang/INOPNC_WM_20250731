@@ -10,6 +10,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { SiteInfo, AccommodationAddress, ProcessInfo } from '@/types/site-info'
 import ManagerContacts from './ManagerContacts'
 import { TMap } from '@/lib/external-apps'
+import { getSiteDocumentsPTWAndBlueprint, SiteDocument } from '@/app/actions/site-documents'
 
 interface TodaySiteInfoProps {
   siteInfo: SiteInfo | null
@@ -24,6 +25,41 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
   const [showPTWModal, setShowPTWModal] = useState(false)
   const [pdfLoadError, setPdfLoadError] = useState(false)
   const [pdfTimeout, setPdfTimeout] = useState<NodeJS.Timeout | null>(null)
+  
+  // Dynamic document state
+  const [siteDocuments, setSiteDocuments] = useState<{
+    ptw_document: SiteDocument | null
+    blueprint_document: SiteDocument | null
+  } | null>(null)
+  const [documentsLoading, setDocumentsLoading] = useState(false)
+
+  // Fetch documents when siteInfo changes
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      if (!siteInfo?.id) {
+        setSiteDocuments(null)
+        return
+      }
+
+      setDocumentsLoading(true)
+      try {
+        const result = await getSiteDocumentsPTWAndBlueprint(siteInfo.id)
+        if (result.success && result.data) {
+          setSiteDocuments(result.data)
+        } else {
+          console.error('Failed to fetch site documents:', result.error)
+          setSiteDocuments(null)
+        }
+      } catch (error) {
+        console.error('Error fetching site documents:', error)
+        setSiteDocuments(null)
+      } finally {
+        setDocumentsLoading(false)
+      }
+    }
+
+    fetchDocuments()
+  }, [siteInfo?.id])
 
   // Reset PDF load error when modal is opened
   useEffect(() => {

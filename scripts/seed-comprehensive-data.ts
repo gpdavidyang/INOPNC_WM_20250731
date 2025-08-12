@@ -1,13 +1,16 @@
 #!/usr/bin/env tsx
 /**
- * Comprehensive seed data script for realistic testing
- * Creates sufficient data volume for all features
+ * Comprehensive Construction Site Data Seeder
+ * Generates realistic Korean construction site data using the advanced data generation classes
+ * 
+ * Usage: npx tsx scripts/seed-comprehensive-data.ts [options]
  */
 
 import { createClient } from '@supabase/supabase-js'
 import * as dotenv from 'dotenv'
 import { resolve } from 'path'
-import { faker } from '@faker-js/faker/locale/ko'
+import { faker } from '@faker-js/faker'
+import { ConstructionDataGenerator, PayrollCalculator, MaterialWorkflowManager } from '../lib/data-generation/generators'
 
 // Load environment variables
 dotenv.config({ path: resolve(process.cwd(), '.env.local') })
@@ -17,10 +20,17 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
 if (!supabaseUrl || !supabaseServiceKey) {
   console.error('❌ Missing environment variables')
+  console.error('   NEXT_PUBLIC_SUPABASE_URL')
+  console.error('   SUPABASE_SERVICE_ROLE_KEY')
   process.exit(1)
 }
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey)
+
+// Initialize advanced data generators
+const dataGenerator = ConstructionDataGenerator.getInstance()
+const payrollCalculator = PayrollCalculator.getInstance()
+const materialWorkflow = MaterialWorkflowManager.getInstance()
 
 // Configuration for data volume
 const CONFIG = {
@@ -169,41 +179,44 @@ async function seedComprehensiveData() {
     if (siteError) throw siteError
     console.log(`✅ Created ${sitesData?.length || 0} sites\n`)
 
-    // Step 3: Create Users (Profiles)
-    console.log('👥 Creating user profiles...')
+    // Step 3: Create Users (Profiles) using ConstructionDataGenerator
+    console.log('👥 Creating user profiles using advanced data generation...')
     const profiles = []
     
-    // Create workers
+    // Generate workers using ConstructionDataGenerator
     for (let i = 0; i < CONFIG.WORKERS; i++) {
+      const workerProfile = dataGenerator.generateWorkerProfile()
       profiles.push({
         email: `worker${i + 1}@test.com`,
-        full_name: getRandomKoreanName(),
+        full_name: workerProfile.name,
         role: 'worker',
-        phone: getRandomPhone(),
+        phone: workerProfile.phone,
         is_verified: true,
         organization_id: faker.helpers.arrayElement(siteOrgs)?.id
       })
     }
     
-    // Create managers
+    // Generate managers using ConstructionDataGenerator
     for (let i = 0; i < CONFIG.MANAGERS; i++) {
+      const managerProfile = dataGenerator.generateManagerProfile()
       profiles.push({
         email: `manager${i + 1}@test.com`,
-        full_name: getRandomKoreanName(),
+        full_name: managerProfile.name,
         role: 'site_manager',
-        phone: getRandomPhone(),
+        phone: managerProfile.phone,
         is_verified: true,
         organization_id: faker.helpers.arrayElement(siteOrgs)?.id
       })
     }
     
-    // Create admins
+    // Generate admins using ConstructionDataGenerator
     for (let i = 0; i < CONFIG.ADMINS; i++) {
+      const adminProfile = dataGenerator.generateManagerProfile()
       profiles.push({
         email: `admin${i + 1}@test.com`,
-        full_name: getRandomKoreanName(),
+        full_name: adminProfile.name,
         role: 'admin',
-        phone: getRandomPhone(),
+        phone: adminProfile.phone,
         is_verified: true,
         organization_id: siteOrgs[0]?.id
       })
@@ -227,8 +240,8 @@ async function seedComprehensiveData() {
     
     console.log(`✅ Created ${createdProfiles} user profiles\n`)
 
-    // Step 4: Create Attendance Records with realistic patterns
-    console.log('📅 Creating attendance records...')
+    // Step 4: Create Attendance Records using ConstructionDataGenerator
+    console.log('📅 Creating attendance records using advanced patterns...')
     
     const { data: workers } = await supabase
       .from('profiles')
@@ -249,9 +262,17 @@ async function seedComprehensiveData() {
           const date = new Date()
           date.setDate(date.getDate() - d)
           const dateStr = date.toISOString().split('T')[0]
-          const dayOfWeek = date.getDay()
           
-          // Skip some weekends (70% chance to skip)
+          // Use ConstructionDataGenerator for realistic attendance patterns
+          const attendanceRecord = dataGenerator.generateAttendanceRecord(
+            worker.id,
+            faker.helpers.arrayElement(workerSites).id,
+            dateStr,
+            worker.full_name
+          )
+          
+          // Skip weekend records based on realistic patterns
+          const dayOfWeek = date.getDay()
           if ((dayOfWeek === 0 || dayOfWeek === 6) && Math.random() < 0.7) {
             continue
           }
@@ -261,38 +282,13 @@ async function seedComprehensiveData() {
             continue
           }
           
-          const site = faker.helpers.arrayElement(workerSites)
-          
-          // Realistic labor hours distribution
-          const laborHours = faker.helpers.weightedArrayElement([
-            { value: 0.5, weight: 5 },   // Half day (5%)
-            { value: 0.75, weight: 10 },  // 6 hours (10%)
-            { value: 1.0, weight: 60 },   // Full day (60%)
-            { value: 1.25, weight: 20 },  // Overtime (20%)
-            { value: 1.5, weight: 5 }     // Heavy overtime (5%)
-          ])
-          
-          const checkIn = faker.helpers.arrayElement(['07:30', '07:45', '08:00', '08:15', '08:30'])
-          const hoursWorked = laborHours.value * 8
-          const checkOutHour = parseInt(checkIn.split(':')[0]) + hoursWorked
-          const checkOutMinute = checkIn.split(':')[1]
-          
-          attendanceRecords.push({
-            profile_id: worker.id,
-            site_id: site.id,
-            work_date: dateStr,
-            check_in_time: `${checkIn}:00`,
-            check_out_time: `${Math.floor(checkOutHour)}:${checkOutMinute}:00`,
-            status: laborHours.value >= 1 ? 'present' : 'half_day',
-            labor_hours: laborHours.value,
-            notes: laborHours.value > 1 ? '야근' : '정상 근무'
-          })
+          attendanceRecords.push(attendanceRecord)
           
           // Insert in batches
           if (attendanceRecords.length >= 100) {
             const { error } = await supabase
               .from('attendance_records')
-              .upsert(attendanceRecords, { onConflict: 'profile_id,work_date' })
+              .upsert(attendanceRecords, { onConflict: 'user_id,work_date' })
             
             if (!error) {
               totalAttendance += attendanceRecords.length
@@ -306,7 +302,7 @@ async function seedComprehensiveData() {
       if (attendanceRecords.length > 0) {
         const { error } = await supabase
           .from('attendance_records')
-          .upsert(attendanceRecords, { onConflict: 'profile_id,work_date' })
+          .upsert(attendanceRecords, { onConflict: 'user_id,work_date' })
         
         if (!error) {
           totalAttendance += attendanceRecords.length
@@ -316,8 +312,8 @@ async function seedComprehensiveData() {
     
     console.log(`✅ Created ${totalAttendance} attendance records\n`)
 
-    // Step 5: Create Daily Reports
-    console.log('📝 Creating daily reports...')
+    // Step 5: Create Daily Reports using ConstructionDataGenerator
+    console.log('📝 Creating daily reports using advanced data generation...')
     
     const { data: managers } = await supabase
       .from('profiles')
@@ -341,31 +337,14 @@ async function seedComprehensiveData() {
             continue
           }
           
-          const weather = faker.helpers.arrayElement(KOREAN_DATA.weatherConditions)
-          const workerCount = faker.number.int({ min: 10, max: 50 })
-          const workProcess = faker.helpers.arrayElement(KOREAN_DATA.workProcesses)
+          // Use ConstructionDataGenerator for realistic daily reports
+          const dailyReportData = dataGenerator.generateDailyReport(
+            site.id,
+            dateStr,
+            siteManager.id
+          )
           
-          dailyReports.push({
-            site_id: site.id,
-            work_date: dateStr,
-            created_by: siteManager.id,
-            weather: weather,
-            temperature: faker.number.int({ min: -5, max: 35 }),
-            humidity: faker.number.int({ min: 30, max: 90 }),
-            worker_count: workerCount,
-            work_content: `${workProcess} 작업 진행\n- 작업 인원: ${workerCount}명\n- 진행률: ${faker.number.int({ min: 10, max: 100 })}%`,
-            safety_matters: faker.helpers.arrayElements(KOREAN_DATA.safetyIssues, { min: 1, max: 3 }).join(', '),
-            equipment_used: faker.helpers.arrayElements(KOREAN_DATA.equipment, { min: 2, max: 5 }).join(', '),
-            materials_used: faker.helpers.arrayElements(KOREAN_DATA.materials, { min: 2, max: 5 }).join(', '),
-            issues: Math.random() < 0.2 ? `${weather === '비' ? '우천으로 작업 지연' : '자재 수급 지연'}` : null,
-            tomorrow_plan: `${faker.helpers.arrayElement(KOREAN_DATA.workProcesses)} 작업 예정`,
-            photos: null,
-            status: faker.helpers.weightedArrayElement([
-              { value: 'approved', weight: 70 },
-              { value: 'submitted', weight: 20 },
-              { value: 'draft', weight: 10 }
-            ]).value
-          })
+          dailyReports.push(dailyReportData)
           
           // Insert in batches
           if (dailyReports.length >= 50) {
@@ -395,23 +374,18 @@ async function seedComprehensiveData() {
     
     console.log(`✅ Created ${totalReports} daily reports\n`)
 
-    // Step 6: Create Materials and Inventory
-    console.log('📦 Creating materials and inventory...')
+    // Step 6: Create Materials and Inventory using MaterialWorkflowManager
+    console.log('📦 Creating materials and inventory using advanced workflow management...')
     
-    const materials = KOREAN_DATA.materials.map((name, index) => ({
-      name: name,
-      code: `MAT-${String(index + 1).padStart(4, '0')}`,
-      category: name.split(' ')[0],
-      unit: name.includes('철근') ? 'TON' : name.includes('레미콘') ? 'M3' : 'EA',
-      unit_price: faker.number.int({ min: 10000, max: 500000 }),
-      description: `${name} 자재`,
-      specifications: {
-        size: faker.helpers.arrayElement(['소형', '중형', '대형']),
-        grade: faker.helpers.arrayElement(['일반', '고급', '특수'])
-      },
-      min_stock: faker.number.int({ min: 10, max: 100 }),
-      max_stock: faker.number.int({ min: 100, max: 1000 })
-    }))
+    // Generate materials using MaterialWorkflowManager
+    const materials = []
+    for (let i = 0; i < KOREAN_DATA.materials.length; i++) {
+      const materialData = materialWorkflow.generateMaterial(
+        KOREAN_DATA.materials[i],
+        `MAT-${String(i + 1).padStart(4, '0')}`
+      )
+      materials.push(materialData)
+    }
 
     const { data: materialsData, error: matError } = await supabase
       .from('materials')
@@ -421,22 +395,21 @@ async function seedComprehensiveData() {
     if (matError) {
       console.log('Materials table might not exist, skipping...')
     } else {
-      console.log(`✅ Created ${materialsData?.length || 0} materials\n`)
+      console.log(`✅ Created ${materialsData?.length || 0} materials`)
       
-      // Create inventory for each site
+      // Create inventory for each site using MaterialWorkflowManager
       if (materialsData && activeSites.length > 0) {
         const inventory = []
         
         for (const site of activeSites) {
           for (const material of materialsData.slice(0, 15)) {
-            inventory.push({
-              site_id: site.id,
-              material_id: material.id,
-              quantity: faker.number.int({ min: 0, max: 500 }),
-              reserved_quantity: faker.number.int({ min: 0, max: 50 }),
-              location: faker.helpers.arrayElement(['창고 A', '창고 B', '야적장', '현장']),
-              last_updated: new Date().toISOString()
-            })
+            const inventoryData = materialWorkflow.generateInventoryRecord(
+              site.id,
+              material.id,
+              material.min_stock,
+              material.max_stock
+            )
+            inventory.push(inventoryData)
           }
         }
         
@@ -445,12 +418,199 @@ async function seedComprehensiveData() {
           .upsert(inventory, { onConflict: 'site_id,material_id' })
         
         if (!invError) {
-          console.log(`✅ Created ${inventory.length} inventory records\n`)
+          console.log(`✅ Created ${inventory.length} inventory records`)
         }
       }
     }
+    
+    // Step 6.1: Create Material Workflow Requests using MaterialWorkflowManager
+    console.log('📋 Creating material workflow requests...')
+    
+    if (materialsData && activeSites.length > 0 && managers && managers.length > 0) {
+      const materialRequests = []
+      const requestCount = 50 // Generate 50 material requests
+      
+      for (let i = 0; i < requestCount; i++) {
+        const site = faker.helpers.arrayElement(activeSites)
+        const material = faker.helpers.arrayElement(materialsData.slice(0, 10))
+        const requester = faker.helpers.arrayElement(managers)
+        
+        const requestData = materialWorkflow.createMaterialRequest(
+          site.id,
+          material.id,
+          requester.id,
+          faker.number.int({ min: 10, max: 100 })
+        )
+        
+        materialRequests.push(requestData)
+      }
+      
+      const { data: requestsData, error: reqError } = await supabase
+        .from('material_requests')
+        .insert(materialRequests)
+        .select()
+      
+      if (reqError) {
+        console.log('Material requests table might not exist, skipping...')
+      } else {
+        console.log(`✅ Created ${requestsData?.length || 0} material requests`)
+        
+        // Process some requests through the approval workflow
+        if (requestsData && requestsData.length > 0) {
+          const processedRequests = []
+          const samplesToProcess = Math.min(20, requestsData.length)
+          
+          for (let i = 0; i < samplesToProcess; i++) {
+            const request = requestsData[i]
+            const approver = faker.helpers.arrayElement(managers)
+            
+            const approval = materialWorkflow.processApproval(
+              request.id,
+              approver.id,
+              faker.helpers.weightedArrayElement([
+                { value: 'approved', weight: 70 },
+                { value: 'rejected', weight: 20 },
+                { value: 'pending', weight: 10 }
+              ]).value
+            )
+            
+            processedRequests.push(approval)
+          }
+          
+          const { error: approvalError } = await supabase
+            .from('material_request_approvals')
+            .insert(processedRequests)
+          
+          if (!approvalError) {
+            console.log(`✅ Created ${processedRequests.length} approval records`)
+          }
+        }
+      }
+    }
+    
+    console.log()
 
-    // Step 7: Create Documents
+    // Step 7: Create Payroll Records using PayrollCalculator
+    console.log('💰 Creating payroll records using advanced calculation system...')
+    
+    if (workers && workers.length > 0 && totalAttendance > 0) {
+      const payrollRecords = []
+      const payPeriods = [] // Track unique pay periods
+      
+      // Generate monthly payroll records for the last 3 months
+      for (let monthsBack = 0; monthsBack < 3; monthsBack++) {
+        const payPeriodDate = new Date()
+        payPeriodDate.setMonth(payPeriodDate.getMonth() - monthsBack)
+        payPeriodDate.setDate(25) // Pay day is 25th of each month
+        const payPeriodStr = payPeriodDate.toISOString().split('T')[0]
+        
+        // Track this pay period
+        const payPeriod = {
+          period_start: new Date(payPeriodDate.getFullYear(), payPeriodDate.getMonth(), 1).toISOString().split('T')[0],
+          period_end: new Date(payPeriodDate.getFullYear(), payPeriodDate.getMonth() + 1, 0).toISOString().split('T')[0],
+          pay_date: payPeriodStr,
+          status: monthsBack === 0 ? 'pending' : 'paid'
+        }
+        payPeriods.push(payPeriod)
+        
+        // Generate payroll records for each worker
+        for (const worker of workers) {
+          // Get worker's attendance for this month
+          const { data: workerAttendance } = await supabase
+            .from('attendance_records')
+            .select('work_date, work_hours, overtime_hours, labor_hours')
+            .eq('user_id', worker.id)
+            .gte('work_date', payPeriod.period_start)
+            .lte('work_date', payPeriod.period_end)
+          
+          if (workerAttendance && workerAttendance.length > 0) {
+            // Calculate total hours for the month
+            const totalWorkHours = workerAttendance.reduce((sum, record) => 
+              sum + (record.work_hours || 0), 0)
+            const totalOvertimeHours = workerAttendance.reduce((sum, record) => 
+              sum + (record.overtime_hours || 0), 0)
+            const totalLaborHours = workerAttendance.reduce((sum, record) => 
+              sum + (record.labor_hours || 0), 0)
+            
+            // Use PayrollCalculator to generate realistic payroll data
+            const payrollData = payrollCalculator.calculateMonthlyPayroll({
+              workerId: worker.id,
+              workerName: worker.full_name,
+              totalWorkHours,
+              totalOvertimeHours,
+              totalLaborHours,
+              workDays: workerAttendance.length,
+              payPeriod: payPeriod.period_start,
+              baseSalary: faker.number.int({ min: 2800000, max: 4200000 }), // 280만~420만원
+              overtimeRate: 1.5
+            })
+            
+            payrollRecords.push({
+              worker_id: worker.id,
+              worker_name: worker.full_name,
+              pay_period_start: payPeriod.period_start,
+              pay_period_end: payPeriod.period_end,
+              pay_date: payPeriod.pay_date,
+              base_salary: payrollData.baseSalary,
+              work_days: payrollData.workDays,
+              work_hours: payrollData.totalWorkHours,
+              overtime_hours: payrollData.totalOvertimeHours,
+              labor_hours: payrollData.totalLaborHours,
+              regular_pay: payrollData.regularPay,
+              overtime_pay: payrollData.overtimePay,
+              total_gross_pay: payrollData.totalGrossPay,
+              income_tax: payrollData.deductions.incomeTax,
+              national_pension: payrollData.deductions.nationalPension,
+              health_insurance: payrollData.deductions.healthInsurance,
+              employment_insurance: payrollData.deductions.employmentInsurance,
+              total_deductions: payrollData.totalDeductions,
+              net_pay: payrollData.netPay,
+              payment_method: faker.helpers.arrayElement(['bank_transfer', 'cash']),
+              bank_account: payrollData.bankAccount,
+              payment_status: payPeriod.status,
+              bonus: payrollData.bonus || 0,
+              allowances: payrollData.allowances || 0,
+              notes: payrollData.notes || '정상 급여 지급'
+            })
+          }
+        }
+      }
+      
+      // Insert payroll records in batches
+      if (payrollRecords.length > 0) {
+        const batchSize = 50
+        let totalPayrollRecords = 0
+        
+        for (let i = 0; i < payrollRecords.length; i += batchSize) {
+          const batch = payrollRecords.slice(i, i + batchSize)
+          const { data, error } = await supabase
+            .from('payroll_records')
+            .upsert(batch, { onConflict: 'worker_id,pay_period_start' })
+            .select()
+          
+          if (error) {
+            console.log('Payroll table might not exist, skipping payroll records...')
+            break
+          } else if (data) {
+            totalPayrollRecords += data.length
+          }
+        }
+        
+        if (totalPayrollRecords > 0) {
+          console.log(`✅ Created ${totalPayrollRecords} payroll records`)
+          
+          // Also create summary statistics
+          const payrollStats = payrollCalculator.generatePayrollSummary(payrollRecords)
+          console.log(`   💵 Total monthly payroll: ${payrollStats.totalMonthlyPayroll.toLocaleString()}원`)
+          console.log(`   📊 Average worker salary: ${payrollStats.averageWorkerSalary.toLocaleString()}원`)
+          console.log(`   ⏰ Total labor hours: ${payrollStats.totalLaborHours.toFixed(1)} 공수`)
+        }
+      }
+    }
+    
+    console.log()
+
+    // Step 8: Create Documents
     console.log('📄 Creating documents...')
     
     const documentTypes = [

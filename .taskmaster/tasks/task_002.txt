@@ -1,0 +1,11 @@
+# Task ID: 2
+# Title: Implement Service Worker with Caching Strategy
+# Status: done
+# Dependencies: 1
+# Priority: high
+# Description: Create service worker for offline functionality with intelligent caching strategies for construction site usage
+# Details:
+Implement service worker using Workbox or native APIs. Create cache-first strategy for static assets (JS, CSS, images). Network-first with cache fallback for API calls. Cache daily reports, material lists, and user data for offline access. Implement background sync for form submissions when offline. Handle cache versioning and cleanup. Special handling for large image files from construction photos. Size limits for mobile devices (max 500MB cache).
+
+# Test Strategy:
+Test offline functionality by disabling network in DevTools. Verify cached pages load correctly offline. Test form submission queuing and sync when back online. Monitor cache size and cleanup. Test on low-end devices with limited storage. Verify service worker updates properly.

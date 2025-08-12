@@ -1,0 +1,248 @@
+# Task ID: 20
+# Title: Admin Document Management System for PTW and Blueprint Files
+# Status: done
+# Dependencies: 3, 9, 13
+# Priority: medium
+# Description: Implement a complete document management system in the admin dashboard for uploading, managing, and selecting PTW and blueprint documents per site. Replace hardcoded file previews with dynamic document selection using Supabase Storage.
+# Details:
+Build a comprehensive document management system integrated with Supabase Storage:
+
+1. Database Schema Updates:
+```sql
+-- Create site_documents table
+CREATE TABLE site_documents (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  site_id UUID REFERENCES sites(id) ON DELETE CASCADE,
+  document_type VARCHAR(50) CHECK (document_type IN ('ptw', 'blueprint', 'other')),
+  file_name VARCHAR(255) NOT NULL,
+  file_url TEXT NOT NULL,
+  file_size INTEGER,
+  mime_type VARCHAR(100),
+  uploaded_by UUID REFERENCES profiles(id),
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Add RLS policies
+CREATE POLICY "Admins can manage site documents" ON site_documents
+  FOR ALL USING (EXISTS (
+    SELECT 1 FROM profiles WHERE profiles.id = auth.uid() 
+    AND profiles.role IN ('admin', 'system_admin')
+  ));
+
+CREATE POLICY "All authenticated users can view active documents" ON site_documents
+  FOR SELECT USING (is_active = true AND auth.uid() IS NOT NULL);
+```
+
+2. Supabase Storage Setup:
+```typescript
+// lib/supabase/storage.ts
+export const STORAGE_BUCKETS = {
+  SITE_DOCUMENTS: 'site-documents'
+} as const;
+
+export async function uploadSiteDocument(
+  file: File,
+  siteId: string,
+  documentType: 'ptw' | 'blueprint' | 'other'
+) {
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${siteId}/${documentType}/${Date.now()}.${fileExt}`;
+  
+  const { data, error } = await supabase.storage
+    .from(STORAGE_BUCKETS.SITE_DOCUMENTS)
+    .upload(fileName, file);
+    
+  if (error) throw error;
+  
+  const { data: { publicUrl } } = supabase.storage
+    .from(STORAGE_BUCKETS.SITE_DOCUMENTS)
+    .getPublicUrl(fileName);
+    
+  return { fileName, publicUrl };
+}
+```
+
+3. Admin Document Management UI:
+```typescript
+// components/admin/SiteDocumentManagement.tsx
+export function SiteDocumentManagement({ siteId }: { siteId: string }) {
+  const [documents, setDocuments] = useState<SiteDocument[]>([]);
+  const [uploading, setUploading] = useState(false);
+  
+  const handleUpload = async (file: File, type: DocumentType) => {
+    setUploading(true);
+    try {
+      const { fileName, publicUrl } = await uploadSiteDocument(file, siteId, type);
+      
+      const { data, error } = await supabase
+        .from('site_documents')
+        .insert({
+          site_id: siteId,
+          document_type: type,
+          file_name: file.name,
+          file_url: publicUrl,
+          file_size: file.size,
+          mime_type: file.type,
+          uploaded_by: user.id
+        })
+        .select()
+        .single();
+        
+      if (error) throw error;
+      setDocuments([...documents, data]);
+    } catch (error) {
+      toast.error('Upload failed');
+    } finally {
+      setUploading(false);
+    }
+  };
+  
+  return (
+    <div className="space-y-6">
+      <DocumentUploadZone onUpload={handleUpload} disabled={uploading} />
+      <DocumentList 
+        documents={documents} 
+        onDelete={handleDelete}
+        onSetActive={handleSetActive}
+      />
+    </div>
+  );
+}
+```
+
+4. Document Upload Component:
+```typescript
+// components/admin/DocumentUploadZone.tsx
+export function DocumentUploadZone({ onUpload, disabled }: Props) {
+  const [dragActive, setDragActive] = useState(false);
+  const [documentType, setDocumentType] = useState<DocumentType>('ptw');
+  
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file) onUpload(file, documentType);
+  };
+  
+  return (
+    <div className="space-y-4">
+      <Select value={documentType} onValueChange={setDocumentType}>
+        <SelectTrigger>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="ptw">PTW (작업허가서)</SelectItem>
+          <SelectItem value="blueprint">공사도면</SelectItem>
+          <SelectItem value="other">기타 문서</SelectItem>
+        </SelectContent>
+      </Select>
+      
+      <div
+        className={cn(
+          "border-2 border-dashed rounded-lg p-8 text-center",
+          dragActive && "border-primary bg-primary/5",
+          disabled && "opacity-50 cursor-not-allowed"
+        )}
+        onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
+        onDragLeave={() => setDragActive(false)}
+        onDrop={handleDrop}
+      >
+        <Upload className="mx-auto h-12 w-12 text-muted-foreground" />
+        <p className="mt-2">드래그 앤 드롭 또는 클릭하여 파일 선택</p>
+        <p className="text-sm text-muted-foreground">PDF, JPG, PNG (최대 10MB)</p>
+      </div>
+    </div>
+  );
+}
+```
+
+5. Update Site Info Component to Use Dynamic Documents:
+```typescript
+// components/site-info/TodaySiteInfo.tsx
+const { data: activeDocuments } = await supabase
+  .from('site_documents')
+  .select('*')
+  .eq('site_id', siteId)
+  .eq('is_active', true);
+
+const ptwDocument = activeDocuments?.find(doc => doc.document_type === 'ptw');
+const blueprintDocument = activeDocuments?.find(doc => doc.document_type === 'blueprint');
+
+// Use document URLs in modals
+<BlueprintModal 
+  isOpen={showBlueprint}
+  onClose={() => setShowBlueprint(false)}
+  blueprintUrl={blueprintDocument?.file_url || '/placeholder-blueprint.jpg'}
+/>
+```
+
+6. Admin Dashboard Integration:
+```typescript
+// app/dashboard/admin/sites/[id]/documents/page.tsx
+export default async function SiteDocumentsPage({ params }: { params: { id: string } }) {
+  const site = await getSiteById(params.id);
+  
+  return (
+    <div className="container mx-auto py-6">
+      <h1 className="text-2xl font-bold mb-6">
+        {site.name} - 문서 관리
+      </h1>
+      <SiteDocumentManagement siteId={params.id} />
+    </div>
+  );
+}
+```
+
+7. File Validation and Security:
+```typescript
+// lib/validators/file.ts
+export const validateDocument = (file: File) => {
+  const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+  const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/png'];
+  
+  if (file.size > MAX_SIZE) {
+    throw new Error('파일 크기는 10MB를 초과할 수 없습니다');
+  }
+  
+  if (!ALLOWED_TYPES.includes(file.type)) {
+    throw new Error('PDF, JPG, PNG 파일만 업로드 가능합니다');
+  }
+  
+  return true;
+};
+```
+
+# Test Strategy:
+Comprehensive testing approach for document management system:
+
+1. Database Tests:
+- Verify site_documents table creation and constraints
+- Test RLS policies for admin-only write access
+- Verify authenticated users can read active documents
+- Test cascade deletion when site is deleted
+
+2. Storage Integration Tests:
+- Test file upload to Supabase Storage with correct bucket structure
+- Verify public URL generation works correctly
+- Test file size and type validation
+- Verify error handling for upload failures
+
+3. Component Tests:
+- Test DocumentUploadZone drag-and-drop functionality
+- Verify file type selection updates correctly
+- Test upload progress indication
+- Verify document list displays uploaded files
+- Test delete and set-active functionality
+
+4. Integration Tests:
+- Upload a PTW document and verify it appears in site info
+- Upload a blueprint and test preview modal displays correct file
+- Test replacing an active document with a new version
+- Verify non-admin users cannot access upload interface
+
+5. E2E Tests:
+- Complete workflow: Admin uploads PTW → Worker views in site info
+- Test multiple file uploads and active document selection
+- Verify proper error messages for invalid files
+- Test document persistence across sessions

@@ -1,0 +1,219 @@
+# Task ID: 22
+# Title: Phase 2: Data Completion - Generate Realistic Construction Site Data and Complete Business Logic
+# Status: in-progress
+# Dependencies: 9, 13, 20, 21
+# Priority: high
+# Description: Implement comprehensive data generation for construction sites including worker profiles, daily reports, attendance records with labor hours, and complete business logic for payroll calculation and material management workflows
+# Details:
+Implement realistic data generation and complete business logic systems:
+
+1. Data Generation Infrastructure:
+```typescript
+// lib/data-generation/generators.ts
+export class ConstructionDataGenerator {
+  // Generate realistic Korean names for workers
+  generateWorkerProfile(): WorkerProfile {
+    return {
+      name: this.generateKoreanName(),
+      phone: this.generateKoreanPhone(),
+      role: this.selectRole(),
+      site_id: this.selectSite(),
+      skills: this.generateSkills(),
+      certifications: this.generateCertifications()
+    };
+  }
+
+  // Generate daily reports with realistic construction data
+  generateDailyReport(date: Date, siteId: string): DailyReport {
+    return {
+      date,
+      site_id: siteId,
+      weather: this.generateWeather(),
+      work_description: this.generateWorkDescription(),
+      materials_used: this.generateMaterialUsage(),
+      equipment_used: this.generateEquipmentUsage(),
+      safety_incidents: this.generateSafetyData(),
+      progress_percentage: this.calculateProgress()
+    };
+  }
+}
+```
+
+2. Payroll Calculation System:
+```typescript
+// lib/payroll/calculator.ts
+export class PayrollCalculator {
+  calculateMonthlyPayroll(workerId: string, month: Date): PayrollResult {
+    const attendanceRecords = await this.getAttendanceRecords(workerId, month);
+    const totalLaborHours = attendanceRecords.reduce((sum, record) => sum + record.labor_hours, 0);
+    
+    const baseRate = await this.getWorkerBaseRate(workerId);
+    const overtimeHours = this.calculateOvertime(totalLaborHours);
+    const regularPay = (totalLaborHours - overtimeHours) * 8 * baseRate;
+    const overtimePay = overtimeHours * 8 * baseRate * 1.5;
+    
+    const deductions = this.calculateDeductions(regularPay + overtimePay);
+    const netPay = regularPay + overtimePay - deductions.total;
+    
+    return {
+      totalLaborHours,
+      regularPay,
+      overtimePay,
+      deductions,
+      netPay,
+      paymentDate: this.getPaymentDate(month)
+    };
+  }
+}
+```
+
+3. Material Management Workflow:
+```typescript
+// lib/materials/workflow.ts
+export class MaterialManagementWorkflow {
+  async createMaterialRequest(request: MaterialRequestInput): Promise<MaterialRequest> {
+    // Validate inventory availability
+    const availability = await this.checkInventory(request.materials);
+    
+    // Create request with approval workflow
+    const materialRequest = await this.db.material_requests.create({
+      ...request,
+      status: 'pending_approval',
+      approval_levels: this.determineApprovalLevels(request.total_amount)
+    });
+    
+    // Notify approvers
+    await this.notifyApprovers(materialRequest);
+    
+    return materialRequest;
+  }
+  
+  async processMaterialApproval(requestId: string, approverId: string, decision: 'approve' | 'reject') {
+    const request = await this.getMaterialRequest(requestId);
+    
+    if (decision === 'approve') {
+      const allApproved = await this.checkAllApprovals(request);
+      if (allApproved) {
+        await this.fulfillMaterialRequest(request);
+        await this.updateInventory(request.materials);
+      }
+    }
+    
+    await this.notifyRequestor(request, decision);
+  }
+}
+```
+
+4. Seed Data Scripts:
+```typescript
+// scripts/seed-construction-data.ts
+async function seedConstructionData() {
+  const generator = new ConstructionDataGenerator();
+  
+  // Generate 5 construction sites
+  const sites = await Promise.all(
+    Array(5).fill(null).map(() => generator.generateSite())
+  );
+  
+  // Generate 50 workers distributed across sites
+  const workers = await Promise.all(
+    Array(50).fill(null).map(() => generator.generateWorkerProfile())
+  );
+  
+  // Generate 6 months of historical data
+  for (const site of sites) {
+    await generateHistoricalData(site.id, 180);
+  }
+  
+  // Generate material inventory
+  await seedMaterialInventory();
+  
+  // Generate sample material requests with approval workflows
+  await generateMaterialRequests();
+}
+```
+
+5. Business Logic Integration:
+```typescript
+// app/api/payroll/generate/route.ts
+export async function POST(request: Request) {
+  const { workerId, month } = await request.json();
+  const calculator = new PayrollCalculator();
+  
+  const payroll = await calculator.calculateMonthlyPayroll(workerId, month);
+  const pdf = await generatePayrollPDF(payroll);
+  
+  return new Response(pdf, {
+    headers: {
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename="payroll-${workerId}-${month}.pdf"`
+    }
+  });
+}
+```
+
+# Test Strategy:
+Comprehensive testing for data generation and business logic:
+
+1. Data Generation Tests:
+- Verify generated worker profiles have valid Korean names and phone numbers
+- Test daily report generation produces realistic construction data
+- Validate attendance records include proper labor hours (0.25, 0.5, 1.0 공수)
+- Ensure generated data maintains referential integrity
+
+2. Payroll Calculation Tests:
+- Test accurate labor hours to payment calculation
+- Verify overtime calculation (>22 days/month)
+- Test tax and insurance deduction calculations
+- Validate payroll PDF generation with correct formatting
+- Test edge cases: partial months, no attendance, maximum overtime
+
+3. Material Management Tests:
+- Test material request creation with inventory validation
+- Verify approval workflow routing based on amount thresholds
+- Test notification system for approvers and requestors
+- Validate inventory updates after approval
+- Test rejection flow and re-submission
+
+4. Integration Tests:
+- End-to-end test: Worker attendance → Payroll calculation → PDF generation
+- Material request → Multi-level approval → Inventory update
+- Test data consistency across related tables
+- Verify business rules enforcement
+
+5. Performance Tests:
+- Measure payroll calculation time for 100+ workers
+- Test material workflow with concurrent requests
+- Validate data generation doesn't exceed memory limits
+
+# Subtasks:
+## 1. Create ConstructionDataGenerator class for Korean worker profiles [pending]
+### Dependencies: None
+### Description: Implement generator class for realistic Korean names, phone numbers, roles, and worker profiles
+### Details:
+
+
+## 2. Implement PayrollCalculator system with Korean labor hour calculations [pending]
+### Dependencies: None
+### Description: Create payroll calculation system that handles 공수 (labor hours), overtime, deductions, and generates payroll results
+### Details:
+
+
+## 3. Build Material Management Workflow with approval routing [pending]
+### Dependencies: None
+### Description: Implement material request creation, multi-level approval workflow, inventory validation, and notification system
+### Details:
+
+
+## 4. Create comprehensive seed data scripts [pending]
+### Dependencies: None
+### Description: Generate 5 construction sites, 50 workers, 6 months historical data, material inventory, and sample requests
+### Details:
+
+
+## 5. Integrate business logic with API routes and test [pending]
+### Dependencies: None
+### Description: Create API endpoints for payroll generation, material requests, and implement comprehensive tests
+### Details:
+
+

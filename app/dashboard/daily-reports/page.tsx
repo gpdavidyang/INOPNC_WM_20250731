@@ -110,10 +110,10 @@ export default async function DailyReportsPage() {
         <Header profile={profile as any} />
         
         {/* Page Content */}
-        <main className="pt-3 px-3 sm:px-4 lg:px-6 pb-16 lg:pb-0">
+        <main className="px-3 sm:px-4 lg:px-6 pb-16 lg:pb-0">
           <div className="h-full bg-gray-50 dark:bg-gray-900">
             {/* Mobile View - UI Guidelines에 맞춘 모바일 최적화 */}
-            <div className="lg:hidden">
+            <div className="lg:hidden pt-3">
               <DailyReportListMobile 
                 currentUser={profile as any}
                 sites={sites || []}

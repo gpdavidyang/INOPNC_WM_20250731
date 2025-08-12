@@ -202,11 +202,11 @@ export default function SiteInfoPageNew({
 
 
   return (
-    <PageContainer className="px-px sm:px-6 lg:px-8">
+    <PageContainer className="px-3 sm:px-4 lg:px-6">
       
-      {/* Tabs - Compact Layout - Moved to top */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-1">
-        <TabsList className={`grid w-full grid-cols-2 ${getTabHeight()} gap-1 mb-4`}>
+      {/* Tabs - Compact Layout - Moved to top with standard 12px spacing */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-3">
+        <TabsList className={`grid w-full grid-cols-2 ${getTabHeight()} gap-1 mb-3`}>
           <TabsTrigger 
             value="overview" 
             className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-2 py-2 ${getTabHeight()}`}
@@ -227,7 +227,7 @@ export default function SiteInfoPageNew({
           </TabsTrigger>
         </TabsList>
 
-        {/* Site Selection Dropdown - Moved below tabs */}
+        {/* Site Selection Dropdown - Standard 12px spacing after tabs */}
         <div className="mb-20">
           <Select value={selectedSite?.site_id || ''} onValueChange={handleSiteSelect}>
             <SelectTrigger className={`
@@ -280,7 +280,7 @@ export default function SiteInfoPageNew({
           </Select>
         </div>
 
-        {/* Tab Contents */}
+        {/* Tab Contents with standard 24px spacing from dropdown */}
         <TabsContent value="overview" className="space-y-3 mt-6">
           {selectedSite ? (
             <>
@@ -542,7 +542,7 @@ export default function SiteInfoPageNew({
           )}
         </TabsContent>
 
-        <TabsContent value="materials" className="space-y-3 mt-6">
+        <TabsContent value="materials" className="space-y-3 mt-0">
           {selectedSite ? (
             materialsLoading ? (
               <LoadingState message="자재 정보를 불러오는 중..." />

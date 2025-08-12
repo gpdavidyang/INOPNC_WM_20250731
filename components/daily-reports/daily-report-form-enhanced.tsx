@@ -605,9 +605,9 @@ export default function DailyReportFormEnhanced({
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-4">
+    <div className="max-w-2xl mx-auto px-3 sm:px-4 lg:px-6">
       {/* Progress Bar and Toggle Button */}
-      <div className="mb-4">
+      <div className="mb-3">
         <div className="flex items-center justify-between mb-3">
           <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 border border-blue-100 dark:border-blue-800 flex-1 mr-2">
             <div className="flex items-center justify-between mb-2">
@@ -644,9 +644,9 @@ export default function DailyReportFormEnhanced({
       </div>
       
       {/* Main Content */}
-      <div className="space-y-4">
+      <div className="space-y-3">
 
-        <form onSubmit={(e) => { e.preventDefault(); handleSubmit(true); }} className="space-y-4">
+        <form onSubmit={(e) => { e.preventDefault(); handleSubmit(true); }} className="space-y-3">
           {/* Section 1: Basic Info (Always visible, compact) */}
           <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
             <h2 className="text-sm font-semibold mb-2 text-gray-900 dark:text-gray-100 flex items-center gap-2">
@@ -1298,7 +1298,7 @@ export default function DailyReportFormEnhanced({
               </p>
             </div>
             
-            <div className="space-y-4">
+            <div className="space-y-3">
               <button
                 onClick={() => handlePhotoSelection('camera')}
                 className="w-full h-16 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 active:bg-gray-200 dark:active:bg-gray-500 border border-gray-200 dark:border-gray-600 rounded-xl flex items-center justify-center gap-3 text-gray-800 dark:text-gray-200 transition-colors touch-manipulation"

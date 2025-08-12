@@ -1,0 +1,11 @@
+# Task ID: 3
+# Title: Implement Push Notifications System
+# Status: done
+# Dependencies: 2
+# Priority: high
+# Description: Add push notification support for critical construction site updates and approvals
+# Details:
+Implement Web Push API integration with service worker. Create notification permission flow with clear value proposition. Set up server-side push notification service using Supabase Edge Functions or external service (OneSignal/FCM). Define notification types: material request approvals, daily report reminders, safety alerts, equipment maintenance due. Create notification preferences UI in settings. Handle notification click actions to deep link into app. Implement notification badges and silent notifications.
+
+# Test Strategy:
+Test permission flow across different browsers. Verify notifications arrive on multiple devices. Test notification actions and deep linking. Monitor delivery rates and engagement. Test notification preferences persistence. Verify silent notifications update app state.

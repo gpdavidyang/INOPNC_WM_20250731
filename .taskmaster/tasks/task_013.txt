@@ -1,0 +1,59 @@
+# Task ID: 13
+# Title: Test Business Logic and Server Actions (Phase 3)
+# Status: done
+# Dependencies: 12
+# Priority: medium
+# Description: Achieve comprehensive test coverage for all server actions including daily reports, attendance management, and complex business calculations
+# Details:
+1. Test daily report operations (`/app/actions/daily-reports.ts`):
+   ```typescript
+   describe('Daily Report Actions', () => {
+     it('creates report with weather and worker data', async () => {
+       const result = await createDailyReport({
+         siteId: 'test-site',
+         date: '2024-01-01',
+         weather: 'sunny',
+         workers: [{ id: 'w1', laborHours: 1.0 }]
+       });
+       expect(result.success).toBe(true);
+       expect(result.data.id).toBeDefined();
+     });
+   });
+   ```
+
+2. Test attendance/labor hours calculations:
+   - 1.0 공수 = 8 hours validation
+   - Overtime calculations
+   - Monthly aggregations
+   - Holiday handling
+
+3. Test notification system:
+   - Notification creation triggers
+   - Batch notification sending
+   - Read/unread status updates
+   - Push notification integration
+
+4. Test document operations:
+   - File upload with virus scanning
+   - Document permissions
+   - Soft delete functionality
+   - Storage quota enforcement
+
+5. Test complex workflows:
+   - Multi-step approval processes
+   - Concurrent edit handling
+   - Data consistency across related entities
+   - Audit trail generation
+
+6. Test data validation:
+   - Korean phone number formats
+   - Business registration numbers
+   - Date/time with timezone handling
+
+# Test Strategy:
+1. Create test scenarios for each business rule
+2. Use database snapshots for complex state testing
+3. Verify all calculations with known test cases
+4. Test error handling and rollback mechanisms
+5. Mock external services (weather API, SMS, etc.)
+6. Target: 95% coverage for business logic files

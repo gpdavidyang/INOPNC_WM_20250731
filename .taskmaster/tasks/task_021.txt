@@ -1,0 +1,152 @@
+# Task ID: 21
+# Title: Critical Stability Issues Resolution - Zero Build Errors
+# Status: done
+# Dependencies: 9, 16
+# Priority: high
+# Description: Fix all build-blocking errors including React Hooks conditional calls, TypeScript parsing errors, and component definition issues to achieve zero build errors and successful production build under 30 seconds
+# Details:
+Comprehensive build stabilization focusing on critical errors:
+
+1. React Hooks Violations:
+```typescript
+// Identify and fix conditional hook calls
+// Before:
+if (condition) {
+  useEffect(() => {}, []); // ERROR: Conditional hook
+}
+
+// After:
+useEffect(() => {
+  if (condition) {
+    // Logic here
+  }
+}, [condition]);
+```
+
+2. TypeScript Parsing Errors:
+- Fix missing type imports and circular dependencies
+- Resolve 'any' type usage in strict mode
+- Fix generic type parameter issues
+- Address module resolution errors
+```typescript
+// Add proper type exports/imports
+export type { MarkupDocument } from './types';
+import type { Database } from '@/types/supabase';
+```
+
+3. Component Definition Issues:
+- Fix missing or duplicate component exports
+- Resolve forward ref issues
+- Fix HOC type definitions
+```typescript
+// Proper component typing
+const MyComponent = forwardRef<HTMLDivElement, Props>(
+  ({ children, ...props }, ref) => {
+    return <div ref={ref} {...props}>{children}</div>;
+  }
+);
+MyComponent.displayName = 'MyComponent';
+```
+
+4. Build Configuration:
+- Update next.config.js for proper module resolution
+- Fix webpack configuration issues
+- Optimize build performance settings
+```javascript
+// next.config.js
+module.exports = {
+  typescript: {
+    ignoreBuildErrors: false,
+  },
+  eslint: {
+    ignoreDuringBuilds: false,
+  },
+  swcMinify: true,
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
+};
+```
+
+5. Dependency Issues:
+- Update mismatched dependency versions
+- Fix peer dependency warnings
+- Resolve module not found errors
+
+6. ESLint Configuration:
+- Fix ESLint rules causing build failures
+- Add proper ignores for generated files
+- Configure rules for React 18+ patterns
+
+# Test Strategy:
+1. Baseline Build Analysis:
+- Run `npm run build` and capture all error types
+- Categorize errors by type (Hooks, TypeScript, Components)
+- Document error counts for progress tracking
+
+2. Incremental Fix Verification:
+- Fix one category at a time
+- Run `npm run build` after each fix category
+- Ensure no regression in other areas
+
+3. TypeScript Validation:
+- Run `npx tsc --noEmit` for pure type checking
+- Verify no TypeScript errors remain
+- Check strict mode compliance
+
+4. Linting Validation:
+- Run `npm run lint` with --max-warnings 0
+- Fix all ESLint errors and warnings
+- Verify no linting issues block build
+
+5. Production Build Testing:
+- Time production builds: `time npm run build`
+- Target: Under 30 seconds for full build
+- Verify build output size is reasonable
+
+6. Build Output Verification:
+- Check .next/build-manifest.json for all pages
+- Verify static pages are properly generated
+- Ensure API routes are included
+
+7. Development Mode Testing:
+- Run `npm run dev` and verify no runtime errors
+- Test hot module replacement works
+- Verify no console errors in browser
+
+8. CI/CD Integration:
+- Run build in GitHub Actions
+- Ensure build passes in clean environment
+- Verify no environment-specific issues
+
+# Subtasks:
+## 1. Fix React Hooks Violations and Rules of Hooks Errors [done]
+### Dependencies: None
+### Description: Identify and fix all conditional hook calls, hooks called inside loops, and hooks called after early returns to comply with React's Rules of Hooks
+### Details:
+Scan entire codebase for React Hooks violations using ESLint react-hooks/rules-of-hooks rule. Common patterns to fix: 1) Conditional hooks - move conditions inside hook callbacks, 2) Hooks in loops - restructure to use single hook with array dependencies, 3) Hooks after returns - ensure all hooks are called at top level before any conditional returns. Focus on components in /components and /app directories. Use automated tools like eslint --fix where possible, but manually verify each fix to ensure logic remains correct.
+
+## 2. Resolve TypeScript Type Errors and Missing Type Definitions [done]
+### Dependencies: None
+### Description: Fix all TypeScript parsing errors including missing type imports, circular dependencies, implicit 'any' types, and generic type parameter issues
+### Details:
+Address TypeScript errors systematically: 1) Fix missing type imports by adding proper import type statements, 2) Resolve circular dependencies by extracting shared types to separate files, 3) Replace implicit 'any' with proper types or explicit type annotations, 4) Fix generic type parameters in component props and function signatures, 5) Ensure all .d.ts files are properly referenced in tsconfig.json, 6) Update module resolution for @/ aliases, 7) Fix type exports to use 'export type' for type-only exports. Priority files: /types/index.ts, /types/supabase.ts, component prop interfaces.
+
+## 3. Fix Component Definition and Export Issues [done]
+### Dependencies: 21.1, 21.2
+### Description: Resolve all component definition problems including missing exports, duplicate exports, forward ref issues, and HOC type definitions
+### Details:
+Systematic component fixes: 1) Scan for missing default/named exports and add proper export statements, 2) Remove duplicate component exports causing conflicts, 3) Fix forwardRef components with proper type annotations and displayName, 4) Update HOC definitions with correct TypeScript generics, 5) Ensure all lazy-loaded components have proper Suspense boundaries, 6) Fix component file naming to match export names, 7) Add displayName to all components for better debugging. Focus on high-usage components first: page layouts, form components, dashboard tabs.
+
+## 4. Update Build Configuration and Dependencies [done]
+### Dependencies: 21.3
+### Description: Fix build configuration issues in next.config.js, resolve dependency conflicts, and optimize build performance settings
+### Details:
+Build configuration updates: 1) Update next.config.js with proper webpack configuration for module resolution, 2) Configure SWC minifier settings for optimal performance, 3) Fix peer dependency warnings by updating package versions, 4) Resolve conflicting dependency versions using npm dedupe, 5) Update ESLint config to prevent build-blocking rules, 6) Configure proper ignores for generated files (.next, node_modules), 7) Set up proper environment variable validation, 8) Enable strict mode for better error catching, 9) Configure proper publicRuntimeConfig and serverRuntimeConfig.
+
+## 5. Implement Build Verification and CI Protection [done]
+### Dependencies: 21.4
+### Description: Create comprehensive build verification tests and CI pipeline to prevent future build-breaking changes
+### Details:
+Build protection implementation: 1) Create pre-commit hooks using husky to run build checks, 2) Set up GitHub Actions workflow for build verification on every PR, 3) Implement build time monitoring to alert if exceeds 30 seconds, 4) Create automated tests that verify critical paths compile correctly, 5) Set up error reporting to track any build failures in CI, 6) Configure branch protection rules requiring successful builds, 7) Create build performance dashboard to track metrics over time, 8) Document common build errors and fixes in troubleshooting guide.
+

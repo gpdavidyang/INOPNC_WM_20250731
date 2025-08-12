@@ -1,0 +1,43 @@
+# Task ID: 19
+# Title: E2E Testing with PWA Features
+# Status: done
+# Dependencies: 15, 16, 17, 18
+# Priority: medium
+# Description: Create E2E tests using Playwright that validate PWA functionality, labor hours workflow, and new user flows across the application
+# Details:
+Implement Playwright E2E tests:
+
+1. PWA Installation and Offline:
+```typescript
+// e2e/pwa-features.spec.ts
+- Test service worker registration on first visit
+- Test app installation prompt appearance and interaction
+- Test offline page display when network is disconnected
+- Test background sync when coming back online
+```
+
+2. Labor Hours Workflow:
+```typescript
+// e2e/labor-hours-workflow.spec.ts
+- Navigate to attendance tab
+- Enter labor hours (test 0.25, 0.5, 1.0 공수 options)
+- Verify calendar display updates with correct colors
+- Generate PDF payslip
+- Verify calculations (22.5 공수 * 8 = 180 hours)
+```
+
+3. Unified Documents Flow:
+```typescript
+// e2e/documents-management.spec.ts
+- Upload documents of different types
+- Verify card layout display
+- Test switching between personal/shared tabs
+- Test document actions across different file types
+```
+
+4. Analytics Dashboard:
+- Test real-time metrics update
+- Verify web vitals collection
+
+# Test Strategy:
+Use Playwright's network interception to test offline scenarios. Test on multiple browsers (Chrome, Firefox, Safari). Use visual regression testing for UI consistency. Test mobile viewport for responsive features. Implement page object model for maintainable tests. Test critical user journeys end-to-end.

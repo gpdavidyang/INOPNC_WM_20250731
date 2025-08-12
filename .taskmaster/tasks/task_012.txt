@@ -1,0 +1,59 @@
+# Task ID: 12
+# Title: Test Core API Endpoints and Database Operations (Phase 2)
+# Status: done
+# Dependencies: 11
+# Priority: high
+# Description: Implement comprehensive API endpoint testing for markup-documents, sites, and health check endpoints with proper request/response validation
+# Details:
+1. Test `/api/markup-documents` endpoints:
+   ```typescript
+   describe('Markup Documents API', () => {
+     it('GET /api/markup-documents - lists with pagination', async () => {
+       const response = await GET('/api/markup-documents?page=1&limit=10');
+       expect(response.documents).toHaveLength(10);
+       expect(response.pagination).toBeDefined();
+     });
+     
+     it('POST /api/markup-documents - creates with validation', async () => {
+       const payload = createMarkupDocumentPayload();
+       const response = await POST('/api/markup-documents', payload);
+       expect(response.id).toBeDefined();
+       // Verify database persistence
+     });
+   });
+   ```
+
+2. Test request validation:
+   - Invalid payloads return 400 errors
+   - Missing required fields
+   - Type validation
+   - SQL injection prevention
+
+3. Test database transactions:
+   - Rollback on errors
+   - Concurrent request handling
+   - Connection pooling behavior
+
+4. Test error scenarios:
+   - Database connection failures
+   - Constraint violations
+   - Race conditions
+   - Network timeouts
+
+5. Test RLS (Row Level Security):
+   - Users can only access their data
+   - Site-based access control
+   - Admin override permissions
+
+6. Performance tests:
+   - Response time < 200ms for GET
+   - Batch operations efficiency
+   - Query optimization verification
+
+# Test Strategy:
+1. Use MSW to intercept and verify API calls
+2. Test with real database using test transactions
+3. Verify response schemas match TypeScript types
+4. Test pagination edge cases (empty results, last page)
+5. Use jest-extended for better assertions
+6. Target: 90% coverage for all API route files

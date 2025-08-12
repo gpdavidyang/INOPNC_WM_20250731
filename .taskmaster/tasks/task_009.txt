@@ -1,0 +1,11 @@
+# Task ID: 9
+# Title: Stabilize and Fix Test Suite for CI/CD Integration
+# Status: done
+# Dependencies: 8
+# Priority: medium
+# Description: Fix failing tests across the codebase, addressing React Testing Library act() wrapper issues, timeout problems, and asynchronous operation handling to ensure stable CI/CD pipeline execution
+# Details:
+Comprehensive test suite stabilization focusing on 91 failing tests. Key issues to address: 1) React Testing Library act() warnings - wrap all state updates and effects in act() blocks, use waitFor() for async operations, implement proper cleanup in afterEach hooks. 2) Timeout issues - increase test timeouts for integration tests (jest.setTimeout), optimize slow tests by mocking external dependencies, implement proper async/await patterns. 3) Asynchronous handling - use findBy queries instead of getBy for async elements, properly await all promises before assertions, mock Supabase calls with consistent responses. 4) Test isolation - ensure tests don't share state, mock timers and dates for consistency, clear all mocks between tests. 5) Environment setup - configure test environment variables, setup MSW for API mocking, create test utilities for common operations. 6) CI/CD optimization - parallelize test runs, implement test result caching, add retry mechanism for flaky tests. Tools: Jest, React Testing Library, MSW for API mocking, jest-dom for better assertions. Create comprehensive test helpers in __tests__/utils/ for common patterns like authenticated user setup, form submissions, and async operations.
+
+# Test Strategy:
+1) Run full test suite locally to baseline current failures (npm test). 2) Fix tests incrementally by category: unit tests first, then integration, finally E2E. 3) Verify each fix doesn't break other tests. 4) Test in CI environment using act workflow (GitHub Actions) to ensure environment parity. 5) Monitor test execution time and optimize slow tests. 6) Implement test coverage reporting and ensure minimum 80% coverage. 7) Run tests in different Node versions (18, 20) to ensure compatibility. 8) Stress test with parallel execution to identify race conditions. 9) Document common test patterns and gotchas for team reference. 10) Set up pre-commit hooks to run affected tests before push.

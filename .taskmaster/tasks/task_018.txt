@@ -1,0 +1,38 @@
+# Task ID: 18
+# Title: API Testing for New Endpoints
+# Status: done
+# Dependencies: 15, 16
+# Priority: medium
+# Description: Implement tests for Analytics API endpoints and updated attendance endpoints that handle labor hours and web vitals data
+# Details:
+Create API route tests:
+
+1. Analytics Metrics API:
+```typescript
+// __tests__/api/analytics/metrics.test.ts
+- Test GET /api/analytics/metrics returns labor_hours aggregations
+- Test date range filtering
+- Test response includes daily_reports_count, active_users, documents_uploaded
+- Test error handling for invalid date ranges
+```
+
+2. Web Vitals API:
+```typescript
+// __tests__/api/analytics/web-vitals.test.ts
+- Test POST /api/analytics/web-vitals stores LCP, FID, CLS data
+- Test data validation for performance metrics
+- Test batch submission of multiple vitals
+```
+
+3. Updated Attendance API:
+```typescript
+// __tests__/api/attendance/*.test.ts
+- Test labor_hours field in responses
+- Test payslip generation endpoint
+- Test labor hours calculations and aggregations
+```
+
+4. Implement request/response mocking with MSW or similar
+
+# Test Strategy:
+Test API routes in isolation using Next.js API testing patterns. Mock Supabase client to avoid database calls. Validate request/response schemas. Test error scenarios and edge cases. Verify proper HTTP status codes. Test authentication and authorization for protected endpoints.

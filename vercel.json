@@ -68,5 +68,13 @@
   "env": {
     "NODE_ENV": "production",
     "NEXT_TELEMETRY_DISABLED": "1"
+  },
+  "images": {
+    "unoptimized": false,
+    "quality": 100,
+    "formats": ["image/avif", "image/webp"],
+    "minimumCacheTTL": 86400,
+    "sizes": [640, 750, 828, 1080, 1200, 1920, 2048],
+    "deviceSizes": [640, 750, 828, 1080, 1200, 1920, 2048]
   }
 }

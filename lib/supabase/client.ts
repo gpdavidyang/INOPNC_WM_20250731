@@ -1,7 +1,327 @@
 import { createBrowserClient } from '@supabase/ssr'
 import { Database } from '@/types/database'
+import * as Sentry from '@sentry/nextjs'
+import { performanceTracker } from '@/lib/monitoring/performance-metrics'
 
-export function createClient() {
+// Query cache for optimizing repeated queries
+const queryCache = new Map<string, { data: any; timestamp: number; ttl: number }>()
+const CACHE_TTL = 5 * 60 * 1000 // 5 minutes default TTL
+
+// Connection pool configuration
+interface ClientConfig {
+  enableQueryCache?: boolean
+  enablePerformanceMonitoring?: boolean
+  defaultCacheTTL?: number
+  slowQueryThreshold?: number
+}
+
+const defaultConfig: ClientConfig = {
+  enableQueryCache: true,
+  enablePerformanceMonitoring: true,
+  defaultCacheTTL: CACHE_TTL,
+  slowQueryThreshold: 1000
+}
+
+// Enhanced client with monitoring and optimization
+class EnhancedSupabaseClient {
+  private client: ReturnType<typeof createBrowserClient<Database>>
+  private config: ClientConfig
+
+  constructor(config: ClientConfig = {}) {
+    this.config = { ...defaultConfig, ...config }
+    this.client = createBrowserClient<Database>(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+  }
+
+  // Wrap queries with performance monitoring and caching
+  from(table: keyof Database['public']['Tables']) {
+    const originalFrom = this.client.from(table)
+    
+    return {
+      ...originalFrom,
+      select: (columns?: string) => {
+        const query = originalFrom.select(columns)
+        
+        return {
+          ...query,
+          // Override execute methods with monitoring
+          then: async (resolve: any, reject: any) => {
+            if (!this.config.enablePerformanceMonitoring) {
+              return query.then(resolve, reject)
+            }
+
+            const cacheKey = this.generateCacheKey(table, 'select', columns)
+            
+            // Check cache first
+            if (this.config.enableQueryCache) {
+              const cached = this.getCachedQuery(cacheKey)
+              if (cached) {
+                performanceTracker.recordMetric('supabaseCacheHit', 1)
+                return resolve({ data: cached, error: null })
+              }
+            }
+
+            const startTime = performance.now()
+            
+            return Sentry.startSpan({
+              name: `Supabase Query: ${table}`,
+              op: 'db.query',
+              attributes: {
+                'db.table': table,
+                'db.operation': 'select',
+                'db.columns': columns || '*'
+              }
+            }, async (span) => {
+              try {
+                const result = await query
+                const duration = performance.now() - startTime
+                
+                // Record performance metrics
+                performanceTracker.recordMetric('supabaseQueryTime', duration)
+                span.setMeasurement?.('db.query.duration', duration, 'millisecond')
+                
+                // Log slow queries
+                if (duration > this.config.slowQueryThreshold!) {
+                  Sentry.captureMessage(
+                    `Slow Supabase query: ${table} took ${duration}ms`,
+                    'warning'
+                  )
+                  performanceTracker.recordMetric('supabaseSlowQuery', 1)
+                }
+                
+                // Cache successful queries
+                if (this.config.enableQueryCache && result.data && !result.error) {
+                  this.setCachedQuery(cacheKey, result.data, this.config.defaultCacheTTL!)
+                  performanceTracker.recordMetric('supabaseCacheSet', 1)
+                }
+                
+                return resolve(result)
+              } catch (error) {
+                const duration = performance.now() - startTime
+                span.setMeasurement?.('db.query.duration', duration, 'millisecond')
+                
+                Sentry.captureException(error, {
+                  tags: { component: 'supabase-client' },
+                  contexts: {
+                    query: {
+                      table,
+                      operation: 'select',
+                      columns: columns || '*',
+                      duration
+                    }
+                  }
+                })
+                
+                performanceTracker.recordMetric('supabaseQueryError', 1)
+                return reject(error)
+              }
+            })
+          }
+        }
+      },
+      
+      // Add monitoring to other operations
+      insert: (values: any) => this.wrapMutation(originalFrom.insert(values), table, 'insert'),
+      update: (values: any) => this.wrapMutation(originalFrom.update(values), table, 'update'),
+      delete: () => this.wrapMutation(originalFrom.delete(), table, 'delete'),
+      upsert: (values: any) => this.wrapMutation(originalFrom.upsert(values), table, 'upsert')
+    }
+  }
+
+  // Wrap mutations with monitoring
+  private wrapMutation(query: any, table: string, operation: string) {
+    if (!this.config.enablePerformanceMonitoring) {
+      return query
+    }
+
+    return {
+      ...query,
+      then: async (resolve: any, reject: any) => {
+        const startTime = performance.now()
+        
+        return Sentry.startSpan({
+          name: `Supabase ${operation}: ${table}`,
+          op: 'db.mutation',
+          attributes: {
+            'db.table': table,
+            'db.operation': operation
+          }
+        }, async (span) => {
+          try {
+            const result = await query
+            const duration = performance.now() - startTime
+            
+            performanceTracker.recordMetric('supabaseMutationTime', duration)
+            span.setMeasurement?.('db.mutation.duration', duration, 'millisecond')
+            
+            if (duration > this.config.slowQueryThreshold!) {
+              Sentry.captureMessage(
+                `Slow Supabase ${operation}: ${table} took ${duration}ms`,
+                'warning'
+              )
+            }
+            
+            // Clear relevant cache entries after mutations
+            if (this.config.enableQueryCache) {
+              this.invalidateTableCache(table)
+            }
+            
+            return resolve(result)
+          } catch (error) {
+            const duration = performance.now() - startTime
+            span.setMeasurement?.('db.mutation.duration', duration, 'millisecond')
+            
+            Sentry.captureException(error, {
+              tags: { component: 'supabase-client' },
+              contexts: {
+                mutation: {
+                  table,
+                  operation,
+                  duration
+                }
+              }
+            })
+            
+            performanceTracker.recordMetric('supabaseMutationError', 1)
+            return reject(error)
+          }
+        })
+      }
+    }
+  }
+
+  // Auth methods with monitoring
+  get auth() {
+    return {
+      ...this.client.auth,
+      signInWithPassword: async (credentials: any) => {
+        return performanceTracker.trackApiCall(
+          'auth.signInWithPassword',
+          () => this.client.auth.signInWithPassword(credentials)
+        )
+      },
+      signUp: async (credentials: any) => {
+        return performanceTracker.trackApiCall(
+          'auth.signUp',
+          () => this.client.auth.signUp(credentials)
+        )
+      },
+      signOut: async () => {
+        return performanceTracker.trackApiCall(
+          'auth.signOut',
+          () => this.client.auth.signOut()
+        )
+      },
+      getSession: async () => {
+        return performanceTracker.trackApiCall(
+          'auth.getSession',
+          () => this.client.auth.getSession()
+        )
+      },
+      getUser: async () => {
+        return performanceTracker.trackApiCall(
+          'auth.getUser',
+          () => this.client.auth.getUser()
+        )
+      },
+      refreshSession: async (refreshToken?: string) => {
+        return performanceTracker.trackApiCall(
+          'auth.refreshSession',
+          () => this.client.auth.refreshSession(refreshToken)
+        )
+      },
+      onAuthStateChange: (callback: any) => {
+        // This method doesn't need performance tracking as it's just setting up a listener
+        return this.client.auth.onAuthStateChange(callback)
+      }
+    }
+  }
+
+  // Storage methods with monitoring
+  get storage() {
+    return {
+      from: (bucket: string) => ({
+        ...this.client.storage.from(bucket),
+        upload: async (path: string, file: any, options?: any) => {
+          return performanceTracker.trackApiCall(
+            `storage.upload.${bucket}`,
+            () => this.client.storage.from(bucket).upload(path, file, options)
+          )
+        }
+      })
+    }
+  }
+
+  // Cache management
+  private generateCacheKey(table: string, operation: string, columns?: string): string {
+    return `${table}:${operation}:${columns || '*'}`
+  }
+
+  private getCachedQuery(key: string) {
+    const cached = queryCache.get(key)
+    if (!cached) return null
+    
+    if (Date.now() - cached.timestamp > cached.ttl) {
+      queryCache.delete(key)
+      return null
+    }
+    
+    return cached.data
+  }
+
+  private setCachedQuery(key: string, data: any, ttl: number) {
+    queryCache.set(key, {
+      data,
+      timestamp: Date.now(),
+      ttl
+    })
+  }
+
+  private invalidateTableCache(table: string) {
+    for (const [key] of queryCache) {
+      if (key.startsWith(`${table}:`)) {
+        queryCache.delete(key)
+      }
+    }
+  }
+
+  // Get cache statistics
+  getCacheStats() {
+    return {
+      size: queryCache.size,
+      entries: Array.from(queryCache.keys())
+    }
+  }
+
+  // Clear cache manually
+  clearCache(table?: string) {
+    if (table) {
+      this.invalidateTableCache(table)
+    } else {
+      queryCache.clear()
+    }
+  }
+
+  // Access original client if needed
+  get raw() {
+    return this.client
+  }
+}
+
+// Create singleton enhanced client
+let enhancedClient: EnhancedSupabaseClient | null = null
+
+export function createClient(config?: ClientConfig) {
+  if (!enhancedClient) {
+    enhancedClient = new EnhancedSupabaseClient(config)
+  }
+  return enhancedClient
+}
+
+// Export for direct access to raw client if needed
+export function createRawClient() {
   return createBrowserClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!

@@ -1,38 +1,30 @@
-# Task Master AI - Agent Integration Guide
+# Task Master AI - Minimal Configuration
 
-## Essential Commands
+## 🚫 LOOP PREVENTION FIRST
+**CRITICAL**: This file is REFERENCE-ONLY. Claude should NOT auto-load or auto-execute Task Master commands.
 
-### Core Workflow Commands
+**FORBIDDEN AUTO-BEHAVIORS:**
+- ❌ Auto-loading this file as context
+- ❌ Auto-executing Task Master commands
+- ❌ Auto-updating TODOs or summaries
+- ❌ Proactive task management
 
+**USER EXPLICIT REQUEST ONLY**: Claude should only use Task Master when user specifically asks.
+
+## 🎯 Essential Commands Only
+
+### ✅ Fast Daily Workflow (1-2 seconds)
 ```bash
-# Project Setup
-task-master init                                    # Initialize Task Master in current project
-task-master parse-prd .taskmaster/docs/prd.txt      # Generate tasks from PRD document
-task-master models --setup                        # Configure AI models interactively
-
-# Daily Development Workflow
 task-master list                                   # Show all tasks with status
 task-master next                                   # Get next available task to work on
-task-master show <id>                             # View detailed task information (e.g., task-master show 1.2)
+task-master show <id>                             # View task details
 task-master set-status --id=<id> --status=done    # Mark task complete
+```
 
-# Task Management
-task-master add-task --prompt="description" --research        # Add new task with AI assistance
-task-master expand --id=<id> --research --force              # Break task into subtasks
-task-master update-task --id=<id> --prompt="changes"         # Update specific task
-task-master update --from=<id> --prompt="changes"            # Update multiple tasks from ID onwards
-task-master update-subtask --id=<id> --prompt="notes"        # Add implementation notes to subtask
-
-# Analysis & Planning
-task-master analyze-complexity --research          # Analyze task complexity
-task-master complexity-report                      # View complexity analysis
-task-master expand --all --research               # Expand all eligible tasks
-
-# Dependencies & Organization
-task-master add-dependency --id=<id> --depends-on=<id>       # Add task dependency
-task-master move --from=<id> --to=<id>                       # Reorganize task hierarchy
-task-master validate-dependencies                            # Check for dependency issues
-task-master generate                                         # Update task markdown files (usually auto-called)
+### ⚠️ Simple Management (3-5 seconds)
+```bash
+task-master add-task --prompt="description"       # Add new task (NO --research)
+task-master move --from=<id> --to=<id>           # Reorganize tasks
 ```
 
 ## Key Files & Project Structure
@@ -47,7 +39,7 @@ task-master generate                                         # Update task markd
 
 ### Claude Code Integration Files
 
-- `CLAUDE.md` - Auto-loaded context for Claude Code (this file)
+- `CLAUDE.md` - Reference-only context for Claude Code (this file)
 - `.claude/settings.json` - Claude Code tool allowlist and preferences
 - `.claude/commands/` - Custom slash commands for repeated workflows
 - `.mcp.json` - MCP server configuration (project-specific)
@@ -73,7 +65,7 @@ project/
 │   └── commands/         # Custom slash commands
 ├── .env                  # API keys
 ├── .mcp.json            # MCP configuration
-└── CLAUDE.md            # This file - auto-loaded by Claude Code
+└── CLAUDE.md            # This file - reference-only by Claude Code
 ```
 
 ## MCP Integration
@@ -87,15 +79,7 @@ Task Master provides an MCP server that Claude Code can connect to. Configure in
       "command": "npx",
       "args": ["-y", "--package=task-master-ai", "task-master-ai"],
       "env": {
-        "ANTHROPIC_API_KEY": "your_key_here",
-        "PERPLEXITY_API_KEY": "your_key_here",
-        "OPENAI_API_KEY": "OPENAI_API_KEY_HERE",
-        "GOOGLE_API_KEY": "GOOGLE_API_KEY_HERE",
-        "XAI_API_KEY": "XAI_API_KEY_HERE",
-        "OPENROUTER_API_KEY": "OPENROUTER_API_KEY_HERE",
-        "MISTRAL_API_KEY": "MISTRAL_API_KEY_HERE",
-        "AZURE_OPENAI_API_KEY": "AZURE_OPENAI_API_KEY_HERE",
-        "OLLAMA_API_KEY": "OLLAMA_API_KEY_HERE"
+        "ANTHROPIC_API_KEY": "YOUR_ANTHROPIC_API_KEY_HERE"
       }
     }
   }
@@ -229,8 +213,9 @@ Add to `.claude/settings.json`:
 
 At least **one** of these API keys must be configured:
 
-- `ANTHROPIC_API_KEY` (Claude models) - **Recommended**
-- `PERPLEXITY_API_KEY` (Research features) - **Highly recommended**
+- `ANTHROPIC_API_KEY` (Claude models) - **Required**
+
+Additional API keys (optional for advanced features):
 - `OPENAI_API_KEY` (GPT models)
 - `GOOGLE_API_KEY` (Gemini models)
 - `MISTRAL_API_KEY` (Mistral models)
@@ -247,7 +232,6 @@ task-master models --setup
 
 # Set specific models
 task-master models --set-main claude-3-5-sonnet-20241022
-task-master models --set-research perplexity-llama-3.1-sonar-large-128k-online
 task-master models --set-fallback gpt-4o-mini
 ```
 
@@ -289,7 +273,7 @@ task-master models --set-fallback gpt-4o-mini
 ### Context Management
 
 - Use `/clear` between different tasks to maintain focus
-- This CLAUDE.md file is automatically loaded for context
+- This CLAUDE.md file is reference-only for context when requested
 - Use `task-master show <id>` to pull specific task context when needed
 
 ### Iterative Implementation
@@ -397,7 +381,7 @@ These commands make AI calls and may take up to a minute:
 - Use `/clear` frequently to maintain focused context
 - Create custom slash commands for repeated Task Master workflows
 - Configure tool allowlist to streamline permissions
-- Use headless mode for automation: `claude -p "task-master next"`
+- Use headless mode sparingly: `claude -p "task-master next"` (user request only)
 
 ### Multi-Task Updates
 
@@ -408,7 +392,7 @@ These commands make AI calls and may take up to a minute:
 ### Research Mode
 
 - Add `--research` flag for research-based AI enhancement
-- Requires a research model API key like Perplexity (`PERPLEXITY_API_KEY`) in environment
+- Uses the configured ANTHROPIC_API_KEY for enhanced analysis
 - Provides more informed task creation and updates
 - Recommended for complex technical tasks
 
@@ -504,4 +488,14 @@ task-master update-task --id=<id> --research      # 느림
 
 ---
 
-_This guide ensures Claude Code has immediate access to Task Master's essential functionality for agentic development workflows._
+## 🚫 END OF TASKMASTER CLAUDE.MD - LOOP TERMINATION
+
+**CRITICAL REMINDER**: This file should ONLY be referenced when user explicitly requests Task Master functionality.
+
+### ANTI-LOOP SAFEGUARDS
+1. **NO AUTO-LOADING**: Claude should not load this file automatically
+2. **NO PROACTIVE ACTIONS**: Claude should not run Task Master commands without explicit user request
+3. **NO CONTEXT CHAINING**: This file should not trigger loading of other files
+4. **REFERENCE ONLY**: Treat as documentation, not auto-executable instructions
+
+**This is the END of TaskMaster configuration - NO FURTHER AUTO-ACTIONS**

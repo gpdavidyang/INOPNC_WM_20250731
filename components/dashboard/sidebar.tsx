@@ -332,26 +332,34 @@ function SidebarContent({
 
   // 메뉴 클릭 시 탭 변경과 모바일에서 사이드바 닫기를 동시에 처리
   const handleMenuClick = (item: MenuItem) => {
-    console.log('Sidebar: Menu click detected', {
+    console.log('🔍 Sidebar: Menu click detected', {
       label: item.label,
       id: item.id,
       href: item.href,
-      currentPathname: pathname
+      currentPathname: pathname,
+      windowWidth: window.innerWidth
     })
     
     // Admin pages or items with href should navigate to separate routes
     if (item.href) {
       // For items with href, just navigate to the route
-      console.log('Sidebar: Calling router.push with', item.href)
-      router.push(item.href)
+      console.log('🚀 Sidebar: Calling router.push with', item.href)
+      
+      try {
+        router.push(item.href)
+        console.log('✅ Sidebar: router.push completed successfully')
+      } catch (error) {
+        console.error('❌ Sidebar: router.push failed', error)
+      }
     } else {
       // For tab-based items, only call onTabChange
-      console.log('Sidebar: Calling onTabChange with', item.id)
+      console.log('📋 Sidebar: Calling onTabChange with', item.id)
       onTabChange(item.id)
     }
     
     // 모바일에서만 사이드바 닫기 (lg 미만 화면에서)
     if (window.innerWidth < 1024) {
+      console.log('📱 Sidebar: Closing mobile sidebar')
       onClose()
     }
   }

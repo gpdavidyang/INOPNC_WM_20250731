@@ -74,6 +74,13 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
         // 직접 경로는 항상 라우터 사용
         console.log('BottomNavigation: Calling router.push with', item.href)
         router.push(item.href)
+        
+        // onTabChange도 호출하여 activeTab 상태 동기화
+        if (onTabChange) {
+          // Extract tab name from href for proper state management
+          const tabName = item.href.split('/').pop() || item.href.replace('/', '')
+          onTabChange(tabName)
+        }
       }
     }
 

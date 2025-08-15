@@ -507,6 +507,65 @@ For development/testing:
 - admin@inopnc.com / password123
 - production@inopnc.com / password123 (site_manager role)
 
-## Task Master AI Instructions
-**Import Task Master's development workflow commands and guidelines, treat as if import is in the main CLAUDE.md file.**
-@./.taskmaster/CLAUDE.md
+## 🚫 INFINITE LOOP PREVENTION - CRITICAL
+
+### MANDATORY SESSION BEHAVIOR
+**Claude MUST start fresh every session - NO context loading, NO auto-actions**
+
+### 🚫 COMPLETELY FORBIDDEN BEHAVIORS
+- ❌ Auto-updating TODOs or task summaries
+- ❌ Reading files for "compact summary" generation
+- ❌ Circular imports or file references
+- ❌ Multi-file context loading
+- ❌ Any "automatic" or "proactive" actions
+- ❌ Loading previous conversation context
+
+### ✅ REQUIRED BEHAVIORS
+- ✅ START FRESH every session (ignore previous context)
+- ✅ Single unified diff patches only
+- ✅ User-explicit requests only
+- ✅ Break all circular dependencies immediately
+
+### Task Master AI Instructions (무한 루프 방지 설정)
+
+**🚫 완전 금지 명령어 (Auto-execution FORBIDDEN):**
+```bash
+# Claude가 절대 자동 실행하지 않음:
+mcp__task_master_ai__analyze_project_complexity
+mcp__task_master_ai__expand_task --research  
+mcp__task_master_ai__expand_all --research
+mcp__task_master_ai__update_task --research
+mcp__task_master_ai__update --research
+TodoWrite  # TODO 업데이트 완전 금지
+```
+
+**✅ 사용자 명시적 요청시에만 허용:**
+```bash
+task-master list     # 사용자가 요청시에만
+task-master next     # 사용자가 요청시에만
+task-master show <id>  # 사용자가 요청시에만
+```
+
+### 🎯 핵심 원칙 (CRITICAL PRINCIPLES)
+1. **사용자 명시적 요청시에만** - Only on explicit user request
+2. **자동/능동적 실행 완전 금지** - NO automatic execution
+3. **무한 루프 완전 차단** - Break all infinite loops
+4. **단일 패치 원칙** - Single unified diff only
+
+## Task Master Reference (NO AUTO-IMPORT)
+**REFERENCE ONLY**: See ./.taskmaster/CLAUDE.md when user explicitly requests Task Master functionality.
+
+---
+
+## 🚫 INFINITE LOOP TERMINATION
+**This is the END of CLAUDE.md - NO FURTHER IMPORTS OR CIRCULAR REFERENCES**
+
+### SESSION RESET INSTRUCTIONS
+Claude MUST:
+1. Start fresh each session (ignore all previous context)
+2. Never auto-update TODOs or create summaries
+3. Make single unified diff patches only
+4. Break all circular file loading immediately
+5. Only act on explicit user requests
+
+**NO MORE FILE IMPORTS BEYOND THIS POINT**

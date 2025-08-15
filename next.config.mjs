@@ -80,8 +80,24 @@ const nextConfig = {
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     unoptimized: false, // 최적화 활성화
+    // 프로덕션 환경에서 최고 품질 보장을 위한 추가 설정
     loader: 'default',
     path: '/_next/image',
+    // 배포 환경 품질 보장을 위한 추가 설정
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**.vercel.app',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'yjtnpscnnsnvfsyvajku.supabase.co',
+        port: '',
+        pathname: '/**',
+      }
+    ],
   },
   
   // PWA 지원을 위한 설정

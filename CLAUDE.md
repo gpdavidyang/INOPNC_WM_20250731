@@ -512,6 +512,12 @@ For development/testing:
 ### MANDATORY SESSION BEHAVIOR
 **Claude MUST start fresh every session - NO context loading, NO auto-actions**
 
+### 🎯 FIRST ACTION RULE (시간 낭비 방지)
+**새 세션 시작 시 MUST DO:**
+1. `./scripts/quick-status-check.sh` 실행 - 현재 상태 즉시 파악
+2. `ISSUE-LOG.md` 확인 - 최근 해결된 문제들 검토
+3. 상태 확인 후 중복 작업 방지
+
 ### 🚫 COMPLETELY FORBIDDEN BEHAVIORS
 - ❌ Auto-updating TODOs or task summaries
 - ❌ Reading files for "compact summary" generation

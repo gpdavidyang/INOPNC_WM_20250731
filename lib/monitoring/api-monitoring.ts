@@ -627,22 +627,28 @@ export async function monitorDatabaseQuery<T>(
       },
     })
     
-    // Send metrics to Sentry (if available)
+    // Send metrics to Sentry using alternative methods
     try {
-      if (Sentry.metrics) {
-        Sentry.metrics.increment('db.queries.total', 1, {
-          tags: {
-            query_name: queryName,
-            table: context?.table || 'unknown',
-            operation: context?.operation || 'query',
-            construction_context: context?.construction_context || 'general',
-          }
-        })
-        
-        Sentry.metrics.gauge('db.query_time', duration, {
-          tags: { query_name: queryName }
-        })
-      }
+      // Use setTag and setMeasurement instead of deprecated metrics API
+      Sentry.setTag('db.last_query', queryName)
+      Sentry.setTag('db.last_table', context?.table || 'unknown')
+      Sentry.setTag('db.last_operation', context?.operation || 'query')
+      Sentry.setTag('db.construction_context', context?.construction_context || 'general')
+      Sentry.setMeasurement('db.query_time', duration)
+      
+      // Add breadcrumb for detailed tracking
+      Sentry.addBreadcrumb({
+        category: 'database.metrics',
+        message: `Query metrics: ${queryName}`,
+        level: 'info',
+        data: {
+          query_name: queryName,
+          duration,
+          table: context?.table,
+          operation: context?.operation,
+          construction_context: context?.construction_context
+        }
+      })
     } catch (error) {
       // Ignore Sentry metrics errors
     }

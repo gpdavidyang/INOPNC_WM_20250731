@@ -21,8 +21,10 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   
-  // SWC 컴파일러 최적화
+  // SWC 컴파일러 최적화 - 품질과 성능의 균형
   swcMinify: true,
+  // 프로덕션 빌드 품질 개선을 위한 추가 설정
+  productionBrowserSourceMaps: process.env.NODE_ENV === 'production' && process.env.ENABLE_SOURCE_MAPS === 'true',
   
   // 실험적 기능으로 빌드 성능 향상
   experimental: {
@@ -61,20 +63,27 @@ const nextConfig = {
   
   // 컴파일 성능 향상
   compiler: {
-    removeConsole: process.env.NODE_ENV === 'production',
+    // 프로덕션에서도 중요한 로그는 유지하도록 개선
+    removeConsole: process.env.NODE_ENV === 'production' ? {
+      exclude: ['error', 'warn'] // error, warn 로그는 프로덕션에서도 유지
+    } : false,
   },
   
   
   // 이미지 최적화 - 프로덕션 품질 향상 설정
   images: {
     formats: ['image/avif', 'image/webp'],
-    domains: ['localhost', 'your-supabase-url.supabase.co'],
+    domains: ['localhost', 'yjtnpscnnsnvfsyvajku.supabase.co'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     minimumCacheTTL: 86400, // 24시간 캐시
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     unoptimized: false, // 최적화 활성화
+    // 품질 향상을 위한 추가 설정
+    quality: 90, // 이미지 품질을 90%로 설정 (기본값은 75%)
+    loader: 'default',
+    path: '/_next/image',
   },
   
   // PWA 지원을 위한 설정

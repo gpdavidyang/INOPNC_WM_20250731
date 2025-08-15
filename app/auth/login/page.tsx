@@ -36,24 +36,24 @@ export default function LoginPage() {
 
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 px-3 sm:px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 px-4 sm:px-6">
       <div className="w-full max-w-md">
         {/* 로고 및 타이틀 */}
-        <div className="text-center mb-4 sm:mb-6">
-          <div className="mx-auto w-16 h-16 sm:w-20 sm:h-20 mb-4 sm:mb-5 flex items-center justify-center bg-white rounded-2xl shadow-lg">
+        <div className="text-center mb-6 sm:mb-8">
+          <div className="mx-auto w-20 h-20 sm:w-24 sm:h-24 mb-5 sm:mb-6 flex items-center justify-center bg-white rounded-3xl shadow-xl border border-gray-100">
             <Image
               src="/INOPNC_logo.png"
               alt="INOPNC 로고"
-              width={40}
-              height={40}
-              className="object-contain sm:w-[50px] sm:h-[50px]"
+              width={48}
+              height={48}
+              className="object-contain sm:w-[56px] sm:h-[56px]"
             />
           </div>
         </div>
 
         {/* 로그인 폼 */}
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-4 sm:p-8">
-          <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-6 text-center">로그인</h2>
+        <div className="bg-white rounded-3xl shadow-2xl border border-gray-200 p-6 sm:p-10 backdrop-blur-sm">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6 sm:mb-8 text-center tracking-tight">로그인</h2>
           
           <form action={handleLogin} className="space-y-3 sm:space-y-6">
             <div className="space-y-1 sm:space-y-2">
@@ -73,7 +73,7 @@ export default function LoginPage() {
                   required
                   defaultValue={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="block w-full pl-9 sm:pl-10 pr-3 py-2 sm:py-3.5 border-2 border-gray-300 rounded-xl shadow-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white transition-all duration-200 text-sm sm:text-base font-medium"
+                  className="block w-full pl-9 sm:pl-10 pr-3 py-3 sm:py-4 border-2 border-gray-300 rounded-2xl shadow-lg placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-600 text-gray-900 bg-white transition-all duration-300 text-base sm:text-lg font-medium hover:border-gray-400 hover:shadow-xl backdrop-blur-sm"
                   placeholder="email@example.com"
                 />
               </div>
@@ -96,13 +96,13 @@ export default function LoginPage() {
                   required
                   defaultValue={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full pl-9 sm:pl-10 pr-12 sm:pr-16 py-2 sm:py-3.5 border-2 border-gray-300 rounded-xl shadow-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white transition-all duration-200 text-sm sm:text-base font-medium"
+                  className="block w-full pl-9 sm:pl-10 pr-14 sm:pr-16 py-3 sm:py-4 border-2 border-gray-300 rounded-2xl shadow-lg placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-600 text-gray-900 bg-white transition-all duration-300 text-base sm:text-lg font-medium hover:border-gray-400 hover:shadow-xl backdrop-blur-sm"
                   placeholder="••••••••"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 sm:pr-4 flex items-center text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
+                  className="absolute inset-y-0 right-0 pr-4 sm:pr-5 flex items-center text-gray-400 hover:text-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-lg"
                 >
                   {showPassword ? (
                     <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -119,18 +119,18 @@ export default function LoginPage() {
             </div>
 
             {error && (
-              <div className="bg-red-50 border-l-4 border-red-400 text-red-700 px-4 py-3 rounded-lg text-sm flex items-center space-x-2">
-                <svg className="h-5 w-5 text-red-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <div className="bg-gradient-to-r from-red-50 to-red-100 border border-red-200 text-red-800 px-5 sm:px-6 py-4 sm:py-5 rounded-2xl text-sm sm:text-base flex items-center space-x-3 shadow-lg backdrop-blur-sm animate-in slide-in-from-top-2 duration-300">
+                <svg className="h-6 w-6 sm:h-7 sm:w-7 text-red-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span>{error}</span>
+                <span className="font-medium">{error}</span>
               </div>
             )}
 
             <button
               type="submit"
               disabled={isPending}
-              className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-base font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+              className="w-full flex justify-center items-center py-4 sm:py-5 px-6 sm:px-8 border-2 border-transparent rounded-2xl shadow-2xl text-base sm:text-lg font-bold text-white bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 hover:from-blue-700 hover:via-blue-800 hover:to-indigo-800 focus:outline-none focus:ring-4 focus:ring-blue-500/30 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] backdrop-blur-sm"
             >
               {isPending ? (
                 <>

@@ -158,11 +158,18 @@ export class MonitoringManager {
         })
       })
 
-      // Set up custom metrics (if available)
-      if (Sentry.metrics) {
-        Sentry.metrics.increment('monitoring.system.started', 1, {
-          tags: { system: 'construction-management' }
+      // Set up custom metrics using available Sentry methods
+      try {
+        Sentry.setTag('monitoring.system', 'construction-management')
+        Sentry.setTag('monitoring.status', 'started')
+        Sentry.addBreadcrumb({
+          category: 'monitoring.system',
+          message: 'Monitoring system started',
+          level: 'info',
+          data: { system: 'construction-management' }
         })
+      } catch (error) {
+        // Ignore Sentry tagging errors
       }
     } catch (error) {
       console.warn('Failed to initialize Sentry configuration:', error)
@@ -276,15 +283,16 @@ export class MonitoringManager {
         })
       }
 
-      // Send metrics to Sentry (if available)
+      // Send metrics to Sentry using alternative methods
       try {
-        if (Sentry.metrics) {
-          Sentry.metrics.gauge('api.response_time.p95', metrics.apiResponseTime?.p95 || 0)
-          Sentry.metrics.gauge('daily_report.creation_time.p95', metrics.dailyReportLoadTime?.p95 || 0)
-          Sentry.metrics.gauge('document.upload_time.p95', metrics.imageUploadTime?.p95 || 0)
-        }
+        Sentry.setTag('performance.api_response_time_p95', String(metrics.apiResponseTime?.p95 || 0))
+        Sentry.setTag('performance.daily_report_time_p95', String(metrics.dailyReportLoadTime?.p95 || 0))
+        Sentry.setTag('performance.document_upload_time_p95', String(metrics.imageUploadTime?.p95 || 0))
+        Sentry.setMeasurement('api.response_time.p95', metrics.apiResponseTime?.p95 || 0)
+        Sentry.setMeasurement('daily_report.creation_time.p95', metrics.dailyReportLoadTime?.p95 || 0)
+        Sentry.setMeasurement('document.upload_time.p95', metrics.imageUploadTime?.p95 || 0)
       } catch (error) {
-        // Ignore Sentry metrics errors
+        // Ignore Sentry tagging errors
       }
 
     } catch (error) {
@@ -388,14 +396,14 @@ export class MonitoringManager {
         }
       }
 
-      // Send metrics to Sentry (if available)
+      // Send metrics to Sentry using available methods
       try {
-        if (Sentry.metrics) {
-          Sentry.metrics.gauge('memory.used_mb', usedMB)
-          Sentry.metrics.gauge('memory.usage_percent', (usedMB / limitMB) * 100)
-        }
+        Sentry.setTag('memory.used_mb', String(Math.floor(usedMB)))
+        Sentry.setTag('memory.usage_percent', String(Math.floor((usedMB / limitMB) * 100)))
+        Sentry.setMeasurement('memory.used_mb', usedMB)
+        Sentry.setMeasurement('memory.usage_percent', (usedMB / limitMB) * 100)
       } catch (error) {
-        // Ignore Sentry metrics errors
+        // Ignore Sentry tagging errors
       }
 
     } catch (error) {

@@ -336,23 +336,16 @@ class APIMonitor {
       },
     })
     
-    // Send custom metrics to Sentry (if available)
+    // Send custom metrics to Sentry (disabled - metrics not available in current Sentry version)
     try {
-      if (Sentry.metrics) {
-        Sentry.metrics.increment('api.requests.total', 1, {
-          tags: {
-            endpoint: endpoint.replace(/\/\d+/g, '/:id'), // Normalize dynamic routes
-            method: endpoint.split(' ')[0],
-            status: isError ? 'error' : 'success',
-          }
-        })
-        
-        Sentry.metrics.gauge('api.response_time', duration, {
-          tags: { endpoint: endpoint.replace(/\/\d+/g, '/:id') }
-        })
-      }
+      // Note: Sentry.metrics is not available in @sentry/nextjs
+      // Using breadcrumbs and spans for monitoring instead
+      Sentry.setTag('api.endpoint', endpoint.replace(/\/\d+/g, '/:id'))
+      Sentry.setTag('api.method', endpoint.split(' ')[0])
+      Sentry.setTag('api.status', isError ? 'error' : 'success')
+      Sentry.setMeasurement('api.response_time', duration)
     } catch (error) {
-      // Ignore Sentry metrics errors
+      // Ignore Sentry tagging errors
     }
   }
   

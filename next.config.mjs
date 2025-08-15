@@ -80,8 +80,6 @@ const nextConfig = {
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     unoptimized: false, // 최적화 활성화
-    // 품질 향상을 위한 추가 설정
-    quality: 90, // 이미지 품질을 90%로 설정 (기본값은 75%)
     loader: 'default',
     path: '/_next/image',
   },

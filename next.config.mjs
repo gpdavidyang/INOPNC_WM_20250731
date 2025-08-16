@@ -57,11 +57,6 @@ const nextConfig = {
     
     // CSS 최적화 비활성화 (품질 보존)
     optimizeCss: false,
-    
-    // 폰트 최적화 설정
-    fontLoaders: [
-      { loader: '@next/font/google', options: { display: 'swap' } },
-    ],
   },
   
   // 개발 서버 최적화
@@ -93,7 +88,7 @@ const nextConfig = {
     // 프로덕션 환경에서 최고 품질 보장을 위한 추가 설정
     loader: 'default',
     path: '/_next/image',
-    quality: 100, // 최고 품질로 설정
+    // quality: 100, // Next.js 14에서 지원하지 않는 옵션 (주석 처리)
     // 배포 환경 품질 보장을 위한 추가 설정
     remotePatterns: [
       {

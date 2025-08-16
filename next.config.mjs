@@ -21,8 +21,8 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   
-  // SWC 컴파일러 최적화 - 품질과 성능의 균형
-  swcMinify: true,
+  // SWC 컴파일러 최적화 - 품질 우선으로 변경
+  swcMinify: false, // 품질 저하 방지를 위해 비활성화
   // 프로덕션 빌드 품질 개선을 위한 추가 설정
   productionBrowserSourceMaps: process.env.NODE_ENV === 'production' && process.env.ENABLE_SOURCE_MAPS === 'true',
   
@@ -54,6 +54,14 @@ const nextConfig = {
     
     // Instrumentation hook 비활성화 (개발 모드에서)
     instrumentationHook: process.env.NODE_ENV === 'production',
+    
+    // CSS 최적화 비활성화 (품질 보존)
+    optimizeCss: false,
+    
+    // 폰트 최적화 설정
+    fontLoaders: [
+      { loader: '@next/font/google', options: { display: 'swap' } },
+    ],
   },
   
   // 개발 서버 최적화
@@ -67,6 +75,8 @@ const nextConfig = {
     removeConsole: process.env.NODE_ENV === 'production' ? {
       exclude: ['error', 'warn'] // error, warn 로그는 프로덕션에서도 유지
     } : false,
+    // 스타일 최적화 비활성화 (품질 보존)
+    styledComponents: false,
   },
   
   
@@ -83,6 +93,7 @@ const nextConfig = {
     // 프로덕션 환경에서 최고 품질 보장을 위한 추가 설정
     loader: 'default',
     path: '/_next/image',
+    quality: 100, // 최고 품질로 설정
     // 배포 환경 품질 보장을 위한 추가 설정
     remotePatterns: [
       {

@@ -60,8 +60,6 @@ export default function LoginPage() {
               className="object-contain sm:w-[64px] sm:h-[64px] drop-shadow-sm"
             />
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 tracking-tight mb-2">INOPNC</h1>
-          <p className="text-sm sm:text-base text-gray-500 font-medium">건설 현장 관리 시스템</p>
         </div>
 
         {/* 로그인 폼 */}

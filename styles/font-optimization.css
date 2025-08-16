@@ -1,0 +1,54 @@
+/* 프로덕션 폰트 렌더링 최적화 CSS */
+
+/* 폰트 렌더링 품질 최적화 */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* 프로덕션 환경에서 폰트 품질 보장 */
+body {
+  font-feature-settings: "kern" 1, "liga" 1;
+  font-kerning: normal;
+  font-variant-ligatures: common-ligatures;
+  text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* 고해상도 디스플레이에서 폰트 품질 향상 */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  body {
+    -webkit-font-smoothing: subpixel-antialiased;
+  }
+}
+
+/* CSS 압축으로 인한 색상 변화 방지 */
+.text-slate-600,
+.text-slate-700,
+.text-slate-800,
+.text-slate-900 {
+  color: var(--tw-text-opacity) !important;
+}
+
+/* 중요한 UI 요소들의 색상 보존 */
+.bg-blue-600,
+.bg-blue-500,
+.bg-slate-100,
+.bg-slate-200 {
+  background-color: var(--tw-bg-opacity) !important;
+}
+
+/* 테두리 품질 보존 */
+.border,
+.border-gray-300,
+.border-slate-200 {
+  border-style: solid !important;
+  border-width: 1px !important;
+}
+
+/* 그라데이션 품질 보존 */
+.bg-gradient-to-r,
+.bg-gradient-to-b {
+  background-image: linear-gradient(var(--tw-gradient-direction), var(--tw-gradient-stops)) !important;
+}

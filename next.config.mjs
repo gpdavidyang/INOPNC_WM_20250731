@@ -26,6 +26,78 @@ const nextConfig = {
   // 프로덕션 빌드 품질 개선을 위한 추가 설정
   productionBrowserSourceMaps: process.env.NODE_ENV === 'production' && process.env.ENABLE_SOURCE_MAPS === 'true',
   
+  // Webpack 설정으로 압축 최적화 제어
+  webpack: (config, { buildId, dev, isServer, defaultLoaders, nextRuntime, webpack }) => {
+    // 프로덕션에서 CSS/JS 압축으로 인한 품질 저하 방지
+    if (!dev) {
+      config.optimization.minimizer = config.optimization.minimizer.map((minimizer) => {
+        // Terser 압축기 설정 최적화
+        if (minimizer.constructor.name === 'TerserPlugin') {
+          minimizer.options.terserOptions = {
+            ...minimizer.options.terserOptions,
+            compress: {
+              ...minimizer.options.terserOptions.compress,
+              // CSS 관련 압축 완전 비활성화
+              pure_funcs: [],
+              drop_console: false,
+              drop_debugger: false,
+              // 폰트 및 CSS 품질 보존
+              keep_fnames: true,
+              keep_classnames: true,
+              // 색상값 압축 비활성화
+              unsafe_arrows: false,
+              unsafe_comps: false,
+              unsafe_math: false,
+              unsafe_proto: false,
+              unsafe_regexp: false,
+              unsafe_undefined: false,
+            },
+            mangle: {
+              // 클래스명과 함수명 보존
+              keep_classnames: true,
+              keep_fnames: true,
+            },
+            format: {
+              // 코드 포맷팅 품질 유지
+              comments: false,
+              beautify: false,
+              // 세미콜론과 공백 보존
+              semicolons: true,
+              preserve_annotations: true,
+            }
+          }
+        }
+        
+        // CSS 압축기 설정 최적화
+        if (minimizer.constructor.name === 'CssMinimizerPlugin') {
+          minimizer.options.minimizerOptions = {
+            ...minimizer.options.minimizerOptions,
+            preset: ['default', {
+              // 폰트 및 색상 최적화 비활성화
+              normalizeWhitespace: false,
+              colormin: false,
+              minifyFontValues: false,
+              minifySelectors: false,
+              reduceIdents: false,
+              zindex: false,
+              // 그라데이션 및 이미지 최적화 비활성화
+              normalizeUrl: false,
+              normalizeUnicode: false,
+              mergeLonghand: false,
+              mergeRules: false,
+              convertValues: false,
+              discardDuplicates: false,
+            }]
+          }
+        }
+        
+        return minimizer
+      })
+    }
+    
+    return config
+  },
+  
   // 실험적 기능으로 빌드 성능 향상
   experimental: {
     
@@ -105,6 +177,9 @@ const nextConfig = {
       }
     ],
   },
+  
+  // 프로덕션 폰트 렌더링 최적화
+  optimizeFonts: true,
   
   // PWA 지원을 위한 설정
   headers: async () => {

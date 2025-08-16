@@ -6,6 +6,7 @@ import { initWebVitals, observePerformance, performanceMark } from '@/lib/monito
 import { setUserContext } from '@/lib/monitoring/sentry'
 import { initRUM, rum } from '@/lib/monitoring/rum'
 import { initializeMonitoring, isMonitoringInitialized, checkMonitoringHealth } from '@/lib/monitoring/init'
+import { isFeatureEnabled } from '@/lib/feature-flags'
 import * as Sentry from '@sentry/nextjs'
 
 interface PerformanceMonitoringProviderProps {
@@ -24,6 +25,13 @@ export function PerformanceMonitoringProvider({
   useEffect(() => {
     const initMonitoring = async () => {
       try {
+        // Check if monitoring is enabled
+        if (!isFeatureEnabled('ENABLE_MONITORING')) {
+          console.log('📊 Monitoring is disabled by feature flag')
+          setMonitoringStatus('ready')
+          return
+        }
+
         // Check if already initialized
         if (isMonitoringInitialized()) {
           setMonitoringStatus('ready')
@@ -41,24 +49,26 @@ export function PerformanceMonitoringProvider({
         
         setMonitoringStatus('ready')
         
-        // Send initialization metric
-        try {
-          await fetch('/api/monitoring/metrics', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              type: 'system_event',
-              data: {
-                event: 'monitoring_provider_initialized',
-                health,
-                timestamp: new Date().toISOString(),
-                user_id: user?.id
-              }
+        // Send initialization metric (only if monitoring API is enabled)
+        if (isFeatureEnabled('ENABLE_PERFORMANCE_MONITORING')) {
+          try {
+            await fetch('/api/monitoring/metrics', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                type: 'system_event',
+                data: {
+                  event: 'monitoring_provider_initialized',
+                  health,
+                  timestamp: new Date().toISOString(),
+                  user_id: user?.id
+                }
+              })
             })
-          })
-        } catch (error) {
-          // Ignore analytics errors
-          console.warn('Failed to send monitoring initialization metric:', error)
+          } catch (error) {
+            // Ignore analytics errors
+            console.warn('Failed to send monitoring initialization metric:', error)
+          }
         }
         
       } catch (error) {
@@ -70,13 +80,15 @@ export function PerformanceMonitoringProvider({
           initWebVitals()
           observePerformance()
           
-          // Initialize Real User Monitoring
-          initRUM({
-            sampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
-            enableSessionReplay: true,
-            enableUserInteractions: true,
-            enableResourceTiming: true,
-          })
+          // Initialize Real User Monitoring (only if enabled)
+          if (isFeatureEnabled('ENABLE_PERFORMANCE_MONITORING')) {
+            initRUM({
+              sampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
+              enableSessionReplay: true,
+              enableUserInteractions: true,
+              enableResourceTiming: true,
+            })
+          }
           
           console.log('⚠️ Fallback to basic monitoring only')
         } catch (fallbackError) {
@@ -90,27 +102,29 @@ export function PerformanceMonitoringProvider({
 
   // Set user context when user changes
   useEffect(() => {
-    if (user && monitoringStatus === 'ready') {
+    if (user && monitoringStatus === 'ready' && isFeatureEnabled('ENABLE_MONITORING')) {
       try {
         setUserContext(user)
         
-        // Track user session start
-        fetch('/api/monitoring/metrics', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            type: 'user_session',
-            data: {
-              event: 'session_start',
-              user_id: user.id,
-              user_role: user.role,
-              site_id: user.site_id,
-              timestamp: new Date().toISOString()
-            }
+        // Track user session start (only if performance monitoring is enabled)
+        if (isFeatureEnabled('ENABLE_PERFORMANCE_MONITORING')) {
+          fetch('/api/monitoring/metrics', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: 'user_session',
+              data: {
+                event: 'session_start',
+                user_id: user.id,
+                user_role: user.role,
+                site_id: user.site_id,
+                timestamp: new Date().toISOString()
+              }
+            })
+          }).catch(() => {
+            // Ignore errors
           })
-        }).catch(() => {
-          // Ignore errors
-        })
+        }
       } catch (error) {
         console.warn('Failed to set user context:', error)
       }

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import "@/styles/sunlight-mode.css";
+import "@/styles/font-optimization.css";
 import { AuthProvider } from "@/providers/auth-provider";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { FontSizeProvider } from "@/contexts/FontSizeContext";

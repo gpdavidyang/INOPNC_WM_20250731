@@ -517,12 +517,12 @@ export default function HomeTab({ profile, onTabChange, onDocumentsSearch }: Hom
       {/* Quick Menu Section - 2 Column Grid */}
       <Card 
         elevation="sm" 
-        className="theme-transition"
+        className="theme-transition border border-gray-200 dark:border-gray-700 shadow-md bg-gradient-to-br from-white to-gray-50/50 dark:from-gray-800 dark:to-gray-900/50"
         aria-labelledby="quick-menu-section"
       >
-        <CardHeader className="pb-2 pt-3 px-3">
+        <CardHeader className="pb-2 pt-3 px-3 border-b border-gray-100 dark:border-gray-700/50">
           <div className="flex items-center justify-between">
-            <CardTitle id="quick-menu-section" className="text-sm font-semibold">
+            <CardTitle id="quick-menu-section" className="text-sm font-semibold text-gray-800 dark:text-gray-200">
               빠른메뉴
             </CardTitle>
             <button
@@ -536,10 +536,10 @@ export default function HomeTab({ profile, onTabChange, onDocumentsSearch }: Hom
           </div>
         </CardHeader>
         
-        <CardContent className="pt-0 pb-3 px-3">
+        <CardContent className="pt-3 pb-3 px-3 bg-gray-50/30 dark:bg-gray-800/30">
           {/* Dynamic Quick Menu Items */}
           <nav aria-label="빠른메뉴 항목">
-            <ul className="grid grid-cols-2 gap-1.5" role="list">
+            <ul className="grid grid-cols-2 gap-2" role="list">
               {getSelectedQuickMenuItems().map((item: any) => (
                 <li key={item.id} role="none">
                   <button 
@@ -555,17 +555,17 @@ export default function HomeTab({ profile, onTabChange, onDocumentsSearch }: Hom
                         router.push(item.path)
                       }
                     }}
-                    className="w-full flex flex-col items-center py-2.5 px-2 bg-transparent hover:bg-gray-50 dark:hover:bg-gray-800/30 rounded-lg transition-all duration-200 active:scale-95 touch-manipulation focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 min-h-[60px] theme-transition"
+                    className="w-full flex flex-col items-center py-3 px-2 bg-white dark:bg-gray-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 border border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-600 rounded-xl transition-all duration-200 active:scale-95 touch-manipulation focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 min-h-[72px] shadow-sm hover:shadow-md"
                     aria-label={`${item.name} - ${item.description}`}
                     role="menuitem"
                   >
-                    <div className={`mb-1 ${item.color}`} aria-hidden="true">
+                    <div className={`mb-1.5 ${item.color}`} aria-hidden="true">
                       {React.cloneElement(item.icon as React.ReactElement, {
-                        className: "h-4 w-4",
+                        className: "h-5 w-5",
                         strokeWidth: 1.5
                       })}
                     </div>
-                    <span className="text-[11px] font-medium text-gray-900 dark:text-gray-100">{item.name}</span>
+                    <span className="text-xs font-medium text-gray-900 dark:text-gray-100">{item.name}</span>
                   </button>
                 </li>
               ))}
@@ -583,7 +583,7 @@ export default function HomeTab({ profile, onTabChange, onDocumentsSearch }: Hom
 
       {/* Site History Section */}
       {siteHistory.length > 0 && (
-        <Card elevation="sm" className="theme-transition overflow-hidden">
+        <Card elevation="sm" className="theme-transition overflow-hidden border border-gray-200 dark:border-gray-700 shadow-md bg-gradient-to-br from-white to-gray-50/50 dark:from-gray-800 dark:to-gray-900/50">
           <button
             onClick={() => setSiteHistoryExpanded(!siteHistoryExpanded)}
             className="w-full px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors theme-transition"
@@ -679,7 +679,7 @@ export default function HomeTab({ profile, onTabChange, onDocumentsSearch }: Hom
       )}
 
       {/* Announcements - Toggle */}
-      <Card elevation="sm" className="theme-transition overflow-hidden">
+      <Card elevation="sm" className="theme-transition overflow-hidden border border-gray-200 dark:border-gray-700 shadow-md bg-gradient-to-br from-white to-gray-50/50 dark:from-gray-800 dark:to-gray-900/50">
         <button
           onClick={() => setAnnouncementExpanded(!announcementExpanded)}
           className="w-full px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors theme-transition"
@@ -732,7 +732,7 @@ export default function HomeTab({ profile, onTabChange, onDocumentsSearch }: Hom
       </Card>
 
       {/* Recent Activities - High-Density List */}
-      <Card elevation="sm" className="theme-transition overflow-hidden">
+      <Card elevation="sm" className="theme-transition overflow-hidden border border-gray-200 dark:border-gray-700 shadow-md bg-gradient-to-br from-white to-gray-50/50 dark:from-gray-800 dark:to-gray-900/50">
         <button
           onClick={() => setRecentActivitiesExpanded(!recentActivitiesExpanded)}
           className="w-full px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors theme-transition"

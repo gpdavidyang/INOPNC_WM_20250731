@@ -133,7 +133,7 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
 
   if (!siteInfo) {
     return (
-      <Card elevation="sm" className="theme-transition">
+      <Card elevation="sm" className="theme-transition border border-gray-200 dark:border-gray-700 shadow-md bg-gradient-to-br from-white to-gray-50/50 dark:from-gray-800 dark:to-gray-900/50">
         <CardContent>
           <p className="text-sm text-gray-600 dark:text-gray-400">
             현재 배정된 현장이 없습니다.

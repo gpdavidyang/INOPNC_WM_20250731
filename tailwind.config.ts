@@ -118,17 +118,17 @@ const config: Config = {
         ]
       },
       fontSize: {
-        // INOPNC 디자인 시스템 타이포그래피 - 모바일 최적화 (10% 축소)
-        'xs': ['0.675rem', { lineHeight: '0.9rem' }],     // 10.8px (10% 축소)
-        'sm': ['0.7875rem', { lineHeight: '1.125rem' }],  // 12.6px (10% 축소)
-        'base': ['0.9rem', { lineHeight: '1.35rem' }],    // 14.4px (10% 축소)
-        'lg': ['1.0125rem', { lineHeight: '1.575rem' }],  // 16.2px (10% 축소)
-        'xl': ['1.125rem', { lineHeight: '1.575rem' }],   // 18px (10% 축소)
-        '2xl': ['1.35rem', { lineHeight: '1.8rem' }],     // 21.6px (10% 축소)
-        '3xl': ['1.6875rem', { lineHeight: '2.025rem' }], // 27px (10% 축소)
-        '4xl': ['2.025rem', { lineHeight: '2.25rem' }],   // 32.4px (10% 축소)
-        '5xl': ['2.7rem', { lineHeight: '1' }],           // 43.2px (10% 축소)
-        '6xl': ['3.375rem', { lineHeight: '1' }]          // 54px (10% 축소)
+        // INOPNC 디자인 시스템 타이포그래피 - 기본 크기 복원
+        'xs': ['0.75rem', { lineHeight: '1rem' }],        // 12px (기본)
+        'sm': ['0.875rem', { lineHeight: '1.25rem' }],    // 14px (기본)
+        'base': ['1rem', { lineHeight: '1.5rem' }],       // 16px (기본)
+        'lg': ['1.125rem', { lineHeight: '1.75rem' }],    // 18px (기본)
+        'xl': ['1.25rem', { lineHeight: '1.75rem' }],     // 20px (기본)
+        '2xl': ['1.5rem', { lineHeight: '2rem' }],        // 24px (기본)
+        '3xl': ['1.875rem', { lineHeight: '2.25rem' }],   // 30px (기본)
+        '4xl': ['2.25rem', { lineHeight: '2.5rem' }],     // 36px (기본)
+        '5xl': ['3rem', { lineHeight: '1' }],             // 48px (기본)
+        '6xl': ['3.75rem', { lineHeight: '1' }]           // 60px (기본)
       },
       spacing: {
         // INOPNC 디자인 시스템 스페이싱 확장

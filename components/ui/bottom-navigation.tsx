@@ -88,11 +88,11 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
       <nav
         ref={ref}
         className={cn(
-          "fixed bottom-0 left-0 right-0 z-50 border-t bg-white dark:bg-gray-900 md:hidden",
-          // iOS: 56px + Safe Area, Android: 48px
-          "h-[48px] supports-[height:env(safe-area-inset-bottom)]:h-[56px]",
-          "border-gray-200 dark:border-gray-700",
-          "backdrop-blur-md bg-opacity-90",
+          "fixed bottom-0 left-0 right-0 z-50 border-t bg-white/95 dark:bg-gray-900/95 md:hidden",
+          // UI Guidelines 준수: 더 얇은 높이 (44px)
+          "h-[44px] supports-[height:env(safe-area-inset-bottom)]:h-[48px]",
+          "border-gray-200/50 dark:border-gray-700/50",
+          "backdrop-blur-xl backdrop-saturate-180",
           className
         )}
         {...props}
@@ -130,40 +130,41 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
                 }}
                 className={cn(
                   "relative flex flex-col items-center justify-center transition-all duration-200",
-                  // 터치 영역: 44x44px minimum (Apple HIG)
-                  "min-h-[44px] min-w-[44px] flex-1",
-                  // 텍스트 및 색상
-                  "text-[10px] font-normal gap-1",
+                  // UI Guidelines: 더 조밀한 터치 영역
+                  "min-h-[40px] min-w-[40px] flex-1",
+                  // UI Guidelines: 더 작은 텍스트와 간격
+                  "text-[9px] font-medium gap-0.5",
                   // 터치 최적화
                   "active:scale-95 touch-manipulation",
-                  // 포커스 표시
-                  "focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:outline-offset-2",
-                  // 상태별 색상
+                  // 포커스 표시 - UI Guidelines 색상
+                  "focus-visible:outline-2 focus-visible:outline-toss-blue-500 focus-visible:outline-offset-1",
+                  // UI Guidelines 색상 시스템 적용
                   isActive
-                    ? "text-blue-600 dark:text-blue-400" // Primary Color (#007AFF)
-                    : "text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                    ? "text-toss-blue-600 dark:text-toss-blue-400" // Toss Primary Color
+                    : "text-toss-gray-600 dark:text-toss-gray-400 hover:text-toss-gray-700 dark:hover:text-toss-gray-300"
                 )}
                 aria-label={`${item.label}으로 이동`}
                 aria-current={isActive ? "page" : undefined}
               >
                 <div className="relative">
                   {React.cloneElement(item.icon as React.ReactElement, {
-                    className: "h-6 w-6", // 24x24px 아이콘
-                    "aria-hidden": "true"
+                    className: "h-5 w-5", // UI Guidelines: 더 작은 아이콘 (20x20px)
+                    "aria-hidden": "true",
+                    strokeWidth: isActive ? 2.5 : 1.5 // 활성 상태에서만 더 두꺼운 선
                   })}
                   {item.badge && (
-                    <div className="absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white min-w-[16px]">
+                    <div className="absolute -right-1.5 -top-1.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-red-500 text-[8px] font-bold text-white min-w-[14px]">
                       {typeof item.badge === 'number' && item.badge > 99 ? '99+' : item.badge}
                     </div>
                   )}
                 </div>
-                <span className="truncate max-w-[60px] leading-tight">
+                <span className="truncate max-w-[50px] leading-none">
                   {item.label}
                 </span>
                 
-                {/* 활성 상태 인디케이터 (선택적) */}
+                {/* UI Guidelines: 더 미묘한 활성 상태 인디케이터 */}
                 {isActive && (
-                  <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-6 h-0.5 bg-blue-600 dark:bg-blue-400 rounded-full"></div>
+                  <div className="absolute top-0.5 left-1/2 transform -translate-x-1/2 w-4 h-px bg-toss-blue-600 dark:bg-toss-blue-400 rounded-full opacity-80"></div>
                 )}
               </button>
             )

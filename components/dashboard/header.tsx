@@ -21,28 +21,29 @@ export default function Header({ profile, onMenuClick, isSidebarOpen = false }: 
   }
   
   return (
-    <header className="sticky top-0 z-30 bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 theme-transition" role="banner">
-      <div className="px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between">
-          <div className="flex items-center gap-x-4">
+    <header className="sticky top-0 z-30 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-700/50 theme-transition" role="banner">
+      <div className="px-3 sm:px-4 lg:px-6">
+        <div className="flex h-14 items-center justify-between">
+          <div className="flex items-center gap-x-3">
             <button
               type="button"
-              className="lg:hidden -m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500 theme-transition touch-manipulation min-h-[48px] min-w-[48px]"
+              className="lg:hidden -m-2 inline-flex items-center justify-center rounded-lg p-2 text-toss-gray-600 dark:text-toss-gray-400 hover:text-toss-gray-800 dark:hover:text-toss-gray-200 hover:bg-toss-gray-100 dark:hover:bg-toss-gray-700 focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-toss-blue-500 theme-transition touch-manipulation min-h-[44px] min-w-[44px]"
               onClick={handleMenuClick}
               aria-label="사이드바 메뉴 열기"
               aria-controls="main-navigation"
               aria-expanded={isSidebarOpen}
             >
               <Menu 
-                className={`h-6 w-6 transition-transform duration-200 ${
+                className={`h-5 w-5 transition-transform duration-200 ${
                   isSidebarOpen ? 'rotate-180' : ''
                 }`} 
+                strokeWidth={1.5}
                 aria-hidden="true" 
               />
             </button>
 
             <div className="flex items-center">
-              <h1 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+              <h1 className="text-base font-bold text-toss-gray-900 dark:text-toss-gray-100">
                 INOPNC
               </h1>
             </div>

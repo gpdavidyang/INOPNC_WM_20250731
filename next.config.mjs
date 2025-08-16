@@ -186,8 +186,8 @@ const nextConfig = {
     ],
   },
   
-  // 프로덕션 폰트 렌더링 최적화
-  optimizeFonts: true,
+  // 프로덕션 폰트 렌더링 최적화 - 일관성을 위해 비활성화
+  optimizeFonts: false,
   
   // PWA 지원을 위한 설정
   headers: async () => {

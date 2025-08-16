@@ -3,20 +3,8 @@ const config = {
   plugins: {
     tailwindcss: {},
     autoprefixer: {},
-    // 프로덕션에서 CSS 최적화 비활성화 (품질 보존)
-    ...(process.env.NODE_ENV === 'production' && {
-      cssnano: {
-        preset: ['default', {
-          // CSS 압축 최소화로 품질 보존
-          normalizeWhitespace: false,
-          colormin: false,
-          minifyFontValues: false,
-          minifySelectors: false,
-          reduceIdents: false,
-          zindex: false,
-        }]
-      }
-    })
+    // 개발 환경과 완전히 동일하게 - 모든 CSS 압축 비활성화
+    // cssnano 완전히 제거하여 개발환경과 동일한 품질 보장
   },
 };
 

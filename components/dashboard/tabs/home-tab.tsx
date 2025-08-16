@@ -514,58 +514,55 @@ export default function HomeTab({ profile, onTabChange, onDocumentsSearch }: Hom
         </Card>
       )}
 
-      {/* Quick Menu Section - 2 Column Grid */}
+      {/* Quick Menu Section - Clean & Elegant */}
       <Card 
         elevation="sm" 
-        className="theme-transition border border-gray-200 dark:border-gray-700 shadow-md bg-gradient-to-br from-white to-gray-50/50 dark:from-gray-800 dark:to-gray-900/50"
+        className="theme-transition border border-gray-200/60 dark:border-gray-600/40 shadow-sm bg-white dark:bg-gray-800/50"
         aria-labelledby="quick-menu-section"
       >
-        <CardHeader className="pb-2 pt-3 px-3 border-b border-gray-100 dark:border-gray-700/50">
+        <CardHeader className="pb-3 pt-4 px-4 border-b border-gray-100/80 dark:border-gray-700/40">
           <div className="flex items-center justify-between">
-            <CardTitle id="quick-menu-section" className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+            <CardTitle id="quick-menu-section" className="text-base font-semibold text-gray-900 dark:text-gray-100">
               빠른메뉴
             </CardTitle>
             <button
               onClick={() => setQuickMenuSettingsOpen(true)}
-              className="flex items-center gap-1 px-1.5 py-0.5 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
               aria-label="빠른메뉴 설정"
             >
-              <Settings className="h-3 w-3" aria-hidden="true" />
+              <Settings className="h-3.5 w-3.5" aria-hidden="true" />
               <span>설정</span>
             </button>
           </div>
         </CardHeader>
         
-        <CardContent className="pt-3 pb-3 px-3 bg-gray-50/30 dark:bg-gray-800/30">
-          {/* Dynamic Quick Menu Items */}
+        <CardContent className="pt-4 pb-4 px-4">
+          {/* Dynamic Quick Menu Items - Enhanced */}
           <nav aria-label="빠른메뉴 항목">
-            <ul className="grid grid-cols-2 gap-2" role="list">
+            <ul className="grid grid-cols-2 gap-3" role="list">
               {getSelectedQuickMenuItems().map((item: any) => (
                 <li key={item.id} role="none">
                   <button 
                     onClick={() => {
                       if (item.id === 'site-info' || item.id === 'daily-reports') {
-                        // Site info and daily reports use dedicated pages
                         router.push(item.path)
                       } else if (onTabChange) {
-                        // Use tab change for integrated dashboard navigation
                         onTabChange(item.id)
                       } else {
-                        // Fallback to router push if no onTabChange provided
                         router.push(item.path)
                       }
                     }}
-                    className="w-full flex flex-col items-center py-3 px-2 bg-white dark:bg-gray-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 border border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-600 rounded-xl transition-all duration-200 active:scale-95 touch-manipulation focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 min-h-[72px] shadow-sm hover:shadow-md"
+                    className="w-full flex flex-col items-center py-4 px-3 bg-gray-50/80 dark:bg-gray-700/60 hover:bg-gray-100 dark:hover:bg-gray-600/80 border border-gray-200/60 dark:border-gray-600/40 hover:border-gray-300 dark:hover:border-gray-500/60 rounded-xl transition-all duration-200 active:scale-[0.98] touch-manipulation focus-visible:ring-2 focus-visible:ring-blue-500/40 focus-visible:ring-offset-1 min-h-[76px] shadow-sm hover:shadow-md group"
                     aria-label={`${item.name} - ${item.description}`}
                     role="menuitem"
                   >
-                    <div className={`mb-1.5 ${item.color}`} aria-hidden="true">
+                    <div className={`mb-2 p-1.5 rounded-lg bg-white/80 dark:bg-gray-800/60 shadow-sm group-hover:shadow-md transition-shadow ${item.color}`} aria-hidden="true">
                       {React.cloneElement(item.icon as React.ReactElement, {
                         className: "h-5 w-5",
-                        strokeWidth: 1.5
+                        strokeWidth: 1.8
                       })}
                     </div>
-                    <span className="text-xs font-medium text-gray-900 dark:text-gray-100">{item.name}</span>
+                    <span className="text-xs font-medium text-gray-800 dark:text-gray-200">{item.name}</span>
                   </button>
                 </li>
               ))}
@@ -581,22 +578,22 @@ export default function HomeTab({ profile, onTabChange, onDocumentsSearch }: Hom
         error={error ? new Error(error) : null}
       />
 
-      {/* Site History Section */}
+      {/* Site History Section - Clean Design */}
       {siteHistory.length > 0 && (
-        <Card elevation="sm" className="theme-transition overflow-hidden border border-gray-200 dark:border-gray-700 shadow-md bg-gradient-to-br from-white to-gray-50/50 dark:from-gray-800 dark:to-gray-900/50">
+        <Card elevation="sm" className="theme-transition overflow-hidden border border-gray-200/60 dark:border-gray-600/40 shadow-sm bg-white dark:bg-gray-800/50">
           <button
             onClick={() => setSiteHistoryExpanded(!siteHistoryExpanded)}
-            className="w-full px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors theme-transition"
+            className="w-full px-4 py-3.5 hover:bg-gray-50/80 dark:hover:bg-gray-700/50 transition-all duration-200 theme-transition"
           >
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">현장 참여 이력</h3>
-                <span className="text-xs text-gray-500 dark:text-gray-400">{siteHistory.length}개 현장</span>
+                <span className="text-xs text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700/60 px-2 py-0.5 rounded-full">{siteHistory.length}개 현장</span>
               </div>
               {siteHistoryExpanded ? (
-                <ChevronUp className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
+                <ChevronUp className="h-4 w-4 text-gray-500 dark:text-gray-400" />
               ) : (
-                <ChevronDown className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
+                <ChevronDown className="h-4 w-4 text-gray-500 dark:text-gray-400" />
               )}
             </div>
           </button>
@@ -678,25 +675,25 @@ export default function HomeTab({ profile, onTabChange, onDocumentsSearch }: Hom
         </Card>
       )}
 
-      {/* Announcements - Toggle */}
-      <Card elevation="sm" className="theme-transition overflow-hidden border border-gray-200 dark:border-gray-700 shadow-md bg-gradient-to-br from-white to-gray-50/50 dark:from-gray-800 dark:to-gray-900/50">
+      {/* Announcements Section - Clean Design */}
+      <Card elevation="sm" className="theme-transition overflow-hidden border border-gray-200/60 dark:border-gray-600/40 shadow-sm bg-white dark:bg-gray-800/50">
         <button
           onClick={() => setAnnouncementExpanded(!announcementExpanded)}
-          className="w-full px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors theme-transition"
+          className="w-full px-4 py-3.5 hover:bg-gray-50/80 dark:hover:bg-gray-700/50 transition-all duration-200 theme-transition"
         >
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-3">
               <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">공지사항</h3>
               {announcements.filter(a => !a.isRead).length > 0 && (
-                <span className="px-1.5 py-0.5 bg-red-500 text-white text-[10px] rounded-full">
+                <span className="px-2 py-0.5 bg-red-500/90 text-white text-xs font-medium rounded-full shadow-sm">
                   {announcements.filter(a => !a.isRead).length}
                 </span>
               )}
             </div>
             {announcementExpanded ? (
-              <ChevronUp className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
+              <ChevronUp className="h-4 w-4 text-gray-500 dark:text-gray-400" />
             ) : (
-              <ChevronDown className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
+              <ChevronDown className="h-4 w-4 text-gray-500 dark:text-gray-400" />
             )}
           </div>
         </button>
@@ -731,21 +728,21 @@ export default function HomeTab({ profile, onTabChange, onDocumentsSearch }: Hom
         )}
       </Card>
 
-      {/* Recent Activities - High-Density List */}
-      <Card elevation="sm" className="theme-transition overflow-hidden border border-gray-200 dark:border-gray-700 shadow-md bg-gradient-to-br from-white to-gray-50/50 dark:from-gray-800 dark:to-gray-900/50">
+      {/* Recent Activities Section - Clean Design */}
+      <Card elevation="sm" className="theme-transition overflow-hidden border border-gray-200/60 dark:border-gray-600/40 shadow-sm bg-white dark:bg-gray-800/50">
         <button
           onClick={() => setRecentActivitiesExpanded(!recentActivitiesExpanded)}
-          className="w-full px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors theme-transition"
+          className="w-full px-4 py-3.5 hover:bg-gray-50/80 dark:hover:bg-gray-700/50 transition-all duration-200 theme-transition"
         >
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-3">
               <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">최근 활동</h3>
-              <span className="text-[11px] text-gray-500 dark:text-gray-400">실시간</span>
+              <span className="text-xs text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700/60 px-2 py-0.5 rounded-full">실시간</span>
             </div>
             {recentActivitiesExpanded ? (
-              <ChevronUp className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
+              <ChevronUp className="h-4 w-4 text-gray-500 dark:text-gray-400" />
             ) : (
-              <ChevronDown className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
+              <ChevronDown className="h-4 w-4 text-gray-500 dark:text-gray-400" />
             )}
           </div>
         </button>

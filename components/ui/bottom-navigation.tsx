@@ -131,9 +131,9 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
                 className={cn(
                   "relative flex flex-col items-center justify-center transition-all duration-200",
                   // UI Guidelines: 더 조밀한 터치 영역
-                  "min-h-[40px] min-w-[40px] flex-1",
+                  "min-h-[36px] min-w-[36px] flex-1",
                   // UI Guidelines: 더 작은 텍스트와 간격
-                  "text-[9px] font-medium gap-0.5",
+                  "text-[8px] font-medium gap-0",
                   // 터치 최적화
                   "active:scale-95 touch-manipulation",
                   // 포커스 표시 - UI Guidelines 색상
@@ -148,17 +148,17 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
               >
                 <div className="relative">
                   {React.cloneElement(item.icon as React.ReactElement, {
-                    className: "h-5 w-5", // UI Guidelines: 더 작은 아이콘 (20x20px)
+                    className: "h-4 w-4", // UI Guidelines: 더 작은 아이콘 (16x16px)
                     "aria-hidden": "true",
-                    strokeWidth: isActive ? 2.5 : 1.5 // 활성 상태에서만 더 두꺼운 선
+                    strokeWidth: isActive ? 2 : 1.2 // 활성 상태에서만 더 두꺼운 선
                   })}
                   {item.badge && (
-                    <div className="absolute -right-1.5 -top-1.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-red-500 text-[8px] font-bold text-white min-w-[14px]">
+                    <div className="absolute -right-1 -top-1 flex h-3 w-3 items-center justify-center rounded-full bg-red-500 text-[7px] font-bold text-white min-w-[12px]">
                       {typeof item.badge === 'number' && item.badge > 99 ? '99+' : item.badge}
                     </div>
                   )}
                 </div>
-                <span className="truncate max-w-[50px] leading-none">
+                <span className="truncate max-w-[44px] leading-none">
                   {item.label}
                 </span>
                 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Profile, CurrentUserSite, UserSiteHistory, SiteInfo } from '@/types'
 import { NotificationExtended } from '@/types/notifications'
 import { createClient } from '@/lib/supabase/client'
@@ -485,7 +485,7 @@ export default function HomeTab({ profile, onTabChange, onDocumentsSearch }: Hom
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       {/* Work Log Creation Button - Primary CTA with Premium Gradient */}
       {(profile.role === 'worker' || profile.role === 'site_manager') && (
         <Card 
@@ -539,7 +539,7 @@ export default function HomeTab({ profile, onTabChange, onDocumentsSearch }: Hom
         <CardContent className="pt-0 pb-3 px-3">
           {/* Dynamic Quick Menu Items */}
           <nav aria-label="빠른메뉴 항목">
-            <ul className="grid grid-cols-2 gap-2" role="list">
+            <ul className="grid grid-cols-2 gap-1.5" role="list">
               {getSelectedQuickMenuItems().map((item: any) => (
                 <li key={item.id} role="none">
                   <button 
@@ -555,14 +555,17 @@ export default function HomeTab({ profile, onTabChange, onDocumentsSearch }: Hom
                         router.push(item.path)
                       }
                     }}
-                    className="w-full flex flex-col items-center py-3 px-2 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-xl transition-all duration-200 active:scale-95 touch-manipulation focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 min-h-[72px] theme-transition"
+                    className="w-full flex flex-col items-center py-2.5 px-2 bg-transparent hover:bg-gray-50 dark:hover:bg-gray-800/30 rounded-lg transition-all duration-200 active:scale-95 touch-manipulation focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 min-h-[60px] theme-transition"
                     aria-label={`${item.name} - ${item.description}`}
                     role="menuitem"
                   >
-                    <div className={`mb-1.5 ${item.color}`} aria-hidden="true">
-                      {item.icon}
+                    <div className={`mb-1 ${item.color}`} aria-hidden="true">
+                      {React.cloneElement(item.icon as React.ReactElement, {
+                        className: "h-4 w-4",
+                        strokeWidth: 1.5
+                      })}
                     </div>
-                    <span className="text-xs font-medium text-gray-900 dark:text-gray-100">{item.name}</span>
+                    <span className="text-[11px] font-medium text-gray-900 dark:text-gray-100">{item.name}</span>
                   </button>
                 </li>
               ))}

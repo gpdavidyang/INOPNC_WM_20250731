@@ -178,11 +178,15 @@
 @layer base {
   body {
     @apply bg-white text-toss-gray-900;
+    /* Global font size reduction for better mobile UI */
+    font-size: 0.9rem;
   }
 }
 
 .dark body {
   @apply bg-toss-gray-900 text-toss-gray-100;
+  /* Global font size reduction for better mobile UI */
+  font-size: 0.9rem;
 }
 
 /* Ensure safe area for iOS devices */

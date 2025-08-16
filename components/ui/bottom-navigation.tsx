@@ -88,11 +88,11 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
       <nav
         ref={ref}
         className={cn(
-          "fixed bottom-0 left-0 right-0 z-50 border-t bg-white/95 dark:bg-gray-900/95 md:hidden",
+          "fixed bottom-0 left-0 right-0 z-50 border-t bg-white dark:bg-gray-900 md:hidden",
           // UI Guidelines 준수: 더 얇은 높이 (44px)
           "h-[44px] supports-[height:env(safe-area-inset-bottom)]:h-[48px]",
-          "border-gray-200/50 dark:border-gray-700/50",
-          "backdrop-blur-xl backdrop-saturate-180",
+          "border-gray-200 dark:border-gray-700",
+          "shadow-lg",
           className
         )}
         {...props}
@@ -171,7 +171,7 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
           })}
         </div>
         
-        {/* iOS Safe Area */}
+        {/* iOS Safe Area - 불투명 배경 */}
         <div className="h-safe-area-inset-bottom bg-white dark:bg-gray-900" />
       </nav>
     )

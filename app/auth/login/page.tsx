@@ -21,15 +21,22 @@ export default function LoginPage() {
     const email = formData.get('email') as string
     const password = formData.get('password') as string
     
+    setError(null)
+    
     startTransition(async () => {
-      const result = await signIn(email, password)
-      if (result?.error) {
-        setError(result.error === 'Invalid login credentials' 
-          ? '이메일 또는 비밀번호가 올바르지 않습니다.' 
-          : result.error)
-      } else if (result?.success) {
-        // Use window.location for a full page refresh to ensure auth state is updated
-        window.location.href = redirectTo
+      try {
+        const result = await signIn(email, password)
+        if (result?.error) {
+          setError(result.error === 'Invalid login credentials' 
+            ? '이메일 또는 비밀번호가 올바르지 않습니다.' 
+            : result.error)
+        } else if (result?.success) {
+          // Use window.location for a full page refresh to ensure auth state is updated
+          window.location.href = redirectTo
+        }
+      } catch (error) {
+        console.error('Login error:', error)
+        setError('로그인 중 오류가 발생했습니다. 다시 시도해주세요.')
       }
     })
   }
@@ -58,7 +65,7 @@ export default function LoginPage() {
         </div>
 
         {/* 로그인 폼 */}
-        <div className="bg-white/95 backdrop-blur-xl rounded-[2rem] shadow-[0_20px_40px_rgba(0,0,0,0.08)] border border-white/40 p-8 sm:p-12 ring-1 ring-gray-200/10">
+        <div className="bg-white/98 backdrop-blur-xl rounded-[2rem] shadow-[0_24px_48px_rgba(0,0,0,0.12),_0_8px_16px_rgba(0,0,0,0.04)] border border-white/60 p-8 sm:p-12 ring-1 ring-gray-100/30 before:absolute before:inset-0 before:rounded-[2rem] before:bg-gradient-to-br before:from-white/80 before:to-white/40 before:opacity-60 before:-z-10 relative">
           <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6 sm:mb-8 text-center tracking-tight">로그인</h2>
           
           <form action={handleLogin} className="space-y-3 sm:space-y-6">
@@ -114,7 +121,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="relative group/btn p-2.5 rounded-xl text-gray-500 hover:text-blue-600 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:bg-blue-50 transition-all duration-200 active:scale-95"
+                    className="relative group/btn p-2.5 rounded-xl text-gray-500 hover:text-blue-600 hover:bg-blue-50/80 focus:outline-none focus:ring-1 focus:ring-blue-400/30 focus:bg-blue-50/80 transition-all duration-300 active:scale-95 backdrop-blur-sm"
                     tabIndex={-1}
                     aria-label={showPassword ? "비밀번호 숨기기" : "비밀번호 보기"}
                   >

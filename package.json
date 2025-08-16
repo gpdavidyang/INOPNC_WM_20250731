@@ -38,6 +38,8 @@
     "snapshot:save": "./scripts/save-code-snapshot.sh",
     "protect:check": "npm run test:critical",
     "protect": "./scripts/protect-files.sh",
+    "check-env": "node scripts/check-env.js",
+    "deploy:prod": "./scripts/deploy-production.sh",
     "unprotect": "./scripts/unprotect-files.sh",
     "postinstall": "npm run protect",
     "prepare": "husky",

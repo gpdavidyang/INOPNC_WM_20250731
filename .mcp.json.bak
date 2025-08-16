@@ -1,5 +1,19 @@
 {
 	"mcpServers": {
+		"task-master-ai": {
+			"_comment": "task-master-ai server enabled for minimal workflow management only",
+			"_note": "Used only for: list, next, show, set-status. Avoid: expand, analyze-complexity, research flags",
+			"type": "stdio",
+			"command": "npx",
+			"args": [
+				"-y",
+				"--package=task-master-ai",
+				"task-master-ai"
+			],
+			"env": {
+				"ANTHROPIC_API_KEY": "YOUR_ANTHROPIC_API_KEY_HERE"
+			}
+		},
 		"supabase": {
 			"command": "npx",
 			"args": ["@modelcontextprotocol/server-supabase"],

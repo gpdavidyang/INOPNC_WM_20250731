@@ -3,6 +3,18 @@ import { Database } from '@/types/database'
 import * as Sentry from '@sentry/nextjs'
 import { performanceTracker } from '@/lib/monitoring/performance-metrics'
 
+// Direct access to environment variables for client-side
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+// Client-side validation
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  console.error('❌ Missing Supabase environment variables on client-side:', {
+    SUPABASE_URL: !!SUPABASE_URL,
+    SUPABASE_ANON_KEY: !!SUPABASE_ANON_KEY
+  })
+}
+
 // Query cache for optimizing repeated queries
 const queryCache = new Map<string, { data: any; timestamp: number; ttl: number }>()
 const CACHE_TTL = 5 * 60 * 1000 // 5 minutes default TTL
@@ -30,8 +42,8 @@ class EnhancedSupabaseClient {
   constructor(config: ClientConfig = {}) {
     this.config = { ...defaultConfig, ...config }
     this.client = createBrowserClient<Database>(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      SUPABASE_URL!,
+      SUPABASE_ANON_KEY!
     )
   }
 
@@ -347,7 +359,7 @@ export function createClient(config?: ClientConfig) {
 // Export for direct access to raw client if needed
 export function createRawClient() {
   return createBrowserClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    SUPABASE_URL!,
+    SUPABASE_ANON_KEY!
   )
 }

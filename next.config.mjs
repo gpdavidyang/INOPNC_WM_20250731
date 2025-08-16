@@ -93,11 +93,7 @@ const nextConfig = {
     optimizeCss: false,
     
     // 추가 최적화 비활성화 (개발환경과 동일)
-    turbo: false,
     serverMinification: false,
-    
-    // 폰트 디스플레이 최적화도 비활성화
-    fontLoaders: [],
   },
   
   // 개발 서버 최적화
@@ -178,25 +174,24 @@ const nextConfig = {
   // bundleAnalyzer: process.env.ANALYZE === 'true',
 }
 
-// Wrap the config with Sentry and Bundle Analyzer
-export default bundleAnalyzer(
-  withSentryConfig(
-    nextConfig,
-    {
-      // For all available options, see:
-      // https://github.com/getsentry/sentry-webpack-plugin#options
-      silent: true,
-      org: process.env.SENTRY_ORG,
-      project: process.env.SENTRY_PROJECT,
-    },
-    {
-      // For all available options, see:
-      // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
-      widenClientFileUpload: true,
-      transpileClientSDK: true,
-      hideSourceMaps: true,
-      disableLogger: true,
-      automaticVercelMonitors: true,
-    }
-  )
-)
+// Wrap the config with Bundle Analyzer only (Sentry 비활성화)
+export default bundleAnalyzer(nextConfig)
+
+// Sentry 래퍼 완전 제거하여 추가 최적화 방지
+// export default bundleAnalyzer(
+//   withSentryConfig(
+//     nextConfig,
+//     {
+//       silent: true,
+//       org: process.env.SENTRY_ORG,
+//       project: process.env.SENTRY_PROJECT,
+//     },
+//     {
+//       widenClientFileUpload: true,
+//       transpileClientSDK: true,
+//       hideSourceMaps: true,
+//       disableLogger: true,
+//       automaticVercelMonitors: true,
+//     }
+//   )
+// )

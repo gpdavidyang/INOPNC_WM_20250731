@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+// import { Inter } from "next/font/google"; // Google Fonts 비활성화
 import "./globals.css";
-import "@/styles/sunlight-mode.css";
-import "@/styles/font-optimization.css";
+// import "@/styles/sunlight-mode.css"; // Sunlight Mode CSS 비활성화
+// import "@/styles/font-optimization.css"; // 폰트 최적화 CSS 비활성화
 import { AuthProvider } from "@/providers/auth-provider";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { FontSizeProvider } from "@/contexts/FontSizeContext";
@@ -21,7 +21,7 @@ import { DeepLinkProvider } from "@/components/providers/deep-link-provider";
 import { PerformanceMonitoringProvider } from "@/components/providers/performance-monitoring-provider";
 import { ThemeProvider } from "next-themes";
 
-const inter = Inter({ subsets: ["latin"] });
+// const inter = Inter({ subsets: ["latin"] }); // Google Fonts 비활성화
 
 export const metadata: Metadata = {
   title: "INOPNC Work Management",
@@ -73,7 +73,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko" suppressHydrationWarning>
-      <body className={inter.className}>
+      <body className="font-sans">
         <ErrorBoundary>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
             <FontSizeProvider>

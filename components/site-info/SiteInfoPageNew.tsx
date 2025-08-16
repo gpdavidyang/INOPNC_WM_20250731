@@ -27,7 +27,7 @@ import { CurrentUserSite, UserSiteHistory, Profile } from '@/types'
 import { selectUserSite } from '@/app/actions/site-info'
 import { MaterialManagementSimplified } from '@/components/materials/material-management-simplified'
 import { getMaterials, getMaterialCategories, getMaterialInventory } from '@/app/actions/materials'
-import { PageContainer, LoadingState, EmptyState } from '@/components/dashboard/page-layout'
+import { LoadingState, EmptyState } from '@/components/dashboard/page-layout'
 
 interface SiteInfoPageNewProps {
   initialCurrentSite: CurrentUserSite | null
@@ -202,7 +202,7 @@ export default function SiteInfoPageNew({
 
 
   return (
-    <PageContainer className="px-3 sm:px-4 lg:px-6">
+    <div className="space-y-3">
       
       {/* Tabs - Compact Layout - Moved to top with standard 12px spacing */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-3">
@@ -574,6 +574,6 @@ export default function SiteInfoPageNew({
           )}
         </TabsContent>
       </Tabs>
-    </PageContainer>
+    </div>
   )
 }

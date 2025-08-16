@@ -20,7 +20,7 @@ interface TodaySiteInfoProps {
 
 export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInfoProps) {
   const [copiedField, setCopiedField] = useState<string | null>(null)
-  const [isExpanded, setIsExpanded] = useState(true)
+  const [isExpanded, setIsExpanded] = useState(false)
   const [showBlueprintModal, setShowBlueprintModal] = useState(false)
   const [showPTWModal, setShowPTWModal] = useState(false)
   const [pdfLoadError, setPdfLoadError] = useState(false)
@@ -146,16 +146,32 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
   return (
     <Card 
       elevation="sm" 
-      className="theme-transition"
+      className="theme-transition overflow-hidden border border-gray-200/60 dark:border-gray-600/40 shadow-sm bg-white dark:bg-gray-800/50"
       aria-labelledby="site-info-section"
     >
-      <div className="px-4 py-4">
-        <div className="flex items-center justify-between mb-4">
-          <h2 id="site-info-section" className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-            오늘의 현장 정보 <span className="text-sm font-normal text-gray-600 dark:text-gray-400 ml-1">{siteInfo.name}</span>
-          </h2>
-          <ChevronUp className="h-4 w-4 text-gray-400" />
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="w-full px-4 py-3.5 hover:bg-gray-50/80 dark:hover:bg-gray-700/50 transition-all duration-200 theme-transition"
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <h2 id="site-info-section" className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+              오늘의 현장 정보
+            </h2>
+            <span className="text-xs text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700/60 px-2 py-0.5 rounded-full">
+              {siteInfo.name}
+            </span>
+          </div>
+          {isExpanded ? (
+            <ChevronUp className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+          ) : (
+            <ChevronDown className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+          )}
         </div>
+      </button>
+      
+      {isExpanded && (
+        <div className="px-4 pb-4 animate-in slide-in-from-top-1 duration-200">{/* 내용이 펼쳐질 때만 보이도록 */}
         
         <div className="space-y-3">
           {/* Site Address */}
@@ -307,7 +323,8 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
             </button>
           </div>
         </div>
-      </div>
+        </div>
+      )}
 
       {/* Blueprint Modal - Mobile Optimized */}
       {showBlueprintModal && (

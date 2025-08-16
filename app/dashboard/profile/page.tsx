@@ -45,7 +45,7 @@ export default async function ProfilePage() {
     >
       <div className="h-full bg-gray-50 dark:bg-gray-900">
         {/* 모바일 최적화된 컨테이너 - UI Guidelines 적용 */}
-        <div className="p-3 max-w-2xl mx-auto">
+        <div className="max-w-2xl mx-auto">
           {/* 페이지 헤더 - 고밀도 정보 레이아웃 */}
           <div className="mb-4">
             <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-1 text-construction-xl">

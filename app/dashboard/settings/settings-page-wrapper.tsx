@@ -16,7 +16,7 @@ export function SettingsPageWrapper({ user, profile }: SettingsPageWrapperProps)
   const { touchMode } = useTouchMode()
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div>
       <h1 className={`${getFullTypographyClass('heading', '2xl', isLargeFont)} font-bold text-gray-900 mb-6`}>
         계정 설정
       </h1>

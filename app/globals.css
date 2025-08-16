@@ -178,11 +178,15 @@
 @layer base {
   body {
     @apply bg-white text-toss-gray-900;
+    font-size: 1.125rem; /* 18px - 기본 크기보다 더 크게 */
+    line-height: 1.6; /* 더 나은 가독성을 위한 줄 간격 */
   }
 }
 
 .dark body {
   @apply bg-toss-gray-900 text-toss-gray-100;
+  font-size: 1.125rem; /* 18px - 기본 크기보다 더 크게 */
+  line-height: 1.6; /* 더 나은 가독성을 위한 줄 간격 */
 }
 
 /* Ensure safe area for iOS devices */

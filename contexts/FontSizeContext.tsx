@@ -15,13 +15,16 @@ interface FontSizeProviderProps {
 }
 
 export function FontSizeProvider({ children }: FontSizeProviderProps) {
-  const [isLargeFont, setIsLargeFontState] = useState(false)
+  const [isLargeFont, setIsLargeFontState] = useState(true)
 
   // Load font size preference from localStorage on mount
   useEffect(() => {
     try {
       const saved = localStorage.getItem('inopnc-font-size')
-      if (saved === 'large') {
+      if (saved === 'normal') {
+        setIsLargeFontState(false)
+      } else {
+        // 기본값을 큰 폰트로 설정 (saved가 null이거나 'large'인 경우)
         setIsLargeFontState(true)
       }
     } catch (error) {

@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation'
 import { DailyReportListMobile } from '@/components/daily-reports/DailyReportListMobile'
 import { DailyReportListEnhanced } from '@/components/daily-reports/DailyReportListEnhanced'
 import { Skeleton } from '@/components/ui/skeleton'
-import { PageContainer, LoadingState } from '@/components/dashboard/page-layout'
+import { LoadingState } from '@/components/dashboard/page-layout'
 import { ReportsPageHeader } from '@/components/ui/page-header'
 import Sidebar from '@/components/dashboard/sidebar'
 import Header from '@/components/dashboard/header'
@@ -126,12 +126,10 @@ export default async function DailyReportsPage() {
                 title="작업일지"
                 subtitle="일일 작업 보고서 및 현장 상황을 관리합니다"
               />
-              <PageContainer>
-                <DailyReportListEnhanced 
-                  currentUser={profile as any}
-                  sites={sites || []}
-                />
-              </PageContainer>
+              <DailyReportListEnhanced 
+                currentUser={profile as any}
+                sites={sites || []}
+              />
             </div>
           </div>
         </main>

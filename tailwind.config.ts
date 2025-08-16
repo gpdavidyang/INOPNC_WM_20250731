@@ -118,17 +118,17 @@ const config: Config = {
         ]
       },
       fontSize: {
-        // INOPNC 디자인 시스템 타이포그래피 - 기본 크기 복원
-        'xs': ['0.75rem', { lineHeight: '1rem' }],        // 12px (기본)
-        'sm': ['0.875rem', { lineHeight: '1.25rem' }],    // 14px (기본)
-        'base': ['1rem', { lineHeight: '1.5rem' }],       // 16px (기본)
-        'lg': ['1.125rem', { lineHeight: '1.75rem' }],    // 18px (기본)
-        'xl': ['1.25rem', { lineHeight: '1.75rem' }],     // 20px (기본)
-        '2xl': ['1.5rem', { lineHeight: '2rem' }],        // 24px (기본)
-        '3xl': ['1.875rem', { lineHeight: '2.25rem' }],   // 30px (기본)
-        '4xl': ['2.25rem', { lineHeight: '2.5rem' }],     // 36px (기본)
-        '5xl': ['3rem', { lineHeight: '1' }],             // 48px (기본)
-        '6xl': ['3.75rem', { lineHeight: '1' }]           // 60px (기본)
+        // INOPNC 디자인 시스템 타이포그래피 - 더 큰 폰트 크기로 조정
+        'xs': ['0.875rem', { lineHeight: '1.25rem' }],   // 14px (기존 13px에서 증가)
+        'sm': ['1rem', { lineHeight: '1.5rem' }],        // 16px (기존 15px에서 증가)
+        'base': ['1.125rem', { lineHeight: '1.75rem' }], // 18px (기존 17px에서 증가)
+        'lg': ['1.25rem', { lineHeight: '2rem' }],       // 20px (기존 19px에서 증가)
+        'xl': ['1.375rem', { lineHeight: '2rem' }],      // 22px (기존 21px에서 증가)
+        '2xl': ['1.625rem', { lineHeight: '2.25rem' }],  // 26px (기존 25px에서 증가)
+        '3xl': ['2rem', { lineHeight: '2.5rem' }],       // 32px (기존 31px에서 증가)
+        '4xl': ['2.375rem', { lineHeight: '2.75rem' }],  // 38px (기존 37px에서 증가)
+        '5xl': ['3.25rem', { lineHeight: '1' }],         // 52px (기존 50px에서 증가)
+        '6xl': ['4rem', { lineHeight: '1' }]             // 64px (기존 62px에서 증가)
       },
       spacing: {
         // INOPNC 디자인 시스템 스페이싱 확장

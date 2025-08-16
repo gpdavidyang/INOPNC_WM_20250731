@@ -63,7 +63,7 @@ export function DocumentsPageWithTabs({ profile, searchParams }: DocumentsPageWi
   const currentTab = tabs.find(tab => tab.id === activeTab)
 
   return (
-    <div className="h-full flex flex-col space-y-px px-px sm:px-6 lg:px-8">
+    <div className="h-full flex flex-col space-y-px">
       {/* Compact Page Header - Mobile Optimized */}
       <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border">
         <div>

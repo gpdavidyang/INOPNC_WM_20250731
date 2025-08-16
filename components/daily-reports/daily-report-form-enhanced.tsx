@@ -508,6 +508,9 @@ export default function DailyReportFormEnhanced({
       if (workContents.length === 0) {
         throw new Error('작업 내용을 입력해주세요')
       }
+      if (workerEntries.length === 0) {
+        throw new Error('작업자를 입력해주세요')
+      }
 
       // Create daily report with actual DB schema
       const reportResult = await createDailyReport({
@@ -605,7 +608,7 @@ export default function DailyReportFormEnhanced({
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-3 sm:px-4 lg:px-6">
+    <div className="max-w-2xl mx-auto">
       {/* Progress Bar and Toggle Button */}
       <div className="mb-3">
         <div className="flex items-center justify-between mb-3">
@@ -838,6 +841,7 @@ export default function DailyReportFormEnhanced({
             badge={workerEntries.length > 0 && (
               <span className="px-2 py-0.5 bg-green-500/20 text-green-400 rounded-full text-xs font-medium">{workerEntries.length}명</span>
             )}
+            required
           >
             <div className="pt-2 space-y-2">
               <button
@@ -1271,7 +1275,7 @@ export default function DailyReportFormEnhanced({
           <button
             type="button"
             onClick={() => handleSubmit(true)}
-            disabled={loading || !formData.site_id || !formData.member_name || !formData.process_type || workContents.length === 0}
+            disabled={loading || !formData.site_id || !formData.member_name || !formData.process_type || workContents.length === 0 || workerEntries.length === 0}
             className="flex-1 h-11 bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 rounded-lg flex items-center justify-center gap-2 text-sm font-medium text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (

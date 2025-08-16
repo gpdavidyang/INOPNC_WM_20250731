@@ -89,8 +89,8 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
         ref={ref}
         className={cn(
           "fixed bottom-0 left-0 right-0 z-50 border-t bg-white dark:bg-gray-900 md:hidden",
-          // UI Guidelines 준수: 더 얇은 높이 (44px)
-          "h-[44px] supports-[height:env(safe-area-inset-bottom)]:h-[48px]",
+          // UI Guidelines 준수: 적당한 높이 (56px)
+          "h-[56px] supports-[height:env(safe-area-inset-bottom)]:h-[60px]",
           "border-gray-200 dark:border-gray-700",
           "shadow-lg",
           className
@@ -130,10 +130,10 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
                 }}
                 className={cn(
                   "relative flex flex-col items-center justify-center transition-all duration-200",
-                  // UI Guidelines: 더 조밀한 터치 영역
-                  "min-h-[36px] min-w-[36px] flex-1",
-                  // UI Guidelines: 더 작은 텍스트와 간격
-                  "text-[8px] font-medium gap-0",
+                  // UI Guidelines: 더 넓은 터치 영역
+                  "min-h-[44px] min-w-[44px] flex-1",
+                  // UI Guidelines: 더 큰 텍스트와 간격
+                  "text-[10px] font-medium gap-1",
                   // 터치 최적화
                   "active:scale-95 touch-manipulation",
                   // 포커스 표시 - UI Guidelines 색상
@@ -148,7 +148,7 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
               >
                 <div className="relative">
                   {React.cloneElement(item.icon as React.ReactElement, {
-                    className: "h-4 w-4", // UI Guidelines: 더 작은 아이콘 (16x16px)
+                    className: "h-5 w-5", // UI Guidelines: 더 큰 아이콘 (20x20px)
                     "aria-hidden": "true",
                     strokeWidth: isActive ? 2 : 1.2 // 활성 상태에서만 더 두꺼운 선
                   })}
@@ -158,7 +158,7 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
                     </div>
                   )}
                 </div>
-                <span className="truncate max-w-[44px] leading-none">
+                <span className="truncate max-w-[48px] leading-tight">
                   {item.label}
                 </span>
                 

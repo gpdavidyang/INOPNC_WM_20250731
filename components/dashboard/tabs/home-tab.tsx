@@ -520,26 +520,26 @@ export default function HomeTab({ profile, onTabChange, onDocumentsSearch }: Hom
         className="theme-transition border border-gray-200/60 dark:border-gray-600/40 shadow-sm bg-white dark:bg-gray-800/50"
         aria-labelledby="quick-menu-section"
       >
-        <CardHeader className="pb-3 pt-4 px-4 border-b border-gray-100/80 dark:border-gray-700/40">
+        <CardHeader className="pb-2 pt-3 px-3 border-b border-gray-100/80 dark:border-gray-700/40">
           <div className="flex items-center justify-between">
-            <CardTitle id="quick-menu-section" className="text-base font-semibold text-gray-900 dark:text-gray-100">
+            <CardTitle id="quick-menu-section" className="text-sm font-semibold text-gray-900 dark:text-gray-100">
               빠른메뉴
             </CardTitle>
             <button
               onClick={() => setQuickMenuSettingsOpen(true)}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+              className="flex items-center gap-1 px-2 py-1 text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-md transition-all duration-200 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
               aria-label="빠른메뉴 설정"
             >
-              <Settings className="h-3.5 w-3.5" aria-hidden="true" />
+              <Settings className="h-3 w-3" aria-hidden="true" />
               <span>설정</span>
             </button>
           </div>
         </CardHeader>
         
-        <CardContent className="pt-4 pb-4 px-4">
+        <CardContent className="pt-3 pb-3 px-3">
           {/* Dynamic Quick Menu Items - Enhanced */}
           <nav aria-label="빠른메뉴 항목">
-            <ul className="grid grid-cols-2 gap-3" role="list">
+            <ul className="grid grid-cols-2 gap-2" role="list">
               {getSelectedQuickMenuItems().map((item: any) => (
                 <li key={item.id} role="none">
                   <button 
@@ -552,17 +552,17 @@ export default function HomeTab({ profile, onTabChange, onDocumentsSearch }: Hom
                         router.push(item.path)
                       }
                     }}
-                    className="w-full flex flex-col items-center py-4 px-3 bg-gray-50/80 dark:bg-gray-700/60 hover:bg-gray-100 dark:hover:bg-gray-600/80 border border-gray-200/60 dark:border-gray-600/40 hover:border-gray-300 dark:hover:border-gray-500/60 rounded-xl transition-all duration-200 active:scale-[0.98] touch-manipulation focus-visible:ring-2 focus-visible:ring-blue-500/40 focus-visible:ring-offset-1 min-h-[76px] shadow-sm hover:shadow-md group"
+                    className="w-full flex flex-col items-center py-4 px-3 bg-gray-50/80 dark:bg-gray-700/60 hover:bg-gray-100 dark:hover:bg-gray-600/80 border border-gray-200/60 dark:border-gray-600/40 hover:border-gray-300 dark:hover:border-gray-500/60 rounded-lg transition-all duration-200 active:scale-[0.98] touch-manipulation focus-visible:ring-2 focus-visible:ring-blue-500/40 focus-visible:ring-offset-1 min-h-[72px] shadow-sm hover:shadow-md group"
                     aria-label={`${item.name} - ${item.description}`}
                     role="menuitem"
                   >
-                    <div className={`mb-2 p-1.5 rounded-lg bg-white/80 dark:bg-gray-800/60 shadow-sm group-hover:shadow-md transition-shadow ${item.color}`} aria-hidden="true">
+                    <div className={`mb-2 p-2 rounded-lg bg-white/80 dark:bg-gray-800/60 shadow-sm group-hover:shadow-md transition-shadow ${item.color}`} aria-hidden="true">
                       {React.cloneElement(item.icon as React.ReactElement, {
-                        className: "h-5 w-5",
+                        className: "h-6 w-6",
                         strokeWidth: 1.8
                       })}
                     </div>
-                    <span className="text-xs font-medium text-gray-800 dark:text-gray-200">{item.name}</span>
+                    <span className="text-sm font-medium text-gray-800 dark:text-gray-200">{item.name}</span>
                   </button>
                 </li>
               ))}

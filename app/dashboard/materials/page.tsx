@@ -1,7 +1,7 @@
 import { Suspense } from 'react'
 import { getMaterials, getMaterialCategories, getMaterialInventory } from '@/app/actions/materials'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
-import { PageLayout, PageContainer } from '@/components/dashboard/page-layout'
+import { PageLayout } from '@/components/dashboard/page-layout'
 import { MaterialManagement } from '@/components/materials/material-management'
 import { getProfile } from '@/app/actions/profile'
 import { getCurrentUserSite } from '@/app/actions/site-info'
@@ -34,17 +34,15 @@ export default async function MaterialsPage() {
       title="자재 관리"
       description="건설 자재의 재고 관리 및 요청 처리를 관리합니다"
     >
-      <PageContainer>
-        <Suspense fallback={<LoadingSpinner />}>
-          <MaterialManagement 
-            materials={materials}
-            categories={categories}
-            initialInventory={inventory}
-            currentUser={profileResult.data}
-            currentSite={siteResult.success ? siteResult.data : null}
-          />
-        </Suspense>
-      </PageContainer>
+      <Suspense fallback={<LoadingSpinner />}>
+        <MaterialManagement 
+          materials={materials}
+          categories={categories}
+          initialInventory={inventory}
+          currentUser={profileResult.data}
+          currentSite={siteResult.success ? siteResult.data : null}
+        />
+      </Suspense>
     </PageLayout>
   )
 }

@@ -5,11 +5,6 @@
   "installCommand": "npm install",
   "devCommand": "npm run dev",
   "regions": ["icn1"],
-  "functions": {
-    "app/api/**": {
-      "maxDuration": 30
-    }
-  },
   "headers": [
     {
       "source": "/manifest.json",
@@ -71,17 +66,11 @@
     "NEXT_DISABLE_SWC_MINIFIER": "1",
     "DISABLE_COMPRESSION": "1"
   },
-  "builds": [
-    {
-      "src": "next.config.mjs",
-      "use": "@vercel/next",
-      "config": {
-        "minifyJs": false,
-        "minifyCss": false,
-        "compression": false
-      }
+  "functions": {
+    "app/api/**": {
+      "maxDuration": 30
     }
-  ],
+  },
   "images": {
     "formats": ["image/avif", "image/webp"],
     "minimumCacheTTL": 86400,

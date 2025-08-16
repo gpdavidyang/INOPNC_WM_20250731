@@ -26,6 +26,10 @@ const nextConfig = {
   // 프로덕션 빌드 품질 개선을 위한 추가 설정
   productionBrowserSourceMaps: process.env.NODE_ENV === 'production' && process.env.ENABLE_SOURCE_MAPS === 'true',
   
+  // 프로덕션에서 모든 최적화 비활성화 (품질 우선)
+  compress: false,
+  poweredByHeader: false,
+  
   // Webpack 설정으로 압축 최적화 제어
   webpack: (config, { buildId, dev, isServer, defaultLoaders, nextRuntime, webpack }) => {
     // 프로덕션에서 CSS/JS 압축으로 인한 품질 저하 방지
@@ -129,6 +133,10 @@ const nextConfig = {
     
     // CSS 최적화 비활성화 (품질 보존)
     optimizeCss: false,
+    
+    // 추가 최적화 비활성화
+    turbo: false,
+    serverMinification: false,
   },
   
   // 개발 서버 최적화

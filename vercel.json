@@ -67,8 +67,21 @@
   ],
   "env": {
     "NODE_ENV": "production",
-    "NEXT_TELEMETRY_DISABLED": "1"
+    "NEXT_TELEMETRY_DISABLED": "1",
+    "NEXT_DISABLE_SWC_MINIFIER": "1",
+    "DISABLE_COMPRESSION": "1"
   },
+  "builds": [
+    {
+      "src": "next.config.mjs",
+      "use": "@vercel/next",
+      "config": {
+        "minifyJs": false,
+        "minifyCss": false,
+        "compression": false
+      }
+    }
+  ],
   "images": {
     "formats": ["image/avif", "image/webp"],
     "minimumCacheTTL": 86400,

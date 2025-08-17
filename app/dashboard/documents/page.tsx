@@ -8,8 +8,6 @@ interface DocumentsPageProps {
 }
 
 export default async function DocumentsPage({ searchParams }: DocumentsPageProps) {
-  console.log('DocumentsPage - searchParams:', searchParams)
-  
   const supabase = createClient()
   
   // Check authentication
@@ -40,7 +38,6 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
     <DashboardLayout 
       user={user} 
       profile={profile as any}
-      initialActiveTab="documents"
     >
       <DocumentsPageWithTabs profile={profile} searchParams={searchParams} />
     </DashboardLayout>

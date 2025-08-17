@@ -20,6 +20,7 @@ import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { NavBar } from "@/components/ui/navbar"
 import { BottomNavigation } from "@/components/ui/bottom-navigation"
+import { NavigationController } from "@/components/navigation/navigation-controller"
 import { Footer, SimpleFooter } from "@/components/ui/footer"
 import { Calendar, CheckCircle, AlertCircle, XCircle, Home, Settings, User, Menu, FileText, Users, Bell, BarChart, FileImage, FolderOpen } from "lucide-react"
 import { useState } from "react"
@@ -125,7 +126,8 @@ export default function ComponentsPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-toss-gray-50 dark:bg-toss-gray-900">
+    <NavigationController>
+      <div className="min-h-screen bg-toss-gray-50 dark:bg-toss-gray-900">
       {/* Navigation Section Demo */}
       <section className="space-y-8 pb-12 bg-white dark:bg-toss-gray-900">
         <div className="space-y-4">
@@ -632,6 +634,7 @@ export default function ComponentsPage() {
         <SimpleFooter />
       </div>
     </section>
-    </div>
+      </div>
+    </NavigationController>
   )
 }

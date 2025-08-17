@@ -4,6 +4,7 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
+import { useNavigation } from '@/components/navigation/navigation-controller'
 
 export interface BottomNavItem {
   label: string
@@ -27,16 +28,15 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
   ({ className, items, currentUser, onTabChange, activeTab, ...props }, ref) => {
     const pathname = usePathname()
     const router = useRouter()
+    const { navigate, isNavigating } = useNavigation()
 
-    const handleNavigation = (item: BottomNavItem, e: React.MouseEvent) => {
+    const handleNavigation = React.useCallback((item: BottomNavItem, e: React.MouseEvent) => {
       e.preventDefault()
       
-      console.log('BottomNavigation: Click detected', {
-        label: item.label,
-        href: item.href,
-        specialAction: item.specialAction,
-        currentPathname: pathname
-      })
+      // 이미 네비게이션 중이면 무시
+      if (isNavigating) {
+        return
+      }
       
       if (item.specialAction === 'filter-blueprint') {
         // 공도면 특수 동작: 공유문서함으로 이동하며 자동 필터링
@@ -63,7 +63,7 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
         return
       }
       
-      // 일반 네비게이션 - 탭 시스템 또는 라우터 사용
+      // 일반 네비게이션 - 성능 최적화된 라우팅
       if (item.href.startsWith('#')) {
         // 해시 기반 탭은 onTabChange 호출
         if (onTabChange) {
@@ -71,28 +71,22 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
           onTabChange(tabId)
         }
       } else {
-        // 직접 경로는 항상 라우터 사용
-        console.log('BottomNavigation: Calling router.push with', item.href)
-        router.push(item.href)
-        
-        // onTabChange도 호출하여 activeTab 상태 동기화
-        if (onTabChange) {
-          // Extract tab name from href for proper state management
-          const tabName = item.href.split('/').pop() || item.href.replace('/', '')
-          onTabChange(tabName)
+        // 직접 경로는 통합 네비게이션 컨트롤러 사용
+        if (pathname !== item.href) {
+          navigate(item.href)
         }
       }
-    }
+    }, [isNavigating, navigate, pathname, currentUser, onTabChange, router])
 
     return (
       <nav
         ref={ref}
         className={cn(
           "fixed bottom-0 left-0 right-0 z-50 border-t bg-white dark:bg-gray-900 md:hidden",
-          // UI Guidelines 준수: 적당한 높이 (56px)
-          "h-[56px] supports-[height:env(safe-area-inset-bottom)]:h-[60px]",
+          // Enhanced for construction site usage
+          "h-[64px] supports-[height:env(safe-area-inset-bottom)]:h-[68px]",
           "border-gray-200 dark:border-gray-700",
-          "shadow-lg",
+          "shadow-xl backdrop-blur-sm bg-white/95 dark:bg-gray-900/95",
           className
         )}
         {...props}
@@ -101,12 +95,6 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
       >
         <div className="flex h-full items-center justify-around px-1">
           {items.map((item, index) => {
-            console.log('BottomNavigation: Rendering item', {
-              index,
-              label: item.label,
-              href: item.href,
-              hasOnClick: typeof handleNavigation === 'function'
-            })
             
             // 활성 상태 판단 로직
             let isActive = false
@@ -124,16 +112,13 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
             return (
               <button
                 key={index}
-                onClick={(e) => {
-                  console.log('BottomNavigation: Button clicked!', item.label)
-                  handleNavigation(item, e)
-                }}
+                onClick={(e) => handleNavigation(item, e)}
                 className={cn(
                   "relative flex flex-col items-center justify-center transition-all duration-200",
-                  // UI Guidelines: 더 넓은 터치 영역
-                  "min-h-[44px] min-w-[44px] flex-1",
-                  // UI Guidelines: 더 큰 텍스트와 간격
-                  "text-[10px] font-medium gap-1",
+                  // Enhanced touch targets for construction site usage
+                  "min-h-[60px] min-w-[60px] flex-1",
+                  // Improved text size for outdoor visibility
+                  "text-[11px] font-semibold gap-1",
                   // 터치 최적화
                   "active:scale-95 touch-manipulation",
                   // 포커스 표시 - UI Guidelines 색상
@@ -148,9 +133,9 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
               >
                 <div className="relative">
                   {React.cloneElement(item.icon as React.ReactElement, {
-                    className: "h-5 w-5", // UI Guidelines: 더 큰 아이콘 (20x20px)
+                    className: "h-6 w-6", // Larger icons for better visibility (24x24px)
                     "aria-hidden": "true",
-                    strokeWidth: isActive ? 2 : 1.2 // 활성 상태에서만 더 두꺼운 선
+                    strokeWidth: isActive ? 2.5 : 1.5 // Enhanced stroke for outdoor visibility
                   })}
                   {item.badge && (
                     <div className="absolute -right-1 -top-1 flex h-3 w-3 items-center justify-center rounded-full bg-red-500 text-[7px] font-bold text-white min-w-[12px]">

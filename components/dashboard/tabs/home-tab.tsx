@@ -51,6 +51,7 @@ export default function HomeTab({ profile, onTabChange, onDocumentsSearch }: Hom
   const [siteHistoryExpanded, setSiteHistoryExpanded] = useState(false)
   const [recentActivitiesExpanded, setRecentActivitiesExpanded] = useState(false)
   const [quickMenuSettingsOpen, setQuickMenuSettingsOpen] = useState(false)
+  // 빠른메뉴 기본 설정: 출력현황, 작업일지, 현장정보, 문서함
   const [selectedQuickMenuItems, setSelectedQuickMenuItems] = useState<string[]>([
     'attendance', 'daily-reports', 'site-info', 'documents'
   ])
@@ -63,7 +64,7 @@ export default function HomeTab({ profile, onTabChange, onDocumentsSearch }: Hom
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   
-  // Available quick menu items
+  // 빠른메뉴 사용 가능한 모든 항목들
   const availableQuickMenuItems: QuickMenuItem[] = [
     {
       id: 'attendance',
@@ -74,6 +75,22 @@ export default function HomeTab({ profile, onTabChange, onDocumentsSearch }: Hom
       description: '출력 및 근무 현황 확인'
     },
     {
+      id: 'daily-reports',
+      name: '작업일지',
+      icon: <FileText className="h-5 w-5" />,
+      path: '/dashboard/daily-reports',
+      color: 'text-indigo-600 dark:text-indigo-400',
+      description: '일일 작업 보고서'
+    },
+    {
+      id: 'site-info',
+      name: '현장정보',
+      icon: <MapPin className="h-5 w-5" />,
+      path: '/dashboard/site-info',
+      color: 'text-purple-600 dark:text-purple-400',
+      description: '현장 세부 정보 및 공가사항'
+    },
+    {
       id: 'documents',
       name: '문서함',
       icon: <FolderOpen className="h-5 w-5" />,
@@ -82,20 +99,28 @@ export default function HomeTab({ profile, onTabChange, onDocumentsSearch }: Hom
       description: '개인 문서 관리'
     },
     {
-      id: 'site-info',
-      name: '현장정보',
-      icon: <MapPin className="h-5 w-5" />,
-      path: '/dashboard/site-info',
-      color: 'text-purple-600 dark:text-purple-400',
-      description: '현장 세부 정보'
+      id: 'emergency',
+      name: '긴급연락',
+      icon: <Phone className="h-5 w-5" />,
+      path: '/dashboard/emergency',
+      color: 'text-red-600 dark:text-red-400',
+      description: '긴급전화 및 사고신고'
     },
     {
-      id: 'daily-reports',
-      name: '작업일지',
-      icon: <FileText className="h-5 w-5" />,
-      path: '/dashboard/daily-reports',
-      color: 'text-indigo-600 dark:text-indigo-400',
-      description: '일일 작업 보고서'
+      id: 'settings',
+      name: '설정',
+      icon: <Settings className="h-5 w-5" />,
+      path: '/dashboard/settings',
+      color: 'text-gray-600 dark:text-gray-400',
+      description: '앱 설정 및 환경설정'
+    },
+    {
+      id: 'notifications',
+      name: '알림',
+      icon: <Bell className="h-5 w-5" />,
+      path: '/dashboard/notifications',
+      color: 'text-yellow-600 dark:text-yellow-400',
+      description: '중요 알림 및 또기사항'
     },
     {
       id: 'workers',

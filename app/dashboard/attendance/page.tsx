@@ -47,7 +47,6 @@ export default async function AttendancePage() {
     <DashboardLayout 
       user={user} 
       profile={profile as any}
-      initialActiveTab="attendance"
     >
       <AttendancePageClient 
         profile={profile}

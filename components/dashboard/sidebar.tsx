@@ -1,5 +1,6 @@
 'use client'
 
+import * as React from 'react'
 import { Profile, UserRole } from '@/types'
 import { 
   Home, FileText, Calendar, FolderOpen, MapPin, Share2, User, Users, 
@@ -8,6 +9,7 @@ import {
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter, usePathname } from 'next/navigation'
+import { useNavigation } from '@/components/navigation/navigation-controller'
 import { signOut } from '@/app/auth/actions'
 import { useRovingTabIndex } from '@/hooks/use-keyboard-navigation'
 
@@ -218,10 +220,6 @@ export default function Sidebar({ profile, activeTab, onTabChange, isOpen, onClo
 
   const { mainMenuItems, systemMenuItems } = getMenuItemsForRole()
   
-  console.log('Sidebar: Menu items for role', profile.role, {
-    mainMenuItems: mainMenuItems.map(item => ({ id: item.id, label: item.label, href: item.href })),
-    systemMenuItems: systemMenuItems.map(item => ({ id: item.id, label: item.label, href: item.href }))
-  })
 
   return (
     <>
@@ -299,6 +297,7 @@ function SidebarContent({
 }: any) {
   const router = useRouter()
   const pathname = usePathname()
+  const { navigate, isNavigating } = useNavigation()
   
   // Determine active tab based on current pathname
   const getActiveTabFromPath = () => {
@@ -331,38 +330,30 @@ function SidebarContent({
   const { focusedIndex, getRovingProps } = useRovingTabIndex(totalItems)
 
   // 메뉴 클릭 시 탭 변경과 모바일에서 사이드바 닫기를 동시에 처리
-  const handleMenuClick = (item: MenuItem) => {
-    console.log('🔍 Sidebar: Menu click detected', {
-      label: item.label,
-      id: item.id,
-      href: item.href,
-      currentPathname: pathname,
-      windowWidth: window.innerWidth
-    })
+  const handleMenuClick = React.useCallback((item: MenuItem) => {
+    // 이미 네비게이션 중이면 무시
+    if (isNavigating) {
+      return
+    }
     
     // Admin pages or items with href should navigate to separate routes
     if (item.href) {
-      // For items with href, just navigate to the route
-      console.log('🚀 Sidebar: Calling router.push with', item.href)
-      
-      try {
-        router.push(item.href)
-        console.log('✅ Sidebar: router.push completed successfully')
-      } catch (error) {
-        console.error('❌ Sidebar: router.push failed', error)
+      // 현재 경로와 같으면 무시
+      if (pathname === item.href) {
+        return
       }
+      // 통합 네비게이션 컨트롤러 사용
+      navigate(item.href)
     } else {
       // For tab-based items, only call onTabChange
-      console.log('📋 Sidebar: Calling onTabChange with', item.id)
       onTabChange(item.id)
     }
     
     // 모바일에서만 사이드바 닫기 (lg 미만 화면에서)
     if (window.innerWidth < 1024) {
-      console.log('📱 Sidebar: Closing mobile sidebar')
       onClose()
     }
-  }
+  }, [navigate, pathname, isNavigating, onTabChange, onClose])
 
   return (
     <div className="flex-1 flex flex-col overflow-y-auto">
@@ -395,17 +386,31 @@ function SidebarContent({
         <nav className="space-y-1" aria-label="주요 메뉴" role="navigation">
           <ul role="list">
             {mainMenuItems.map((item: MenuItem, index: number) => {
-              console.log('Sidebar: Rendering menu item', {
-                label: item.label,
-                id: item.id,
-                href: item.href
-              })
               const Icon = item.icon
               return (
                 <li key={item.id} role="none">
                   <button
-                    onClick={() => {
-                      console.log('Sidebar: Button clicked!', item.label)
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      
+                      // 문서함인 경우 통합 네비게이션 사용
+                      if (item.label === '문서함') {
+                        // 이미 네비게이션 중이거나 같은 경로면 무시
+                        if (isNavigating || pathname === '/dashboard/documents') {
+                          return
+                        }
+                        
+                        // 통합 네비게이션 컨트롤러 사용
+                        navigate('/dashboard/documents')
+                        
+                        // 모바일에서 사이드바 닫기
+                        if (window.innerWidth < 1024) {
+                          setTimeout(() => onClose(), 100)
+                        }
+                        return
+                      }
+                      
                       handleMenuClick(item)
                     }}
                     {...getRovingProps(index)}

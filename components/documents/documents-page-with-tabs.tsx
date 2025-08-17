@@ -33,14 +33,9 @@ export function DocumentsPageWithTabs({ profile, searchParams }: DocumentsPageWi
   
   const [activeTab, setActiveTab] = useState(initialTab)
   
-  console.log('DocumentsPageWithTabs - initialTab:', initialTab)
-  console.log('DocumentsPageWithTabs - initialSearch:', initialSearch)
-  console.log('DocumentsPageWithTabs - activeTab:', activeTab)
-  
   // Auto-switch to shared documents tab if searching for "공도면"
   useEffect(() => {
     if (initialSearch === '공도면') {
-      console.log('Auto-switching to shared-documents tab for 공도면 search')
       setActiveTab('shared-documents')
     }
   }, [initialSearch])

@@ -33,7 +33,6 @@ export default async function SiteInfoPage() {
     <DashboardLayout 
       user={user} 
       profile={profileResult.data}
-      initialActiveTab="site-info"
     >
       <div className="space-y-3">
         <SiteInfoPageNew 

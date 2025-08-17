@@ -14,96 +14,49 @@ import AttendanceTab from './tabs/attendance-tab'
 import DocumentsTabUnified from './tabs/documents-tab-unified'
 // import SiteInfoTab from './tabs/site-info-tab' // Moved to dedicated page: /dashboard/site-info
 import { BottomNavigation, BottomNavItem } from '@/components/ui/bottom-navigation'
+import { NavigationController } from '@/components/navigation/navigation-controller'
+import { ConstructionNavBar, ConstructionNavItem } from '@/components/navigation/construction-nav-bar'
 
 interface DashboardLayoutProps {
   user: User
   profile: Profile
   children?: React.ReactNode
   initialActiveTab?: string
+  useConstructionMode?: boolean // 건설 현장 모드 옵션
 }
 
-export default function DashboardLayout({ user, profile, children, initialActiveTab = 'home' }: DashboardLayoutProps) {
+export default function DashboardLayout({ user, profile, children, initialActiveTab = 'home', useConstructionMode = false }: DashboardLayoutProps) {
   const pathname = usePathname()
   const router = useRouter()
   const [activeTab, setActiveTab] = useState(initialActiveTab)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [documentsInitialSearch, setDocumentsInitialSearch] = useState<string | undefined>()
 
-  // Update activeTab based on current pathname
-  useEffect(() => {
-    // Don't update activeTab for sub-pages
-    if (pathname === '/dashboard/daily-reports/new') {
-      // Keep current tab, don't change
-      return
-    }
-    
-    if (pathname.includes('/dashboard/site-info')) {
-      setActiveTab('site-info')
-    } else if (pathname.includes('/dashboard/daily-reports')) {
-      setActiveTab('daily-reports')
-    } else if (pathname.includes('/dashboard/attendance')) {
-      setActiveTab('attendance')
-    } else if (pathname.includes('/dashboard/documents')) {
-      setActiveTab('documents-unified')
-    } else if (pathname.includes('/dashboard/markup')) {
-      setActiveTab('documents-unified')
-    } else if (pathname.includes('/dashboard/profile')) {
-      setActiveTab('profile')
-    } else if (pathname === '/dashboard') {
-      setActiveTab('home')
-    }
-  }, [pathname]) // ✅ Removed children dependency
+  // Helper function to get active tab from pathname
+  const getCurrentActiveTabFromPath = (path: string) => {
+    if (path.includes('/dashboard/site-info')) return 'site-info'
+    if (path.includes('/dashboard/daily-reports')) return 'daily-reports'
+    if (path.includes('/dashboard/attendance')) return 'attendance'
+    if (path.includes('/dashboard/documents')) return 'documents-unified'
+    if (path.includes('/dashboard/markup')) return 'documents-unified'
+    if (path.includes('/dashboard/profile')) return 'profile'
+    if (path === '/dashboard') return 'home'
+    return 'home'
+  }
 
-  // Handle tab changes when children are provided (dedicated pages)
+  // Update activeTab based on current pathname - OPTIMIZED
   useEffect(() => {
-    // Only run this effect when we have children (dedicated pages) and tab actually changed
-    if (!children || activeTab === initialActiveTab) {
-      return
+    // Performance optimization: Use single evaluation
+    const newTab = getCurrentActiveTabFromPath(pathname)
+    // Only update if actually changed to prevent re-renders
+    if (newTab !== activeTab) {
+      setActiveTab(newTab)
     }
+  }, [pathname]) // ✅ Removed children and activeTab dependency to prevent loops
 
-    // When activeTab changes and we have children (dedicated page), navigate to appropriate route
-    // But don't navigate if we're already on the correct page
-    switch (activeTab) {
-      case 'home':
-        if (pathname !== '/dashboard') {
-          router.push('/dashboard')
-        }
-        break
-      case 'daily-reports':
-        // Don't navigate if we're on a daily-reports sub-page (like /new)
-        if (!pathname.includes('/dashboard/daily-reports')) {
-          router.push('/dashboard/daily-reports')
-        }
-        break
-      case 'attendance':
-        if (pathname !== '/dashboard/attendance') {
-          router.push('/dashboard/attendance')
-        }
-        break
-      case 'documents-unified':
-      case 'documents':
-        if (!pathname.includes('/dashboard/documents')) {
-          router.push('/dashboard/documents')
-        }
-        break
-      case 'shared-documents':
-        if (pathname !== '/dashboard/documents' || !window.location.search.includes('tab=shared')) {
-          router.push('/dashboard/documents?tab=shared')
-        }
-        break
-      case 'site-info':
-        // Don't navigate if we're already on site-info page
-        if (!pathname.includes('/dashboard/site-info')) {
-          router.push('/dashboard/site-info')
-        }
-        break
-      case 'blueprint-markup':
-        if (!window.location.search.includes('tab=markup')) {
-          router.push('/dashboard/documents?tab=markup')
-        }
-        break
-    }
-  }, [activeTab, pathname]) // ✅ Removed children, initialActiveTab, and router dependencies
+  // REMOVED: This effect causes circular routing and performance issues
+  // Navigation should be handled by user actions, not state changes
+  // Each navigation component (sidebar, bottom nav, quick menu) handles its own routing
 
   // Handle case where profile is not loaded yet
   if (!profile) {
@@ -147,38 +100,70 @@ export default function DashboardLayout({ user, profile, children, initialActive
     }
   ]
   
-  console.log('DashboardLayout: Bottom nav items configured', {
-    items: bottomNavItems.map(item => ({ label: item.label, href: item.href })),
-    profile: { role: profile.role, id: profile.id, full_name: profile.full_name, email: profile.email }
-  })
+  // 건설 현장 네비게이션 아이템 (성능 최적화 및 안전 기능 강화)
+  const constructionNavItems: ConstructionNavItem[] = [
+    { 
+      id: "home",
+      label: "홈", 
+      href: "#home", 
+      icon: <Home />,
+      priority: 'normal'
+    },
+    { 
+      id: "attendance",
+      label: "출근", 
+      href: "/dashboard/attendance", 
+      icon: <Calendar />,
+      priority: 'high', // 출근 기록은 중요
+      badge: 1
+    },
+    { 
+      id: "daily-reports",
+      label: "작업일지", 
+      href: "/dashboard/daily-reports", 
+      icon: <FileText />, 
+      priority: 'high',
+      badge: 3
+    },
+    { 
+      id: "site-info",
+      label: "현장정보", 
+      href: "/dashboard/site-info", 
+      icon: <MapPin />,
+      priority: 'normal'
+    },
+    { 
+      id: "documents",
+      label: "문서함", 
+      href: "/dashboard/documents", 
+      icon: <FolderOpen />,
+      priority: 'normal'
+    }
+  ]
+
+
 
   // 하단 네비게이션 클릭 처리
   const handleBottomNavClick = (tabId: string) => {
-    console.log('DashboardLayout: handleBottomNavClick called', {
-      tabId,
-      currentPathname: pathname,
-      currentActiveTab: activeTab
-    })
-    
     // Check if it's a direct link (starts with /)
     if (tabId.startsWith('/')) {
-      console.log('DashboardLayout: Direct link detected, calling router.push', tabId)
       router.push(tabId)
       return
     }
     const cleanTabId = tabId.replace('#', '')
-    console.log('DashboardLayout: Setting activeTab to', cleanTabId)
     setActiveTab(cleanTabId)
   }
 
   const renderContent = () => {
     // If children are provided (e.g., from dedicated pages), render them instead
     if (children) {
-      console.log('DashboardLayout: Rendering children (dedicated page)', { pathname, activeTab })
-      return children
+      return (
+        <div key={pathname} className="dashboard-dedicated-page">
+          {children}
+        </div>
+      )
     }
     
-    console.log('DashboardLayout: Rendering tab content', { pathname, activeTab })
     
     switch (activeTab) {
       case 'home':
@@ -191,7 +176,6 @@ export default function DashboardLayout({ user, profile, children, initialActive
         return <DailyReportTab profile={profile} />
       case 'attendance':
         // Navigate to dedicated attendance page instead of rendering inline
-        console.log('DashboardLayout: Navigating to attendance page')
         if (pathname !== '/dashboard/attendance') {
           router.push('/dashboard/attendance')
         }
@@ -201,8 +185,18 @@ export default function DashboardLayout({ user, profile, children, initialActive
           onDocumentsSearch={setDocumentsInitialSearch}
         />
       case 'documents-unified':
-      case 'documents':
         return <DocumentsTabUnified profile={profile} initialSearch={documentsInitialSearch} />
+      case 'documents':
+        // Documents has its own dedicated page at /dashboard/documents
+        // This case shouldn't normally be reached when using the dedicated page
+        if (pathname !== '/dashboard/documents') {
+          router.push('/dashboard/documents')
+        }
+        return <HomeTab 
+          profile={profile} 
+          onTabChange={setActiveTab}
+          onDocumentsSearch={setDocumentsInitialSearch}
+        />
       case 'site-info':
         // Site info has its own dedicated page at /dashboard/site-info
         // This case shouldn't normally be reached when using the dedicated page
@@ -347,7 +341,8 @@ export default function DashboardLayout({ user, profile, children, initialActive
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 theme-transition">
+    <NavigationController>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 theme-transition">
       {/* Skip link for keyboard users */}
       <a 
         href="#main-content" 
@@ -395,18 +390,29 @@ export default function DashboardLayout({ user, profile, children, initialActive
         </main>
       </div>
 
-      {/* Mobile Bottom Navigation */}
+      {/* Mobile Bottom Navigation - 건설 모드에 따라 선택 */}
       <nav aria-label="모바일 하단 네비게이션" className="md:hidden">
-        <BottomNavigation 
-          items={bottomNavItems}
-          currentUser={{ 
-            id: profile.id, 
-            active_site_id: (profile as any).site_id || undefined 
-          }}
-          onTabChange={handleBottomNavClick}
-          activeTab={activeTab}
-        />
+        {useConstructionMode ? (
+          <ConstructionNavBar 
+            items={constructionNavItems}
+            currentUser={{ 
+              id: profile.id, 
+              active_site_id: (profile as any).site_id || undefined 
+            }}
+          />
+        ) : (
+          <BottomNavigation 
+            items={bottomNavItems}
+            currentUser={{ 
+              id: profile.id, 
+              active_site_id: (profile as any).site_id || undefined 
+            }}
+            onTabChange={handleBottomNavClick}
+            activeTab={activeTab}
+          />
+        )}
       </nav>
-    </div>
+      </div>
+    </NavigationController>
   )
 }

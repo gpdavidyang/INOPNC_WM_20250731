@@ -108,8 +108,14 @@ export function ServiceWorkerRegistration() {
 
   const setupPushNotifications = async (registration: ServiceWorkerRegistration) => {
     try {
+      // Skip push notifications in development environment
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Push notifications skipped in development environment')
+        return
+      }
+      
       // Check if push messaging is supported
-      if ('PushManager' in window) {
+      if ('PushManager' in window && process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY) {
         const permission = await Notification.requestPermission()
         
         if (permission === 'granted') {
@@ -136,9 +142,16 @@ export function ServiceWorkerRegistration() {
           
           console.log('Push subscription registered')
         }
+      } else {
+        console.log('Push notifications not supported or VAPID key missing')
       }
     } catch (error) {
-      console.error('Push notification setup failed:', error)
+      // Only log error in production, warn in development
+      if (process.env.NODE_ENV === 'production') {
+        console.error('Push notification setup failed:', error)
+      } else {
+        console.warn('Push notification setup failed (development):', error.message)
+      }
     }
   }
 

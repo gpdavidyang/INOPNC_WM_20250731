@@ -9,6 +9,7 @@ import { ReportsPageHeader } from '@/components/ui/page-header'
 import Sidebar from '@/components/dashboard/sidebar'
 import Header from '@/components/dashboard/header'
 import { BottomNavigation, BottomNavItem } from '@/components/ui/bottom-navigation'
+import { NavigationController } from '@/components/navigation/navigation-controller'
 import { Home, Calendar, FileText, FolderOpen, MapPin } from 'lucide-react'
 
 export default async function DailyReportsPage() {
@@ -74,7 +75,8 @@ export default async function DailyReportsPage() {
   ]
   
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <NavigationController>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Desktop Sidebar - No event handlers for independent page */}
       <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
         <div className="flex min-h-0 flex-1 flex-col bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700">
@@ -140,6 +142,7 @@ export default async function DailyReportsPage() {
         items={bottomNavItems}
         className="lg:hidden"
       />
-    </div>
+      </div>
+    </NavigationController>
   )
 }

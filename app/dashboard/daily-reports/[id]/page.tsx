@@ -6,6 +6,7 @@ import DailyReportDetailMobile from '@/components/daily-reports/DailyReportDetai
 import Sidebar from '@/components/dashboard/sidebar'
 import Header from '@/components/dashboard/header'
 import { BottomNavigation, BottomNavItem } from '@/components/ui/bottom-navigation'
+import { NavigationController } from '@/components/navigation/navigation-controller'
 import { Home, Calendar, FileText, FolderOpen, MapPin } from 'lucide-react'
 
 export default async function DailyReportDetailPage({
@@ -83,6 +84,7 @@ export default async function DailyReportDetailPage({
   ]
 
   return (
+    <NavigationController>
     <>
       {/* Mobile View - UI Guidelines 최적화 */}
       <div className="lg:hidden">
@@ -146,5 +148,6 @@ export default async function DailyReportDetailPage({
         </div>
       </div>
     </>
+    </NavigationController>
   )
 }

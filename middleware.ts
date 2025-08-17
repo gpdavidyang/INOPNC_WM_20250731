@@ -84,7 +84,10 @@ export async function middleware(request: NextRequest) {
         hasUser: !!user,
         isPublicPath,
         isDemoPath,
-        error: sessionError?.message
+        error: sessionError?.message,
+        cookies: request.cookies.getAll().map(c => ({ name: c.name, hasValue: !!c.value })),
+        sessionExists: !!session,
+        userExists: !!user
       })
     }
     

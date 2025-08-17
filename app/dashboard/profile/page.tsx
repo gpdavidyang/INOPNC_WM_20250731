@@ -41,7 +41,6 @@ export default async function ProfilePage() {
     <DashboardLayout 
       user={user} 
       profile={profile as any}
-      initialActiveTab="profile"
     >
       <div className="h-full bg-gray-50 dark:bg-gray-900">
         {/* 모바일 최적화된 컨테이너 - UI Guidelines 적용 */}

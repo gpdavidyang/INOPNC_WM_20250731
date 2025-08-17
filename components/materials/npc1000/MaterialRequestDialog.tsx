@@ -7,33 +7,14 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { createClient } from '@/lib/supabase/client'
 import { useFontSize, getFullTypographyClass } from '@/contexts/FontSizeContext'
 import { useTouchMode } from '@/contexts/TouchModeContext'
-import { Package, Plus, X, AlertCircle } from 'lucide-react'
+import { Package } from 'lucide-react'
 import { toast } from 'sonner'
 import { createMaterialRequest } from '@/app/actions/materials'
 
-interface MaterialRequestItem {
-  id: string
-  materialId: string
-  materialName: string
-  category: string
-  unit: string
-  requestedQuantity: number
-  urgencyLevel: 'normal' | 'urgent' | 'emergency'
-  notes?: string
-}
-
-interface NPC1000Material {
-  id: string
-  material_name: string
-  category: string
-  npc_code: string
-  unit: string
-}
 
 interface Props {
   open: boolean
@@ -54,16 +35,11 @@ export default function MaterialRequestDialog({
   const { touchMode } = useTouchMode()
   
   // State
-  const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [materials, setMaterials] = useState<NPC1000Material[]>([])
-  const [requestItems, setRequestItems] = useState<MaterialRequestItem[]>([])
   const [requestTitle, setRequestTitle] = useState('')
   const [requestNotes, setRequestNotes] = useState('')
-  const [selectedMaterial, setSelectedMaterial] = useState('')
   const [quantity, setQuantity] = useState('')
   const [urgency, setUrgency] = useState<'normal' | 'urgent' | 'emergency'>('normal')
-  const [itemNotes, setItemNotes] = useState('')
 
   // Touch-responsive sizing
   const getButtonSize = () => {
@@ -78,90 +54,30 @@ export default function MaterialRequestDialog({
     return 'h-4 w-4'
   }
 
-  // Load NPC-1000 materials
+  // Reset form when dialog opens
   useEffect(() => {
     if (open) {
-      loadMaterials()
-      // Reset form when dialog opens
-      setRequestItems([])
       setRequestTitle('')
       setRequestNotes('')
-      setSelectedMaterial('')
       setQuantity('')
       setUrgency('normal')
-      setItemNotes('')
     }
   }, [open])
 
-  const loadMaterials = async () => {
-    setLoading(true)
-    try {
-      const supabase = createClient()
-      const { data, error } = await supabase
-        .from('npc1000_materials')
-        .select('*')
-        .order('category, material_name')
-
-      if (error) throw error
-      setMaterials(data || [])
-    } catch (error) {
-      console.error('Error loading materials:', error)
-      toast.error('자재 목록을 불러오는데 실패했습니다.')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const addRequestItem = () => {
-    if (!selectedMaterial || !quantity) {
-      toast.error('자재와 수량을 입력해주세요.')
+  const submitRequest = async () => {
+    if (!requestTitle.trim()) {
+      toast.error('요청 제목을 입력해주세요.')
       return
     }
 
-    const material = materials.find(m => m.id === selectedMaterial)
-    if (!material) return
+    if (!quantity) {
+      toast.error('수량을 입력해주세요.')
+      return
+    }
 
     const quantityNum = parseFloat(quantity)
     if (isNaN(quantityNum) || quantityNum <= 0) {
       toast.error('올바른 수량을 입력해주세요.')
-      return
-    }
-
-    const newItem: MaterialRequestItem = {
-      id: Date.now().toString(),
-      materialId: material.id,
-      materialName: material.material_name,
-      category: material.category,
-      unit: material.unit,
-      requestedQuantity: quantityNum,
-      urgencyLevel: urgency,
-      notes: itemNotes
-    }
-
-    setRequestItems(prev => [...prev, newItem])
-    
-    // Reset item form
-    setSelectedMaterial('')
-    setQuantity('')
-    setUrgency('normal')
-    setItemNotes('')
-    
-    toast.success('요청 항목이 추가되었습니다.')
-  }
-
-  const removeRequestItem = (itemId: string) => {
-    setRequestItems(prev => prev.filter(item => item.id !== itemId))
-    toast.success('항목이 제거되었습니다.')
-  }
-
-  const submitRequest = async () => {
-    if (requestItems.length === 0) {
-      toast.error('최소 하나 이상의 자재를 요청해야 합니다.')
-      return
-    }
-
-    if (!requestTitle.trim()) {
-      toast.error('요청 제목을 입력해주세요.')
       return
     }
 
@@ -173,27 +89,38 @@ export default function MaterialRequestDialog({
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('로그인이 필요합니다.')
 
+      // Get NPC-1000 material ID from database
+      const { data: npcMaterial } = await supabase
+        .from('materials')
+        .select('id')
+        .like('code', 'NPC-1000')
+        .single()
 
-      // Insert request using server action
+      if (!npcMaterial) {
+        throw new Error('NPC-1000 자재를 찾을 수 없습니다.')
+      }
+
+      // Create single NPC-1000 request
       const result = await createMaterialRequest({
         site_id: siteId,
-        priority: requestItems.some(item => item.urgencyLevel === 'emergency') ? 'urgent' : 
-                 requestItems.some(item => item.urgencyLevel === 'urgent') ? 'high' : 'normal',
+        priority: urgency === 'emergency' ? 'urgent' : urgency === 'urgent' ? 'high' : 'normal',
         notes: requestNotes || undefined,
-        items: requestItems.map(item => ({
-          material_id: item.materialId,
-          requested_quantity: item.requestedQuantity,
-          notes: item.notes || undefined
-        }))
+        items: [{
+          material_id: npcMaterial.id,
+          requested_quantity: quantityNum,
+          notes: undefined
+        }]
       })
 
       if (result.success) {
-        toast.success('자재 요청이 성공적으로 제출되었습니다.')
+        toast.success('NPC-1000 요청이 성공적으로 제출되었습니다.')
         onSuccess?.()
         onOpenChange(false)
-        setRequestItems([])
+        // Reset form
         setRequestTitle('')
         setRequestNotes('')
+        setQuantity('')
+        setUrgency('normal')
       } else {
         throw new Error(result.error || '요청 제출에 실패했습니다.')
       }
@@ -206,21 +133,6 @@ export default function MaterialRequestDialog({
     }
   }
 
-  const getUrgencyBadgeColor = (level: string) => {
-    switch (level) {
-      case 'emergency': return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
-      case 'urgent': return 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400'
-      default: return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400'
-    }
-  }
-
-  const getUrgencyText = (level: string) => {
-    switch (level) {
-      case 'emergency': return '긴급'
-      case 'urgent': return '급함'
-      default: return '보통'
-    }
-  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -254,7 +166,7 @@ export default function MaterialRequestDialog({
             
             <div>
               <Label htmlFor="notes" className={getFullTypographyClass('body', 'sm', isLargeFont)}>
-                요청 사유 및 특이사항
+                요청 사유
               </Label>
               <Textarea
                 id="notes"
@@ -267,46 +179,36 @@ export default function MaterialRequestDialog({
             </div>
           </div>
 
-          {/* Add Material Section */}
+          {/* NPC-1000 Request Section */}
           <Card className="p-4">
-            <h3 className={`${getFullTypographyClass('heading', 'sm', isLargeFont)} font-medium mb-4`}>
-              자재 추가
-            </h3>
+            <div className="flex items-center gap-2 mb-4">
+              <Package className={`${getIconSize()} text-blue-600`} />
+              <h3 className={`${getFullTypographyClass('heading', 'sm', isLargeFont)} font-medium`}>
+                NPC-1000
+              </h3>
+            </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label className={getFullTypographyClass('body', 'sm', isLargeFont)}>자재</Label>
-                <Select value={selectedMaterial} onValueChange={setSelectedMaterial}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="자재 선택" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {materials.map((material) => (
-                      <SelectItem key={material.id} value={material.id}>
-                        <div>
-                          <div className={getFullTypographyClass('body', 'sm', isLargeFont)}>
-                            {material.material_name}
-                          </div>
-                          <div className={`${getFullTypographyClass('body', 'xs', isLargeFont)} text-muted-foreground`}>
-                            {material.category} ({material.npc_code})
-                          </div>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label className={getFullTypographyClass('body', 'sm', isLargeFont)}>수량</Label>
-                <Input
-                  type="number"
-                  step="0.1"
-                  min="0"
-                  placeholder="0"
-                  value={quantity}
-                  onChange={(e) => setQuantity(e.target.value)}
-                />
+                <Label className={getFullTypographyClass('body', 'sm', isLargeFont)}>
+                  수량 *
+                </Label>
+                <div className="flex gap-2">
+                  <Input
+                    type="number"
+                    step="1"
+                    min="0"
+                    placeholder="0"
+                    value={quantity}
+                    onChange={(e) => setQuantity(e.target.value)}
+                    className="flex-1"
+                  />
+                  <div className="flex items-center px-3 py-2 bg-gray-50 dark:bg-gray-800 border rounded-md">
+                    <span className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-muted-foreground`}>
+                      kg
+                    </span>
+                  </div>
+                </div>
               </div>
 
               <div>
@@ -322,88 +224,10 @@ export default function MaterialRequestDialog({
                   </SelectContent>
                 </Select>
               </div>
-
-              <div className="flex items-end">
-                <Button 
-                  type="button"
-                  onClick={addRequestItem}
-                  size={getButtonSize()}
-                  disabled={!selectedMaterial || !quantity}
-                  className="w-full"
-                >
-                  <Plus className={getIconSize()} />
-                  추가
-                </Button>
-              </div>
             </div>
 
-            <div>
-              <Label className={getFullTypographyClass('body', 'sm', isLargeFont)}>비고</Label>
-              <Input
-                placeholder="추가 요청사항이나 특이사항"
-                value={itemNotes}
-                onChange={(e) => setItemNotes(e.target.value)}
-              />
-            </div>
           </Card>
 
-          {/* Request Items List */}
-          {requestItems.length > 0 && (
-            <div className="space-y-3">
-              <h3 className={`${getFullTypographyClass('heading', 'sm', isLargeFont)} font-medium`}>
-                요청 항목 ({requestItems.length}개)
-              </h3>
-              
-              <div className="space-y-2">
-                {requestItems.map((item) => (
-                  <Card key={item.id} className="p-3">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-start gap-3 mb-2">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className={`${getFullTypographyClass('body', 'sm', isLargeFont)} font-medium`}>
-                                {item.materialName}
-                              </span>
-                              <Badge className={getUrgencyBadgeColor(item.urgencyLevel)}>
-                                {getUrgencyText(item.urgencyLevel)}
-                              </Badge>
-                            </div>
-                            <div className={`${getFullTypographyClass('body', 'xs', isLargeFont)} text-muted-foreground mb-1`}>
-                              {item.category} • 요청량: {item.requestedQuantity.toLocaleString()}{item.unit}
-                            </div>
-                            {item.notes && (
-                              <div className={`${getFullTypographyClass('body', 'xs', isLargeFont)} text-muted-foreground`}>
-                                비고: {item.notes}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <Button
-                        variant="ghost"
-                        size="compact"
-                        onClick={() => removeRequestItem(item.id)}
-                        className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {requestItems.length === 0 && (
-            <div className="text-center py-8 text-muted-foreground">
-              <Package className="h-12 w-12 mx-auto mb-3 opacity-50" />
-              <p className={getFullTypographyClass('body', 'sm', isLargeFont)}>
-                요청할 자재를 추가해주세요
-              </p>
-            </div>
-          )}
         </div>
 
         <DialogFooter className="gap-2">
@@ -417,10 +241,10 @@ export default function MaterialRequestDialog({
           </Button>
           <Button
             onClick={submitRequest}
-            disabled={saving || requestItems.length === 0 || !requestTitle.trim()}
+            disabled={saving || !requestTitle.trim() || !quantity}
             size={getButtonSize()}
           >
-            {saving ? '제출 중...' : '요청 제출'}
+            {saving ? '제출 중...' : '요청'}
           </Button>
         </DialogFooter>
       </DialogContent>

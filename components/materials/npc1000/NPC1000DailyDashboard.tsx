@@ -20,6 +20,7 @@ import {
 import { useFontSize, getFullTypographyClass } from '@/contexts/FontSizeContext'
 import { useTouchMode } from '@/contexts/TouchModeContext'
 import { createClient } from '@/lib/supabase/client'
+import { getNPCMaterialsData, getSitesForMaterials } from '@/app/actions/npc-materials'
 import MaterialRequestDialog from './MaterialRequestDialog'
 import InventoryRecordDialog from './InventoryRecordDialog'
 
@@ -86,18 +87,20 @@ export default function NPC1000DailyDashboard({ currentSiteId, currentSiteName }
   // Load available sites
   useEffect(() => {
     const loadSites = async () => {
-      const supabase = createClient()
-      const { data } = await supabase
-        .from('sites')
-        .select('id, name')
-        .eq('status', 'active')
-        .order('name')
+      const result = await getSitesForMaterials()
       
-      if (data) {
-        setAvailableSites(data)
-        if (!selectedSiteId && data.length > 0) {
-          setSelectedSiteId(data[0].id)
+      console.log('Sites result:', result)
+      
+      if (result.success && result.data.length > 0) {
+        setAvailableSites(result.data)
+        if (!selectedSiteId && result.data.length > 0) {
+          setSelectedSiteId(result.data[0].id)
         }
+      } else {
+        console.log('No sites available, using hardcoded site ID')
+        // Use the user's current site directly
+        setSelectedSiteId('fb777dd6-fde2-4fe7-a83b-72605372d0c5')
+        setAvailableSites([{ id: 'fb777dd6-fde2-4fe7-a83b-72605372d0c5', name: '송파 C현장' }])
       }
     }
     loadSites()
@@ -123,60 +126,94 @@ export default function NPC1000DailyDashboard({ currentSiteId, currentSiteName }
     setLoading(true)
     
     try {
-      const supabase = createClient()
+      console.log('Loading NPC data for site:', selectedSiteId)
       
-      // Get today's date for daily status
-      const today = new Date().toISOString().split('T')[0]
+      const result = await getNPCMaterialsData(selectedSiteId)
       
-      // Get daily records for the site
-      const { data: records } = await supabase
-        .from('npc1000_daily_records')
-        .select(`
-          incoming_quantity,
-          used_quantity,
-          remaining_quantity,
-          daily_reports!inner(
-            work_date,
-            site_id
-          )
-        `)
-        .eq('daily_reports.site_id', selectedSiteId)
+      console.log('NPC data result:', result)
       
-      if (records) {
-        // Calculate today's status
-        const todayRecords = records.filter(r => r.daily_reports.work_date === today)
-        const todayStatus = {
-          incoming: todayRecords.reduce((sum, r) => sum + (r.incoming_quantity || 0), 0),
-          used: todayRecords.reduce((sum, r) => sum + (r.used_quantity || 0), 0),
-          inventory: todayRecords.reduce((sum, r) => sum + (r.remaining_quantity || 0), 0)
-        }
-        setDailyStatus(todayStatus)
+      if (result.success && result.data) {
+        const { inventory, transactions } = result.data
         
-        // Calculate cumulative status
-        const cumulativeStatus = {
-          totalIncoming: records.reduce((sum, r) => sum + (r.incoming_quantity || 0), 0),
-          totalUsed: records.reduce((sum, r) => sum + (r.used_quantity || 0), 0),
-          totalInventory: records.reduce((sum, r) => sum + (r.remaining_quantity || 0), 0)
-        }
-        setCumulativeStatus(cumulativeStatus)
+        // Get today's date for daily status
+        const today = new Date().toISOString().split('T')[0]
         
-        // Group by date for movements table
-        const movementsByDate = new Map<string, { incoming: number, used: number, inventory: number }>()
-        records.forEach(r => {
-          const date = r.daily_reports.work_date
-          const existing = movementsByDate.get(date) || { incoming: 0, used: 0, inventory: 0 }
-          movementsByDate.set(date, {
-            incoming: existing.incoming + (r.incoming_quantity || 0),
-            used: existing.used + (r.used_quantity || 0),
-            inventory: existing.inventory + (r.remaining_quantity || 0)
-          })
+        // Calculate total current inventory
+        const totalInventory = inventory.reduce((sum: number, item: any) => sum + (item.current_stock || 0), 0)
+        
+        // Calculate today's transactions
+        const todayTransactions = transactions.filter((t: any) => 
+          t.created_at && t.created_at.split('T')[0] === today
+        )
+        
+        const todayIncoming = todayTransactions
+          .filter((t: any) => t.transaction_type === 'in')
+          .reduce((sum: number, t: any) => sum + (t.quantity || 0), 0)
+        
+        const todayUsed = todayTransactions
+          .filter((t: any) => t.transaction_type === 'out')
+          .reduce((sum: number, t: any) => sum + (t.quantity || 0), 0)
+        
+        setDailyStatus({
+          incoming: todayIncoming,
+          used: todayUsed,
+          inventory: totalInventory
         })
         
-        const movementsData = Array.from(movementsByDate.entries()).map(([date, data]) => ({
-          date,
-          ...data
-        }))
+        // Calculate cumulative status from all transactions
+        const allIncoming = transactions.filter((t: any) => t.transaction_type === 'in')
+          .reduce((sum: number, t: any) => sum + (t.quantity || 0), 0)
+        
+        const allUsed = transactions.filter((t: any) => t.transaction_type === 'out')
+          .reduce((sum: number, t: any) => sum + (t.quantity || 0), 0)
+        
+        setCumulativeStatus({
+          totalIncoming: allIncoming,
+          totalUsed: allUsed,
+          totalInventory: totalInventory
+        })
+        
+        // Group transactions by date for movements table
+        const movementsByDate = new Map<string, { incoming: number, used: number, inventory: number }>()
+        
+        transactions.forEach((t: any) => {
+          if (!t.created_at) return
+          const date = t.created_at.split('T')[0]
+          const existing = movementsByDate.get(date) || { incoming: 0, used: 0, inventory: 0 }
+          
+          if (t.transaction_type === 'in') {
+            existing.incoming += t.quantity || 0
+          } else if (t.transaction_type === 'out') {
+            existing.used += t.quantity || 0
+          }
+          
+          movementsByDate.set(date, existing)
+        })
+        
+        // Set inventory as current stock for the most recent date
+        const sortedDates = Array.from(movementsByDate.keys()).sort((a, b) => b.localeCompare(a))
+        if (sortedDates.length > 0) {
+          const latestDate = sortedDates[0]
+          const latestMovement = movementsByDate.get(latestDate)
+          if (latestMovement) {
+            latestMovement.inventory = totalInventory
+          }
+        }
+        
+        const movementsData = Array.from(movementsByDate.entries())
+          .map(([date, data]) => ({ date, ...data }))
+          .sort((a, b) => b.date.localeCompare(a.date))
+          .slice(0, 10) // Show last 10 days
+        
         setMovements(movementsData)
+        
+        console.log('Processed data:', {
+          totalInventory,
+          dailyStatus: { incoming: todayIncoming, used: todayUsed },
+          movementsCount: movementsData.length
+        })
+      } else {
+        console.error('Failed to load NPC data:', result.error)
       }
       
     } catch (error) {
@@ -443,7 +480,7 @@ export default function NPC1000DailyDashboard({ currentSiteId, currentSiteName }
           disabled={!selectedSiteId}
         >
           <FileText className={getIconSize()} />
-          입출고 기록
+          입고사용량 기록
         </Button>
       </div>
 

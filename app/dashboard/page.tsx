@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import DashboardWithNotifications from '@/components/dashboard/dashboard-with-notifications'
 import { getAuthenticatedUser } from '@/lib/auth/session'
+import { getCurrentUserSite, getUserSiteHistory } from '@/app/actions/site-info'
 
 export default async function DashboardPage() {
   const supabase = createClient()
@@ -83,7 +84,12 @@ export default async function DashboardPage() {
       if (newProfile.role === 'admin' || newProfile.role === 'system_admin') {
         redirect('/dashboard/admin')
       }
-      return <DashboardWithNotifications user={user} profile={newProfile as any} />
+      return <DashboardWithNotifications 
+        user={user} 
+        profile={newProfile as any}
+        initialCurrentSite={currentSite}
+        initialSiteHistory={siteHistory}
+      />
     }
   }
 
@@ -92,5 +98,59 @@ export default async function DashboardPage() {
     redirect('/dashboard/admin')
   }
 
-  return <DashboardWithNotifications user={user} profile={profile as any} />
+  // Pre-fetch site data on server side to avoid client authentication issues
+  let currentSite = null
+  let siteHistory = []
+  
+  try {
+    console.log('🔍 [DASHBOARD-SERVER] Pre-fetching site data for user:', user.email, 'ID:', user.id)
+    
+    // Test if we can access the user in site-info actions
+    console.log('🔍 [DASHBOARD-SERVER] Testing server-side authentication...')
+    
+    const currentSiteResult = await getCurrentUserSite()
+    console.log('🔍 [DASHBOARD-SERVER] getCurrentUserSite result:', {
+      success: currentSiteResult.success,
+      hasData: !!currentSiteResult.data,
+      error: currentSiteResult.error,
+      siteName: currentSiteResult.data?.site_name
+    })
+    
+    if (currentSiteResult.success && currentSiteResult.data) {
+      currentSite = currentSiteResult.data
+      console.log('✅ [DASHBOARD-SERVER] Current site found:', currentSite.site_name)
+    } else {
+      console.log('⚠️ [DASHBOARD-SERVER] No current site:', currentSiteResult.error)
+    }
+    
+    const historyResult = await getUserSiteHistory()
+    console.log('🔍 [DASHBOARD-SERVER] getUserSiteHistory result:', {
+      success: historyResult.success,
+      count: historyResult.data?.length || 0,
+      error: historyResult.error
+    })
+    
+    if (historyResult.success && historyResult.data) {
+      siteHistory = historyResult.data
+      console.log('✅ [DASHBOARD-SERVER] Site history found:', siteHistory.length, 'records')
+    } else {
+      console.log('⚠️ [DASHBOARD-SERVER] No site history:', historyResult.error)
+    }
+  } catch (error) {
+    console.error('❌ [DASHBOARD-SERVER] Error pre-fetching site data:', error)
+  }
+  
+  console.log('🔍 [DASHBOARD-SERVER] Final data summary:', {
+    hasCurrentSite: !!currentSite,
+    hasSiteHistory: siteHistory.length > 0,
+    userEmail: user.email,
+    profileRole: profile?.role
+  })
+
+  return <DashboardWithNotifications 
+    user={user} 
+    profile={profile as any} 
+    initialCurrentSite={currentSite}
+    initialSiteHistory={siteHistory}
+  />
 }

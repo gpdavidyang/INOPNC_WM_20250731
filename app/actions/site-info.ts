@@ -72,37 +72,77 @@ export async function getCurrentUserSite() {
       }
     }
 
-    // Try the new function first (user_sites table)
-    log('getCurrentUserSite: Attempting to call new DB function (user_sites)...')
-    let { data, error } = await supabase
-      .rpc('get_current_user_site_from_assignments' as any, { user_uuid: user.id })
+    // Direct query approach - get active site assignment with site details
+    log('getCurrentUserSite: Querying active assignment with site details...')
+    
+    const { data: assignment, error } = await supabase
+      .from('site_assignments')
+      .select(`
+        *,
+        sites (
+          id,
+          name,
+          address,
+          description,
+          work_process,
+          work_section,
+          component_name,
+          manager_name,
+          construction_manager_phone,
+          safety_manager_name,
+          safety_manager_phone,
+          accommodation_name,
+          accommodation_address,
+          status,
+          start_date,
+          end_date
+        )
+      `)
+      .eq('user_id', user.id)
+      .eq('is_active', true)
+      .single()
 
-    log('getCurrentUserSite: New DB function result:', { data, error, dataType: typeof data, isArray: Array.isArray(data) })
+    log('getCurrentUserSite: Direct query result:', { assignment, error })
 
-    // If new function fails, try the old one as fallback
-    if (error || !data || (Array.isArray(data) && data.length === 0)) {
-      log('getCurrentUserSite: Falling back to old DB function...')
-      const oldResult = await supabase
-        .rpc('get_current_user_site' as any, { user_uuid: user.id })
-      
-      if (!oldResult.error && oldResult.data) {
-        data = oldResult.data
-        error = null
-      } else if (error) {
-        // If both fail, use the original error
-        // 배정된 현장이 없는 경우는 에러가 아님
-        if (error.code === 'PGRST116') { // No rows returned
-          log('getCurrentUserSite: No current site assigned (PGRST116)')
-          return { success: true, data: null }
-        }
-        console.error('getCurrentUserSite: DB function error:', error)
-        throw error
+    if (error) {
+      if (error.code === 'PGRST116') { // No rows returned
+        log('getCurrentUserSite: No active assignment found')
+        return { success: true, data: null }
       }
+      console.error('getCurrentUserSite: Query error:', error)
+      throw error
     }
 
-    // 데이터가 배열인 경우 첫 번째 요소 선택
-    const siteData = Array.isArray(data) ? data[0] : data
-    log('getCurrentUserSite: Final site data:', siteData)
+    if (!assignment || !assignment.sites) {
+      log('getCurrentUserSite: No assignment or site data')
+      return { success: true, data: null }
+    }
+
+    // Convert to the expected format
+    const site = assignment.sites
+    const siteData = {
+      site_id: site.id,
+      site_name: site.name,
+      site_address: site.address,
+      site_status: site.status,
+      start_date: site.start_date,
+      end_date: site.end_date,
+      assigned_date: assignment.assigned_date,
+      unassigned_date: assignment.unassigned_date,
+      user_role: assignment.role,
+      work_process: site.work_process,
+      work_section: site.work_section,
+      component_name: site.component_name,
+      manager_name: site.manager_name,
+      construction_manager_phone: site.construction_manager_phone,
+      safety_manager_name: site.safety_manager_name,
+      safety_manager_phone: site.safety_manager_phone,
+      accommodation_name: site.accommodation_name,
+      accommodation_address: site.accommodation_address,
+      is_active: assignment.is_active
+    }
+    
+    log('getCurrentUserSite: Converted site data:', siteData)
 
     if (!siteData) {
       log('getCurrentUserSite: No site data returned')
@@ -169,31 +209,73 @@ export async function getUserSiteHistory() {
       return { success: false, error: 'Authentication required' }
     }
 
-    // Try the new function first (user_sites table)
-    log('getUserSiteHistory: Attempting to call new DB function (user_sites)...')
-    let { data, error } = await supabase
-      .rpc('get_user_site_history_from_assignments' as any, { user_uuid: user.id })
+    // Direct query approach - get all site assignments with site details
+    log('getUserSiteHistory: Querying site assignment history...')
+    
+    const { data, error } = await supabase
+      .from('site_assignments')
+      .select(`
+        *,
+        sites (
+          id,
+          name,
+          address,
+          description,
+          work_process,
+          work_section,
+          component_name,
+          manager_name,
+          construction_manager_phone,
+          safety_manager_name,
+          safety_manager_phone,
+          accommodation_name,
+          accommodation_address,
+          status,
+          start_date,
+          end_date
+        )
+      `)
+      .eq('user_id', user.id)
+      .order('assigned_date', { ascending: false })
 
-    log('getUserSiteHistory: New DB function result:', { data, error, dataLength: data?.length })
+    log('getUserSiteHistory: Direct query result:', { data, error, dataLength: data?.length })
 
-    // If new function fails, try the old one as fallback
     if (error) {
-      log('getUserSiteHistory: Falling back to old DB function...')
-      const oldResult = await supabase
-        .rpc('get_user_site_history' as any, { user_uuid: user.id })
-      
-      if (!oldResult.error) {
-        data = oldResult.data
-        error = null
-      } else {
-        console.error('getUserSiteHistory: DB function error:', error)
-        throw error
-      }
+      console.error('getUserSiteHistory: Query error:', error)
+      throw error
     }
 
-    // 데이터가 없는 경우 빈 배열 반환
+    // Convert to the expected format
+    const historyData = data?.map(assignment => {
+      const site = assignment.sites
+      return {
+        site_id: site.id,
+        site_name: site.name,
+        site_address: site.address,
+        site_status: site.status,
+        start_date: site.start_date,
+        end_date: site.end_date,
+        assigned_date: assignment.assigned_date,
+        unassigned_date: assignment.unassigned_date,
+        user_role: assignment.role,
+        work_process: site.work_process,
+        work_section: site.work_section,
+        component_name: site.component_name,
+        manager_name: site.manager_name,
+        construction_manager_phone: site.construction_manager_phone,
+        safety_manager_name: site.safety_manager_name,
+        safety_manager_phone: site.safety_manager_phone,
+        accommodation_name: site.accommodation_name,
+        accommodation_address: site.accommodation_address,
+        is_active: assignment.is_active
+      }
+    }) || []
+
+    log('getUserSiteHistory: Converted history data:', historyData.length, 'records')
+
+    // Return the converted data
     log('getUserSiteHistory: Success')
-    return { success: true, data: data || [] }
+    return { success: true, data: historyData }
   } catch (error) {
     console.error('Error fetching user site history:', error)
     const errorMessage = error instanceof Error ? error.message : 'Failed to fetch site history'

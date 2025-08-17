@@ -1,9 +1,9 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback, memo } from 'react'
 import { Profile, CurrentUserSite, UserSiteHistory, SiteInfo } from '@/types'
 import { NotificationExtended } from '@/types/notifications'
-import { createClient } from '@/lib/supabase/client'
+import { createSimpleClient } from '@/lib/supabase/client-simple'
 import { getCurrentUserSite, getUserSiteHistory } from '@/app/actions/site-info'
 import TodaySiteInfo from '@/components/site-info/TodaySiteInfo'
 import { useFontSize,  getTypographyClass, getFullTypographyClass } from '@/contexts/FontSizeContext'
@@ -21,6 +21,8 @@ interface HomeTabProps {
   profile: Profile
   onTabChange?: (tabId: string) => void
   onDocumentsSearch?: (searchTerm: string) => void
+  initialCurrentSite?: any
+  initialSiteHistory?: any[]
 }
 
 // Remove old SiteInfo interface - using CurrentUserSite type instead
@@ -43,7 +45,7 @@ interface QuickMenuItem {
   description: string
 }
 
-export default function HomeTab({ profile, onTabChange, onDocumentsSearch }: HomeTabProps) {
+function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, initialSiteHistory }: HomeTabProps) {
   const { isLargeFont } = useFontSize()
   const { touchMode } = useTouchMode()
   const [siteInfoExpanded, setSiteInfoExpanded] = useState(false)
@@ -59,9 +61,9 @@ export default function HomeTab({ profile, onTabChange, onDocumentsSearch }: Hom
   const [dragOverItem, setDragOverItem] = useState<string | null>(null)
   
   // Real data states
-  const [currentSite, setCurrentSite] = useState<CurrentUserSite | null>(null)
-  const [siteHistory, setSiteHistory] = useState<UserSiteHistory[]>([])
-  const [loading, setLoading] = useState(true)
+  const [currentSite, setCurrentSite] = useState<CurrentUserSite | null>(initialCurrentSite || null)
+  const [siteHistory, setSiteHistory] = useState<UserSiteHistory[]>(initialSiteHistory || [])
+  const [loading, setLoading] = useState(!initialCurrentSite) // Don't show loading if we have initial data
   const [error, setError] = useState<string | null>(null)
   
   // 빠른메뉴 사용 가능한 모든 항목들
@@ -217,50 +219,118 @@ export default function HomeTab({ profile, onTabChange, onDocumentsSearch }: Hom
         start_date: site.start_date,
         end_date: site.end_date || ''
       },
-      is_active: site.site_status === 'active'
+      is_active: site.site_status === 'active',
+      // Add document properties for compatibility
+      ptw_document: site.ptw_document_url ? {
+        id: site.ptw_document_id || '',
+        title: site.ptw_document_title || 'PTW (작업허가서)',
+        file_url: site.ptw_document_url,
+        file_name: site.ptw_document_filename || 'PTW.pdf',
+        mime_type: site.ptw_document_mime_type || 'application/pdf'
+      } : null,
+      blueprint_document: site.blueprint_document_url ? {
+        id: site.blueprint_document_id || '',
+        title: site.blueprint_document_title || '현장 공도면',
+        file_url: site.blueprint_document_url,
+        file_name: site.blueprint_document_filename || '도면.jpeg',
+        mime_type: site.blueprint_document_mime_type || 'image/jpeg'
+      } : null
     }
   }
 
   // Fetch real site data
-  const fetchSiteData = async () => {
-    setLoading(true)
-    setError(null)
-    
+  const fetchSiteData = useCallback(async () => {
     try {
+      setLoading(true)
+      setError(null)
+      
+      console.log('🔍 [HOME-TAB] Starting fetchSiteData...')
+      
+      // Check authentication with detailed logging
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
+      console.log('🔍 [HOME-TAB] Auth check result:', { 
+        user: user?.id, 
+        email: user?.email, 
+        authError: authError?.message 
+      })
+      
+      // Also check session
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      console.log('🔍 [HOME-TAB] Session check result:', { 
+        hasSession: !!session,
+        sessionError: sessionError?.message,
+        accessToken: session?.access_token ? 'Present' : 'Missing'
+      })
+      
+      if (authError || !user || !session) {
+        console.log('❌ [HOME-TAB] User not authenticated or no session, clearing site info')
+        setCurrentSite(null)
+        setSiteHistory([])
+        setLoading(false)
+        setError(user ? 'Session not found - please try logging in again' : 'Authentication required')
+        return
+      }
+
+      console.log('✅ [HOME-TAB] User authenticated, fetching site data...')
+      
       // Fetch current user's assigned site
+      console.log('🔍 [HOME-TAB] Calling getCurrentUserSite...')
       const currentSiteResult = await getCurrentUserSite()
+      console.log('🔍 [HOME-TAB] getCurrentUserSite result:', {
+        success: currentSiteResult.success,
+        hasData: !!currentSiteResult.data,
+        error: currentSiteResult.error,
+        siteName: currentSiteResult.data?.site_name
+      })
+      
       if (currentSiteResult.success) {
         setCurrentSite(currentSiteResult.data)
+        console.log('✅ [HOME-TAB] Current site set:', currentSiteResult.data?.site_name)
       } else {
-        console.warn('No current site assigned:', currentSiteResult.error)
+        console.warn('⚠️ [HOME-TAB] No current site assigned:', currentSiteResult.error)
         setCurrentSite(null)
       }
 
       // Fetch user's site history
+      console.log('🔍 [HOME-TAB] Calling getUserSiteHistory...')
       const historyResult = await getUserSiteHistory()
+      console.log('🔍 [HOME-TAB] getUserSiteHistory result:', {
+        success: historyResult.success,
+        count: historyResult.data?.length || 0,
+        error: historyResult.error
+      })
+      
       if (historyResult.success) {
         setSiteHistory(historyResult.data || [])
       } else {
-        console.error('Failed to fetch site history:', historyResult.error)
+        console.error('❌ [HOME-TAB] Failed to fetch site history:', historyResult.error)
         setSiteHistory([])
       }
     } catch (error) {
-      console.error('Error fetching site data:', error)
+      console.error('❌ [HOME-TAB] Error fetching site data:', error)
       setError('현장 정보를 불러오는데 실패했습니다.')
     } finally {
       setLoading(false)
+      console.log('🏁 [HOME-TAB] fetchSiteData completed')
     }
-  }
+  }, [])
   
   const [announcements, setAnnouncements] = useState<Announcement[]>([])
   
   // Load announcements from database
-  const loadAnnouncements = async () => {
+  const loadAnnouncements = useCallback(async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
+      console.log('🔍 [HOME-TAB] Loading announcements...')
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
       
-      if (!user) {
-        console.log('No authenticated user, using fallback announcements')
+      console.log('🔍 [HOME-TAB] Announcements auth check:', { 
+        user: user?.id, 
+        email: user?.email, 
+        authError: authError?.message 
+      })
+      
+      if (authError || !user) {
+        console.log('❌ [HOME-TAB] No authenticated user, using fallback announcements')
         setAnnouncements([
           {
             id: crypto.randomUUID(),
@@ -273,6 +343,8 @@ export default function HomeTab({ profile, onTabChange, onDocumentsSearch }: Hom
         ])
         return
       }
+      
+      console.log('✅ [HOME-TAB] User authenticated for announcements')
 
       // Query notifications for the authenticated user
       // Including system notifications (공지사항) and general info notifications
@@ -339,9 +411,9 @@ export default function HomeTab({ profile, onTabChange, onDocumentsSearch }: Hom
       console.error('Error loading announcements:', error)
       setAnnouncements([])
     }
-  }
+  }, [])
 
-  const supabase = createClient()
+  const supabase = createSimpleClient()
   const router = useRouter()
 
   // Quick menu management functions
@@ -462,15 +534,131 @@ export default function HomeTab({ profile, onTabChange, onDocumentsSearch }: Hom
 
   // Load saved quick menu settings and fetch site data on component mount
   useEffect(() => {
-    // Force set default quick menu items: 출력현황, 작업일지, 현장정보, 문서함
-    const defaultItems = ['attendance', 'daily-reports', 'site-info', 'documents']
-    setSelectedQuickMenuItems(defaultItems)
-    localStorage.setItem('quickMenuItems', JSON.stringify(defaultItems))
+    const initializeComponent = async () => {
+      try {
+        console.log('🔍 [HOME-TAB] Initializing component...')
+        console.log('🔍 [HOME-TAB] Initial data:', { 
+          hasCurrentSite: !!initialCurrentSite, 
+          hasSiteHistory: !!initialSiteHistory?.length 
+        })
+        
+        // Force set default quick menu items: 출력현황, 작업일지, 현장정보, 문서함
+        const defaultItems = ['attendance', 'daily-reports', 'site-info', 'documents']
+        setSelectedQuickMenuItems(defaultItems)
+        
+        // Only update localStorage if needed to prevent unnecessary writes
+        const savedItems = localStorage.getItem('quickMenuItems')
+        if (savedItems !== JSON.stringify(defaultItems)) {
+          localStorage.setItem('quickMenuItems', JSON.stringify(defaultItems))
+        }
 
-    // Fetch site data and announcements
-    fetchSiteData()
-    loadAnnouncements()
-  }, [])
+        // Check authentication state first
+        console.log('🔍 [HOME-TAB] Checking authentication state...')
+        const { data: { session } } = await supabase.auth.getSession()
+        const { data: { user } } = await supabase.auth.getUser()
+        
+        console.log('🔍 [HOME-TAB] Auth initialization:', {
+          hasSession: !!session,
+          hasUser: !!user,
+          userEmail: user?.email
+        })
+
+        // Always fetch data from client to ensure latest state
+        if (session && user) {
+          console.log('✅ [HOME-TAB] User authenticated, fetching site data...')
+          fetchSiteData()
+        } else {
+          console.log('⚠️ [HOME-TAB] No authentication, checking localStorage for session...')
+          
+          // Check if we have a previous successful login
+          const loginSuccess = localStorage.getItem('inopnc-login-success')
+          const storedSite = localStorage.getItem('inopnc-current-site')
+          
+          if (loginSuccess === 'true' && storedSite) {
+            console.log('🔍 [HOME-TAB] Found previous successful login, restoring site data...')
+            try {
+              const siteData = JSON.parse(storedSite)
+              setCurrentSite(siteData)
+              setError(null)
+              setLoading(false)
+              console.log('✅ [HOME-TAB] Site data restored from localStorage:', siteData.site_name)
+            } catch (error) {
+              console.error('❌ [HOME-TAB] Failed to parse stored site data:', error)
+              localStorage.removeItem('inopnc-login-success')
+              localStorage.removeItem('inopnc-current-site')
+            }
+          } else {
+            // Check if we have session data in localStorage (from previous login)
+            const storedSession = localStorage.getItem('sb-yjtnpscnnsnvfsyvajku-auth-token')
+            if (storedSession) {
+              console.log('🔍 [HOME-TAB] Found stored session, attempting to restore...')
+              // Try to refresh session
+              supabase.auth.getSession().then(({ data: { session: refreshedSession } }) => {
+                if (refreshedSession) {
+                  console.log('✅ [HOME-TAB] Session restored successfully')
+                  fetchSiteData()
+                } else {
+                  console.log('❌ [HOME-TAB] Failed to restore session')
+                  if (initialCurrentSite) {
+                    setCurrentSite(initialCurrentSite)
+                    console.log('✅ [HOME-TAB] Using initial site data from server')
+                  }
+                }
+              })
+            } else if (initialCurrentSite) {
+              setCurrentSite(initialCurrentSite)
+              console.log('✅ [HOME-TAB] Using initial site data from server')
+            }
+          }
+        }
+        
+        // Always load announcements (they're not heavy)
+        loadAnnouncements()
+      } catch (error) {
+        console.error('Error during component initialization:', error)
+      }
+    }
+
+    initializeComponent()
+  }, [fetchSiteData, loadAnnouncements, initialCurrentSite]) // Add initialCurrentSite to dependencies
+
+  // Add auth state change listener to refetch data when authentication changes
+  useEffect(() => {
+    console.log('🔍 [HOME-TAB] Setting up auth state change listener...')
+    
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('🔍 [HOME-TAB] Auth state changed:', { event, hasSession: !!session, userEmail: session?.user?.email })
+      
+      // Only handle SIGNED_OUT events automatically
+      // SIGNED_IN is handled manually in the login button
+      if (event === 'SIGNED_OUT') {
+        console.log('❌ [HOME-TAB] User signed out, clearing all data...')
+        
+        // Clear all state
+        setCurrentSite(null)
+        setSiteHistory([])
+        setAnnouncements([])
+        setError(null)
+        setLoading(false)
+        
+        // Clear localStorage data we created
+        if (typeof localStorage !== 'undefined') {
+          localStorage.removeItem('inopnc-login-success')
+          localStorage.removeItem('inopnc-current-site')
+          console.log('🗑️ [HOME-TAB] Cleared localStorage login data')
+        }
+        
+      } else if (event === 'SIGNED_IN' && session) {
+        console.log('✅ [HOME-TAB] User signed in via auth state change')
+        // Don't automatically fetch data here to avoid conflicts with manual login
+      }
+    })
+
+    return () => {
+      console.log('🔍 [HOME-TAB] Cleaning up auth state listener...')
+      subscription.unsubscribe()
+    }
+  }, [fetchSiteData, loadAnnouncements])
 
   const copyToClipboard = async (text: string, type: string) => {
     try {
@@ -537,7 +725,7 @@ export default function HomeTab({ profile, onTabChange, onDocumentsSearch }: Hom
         className="theme-transition border border-gray-200/60 dark:border-gray-600/40 shadow-sm bg-white dark:bg-gray-800/50"
         aria-labelledby="quick-menu-section"
       >
-        <CardHeader className="pb-2 pt-3 px-3 border-b border-gray-100/80 dark:border-gray-700/40">
+        <CardHeader className="pb-1.5 pt-2.5 px-3 border-b border-gray-100/80 dark:border-gray-700/40">
           <div className="flex items-center justify-between">
             <CardTitle id="quick-menu-section" className="text-sm font-semibold text-gray-900 dark:text-gray-100">
               빠른메뉴
@@ -553,7 +741,7 @@ export default function HomeTab({ profile, onTabChange, onDocumentsSearch }: Hom
           </div>
         </CardHeader>
         
-        <CardContent className="pt-3 pb-3 px-3">
+        <CardContent className="pt-2.5 pb-2.5 px-3">
           {/* Dynamic Quick Menu Items - Enhanced */}
           <nav aria-label="빠른메뉴 항목">
             <ul className="grid grid-cols-2 gap-2" role="list">
@@ -569,17 +757,17 @@ export default function HomeTab({ profile, onTabChange, onDocumentsSearch }: Hom
                         router.push(item.path)
                       }
                     }}
-                    className="w-full flex flex-col items-center py-4 px-3 bg-gray-50/80 dark:bg-gray-700/60 hover:bg-gray-100 dark:hover:bg-gray-600/80 border border-gray-200/60 dark:border-gray-600/40 hover:border-gray-300 dark:hover:border-gray-500/60 rounded-lg transition-all duration-200 active:scale-[0.98] touch-manipulation focus-visible:ring-2 focus-visible:ring-blue-500/40 focus-visible:ring-offset-1 min-h-[72px] shadow-sm hover:shadow-md group"
+                    className="w-full flex flex-col items-center py-3 px-2 bg-gray-50/80 dark:bg-gray-700/60 hover:bg-gray-100 dark:hover:bg-gray-600/80 border border-gray-200/60 dark:border-gray-600/40 hover:border-gray-300 dark:hover:border-gray-500/60 rounded-lg transition-all duration-200 active:scale-[0.98] touch-manipulation focus-visible:ring-2 focus-visible:ring-blue-500/40 focus-visible:ring-offset-1 min-h-[60px] shadow-sm hover:shadow-md group"
                     aria-label={`${item.name} - ${item.description}`}
                     role="menuitem"
                   >
-                    <div className={`mb-2 p-2 rounded-lg bg-white/80 dark:bg-gray-800/60 shadow-sm group-hover:shadow-md transition-shadow ${item.color}`} aria-hidden="true">
+                    <div className={`mb-1.5 p-1.5 rounded-lg bg-white/80 dark:bg-gray-800/60 shadow-sm group-hover:shadow-md transition-shadow ${item.color}`} aria-hidden="true">
                       {React.cloneElement(item.icon as React.ReactElement, {
-                        className: "h-6 w-6",
+                        className: "h-5 w-5",
                         strokeWidth: 1.8
                       })}
                     </div>
-                    <span className="text-sm font-medium text-gray-800 dark:text-gray-200">{item.name}</span>
+                    <span className="text-xs font-medium text-gray-800 dark:text-gray-200">{item.name}</span>
                   </button>
                 </li>
               ))}
@@ -587,6 +775,128 @@ export default function HomeTab({ profile, onTabChange, onDocumentsSearch }: Hom
           </nav>
         </CardContent>
       </Card>
+
+      {/* Authentication Status Debug - Always show if no current site */}
+      {!currentSite && (
+        <Card className="mb-4 border-yellow-200 bg-yellow-50 dark:bg-yellow-900/20">
+          <CardContent className="p-4">
+            <div className="space-y-4">
+              <div>
+                <h3 className="font-medium text-yellow-800 dark:text-yellow-200">
+                  {loading ? '현장 정보 확인 중...' : '현장 정보 확인 중'}
+                </h3>
+                <p className="text-sm text-yellow-600 dark:text-yellow-300">
+                  {loading 
+                    ? '현장 배정 정보를 불러오고 있습니다...' 
+                    : '현장 배정 정보를 확인하고 있습니다. 로그인이 필요할 수 있습니다.'
+                  }
+                </p>
+                {loading && (
+                  <div className="flex items-center gap-2 mt-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-600"></div>
+                    <span className="text-xs text-yellow-600">데이터 로딩 중...</span>
+                  </div>
+                )}
+              </div>
+              
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={() => {
+                    console.log('🔧 Redirecting to login page...')
+                    window.location.href = '/auth/login?redirectTo=' + encodeURIComponent(window.location.pathname)
+                  }}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm font-medium"
+                >
+                  로그인 페이지로 이동
+                </button>
+                
+                <button
+                  onClick={async () => {
+                    console.log('🔧 Quick manager login attempt...')
+                    try {
+                      // First check current auth state
+                      const { data: currentUser } = await supabase.auth.getUser()
+                      console.log('Current auth state:', { user: currentUser.user?.email })
+                      
+                      // Sign in
+                      const { data, error } = await supabase.auth.signInWithPassword({
+                        email: 'manager@inopnc.com',
+                        password: 'password123'
+                      })
+                      
+                      console.log('Login result:', { data, error })
+                      
+                      if (error) {
+                        console.error('Quick login failed:', error)
+                        alert(`빠른 로그인 실패: ${error.message}`)
+                        return
+                      }
+                      
+                      console.log('✅ Quick login successful:', data.user?.email)
+                      console.log('Session exists:', !!data.session)
+                      
+                      // Use the successful login data to fetch site info directly
+                      console.log('🔄 Fetching site data with authenticated session...')
+                      
+                      // Set current site directly from the successful login
+                      console.log('🔄 Setting site data directly without reload...')
+                      
+                      try {
+                        // Wait a bit more for session to fully establish
+                        await new Promise(resolve => setTimeout(resolve, 1000))
+                        
+                        // Call the server action to get site data
+                        const siteResult = await getCurrentUserSite()
+                        console.log('✅ Direct site fetch result:', siteResult)
+                        
+                        if (siteResult.success && siteResult.data) {
+                          setCurrentSite(siteResult.data)
+                          setError(null)
+                          setLoading(false)
+                          console.log('✅ Site data set successfully:', siteResult.data.site_name)
+                          
+                          // Store successful login state in localStorage
+                          localStorage.setItem('inopnc-login-success', 'true')
+                          localStorage.setItem('inopnc-current-site', JSON.stringify(siteResult.data))
+                          
+                          alert('로그인 성공! 현장 정보를 불러왔습니다: ' + siteResult.data.site_name)
+                        } else {
+                          console.error('❌ Site fetch failed:', siteResult.error)
+                          
+                          // Force a full page redirect to ensure clean state
+                          alert('로그인 성공! 페이지를 새로고침하여 현장 정보를 불러옵니다.')
+                          setTimeout(() => {
+                            window.location.href = '/auth/login?auto=manager'
+                          }, 500)
+                        }
+                      } catch (error) {
+                        console.error('❌ Site fetch error:', error)
+                        alert('로그인 성공! 페이지를 새로고침하여 현장 정보를 불러옵니다.')
+                        setTimeout(() => {
+                          window.location.href = '/auth/login?auto=manager'
+                        }, 500)
+                      }
+                      
+                      
+                    } catch (err) {
+                      console.error('Quick login error:', err)
+                      alert('로그인 중 오류가 발생했습니다.')
+                    }
+                  }}
+                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm font-medium"
+                >
+                  manager 빠른 로그인
+                </button>
+              </div>
+              
+              <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
+                <div>빠른 로그인: manager@inopnc.com / password123</div>
+                <div>현재 상태: currentSite={currentSite ? '있음' : '없음'}, loading={loading ? '로딩중' : '완료'}</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Today's Site Information - Using TodaySiteInfo Component */}
       <TodaySiteInfo 
@@ -968,3 +1278,5 @@ export default function HomeTab({ profile, onTabChange, onDocumentsSearch }: Hom
     </div>
   )
 }
+
+export default memo(HomeTab)

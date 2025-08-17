@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Card } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -25,7 +25,8 @@ import {
   Building2,
   FileText,
   Eye,
-  Edit
+  Edit,
+  Plus
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
@@ -129,20 +130,35 @@ export function DailyReportListMobile({ currentUser, sites = [] }: DailyReportLi
   }
 
   return (
-    <div className="space-y-3">
-      {/* Header */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">작업일지</h2>
-          {canCreateReport && (
-            <Link href="/dashboard/daily-reports/new">
-              <span className="text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors touch-manipulation focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 rounded">
-                새 작업일지
-              </span>
-            </Link>
-          )}
-        </div>
-      </div>
+    <div className="space-y-2">
+      {/* Work Log Creation Button - 홈 화면과 동일한 스타일 */}
+      {canCreateReport && (
+        <Card 
+          elevation="md" 
+          className="theme-transition bg-gradient-to-r from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 border-0"
+          aria-labelledby="work-log-section"
+        >
+          <CardContent className="p-3">
+            <div className="flex items-center justify-between">
+              <div className="flex-1 min-w-0">
+                <h2 id="work-log-section" className="text-white font-semibold text-sm whitespace-nowrap">
+                  작업일지 작성
+                </h2>
+                <p className="text-white/90 text-xs mt-0.5">오늘의 작업 내용을 기록하세요</p>
+              </div>
+              <Link href="/dashboard/daily-reports/new">
+                <button
+                  className="flex items-center gap-1 px-3 py-1.5 bg-white/95 hover:bg-white text-blue-600 text-xs font-medium rounded-lg transition-colors touch-manipulation focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-blue-600 shadow-sm ml-2"
+                  aria-label="새 작업일지 작성하기"
+                >
+                  <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+                  <span className="whitespace-nowrap">새 작업일지</span>
+                </button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
 
       {/* Search and Filters */}

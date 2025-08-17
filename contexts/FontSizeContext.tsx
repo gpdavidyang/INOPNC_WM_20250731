@@ -51,11 +51,14 @@ export function FontSizeProvider({ children }: FontSizeProviderProps) {
   useEffect(() => {
     if (typeof document !== 'undefined') {
       const root = document.documentElement
-      if (isLargeFont) {
-        root.classList.add('large-font-mode')
-      } else {
-        root.classList.remove('large-font-mode')
-      }
+      // Use requestAnimationFrame to avoid layout thrashing
+      requestAnimationFrame(() => {
+        if (isLargeFont) {
+          root.classList.add('large-font-mode')
+        } else {
+          root.classList.remove('large-font-mode')
+        }
+      })
     }
   }, [isLargeFont])
 

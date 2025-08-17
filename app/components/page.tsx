@@ -59,7 +59,7 @@ export default function ComponentsPage() {
       icon: <Home /> 
     },
     { 
-      label: "출력현황", 
+      label: "출력정보", 
       href: "/dashboard/attendance", 
       icon: <Calendar /> 
     },

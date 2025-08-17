@@ -37,7 +37,7 @@ export function NotificationsPageWrapper({ user, profile }: NotificationsPageWra
       icon: <Home /> 
     },
     { 
-      label: "출력현황", 
+      label: "출력정보", 
       href: "/dashboard/attendance", 
       icon: <Calendar /> 
     },
@@ -62,8 +62,6 @@ export function NotificationsPageWrapper({ user, profile }: NotificationsPageWra
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
       <Header 
-        user={user} 
-        profile={profile} 
         onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)}
       />
 

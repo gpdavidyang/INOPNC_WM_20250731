@@ -1,19 +1,16 @@
 'use client'
 
-import { Profile } from '@/types'
 import { Menu } from 'lucide-react'
 import { NotificationDropdown } from '@/components/notifications/notification-dropdown'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { FontSizeToggle } from '@/components/ui/font-size-toggle'
-import { ProfileDropdown } from '@/components/ui/profile-dropdown'
 
 interface HeaderProps {
-  profile: Profile
   onMenuClick?: () => void
   isSidebarOpen?: boolean
 }
 
-export default function Header({ profile, onMenuClick, isSidebarOpen = false }: HeaderProps) {
+export default function Header({ onMenuClick, isSidebarOpen = false }: HeaderProps) {
   const handleMenuClick = () => {
     if (onMenuClick) {
       onMenuClick()
@@ -65,10 +62,6 @@ export default function Header({ profile, onMenuClick, isSidebarOpen = false }: 
               <NotificationDropdown />
             </div>
 
-            {/* User Profile Dropdown */}
-            <div role="region" aria-label="사용자 프로필">
-              <ProfileDropdown profile={profile} />
-            </div>
           </div>
         </div>
       </div>

@@ -56,12 +56,12 @@ export default async function DailyReportDetailPage({
   // Bottom navigation items
   const bottomNavItems: BottomNavItem[] = [
     { 
-      label: "홈(빠른화면)", 
+      label: "홈(빠른메뉴)", 
       href: "/dashboard", 
       icon: <Home /> 
     },
     { 
-      label: "출력현황", 
+      label: "출력정보", 
       href: "/dashboard/attendance", 
       icon: <Calendar /> 
     },
@@ -89,9 +89,7 @@ export default async function DailyReportDetailPage({
       {/* Mobile View - UI Guidelines 최적화 */}
       <div className="lg:hidden">
         {/* Header 섹션 추가 */}
-        <Header 
-          profile={profile as any}
-        />
+        <Header />
         <DailyReportDetailMobile
           report={report as any}
           currentUser={profile as any}
@@ -132,9 +130,7 @@ export default async function DailyReportDetailPage({
         {/* Main Content */}
         <div className="ml-64">
           {/* Header */}
-          <Header 
-            profile={profile as any}
-          />
+          <Header />
           
           {/* Page Content */}
           <main className="p-6">

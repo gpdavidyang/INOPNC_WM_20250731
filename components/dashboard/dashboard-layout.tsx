@@ -23,9 +23,11 @@ interface DashboardLayoutProps {
   children?: React.ReactNode
   initialActiveTab?: string
   useConstructionMode?: boolean // 건설 현장 모드 옵션
+  initialCurrentSite?: any
+  initialSiteHistory?: any[]
 }
 
-export default function DashboardLayout({ user, profile, children, initialActiveTab = 'home', useConstructionMode = false }: DashboardLayoutProps) {
+export default function DashboardLayout({ user, profile, children, initialActiveTab = 'home', useConstructionMode = false, initialCurrentSite, initialSiteHistory }: DashboardLayoutProps) {
   const pathname = usePathname()
   const router = useRouter()
   const [activeTab, setActiveTab] = useState(initialActiveTab)
@@ -338,7 +340,12 @@ export default function DashboardLayout({ user, profile, children, initialActive
           </div>
         )
       default:
-        return <HomeTab profile={profile} onTabChange={setActiveTab} />
+        return <HomeTab 
+          profile={profile} 
+          onTabChange={setActiveTab}
+          initialCurrentSite={initialCurrentSite}
+          initialSiteHistory={initialSiteHistory}
+        />
     }
   }
 
@@ -377,7 +384,6 @@ export default function DashboardLayout({ user, profile, children, initialActive
       <div className="lg:pl-64">
         {/* Page header */}
         <Header
-          profile={profile}
           isSidebarOpen={isSidebarOpen}
           onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)}
         />

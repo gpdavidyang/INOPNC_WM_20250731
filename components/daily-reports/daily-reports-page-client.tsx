@@ -22,12 +22,12 @@ export function DailyReportsPageClient({ profile, sites }: DailyReportsPageClien
   // Bottom navigation items
   const bottomNavItems: BottomNavItem[] = [
     { 
-      label: "홈(빠른화면)", 
+      label: "홈(빠른메뉴)", 
       href: "/dashboard", 
       icon: <Home /> 
     },
     { 
-      label: "출력현황", 
+      label: "출력정보", 
       href: "/dashboard/attendance", 
       icon: <Calendar /> 
     },
@@ -64,7 +64,6 @@ export function DailyReportsPageClient({ profile, sites }: DailyReportsPageClien
         <div className="lg:ml-64">
           {/* Header with hamburger button functionality */}
           <Header 
-            profile={profile} 
             onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)}
             isSidebarOpen={isSidebarOpen}
           />

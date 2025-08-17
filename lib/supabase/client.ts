@@ -7,6 +7,13 @@ import { performanceTracker } from '@/lib/monitoring/performance-metrics'
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
+// Extend window object for cookie caching
+declare global {
+  interface Window {
+    __supabase_cookies?: Record<string, string>
+  }
+}
+
 // Client-side validation
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
   console.error('❌ Missing Supabase environment variables on client-side:', {
@@ -41,9 +48,67 @@ class EnhancedSupabaseClient {
 
   constructor(config: ClientConfig = {}) {
     this.config = { ...defaultConfig, ...config }
+    
+    // CRITICAL FIX: Ensure proper cookie handling for session synchronization
+    // Create client with explicit cookie configuration to read/write cookies properly
     this.client = createBrowserClient<Database>(
       SUPABASE_URL!,
-      SUPABASE_ANON_KEY!
+      SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          // Get all cookies from document.cookie for proper session reading
+          getAll() {
+            const cookies: { name: string; value: string }[] = []
+            if (typeof document !== 'undefined') {
+              const cookieString = document.cookie
+              if (cookieString) {
+                cookieString.split(';').forEach(cookie => {
+                  const [name, ...valueParts] = cookie.trim().split('=')
+                  if (name) {
+                    const value = valueParts.join('=') // Handle values with '=' in them
+                    cookies.push({ 
+                      name, 
+                      value: value ? decodeURIComponent(value) : '' 
+                    })
+                  }
+                })
+              }
+            }
+            console.log('[SUPABASE-CLIENT] Reading cookies:', cookies.filter(c => c.name.startsWith('sb-')).map(c => c.name))
+            return cookies
+          },
+          // Set cookies with proper options for session persistence
+          setAll(cookiesToSet) {
+            if (typeof document !== 'undefined') {
+              cookiesToSet.forEach(({ name, value, options }) => {
+                let cookieString = `${name}=${encodeURIComponent(value || '')}`
+                
+                // Set proper cookie options for session persistence
+                if (options?.maxAge) {
+                  cookieString += `; max-age=${options.maxAge}`
+                }
+                if (options?.expires) {
+                  cookieString += `; expires=${options.expires.toUTCString()}`
+                }
+                // Always set path to root for session cookies
+                cookieString += `; path=${options?.path || '/'}`
+                
+                if (options?.domain) {
+                  cookieString += `; domain=${options.domain}`
+                }
+                if (options?.secure) {
+                  cookieString += '; secure'
+                }
+                // Use 'lax' for better compatibility with server-side sessions
+                cookieString += `; samesite=${options?.sameSite || 'lax'}`
+                
+                document.cookie = cookieString
+                console.log('[SUPABASE-CLIENT] Setting cookie:', name)
+              })
+            }
+          }
+        }
+      }
     )
   }
 
@@ -228,51 +293,11 @@ class EnhancedSupabaseClient {
     }
   }
 
-  // Auth methods with monitoring
+  // Auth methods - CRITICAL: Use raw client directly for proper cookie handling
   get auth() {
-    return {
-      ...this.client.auth,
-      signInWithPassword: async (credentials: any) => {
-        return performanceTracker.trackApiCall(
-          'auth.signInWithPassword',
-          () => this.client.auth.signInWithPassword(credentials)
-        )
-      },
-      signUp: async (credentials: any) => {
-        return performanceTracker.trackApiCall(
-          'auth.signUp',
-          () => this.client.auth.signUp(credentials)
-        )
-      },
-      signOut: async () => {
-        return performanceTracker.trackApiCall(
-          'auth.signOut',
-          () => this.client.auth.signOut()
-        )
-      },
-      getSession: async () => {
-        return performanceTracker.trackApiCall(
-          'auth.getSession',
-          () => this.client.auth.getSession()
-        )
-      },
-      getUser: async () => {
-        return performanceTracker.trackApiCall(
-          'auth.getUser',
-          () => this.client.auth.getUser()
-        )
-      },
-      refreshSession: async (refreshToken?: string) => {
-        return performanceTracker.trackApiCall(
-          'auth.refreshSession',
-          () => this.client.auth.refreshSession(refreshToken)
-        )
-      },
-      onAuthStateChange: (callback: any) => {
-        // This method doesn't need performance tracking as it's just setting up a listener
-        return this.client.auth.onAuthStateChange(callback)
-      }
-    }
+    // Return the raw auth client to ensure proper cookie management
+    // The enhanced wrapper was interfering with session cookie propagation
+    return this.client.auth
   }
 
   // Storage methods with monitoring
@@ -346,20 +371,234 @@ class EnhancedSupabaseClient {
   }
 }
 
-// Create singleton enhanced client
-let enhancedClient: EnhancedSupabaseClient | null = null
+// CRITICAL FIX: Singleton with fresh cookie handlers
+// The singleton maintains auth state listeners but uses fresh cookie handlers
+let browserClient: ReturnType<typeof createBrowserClient<Database>> | undefined
+
+// Cookie handlers that always read current state
+const createCookieHandlers = () => ({
+  getAll() {
+    const cookies: { name: string; value: string }[] = []
+    if (typeof document !== 'undefined') {
+      const cookieString = document.cookie
+      if (cookieString) {
+        cookieString.split(';').forEach(cookie => {
+          const [name, ...valueParts] = cookie.trim().split('=')
+          if (name) {
+            const value = valueParts.join('=')
+            cookies.push({ 
+              name, 
+              value: value ? decodeURIComponent(value) : '' 
+            })
+          }
+        })
+      }
+    }
+    return cookies
+  },
+  setAll(cookiesToSet: any[]) {
+    if (typeof document !== 'undefined') {
+      cookiesToSet.forEach(({ name, value, options }) => {
+        let cookieString = `${name}=${encodeURIComponent(value || '')}`
+        if (options?.maxAge) {
+          cookieString += `; max-age=${options.maxAge}`
+        }
+        if (options?.expires) {
+          cookieString += `; expires=${options.expires.toUTCString()}`
+        }
+        cookieString += `; path=${options?.path || '/'}`
+        if (options?.domain) {
+          cookieString += `; domain=${options.domain}`
+        }
+        if (options?.secure) {
+          cookieString += '; secure'
+        }
+        cookieString += `; samesite=${options?.sameSite || 'lax'}`
+        document.cookie = cookieString
+      })
+    }
+  }
+})
 
 export function createClient(config?: ClientConfig) {
-  if (!enhancedClient) {
-    enhancedClient = new EnhancedSupabaseClient(config)
+  // CRITICAL FIX: Always create fresh cookie handlers to avoid caching issues
+  // Supabase caches the handlers, so we need to bypass the singleton for cookies
+  if (!browserClient) {
+    browserClient = createBrowserClient<Database>(
+      SUPABASE_URL!,
+      SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            const cookies: { name: string; value: string }[] = []
+            if (typeof document !== 'undefined') {
+              // First, try to get from locally cached cookies (for immediate access)
+              const localCookies = window.__supabase_cookies || {}
+              Object.entries(localCookies).forEach(([name, value]) => {
+                cookies.push({ name, value: value as string })
+              })
+              
+              // Then also read from document.cookie (for persistence)
+              const cookieString = document.cookie
+              console.log('[SUPABASE-CLIENT] Reading cookies, raw string:', cookieString)
+              if (cookieString) {
+                cookieString.split(';').forEach(cookie => {
+                  const [name, ...valueParts] = cookie.trim().split('=')
+                  if (name) {
+                    const value = valueParts.join('=')
+                    // Only add if not already in local cache
+                    if (!cookies.find(c => c.name === name)) {
+                      cookies.push({ 
+                        name, 
+                        value: value ? decodeURIComponent(value) : '' 
+                      })
+                    }
+                  }
+                })
+              }
+              
+              const sbCookies = cookies.filter(c => c.name.startsWith('sb-'))
+              console.log('[SUPABASE-CLIENT] Found Supabase cookies:', sbCookies.map(c => c.name))
+              console.log('[SUPABASE-CLIENT] Local cache cookies:', Object.keys(localCookies))
+            }
+            return cookies
+          },
+          setAll(cookiesToSet: any[]) {
+            if (typeof document !== 'undefined') {
+              console.log('[SUPABASE-CLIENT] Setting cookies:', cookiesToSet.map(c => c.name))
+              cookiesToSet.forEach(({ name, value, options }) => {
+                let cookieString = `${name}=${encodeURIComponent(value || '')}`
+                if (options?.maxAge) {
+                  cookieString += `; max-age=${options.maxAge}`
+                }
+                if (options?.expires) {
+                  cookieString += `; expires=${options.expires.toUTCString()}`
+                }
+                cookieString += `; path=${options?.path || '/'}`
+                if (options?.domain) {
+                  cookieString += `; domain=${options.domain}`
+                }
+                if (options?.secure) {
+                  cookieString += '; secure'
+                }
+                cookieString += `; samesite=${options?.sameSite || 'lax'}`
+                
+                console.log('[SUPABASE-CLIENT] Setting cookie string:', cookieString)
+                document.cookie = cookieString
+                
+                // CRITICAL: Store cookies locally for immediate access
+                // Browser may not make cookies available instantly via document.cookie
+                if (!window.__supabase_cookies) {
+                  window.__supabase_cookies = {}
+                }
+                window.__supabase_cookies[name] = value || ''
+                console.log('[SUPABASE-CLIENT] ✅ Cookie cached locally:', name)
+              })
+            }
+          }
+        }
+      }
+    )
+    
+    console.log('[SUPABASE-CLIENT] Created new browser client instance')
   }
-  return enhancedClient
+  
+  return browserClient
+}
+
+// Enhanced client for specific use cases that need monitoring
+export function createEnhancedClient(config?: ClientConfig) {
+  return new EnhancedSupabaseClient(config)
+}
+
+// Function to clear query cache and reset browser client
+export function resetClient() {
+  // Clear the cached browser client to force fresh instance
+  browserClient = undefined
+  queryCache.clear()
+  console.log('🔄 [SUPABASE-CLIENT] Browser client and query cache cleared')
+}
+
+// Force session refresh from cookies
+export async function forceSessionRefresh() {
+  if (browserClient) {
+    try {
+      console.log('🔄 [SUPABASE-CLIENT] Forcing session refresh from cookies...')
+      
+      // Clear the cached client first
+      browserClient = undefined
+      
+      // Create a fresh client instance
+      const freshClient = createClient()
+      
+      // Force the client to read session from cookies
+      const { data: { session }, error } = await freshClient.auth.getSession()
+      
+      if (session) {
+        console.log('✅ [SUPABASE-CLIENT] Session refreshed successfully:', session.user?.email)
+        return { success: true, session }
+      } else {
+        console.log('❌ [SUPABASE-CLIENT] No session found after refresh')
+        return { success: false, error: error?.message || 'No session found' }
+      }
+    } catch (error) {
+      console.error('❌ [SUPABASE-CLIENT] Session refresh failed:', error)
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
+    }
+  }
+  return { success: false, error: 'No client instance' }
 }
 
 // Export for direct access to raw client if needed
 export function createRawClient() {
+  // Also use proper cookie configuration for raw client
   return createBrowserClient<Database>(
     SUPABASE_URL!,
-    SUPABASE_ANON_KEY!
+    SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          const cookies: { name: string; value: string }[] = []
+          if (typeof document !== 'undefined') {
+            const cookieString = document.cookie
+            if (cookieString) {
+              cookieString.split(';').forEach(cookie => {
+                const [name, ...valueParts] = cookie.trim().split('=')
+                if (name) {
+                  const value = valueParts.join('=')
+                  cookies.push({ 
+                    name, 
+                    value: value ? decodeURIComponent(value) : '' 
+                  })
+                }
+              })
+            }
+          }
+          return cookies
+        },
+        setAll(cookiesToSet) {
+          if (typeof document !== 'undefined') {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              let cookieString = `${name}=${encodeURIComponent(value || '')}`
+              if (options?.maxAge) {
+                cookieString += `; max-age=${options.maxAge}`
+              }
+              if (options?.expires) {
+                cookieString += `; expires=${options.expires.toUTCString()}`
+              }
+              cookieString += `; path=${options?.path || '/'}`
+              if (options?.domain) {
+                cookieString += `; domain=${options.domain}`
+              }
+              if (options?.secure) {
+                cookieString += '; secure'
+              }
+              cookieString += `; samesite=${options?.sameSite || 'lax'}`
+              document.cookie = cookieString
+            })
+          }
+        }
+      }
+    }
   )
 }

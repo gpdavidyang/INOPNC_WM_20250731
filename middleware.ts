@@ -36,7 +36,7 @@ export async function middleware(request: NextRequest) {
                 ...options,
                 sameSite: 'lax' as const,
                 secure: process.env.NODE_ENV === 'production',
-                httpOnly: true,
+                httpOnly: false,
                 path: '/'
               }
               response.cookies.set(name, value, cookieOptions)

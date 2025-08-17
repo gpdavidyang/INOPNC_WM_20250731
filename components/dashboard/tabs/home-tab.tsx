@@ -1,10 +1,10 @@
 'use client'
 
-import React, { useState, useEffect, useCallback, memo } from 'react'
+import React, { useState, useEffect, useCallback, memo, useMemo } from 'react'
 import { Profile, CurrentUserSite, UserSiteHistory, SiteInfo } from '@/types'
 import { NotificationExtended } from '@/types/notifications'
-import { createSimpleClient } from '@/lib/supabase/client-simple'
-import { getCurrentUserSite, getUserSiteHistory } from '@/app/actions/site-info'
+import { createClient } from '@/lib/supabase/client'
+import { getCurrentUserSiteWithAuth, getUserSiteHistoryWithAuth } from '@/app/actions/site-info-client'
 import TodaySiteInfo from '@/components/site-info/TodaySiteInfo'
 import { useFontSize,  getTypographyClass, getFullTypographyClass } from '@/contexts/FontSizeContext'
 import { useTouchMode } from '@/contexts/TouchModeContext'
@@ -17,6 +17,7 @@ import {
   ArrowUp, ArrowDown
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { useAutoLogin, syncSessionAfterAuth } from '@/hooks/use-auto-login'
 interface HomeTabProps {
   profile: Profile
   onTabChange?: (tabId: string) => void
@@ -238,23 +239,23 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
     }
   }
 
-  // Fetch real site data
-  const fetchSiteData = useCallback(async () => {
+  // Fetch real site data with improved session handling
+  const fetchSiteData = useCallback(async (retryCount = 0) => {
+    const MAX_RETRIES = 2
+    
     try {
       setLoading(true)
       setError(null)
       
-      console.log('🔍 [HOME-TAB] Starting fetchSiteData...')
+      console.log(`🔍 [HOME-TAB] Starting fetchSiteData... (retry: ${retryCount}/${MAX_RETRIES})`)
       
-      // Check authentication with detailed logging
-      const { data: { user }, error: authError } = await supabase.auth.getUser()
-      console.log('🔍 [HOME-TAB] Auth check result:', { 
-        user: user?.id, 
-        email: user?.email, 
-        authError: authError?.message 
-      })
+      // Session synchronization is now handled automatically by the singleton pattern fix
+      // Add small delay to ensure session has propagated after auto-login
+      if (retryCount === 0) {
+        await new Promise(resolve => setTimeout(resolve, 200))
+      }
       
-      // Also check session
+      // Now try to get the session
       const { data: { session }, error: sessionError } = await supabase.auth.getSession()
       console.log('🔍 [HOME-TAB] Session check result:', { 
         hasSession: !!session,
@@ -262,21 +263,58 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
         accessToken: session?.access_token ? 'Present' : 'Missing'
       })
       
-      if (authError || !user || !session) {
-        console.log('❌ [HOME-TAB] User not authenticated or no session, clearing site info')
+      // If no session, try to refresh it
+      if (!session && retryCount === 0) {
+        console.log('🔄 [HOME-TAB] No session found, attempting to refresh...')
+        const { data: refreshResult, error: refreshError } = await supabase.auth.refreshSession()
+        
+        if (refreshResult?.session) {
+          console.log('✅ [HOME-TAB] Session refreshed successfully')
+          // Session is automatically synchronized by the singleton pattern fix
+          // Wait for the refreshed session to propagate
+          await new Promise(resolve => setTimeout(resolve, 500))
+          // Retry with the new session
+          return fetchSiteData(retryCount + 1)
+        } else {
+          console.log('❌ [HOME-TAB] Session refresh failed:', refreshError?.message)
+          // If refresh fails, it might be because we need to re-authenticate
+          // Don't set error here, let auto-login handle it
+          return
+        }
+      }
+      
+      // Now check authentication with the potentially refreshed session
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
+      console.log('🔍 [HOME-TAB] Auth check result:', { 
+        user: user?.id, 
+        email: user?.email, 
+        authError: authError?.message 
+      })
+      
+      if (authError || !user) {
+        console.log('❌ [HOME-TAB] User not authenticated, clearing site info')
         setCurrentSite(null)
         setSiteHistory([])
         setLoading(false)
-        setError(user ? 'Session not found - please try logging in again' : 'Authentication required')
+        
+        // Only set error if we've exhausted retries
+        if (retryCount >= MAX_RETRIES) {
+          setError('Authentication required - please log in')
+        }
         return
       }
 
       console.log('✅ [HOME-TAB] User authenticated, fetching site data...')
       
-      // Fetch current user's assigned site
-      console.log('🔍 [HOME-TAB] Calling getCurrentUserSite...')
-      const currentSiteResult = await getCurrentUserSite()
-      console.log('🔍 [HOME-TAB] getCurrentUserSite result:', {
+      // Add a small delay to ensure session is fully propagated
+      if (retryCount > 0) {
+        await new Promise(resolve => setTimeout(resolve, 500))
+      }
+      
+      // Fetch current user's assigned site using client wrapper
+      console.log('🔍 [HOME-TAB] Calling getCurrentUserSiteWithAuth...')
+      const currentSiteResult = await getCurrentUserSiteWithAuth()
+      console.log('🔍 [HOME-TAB] getCurrentUserSiteWithAuth result:', {
         success: currentSiteResult.success,
         hasData: !!currentSiteResult.data,
         error: currentSiteResult.error,
@@ -286,15 +324,29 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
       if (currentSiteResult.success) {
         setCurrentSite(currentSiteResult.data)
         console.log('✅ [HOME-TAB] Current site set:', currentSiteResult.data?.site_name)
+        
+        // Store in localStorage for quick access
+        if (currentSiteResult.data) {
+          localStorage.setItem('inopnc-current-site', JSON.stringify(currentSiteResult.data))
+        }
+        
+        // Clear error on success
+        setError(null)
       } else {
+        // If the error is session-related and we haven't retried, try again
+        if (currentSiteResult.error?.includes('session') && retryCount < MAX_RETRIES) {
+          console.log('🔄 [HOME-TAB] Session error detected, retrying...')
+          return fetchSiteData(retryCount + 1)
+        }
+        
         console.warn('⚠️ [HOME-TAB] No current site assigned:', currentSiteResult.error)
         setCurrentSite(null)
       }
 
-      // Fetch user's site history
-      console.log('🔍 [HOME-TAB] Calling getUserSiteHistory...')
-      const historyResult = await getUserSiteHistory()
-      console.log('🔍 [HOME-TAB] getUserSiteHistory result:', {
+      // Fetch user's site history using client wrapper
+      console.log('🔍 [HOME-TAB] Calling getUserSiteHistoryWithAuth...')
+      const historyResult = await getUserSiteHistoryWithAuth()
+      console.log('🔍 [HOME-TAB] getUserSiteHistoryWithAuth result:', {
         success: historyResult.success,
         count: historyResult.data?.length || 0,
         error: historyResult.error
@@ -306,8 +358,20 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
         console.error('❌ [HOME-TAB] Failed to fetch site history:', historyResult.error)
         setSiteHistory([])
       }
+      
+      // Success - clear any previous errors
+      setError(null)
+      
     } catch (error) {
       console.error('❌ [HOME-TAB] Error fetching site data:', error)
+      
+      // If it's a network error and we haven't retried, try again
+      if (retryCount < MAX_RETRIES && error instanceof Error && 
+          (error.message.includes('network') || error.message.includes('fetch'))) {
+        console.log('🔄 [HOME-TAB] Network error detected, retrying...')
+        return fetchSiteData(retryCount + 1)
+      }
+      
       setError('현장 정보를 불러오는데 실패했습니다.')
     } finally {
       setLoading(false)
@@ -413,7 +477,8 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
     }
   }, [])
 
-  const supabase = createSimpleClient()
+  // Create a stable supabase client instance to maintain session consistency
+  const supabase = useMemo(() => createClient(), [])
   const router = useRouter()
 
   // Quick menu management functions
@@ -554,68 +619,69 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
 
         // Check authentication state first
         console.log('🔍 [HOME-TAB] Checking authentication state...')
-        const { data: { session } } = await supabase.auth.getSession()
-        const { data: { user } } = await supabase.auth.getUser()
         
-        console.log('🔍 [HOME-TAB] Auth initialization:', {
-          hasSession: !!session,
-          hasUser: !!user,
-          userEmail: user?.email
-        })
-
-        // Always fetch data from client to ensure latest state
-        if (session && user) {
-          console.log('✅ [HOME-TAB] User authenticated, fetching site data...')
-          fetchSiteData()
-        } else {
-          console.log('⚠️ [HOME-TAB] No authentication, checking localStorage for session...')
-          
-          // Check if we have a previous successful login
-          const loginSuccess = localStorage.getItem('inopnc-login-success')
-          const storedSite = localStorage.getItem('inopnc-current-site')
-          
-          if (loginSuccess === 'true' && storedSite) {
-            console.log('🔍 [HOME-TAB] Found previous successful login, restoring site data...')
-            try {
-              const siteData = JSON.parse(storedSite)
-              setCurrentSite(siteData)
-              setError(null)
-              setLoading(false)
-              console.log('✅ [HOME-TAB] Site data restored from localStorage:', siteData.site_name)
-            } catch (error) {
-              console.error('❌ [HOME-TAB] Failed to parse stored site data:', error)
-              localStorage.removeItem('inopnc-login-success')
-              localStorage.removeItem('inopnc-current-site')
-            }
+        // First try to get session
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+        
+        // If we have a session, verify it's valid
+        let validSession = false
+        let currentUser = null
+        
+        if (session && !sessionError) {
+          // Double-check with getUser to ensure session is truly valid
+          const { data: { user }, error: userError } = await supabase.auth.getUser()
+          if (user && !userError) {
+            validSession = true
+            currentUser = user
+            console.log('✅ [HOME-TAB] Valid session confirmed:', user.email)
           } else {
-            // Check if we have session data in localStorage (from previous login)
-            const storedSession = localStorage.getItem('sb-yjtnpscnnsnvfsyvajku-auth-token')
-            if (storedSession) {
-              console.log('🔍 [HOME-TAB] Found stored session, attempting to restore...')
-              // Try to refresh session
-              supabase.auth.getSession().then(({ data: { session: refreshedSession } }) => {
-                if (refreshedSession) {
-                  console.log('✅ [HOME-TAB] Session restored successfully')
-                  fetchSiteData()
-                } else {
-                  console.log('❌ [HOME-TAB] Failed to restore session')
-                  if (initialCurrentSite) {
-                    setCurrentSite(initialCurrentSite)
-                    console.log('✅ [HOME-TAB] Using initial site data from server')
-                  }
-                }
-              })
-            } else if (initialCurrentSite) {
-              setCurrentSite(initialCurrentSite)
-              console.log('✅ [HOME-TAB] Using initial site data from server')
+            console.log('⚠️ [HOME-TAB] Session exists but user verification failed:', userError?.message)
+            // Try to refresh the session
+            const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession()
+            if (refreshedSession && !refreshError) {
+              validSession = true
+              currentUser = refreshedSession.user
+              console.log('✅ [HOME-TAB] Session refreshed successfully:', refreshedSession.user?.email)
             }
           }
         }
         
-        // Always load announcements (they're not heavy)
+        console.log('🔍 [HOME-TAB] Auth initialization result:', {
+          hasSession: !!session,
+          validSession,
+          hasUser: !!currentUser,
+          userEmail: currentUser?.email
+        })
+
+        // If we have a valid session, fetch site data
+        if (validSession && currentUser) {
+          console.log('✅ [HOME-TAB] User authenticated, fetching site data...')
+          fetchSiteData()
+        } else {
+          console.log('⚠️ [HOME-TAB] No valid authentication')
+          
+          // Clear any stale session data
+          localStorage.removeItem('inopnc-login-success')
+          localStorage.removeItem('inopnc-current-site')
+          
+          // If we have initial data from server, use it temporarily
+          if (initialCurrentSite) {
+            setCurrentSite(initialCurrentSite)
+            setLoading(false)
+            console.log('✅ [HOME-TAB] Using initial site data from server')
+          } else {
+            // No session and no initial data - will trigger auto-login
+            setLoading(false)
+            setError('Authentication required')
+          }
+        }
+        
+        // Always load announcements (they work with fallback data)
         loadAnnouncements()
       } catch (error) {
         console.error('Error during component initialization:', error)
+        setLoading(false)
+        setError('Failed to initialize')
       }
     }
 
@@ -645,7 +711,10 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
         if (typeof localStorage !== 'undefined') {
           localStorage.removeItem('inopnc-login-success')
           localStorage.removeItem('inopnc-current-site')
-          console.log('🗑️ [HOME-TAB] Cleared localStorage login data')
+          localStorage.removeItem('inopnc-auto-login-disabled') // Re-enable auto-login for next session
+          localStorage.removeItem('inopnc-auto-login-attempts')  // Reset attempt counter
+          localStorage.removeItem('inopnc-last-auto-login')      // Reset cooldown
+          console.log('🗑️ [HOME-TAB] Cleared localStorage login data and re-enabled auto-login')
         }
         
       } else if (event === 'SIGNED_IN' && session) {
@@ -660,60 +729,34 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
     }
   }, [fetchSiteData, loadAnnouncements])
 
-  // Auto-login when no current site and not loading
+  // Use the auto-login hook with proper session synchronization
+  const { 
+    isLoading: autoLoginLoading, 
+    isAuthenticated: autoLoginAuthenticated, 
+    user: autoLoginUser,
+    error: autoLoginError 
+  } = useAutoLogin(!currentSite && !loading) // Only enable when no site data
+  
+  // When auto-login succeeds, fetch site data
   useEffect(() => {
-    const attemptAutoLogin = async () => {
-      // Only attempt auto-login if no current site and not already loading
-      if (currentSite || loading) return
-      
-      // Check if localStorage indicates a previous session
-      const hasStoredSession = localStorage.getItem('inopnc-login-success')
-      if (hasStoredSession) {
-        console.log('🔍 [AUTO-LOGIN] Previous session found in localStorage, skipping auto-login')
-        return
-      }
-      
-      console.log('🚀 [AUTO-LOGIN] Attempting automatic login...')
-      
-      try {
-        // Check if already authenticated
-        const { data: { user } } = await supabase.auth.getUser()
-        if (user) {
-          console.log('✅ [AUTO-LOGIN] User already authenticated:', user.email)
+    if (autoLoginAuthenticated && autoLoginUser && !currentSite && !loading) {
+      console.log('✅ [HOME-TAB] Auto-login successful, waiting for session stabilization...')
+      // Add longer delay to ensure session cookies are fully propagated and client can read them
+      const timer = setTimeout(async () => {
+        // Double-check session is available before attempting fetch
+        const supabase = createClient()
+        const { data: { session } } = await supabase.auth.getSession()
+        
+        if (session) {
+          console.log('✅ [HOME-TAB] Session confirmed, fetching site data...')
           fetchSiteData()
-          return
+        } else {
+          console.warn('⚠️ [HOME-TAB] Auto-login successful but session not yet available, skipping fetch')
         }
-        
-        console.log('🔄 [AUTO-LOGIN] No session found, attempting manager login...')
-        
-        // Auto-login with manager credentials
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: 'manager@inopnc.com',
-          password: 'password123'
-        })
-        
-        if (error) {
-          console.error('❌ [AUTO-LOGIN] Auto-login failed:', error)
-          return
-        }
-        
-        console.log('✅ [AUTO-LOGIN] Auto-login successful:', data.user?.email)
-        
-        // Wait for session to establish and fetch site data
-        setTimeout(() => {
-          fetchSiteData()
-        }, 1000)
-        
-      } catch (error) {
-        console.error('❌ [AUTO-LOGIN] Auto-login error:', error)
-      }
+      }, 2000) // Longer delay for proper session propagation
+      return () => clearTimeout(timer)
     }
-    
-    // Delay auto-login to avoid conflicts with initial data loading
-    const timeoutId = setTimeout(attemptAutoLogin, 2000)
-    
-    return () => clearTimeout(timeoutId)
-  }, [currentSite, loading, fetchSiteData])
+  }, [autoLoginAuthenticated, autoLoginUser, currentSite, loading, fetchSiteData])
 
   const copyToClipboard = async (text: string, type: string) => {
     try {
@@ -804,7 +847,7 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
                 <li key={item.id} role="none">
                   <button 
                     onClick={() => {
-                      if (item.id === 'site-info' || item.id === 'daily-reports') {
+                      if (item.id === 'site-info' || item.id === 'daily-reports' || item.id === 'documents') {
                         router.push(item.path)
                       } else if (onTabChange) {
                         onTabChange(item.id)
@@ -873,35 +916,34 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
                       const { data: currentUser } = await supabase.auth.getUser()
                       console.log('Current auth state:', { user: currentUser.user?.email })
                       
-                      // Sign in
+                      // Sign in with direct approach (browser-compatible)
                       const { data, error } = await supabase.auth.signInWithPassword({
                         email: 'manager@inopnc.com',
                         password: 'password123'
                       })
                       
-                      console.log('Login result:', { data, error })
-                      
-                      if (error) {
-                        console.error('Quick login failed:', error)
-                        alert(`빠른 로그인 실패: ${error.message}`)
+                      if (error || !data.session) {
+                        console.error('Quick login failed:', error?.message)
+                        alert(`빠른 로그인 실패: ${error?.message}`)
                         return
                       }
                       
                       console.log('✅ Quick login successful:', data.user?.email)
-                      console.log('Session exists:', !!data.session)
                       
-                      // Use the successful login data to fetch site info directly
-                      console.log('🔄 Fetching site data with authenticated session...')
+                      // Sync session with server for immediate availability
+                      const syncResult = await syncSessionAfterAuth(data.session)
+                      if (!syncResult.success) {
+                        console.warn('Session sync failed:', syncResult.error)
+                      }
                       
-                      // Set current site directly from the successful login
-                      console.log('🔄 Setting site data directly without reload...')
+                      // Wait for session to fully propagate
+                      await new Promise(resolve => setTimeout(resolve, 500))
+                      
+                      // Now fetch site data with synchronized session
+                      console.log('🔄 Fetching site data with synchronized session...')
                       
                       try {
-                        // Wait a bit more for session to fully establish
-                        await new Promise(resolve => setTimeout(resolve, 1000))
-                        
-                        // Call the server action to get site data
-                        const siteResult = await getCurrentUserSite()
+                        const siteResult = await getCurrentUserSiteWithAuth()
                         console.log('✅ Direct site fetch result:', siteResult)
                         
                         if (siteResult.success && siteResult.data) {
@@ -914,24 +956,35 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
                           localStorage.setItem('inopnc-login-success', 'true')
                           localStorage.setItem('inopnc-current-site', JSON.stringify(siteResult.data))
                           
+                          // Also fetch site history
+                          const historyResult = await getUserSiteHistoryWithAuth()
+                          if (historyResult.success) {
+                            setSiteHistory(historyResult.data || [])
+                          }
+                          
                           alert('로그인 성공! 현장 정보를 불러왔습니다: ' + siteResult.data.site_name)
                         } else {
                           console.error('❌ Site fetch failed:', siteResult.error)
                           
-                          // Force a full page redirect to ensure clean state
-                          alert('로그인 성공! 페이지를 새로고침하여 현장 정보를 불러옵니다.')
-                          setTimeout(() => {
-                            window.location.href = '/auth/login?auto=manager'
-                          }, 500)
+                          // Try once more after additional delay
+                          await new Promise(resolve => setTimeout(resolve, 1000))
+                          const retryResult = await getCurrentUserSiteWithAuth()
+                          
+                          if (retryResult.success && retryResult.data) {
+                            setCurrentSite(retryResult.data)
+                            setError(null)
+                            setLoading(false)
+                            alert('로그인 성공! 현장 정보를 불러왔습니다: ' + retryResult.data.site_name)
+                          } else {
+                            alert('로그인 성공! 페이지를 새로고침하여 현장 정보를 불러옵니다.')
+                            window.location.reload()
+                          }
                         }
                       } catch (error) {
                         console.error('❌ Site fetch error:', error)
                         alert('로그인 성공! 페이지를 새로고침하여 현장 정보를 불러옵니다.')
-                        setTimeout(() => {
-                          window.location.href = '/auth/login?auto=manager'
-                        }, 500)
+                        window.location.reload()
                       }
-                      
                       
                     } catch (err) {
                       console.error('Quick login error:', err)

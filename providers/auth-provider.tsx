@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { User, Session } from '@supabase/supabase-js'
+import { ensureClientSession } from '@/lib/supabase/session-bridge'
 
 interface AuthContextType {
   user: User | null
@@ -46,24 +47,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
-    // Get initial session
+    // Get initial session with session bridging
     const initializeAuth = async () => {
       try {
+        console.log('🔄 [AUTH-PROVIDER] Initializing authentication...')
+        
+        // First attempt to get session normally
         const { data: { session: initialSession } } = await supabase.auth.getSession()
         
         if (initialSession) {
+          console.log('✅ [AUTH-PROVIDER] Found existing session for:', initialSession.user?.email)
           setSession(initialSession)
           setUser(initialSession.user)
           
           // Verify the session is still valid
           const { data: { user: verifiedUser } } = await supabase.auth.getUser()
           if (!verifiedUser) {
-            // Session is invalid, try to refresh
+            console.log('⚠️ [AUTH-PROVIDER] Session invalid, attempting refresh...')
             await refreshSession()
+          }
+        } else {
+          // If no session, try to bridge from server cookies
+          console.log('🌉 [AUTH-PROVIDER] No client session, attempting bridge...')
+          const bridgeResult = await ensureClientSession()
+          
+          if (bridgeResult.success && bridgeResult.session) {
+            console.log('✅ [AUTH-PROVIDER] Session bridged successfully:', bridgeResult.session.user?.email)
+            setSession(bridgeResult.session)
+            setUser(bridgeResult.session.user)
+            
+            // CRITICAL: After successful bridge, verify session is accessible with a fresh client
+            // This ensures the singleton has been updated with the new session
+            const freshClient = createClient()
+            const { data: { session: verifiedSession } } = await freshClient.auth.getSession()
+            
+            if (verifiedSession) {
+              console.log('✅ [AUTH-PROVIDER] Session verified with fresh client:', verifiedSession.user?.email)
+            } else {
+              console.warn('⚠️ [AUTH-PROVIDER] Session not yet accessible with fresh client, may need page reload')
+            }
+          } else {
+            console.log('❌ [AUTH-PROVIDER] No session available:', bridgeResult.error)
           }
         }
       } catch (error) {
-        console.error('Error initializing auth:', error)
+        console.error('❌ [AUTH-PROVIDER] Error initializing auth:', error)
       } finally {
         setLoading(false)
       }
@@ -85,7 +113,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (newSession) {
             setSession(newSession)
             setUser(newSession.user)
-            router.refresh()
+            // CRITICAL FIX: Don't auto-refresh during login to prevent infinite loops
+            // router.refresh() causes remount of components which triggers auto-login again
+            console.log('✅ [AUTH-PROVIDER] SIGNED_IN event handled, skipping router refresh')
           }
           break
           

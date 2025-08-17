@@ -71,10 +71,10 @@ export default function LoginPage() {
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                 이메일
               </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+                  <svg className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600 group-focus-within:text-blue-600 transition-colors duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
                   </svg>
                 </div>
                 <input
@@ -84,20 +84,20 @@ export default function LoginPage() {
                   required
                   defaultValue={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="block w-full pl-9 sm:pl-10 pr-3 py-3 sm:py-4 border-2 border-gray-300 rounded-2xl shadow-lg placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-600 text-gray-900 bg-white transition-all duration-300 text-base sm:text-lg font-medium hover:border-gray-400 hover:shadow-xl backdrop-blur-sm"
+                  className="w-full h-14 pl-12 pr-4 text-base font-medium text-gray-900 placeholder-gray-500 bg-gray-50/80 border border-gray-200 rounded-2xl transition-all duration-300 ease-out focus:outline-none focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 hover:bg-white hover:border-gray-300"
                   placeholder="email@example.com"
                 />
               </div>
             </div>
 
-            <div className="space-y-2">
-              <label htmlFor="password" className="block text-sm font-semibold text-gray-800">
+            <div className="space-y-1 sm:space-y-2">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                 비밀번호
               </label>
               <div className="relative group">
                 {/* Password Lock Icon */}
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-20">
-                  <svg className="h-5 w-5 text-gray-500 group-focus-within:text-blue-600 transition-colors duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+                  <svg className="h-4 w-4 sm:h-5 sm:w-5 text-gray-600 group-focus-within:text-blue-600 transition-colors duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                   </svg>
                 </div>

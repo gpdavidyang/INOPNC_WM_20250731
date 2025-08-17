@@ -462,18 +462,10 @@ export default function HomeTab({ profile, onTabChange, onDocumentsSearch }: Hom
 
   // Load saved quick menu settings and fetch site data on component mount
   useEffect(() => {
-    // Load quick menu settings
-    const saved = localStorage.getItem('quickMenuItems')
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved)
-        if (Array.isArray(parsed)) {
-          setSelectedQuickMenuItems(parsed)
-        }
-      } catch (e) {
-        console.warn('Failed to parse saved quick menu items:', e)
-      }
-    }
+    // Force set default quick menu items: 출력현황, 작업일지, 현장정보, 문서함
+    const defaultItems = ['attendance', 'daily-reports', 'site-info', 'documents']
+    setSelectedQuickMenuItems(defaultItems)
+    localStorage.setItem('quickMenuItems', JSON.stringify(defaultItems))
 
     // Fetch site data and announcements
     fetchSiteData()

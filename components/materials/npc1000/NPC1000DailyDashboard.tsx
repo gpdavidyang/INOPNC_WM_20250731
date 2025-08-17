@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -106,21 +106,8 @@ export default function NPC1000DailyDashboard({ currentSiteId, currentSiteName }
     loadSites()
   }, [])
 
-  // Update selected site when currentSiteId changes
-  useEffect(() => {
-    if (currentSiteId && currentSiteId !== selectedSiteId) {
-      setSelectedSiteId(currentSiteId)
-    }
-  }, [currentSiteId])
-
   // Load NPC-1000 data for selected site
-  useEffect(() => {
-    if (selectedSiteId) {
-      loadNPCData()
-    }
-  }, [selectedSiteId])
-
-  const loadNPCData = async () => {
+  const loadNPCData = useCallback(async () => {
     if (!selectedSiteId) return
     
     setLoading(true)
@@ -221,7 +208,21 @@ export default function NPC1000DailyDashboard({ currentSiteId, currentSiteName }
     } finally {
       setLoading(false)
     }
-  }
+  }, [selectedSiteId])
+
+  // Update selected site when currentSiteId changes
+  useEffect(() => {
+    if (currentSiteId && currentSiteId !== selectedSiteId) {
+      setSelectedSiteId(currentSiteId)
+    }
+  }, [currentSiteId, selectedSiteId])
+
+  // Load NPC-1000 data for selected site
+  useEffect(() => {
+    if (selectedSiteId) {
+      loadNPCData()
+    }
+  }, [selectedSiteId, loadNPCData])
 
   // Handle sorting
   const handleSort = (field: 'date' | 'incoming' | 'used' | 'inventory') => {

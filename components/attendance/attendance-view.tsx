@@ -18,13 +18,13 @@ import {
   Calendar
 } from 'lucide-react'
 import { getAttendanceRecords } from '@/app/actions/attendance'
-import { getSites } from '@/app/actions/sites'
+import { getUserSiteHistory } from '@/app/actions/site-info'
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isSameMonth, isSameDay, isToday } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
 import { useFontSize } from '@/contexts/FontSizeContext'
 import { useTouchMode } from '@/contexts/TouchModeContext'
-import type { Site, Profile } from '@/types'
+import type { Profile, UserSiteHistory } from '@/types'
 import type { AttendanceRecord } from '@/types/attendance'
 import { SalaryView } from './salary-view'
 
@@ -55,7 +55,7 @@ export function AttendanceView({ profile }: AttendanceViewProps) {
   // State
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedSite, setSelectedSite] = useState<string>('all')
-  const [sites, setSites] = useState<Site[]>([])
+  const [siteHistory, setSiteHistory] = useState<UserSiteHistory[]>([])
   const [attendanceData, setAttendanceData] = useState<AttendanceData[]>([])
   const [monthlyStats, setMonthlyStats] = useState<MonthlyStats>({
     totalDays: 0,
@@ -66,9 +66,9 @@ export function AttendanceView({ profile }: AttendanceViewProps) {
   const [activeTab, setActiveTab] = useState<'personal' | 'company'>('personal')
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
 
-  // Load sites on mount
+  // Load site history on mount
   useEffect(() => {
-    loadSites()
+    loadSiteHistory()
   }, [])
 
   // Load attendance data when date or site changes
@@ -78,16 +78,16 @@ export function AttendanceView({ profile }: AttendanceViewProps) {
     }
   }, [currentDate, selectedSite, profile?.id])
 
-  const loadSites = async () => {
+  const loadSiteHistory = async () => {
     try {
-      const result = await getSites()
+      const result = await getUserSiteHistory()
       if (result.success && result.data) {
-        setSites(result.data as Site[])
+        setSiteHistory(result.data)
         // Keep default selection as 'all' instead of auto-selecting user's site
         // This ensures the "전체 현장" (All Sites) option is selected by default
       }
     } catch (error) {
-      console.error('Failed to load sites:', error)
+      console.error('Failed to load site history:', error)
     }
   }
 
@@ -261,36 +261,85 @@ export function AttendanceView({ profile }: AttendanceViewProps) {
     return cleanName.length > 3 ? cleanName.substring(0, 2) : cleanName
   }
 
-  const selectedSiteInfo = sites.find(s => s.id === selectedSite)
+  const selectedSiteInfo = siteHistory.find(s => s.site_id === selectedSite)
 
   return (
     <div className="space-y-3">
-          {/* Site Selection - UI Guidelines Compliant */}
-      <Card className="p-3">
-        <div className="flex items-center gap-3">
-          <div className="w-6 h-6 bg-gray-100 dark:bg-gray-700 rounded flex items-center justify-center shrink-0">
-            <Building2 className="h-3 w-3 text-gray-600" />
-          </div>
-          <CustomSelect value={selectedSite} onValueChange={setSelectedSite}>
-            <CustomSelectTrigger className={cn(
-              "flex-1",
-              touchMode === 'glove' && "min-h-[60px] text-base",
-              touchMode === 'precision' && "min-h-[44px] text-sm",
-              touchMode !== 'precision' && touchMode !== 'glove' && "min-h-[40px] text-sm"
-            )}>
-              <CustomSelectValue placeholder="전체 현장" />
-            </CustomSelectTrigger>
-            <CustomSelectContent>
-              <CustomSelectItem value="all">전체 현장</CustomSelectItem>
-              {sites.map(site => (
-                <CustomSelectItem key={site.id} value={site.id}>
-                  {site.name}
-                </CustomSelectItem>
-              ))}
-            </CustomSelectContent>
-          </CustomSelect>
-        </div>
-      </Card>
+      {/* Site Selection Dropdown - Consistent with 현장정보 screen */}
+      <div className="mb-3">
+        <CustomSelect value={selectedSite} onValueChange={setSelectedSite}>
+          <CustomSelectTrigger className={cn(
+            "w-full justify-between text-left",
+            touchMode === 'glove' ? 'min-h-[60px]' : 
+              touchMode === 'precision' ? 'min-h-[44px]' : 
+              'min-h-[48px]',
+            isLargeFont ? 'text-base' : 'text-sm'
+          )}>
+            <div className="flex items-center gap-2 w-full">
+              <span className="flex-1 truncate text-left">
+                {selectedSite === 'all' ? '전체 현장' : selectedSiteInfo?.site_name || '현장을 선택하세요'}
+              </span>
+              {selectedSite !== 'all' && selectedSiteInfo?.is_active && (
+                <span className={cn(
+                  "px-1.5 py-0.5 bg-green-100 text-green-700 rounded text-xs",
+                  "dark:bg-green-900/20 dark:text-green-400"
+                )}>
+                  현재
+                </span>
+              )}
+            </div>
+          </CustomSelectTrigger>
+          <CustomSelectContent 
+            className={cn(
+              touchMode === 'glove' ? 'p-2' : 'p-1',
+              "max-w-[90vw] sm:max-w-none",
+              "bg-white dark:bg-gray-800", 
+              "border border-gray-200 dark:border-gray-700",
+              "shadow-lg backdrop-blur-sm",
+              "z-50"
+            )}
+            sideOffset={4}
+          >
+            <CustomSelectItem 
+              value="all"
+              className={cn(
+                touchMode === 'glove' ? 'min-h-[56px] px-4 py-3' : 
+                  touchMode === 'precision' ? 'min-h-[40px] px-3 py-2' : 
+                  'min-h-[44px] px-3 py-2',
+                isLargeFont ? 'text-base' : 'text-sm'
+              )}
+            >
+              <div className="flex items-center gap-2 w-full">
+                <span className="flex-1 truncate">전체 현장</span>
+              </div>
+            </CustomSelectItem>
+            {siteHistory.map((site) => (
+              <CustomSelectItem 
+                key={site.site_id} 
+                value={site.site_id}
+                className={cn(
+                  touchMode === 'glove' ? 'min-h-[56px] px-4 py-3' : 
+                    touchMode === 'precision' ? 'min-h-[40px] px-3 py-2' : 
+                    'min-h-[44px] px-3 py-2',
+                  isLargeFont ? 'text-base' : 'text-sm'
+                )}
+              >
+                <div className="flex items-center gap-2 w-full">
+                  <span className="flex-1 truncate">{site.site_name}</span>
+                  {site.is_active && (
+                    <span className={cn(
+                      "px-1.5 py-0.5 bg-green-100 text-green-700 rounded text-xs",
+                      "dark:bg-green-900/20 dark:text-green-400"
+                    )}>
+                      현재
+                    </span>
+                  )}
+                </div>
+              </CustomSelectItem>
+            ))}
+          </CustomSelectContent>
+        </CustomSelect>
+      </div>
 
       {/* Calendar Card - UI Guidelines Compliant */}
       <Card className="p-3">

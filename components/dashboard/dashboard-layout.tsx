@@ -82,12 +82,12 @@ export default function DashboardLayout({ user, profile, children, initialActive
   // PRD 사양에 맞는 하단 네비게이션 아이템 구성
   const bottomNavItems: BottomNavItem[] = [
     { 
-      label: "홈(빠른화면)", 
+      label: "홈(빠른메뉴)", 
       href: "#home", 
       icon: <Home /> 
     },
     { 
-      label: "출력현황", 
+      label: "출력정보", 
       href: "/dashboard/attendance", 
       icon: <Calendar /> 
     },
@@ -113,14 +113,14 @@ export default function DashboardLayout({ user, profile, children, initialActive
   const constructionNavItems: ConstructionNavItem[] = [
     { 
       id: "home",
-      label: "홈", 
+      label: "홈(빠른메뉴)", 
       href: "#home", 
       icon: <Home />,
       priority: 'normal'
     },
     { 
       id: "attendance",
-      label: "출근", 
+      label: "출력정보", 
       href: "/dashboard/attendance", 
       icon: <Calendar />,
       priority: 'high', // 출근 기록은 중요

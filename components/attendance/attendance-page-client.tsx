@@ -64,7 +64,7 @@ export function AttendancePageClient({ profile, isPartnerCompany }: AttendancePa
             </button>
           </div>
 
-          <TabsContent value="attendance" className="mt-0 pt-3">
+          <TabsContent value="attendance" className="mt-0">
             <AttendanceView profile={profile} />
           </TabsContent>
 

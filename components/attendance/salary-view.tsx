@@ -22,12 +22,13 @@ import {
   Calendar
 } from 'lucide-react'
 import { getSalaryInfo, calculateMonthlySalary } from '@/app/actions/salary'
+import { getUserSiteHistory } from '@/app/actions/site-info'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
 import { useFontSize } from '@/contexts/FontSizeContext'
 import { useTouchMode } from '@/contexts/TouchModeContext'
-import type { Profile } from '@/types'
+import type { Profile, UserSiteHistory } from '@/types'
 
 interface SalaryViewProps {
   profile: Profile
@@ -77,40 +78,38 @@ export function SalaryView({ profile }: SalaryViewProps) {
   const [salaryInfo, setSalaryInfo] = useState<SalaryInfo | null>(null)
   const [monthlyCalculation, setMonthlyCalculation] = useState<MonthlySalaryCalculation | null>(null)
   const [monthlyHistoryList, setMonthlyHistoryList] = useState<any[]>([])
-  const [selectedSite, setSelectedSite] = useState<string>('전체 현장')
-  const [selectedDateRange, setSelectedDateRange] = useState<string>('최근6개월')
+  const [selectedSite, setSelectedSite] = useState<string>('all')
+  const [selectedDateRange, setSelectedDateRange] = useState<string>('최근3개월')
   const [selectedMonthDetails, setSelectedMonthDetails] = useState<any>(null)
   const [loading, setLoading] = useState(false)
-  const [sites, setSites] = useState<any[]>([])
+  const [siteHistory, setSiteHistory] = useState<UserSiteHistory[]>([])
   
   // Date range options
   const dateRangeOptions: DateRangeOption[] = [
-    { value: '전체기간', label: '전체기간', getMonthsBack: () => 12 },
+    { value: '금월', label: '금월', getMonthsBack: () => 1 },
     { value: '최근3개월', label: '최근3개월', getMonthsBack: () => 3 },
     { value: '최근6개월', label: '최근6개월', getMonthsBack: () => 6 },
-    { value: '최근12개월', label: '최근12개월', getMonthsBack: () => 12 }
+    { value: '최근12개월', label: '최근12개월', getMonthsBack: () => 12 },
+    { value: '최근24개월', label: '최근24개월', getMonthsBack: () => 24 }
   ]
 
   // Load sites and initial data
   useEffect(() => {
     if (profile?.id) {
-      loadSites()
+      loadSiteHistory()
       loadSalaryHistoryList()
     }
   }, [profile?.id, selectedSite, selectedDateRange])
 
-  const loadSites = async () => {
+  const loadSiteHistory = async () => {
     try {
-      // For now using mock data - could be replaced with real API call
-      const mockSites = [
-        { id: 'all', name: '전체 현장' },
-        { id: 'gangnam', name: '강남 현장' },
-        { id: 'songpa', name: '송파 현장' }
-      ]
-      setSites(mockSites)
+      const result = await getUserSiteHistory()
+      if (result.success && result.data) {
+        setSiteHistory(result.data)
+      }
     } catch (error) {
-      console.error('Failed to load sites:', error)
-      setSites([{ id: 'all', name: '전체 현장' }])
+      console.error('Failed to load site history:', error)
+      setSiteHistory([])
     }
   }
 
@@ -143,7 +142,14 @@ export function SalaryView({ profile }: SalaryViewProps) {
           const monthStr = `${month.toString().padStart(2, '0')}월`
           
           // Determine site name based on selection
-          let siteName = selectedSite === '전체 현장' ? '강남' : selectedSite.replace(' 현장', '')
+          let siteName = selectedSite === 'all' ? 
+            '전체' : 
+            (siteHistory.find(s => s.site_id === selectedSite)?.site_name || '미상')
+          
+          // Remove '현장' suffix for shorter display
+          if (siteName !== '전체' && siteName !== '미상') {
+            siteName = siteName.replace(/\s*[A-Z]?현장\s*$/g, '').trim()
+          }
           
           const historyItem = {
             month: monthStr,
@@ -268,24 +274,63 @@ export function SalaryView({ profile }: SalaryViewProps) {
 
   return (
     <div className="space-y-2">
-      {/* Single Site Selection - Exactly like Image 1 */}
-      <Card className="p-3 border-2 border-blue-300 rounded-xl">
-        <div className="flex items-center gap-2">
-          <FileText className="h-5 w-5 text-gray-500" />
-          <CustomSelect value={selectedSite} onValueChange={setSelectedSite}>
-            <CustomSelectTrigger className="flex-1 border-0 bg-transparent p-0 text-base font-medium">
-              <CustomSelectValue placeholder="전체 현장" />
-            </CustomSelectTrigger>
+      {/* Site Selection Dropdown - Consistent with 출근정보 screen */}
+      <div className="mb-3">
+        <CustomSelect value={selectedSite} onValueChange={setSelectedSite}>
+          <CustomSelectTrigger className={cn(
+            "w-full justify-between text-left",
+            touchMode === 'glove' ? 'min-h-[60px]' : 
+              touchMode === 'precision' ? 'min-h-[44px]' : 
+              'min-h-[48px]',
+            isLargeFont ? 'text-base' : 'text-sm'
+          )}>
+            <CustomSelectValue>
+              {selectedSite === 'all' ? '전체 현장' : siteHistory.find(s => s.site_id === selectedSite)?.site_name || '현장을 선택하세요'}
+            </CustomSelectValue>
+          </CustomSelectTrigger>
             <CustomSelectContent>
-              {sites.map(site => (
-                <CustomSelectItem key={site.id} value={site.name}>
-                  {site.name}
+              <CustomSelectItem value="all">
+                전체 현장
+              </CustomSelectItem>
+              {siteHistory.map(site => (
+                <CustomSelectItem key={site.site_id} value={site.site_id}>
+                  <div className="flex items-center gap-2 w-full">
+                    <span className="flex-1 truncate">{site.site_name}</span>
+                    {site.is_active && (
+                      <span className="px-1.5 py-0.5 bg-green-100 text-green-700 rounded text-xs dark:bg-green-900/20 dark:text-green-400">
+                        현재
+                      </span>
+                    )}
+                  </div>
                 </CustomSelectItem>
               ))}
             </CustomSelectContent>
-          </CustomSelect>
-        </div>
-      </Card>
+        </CustomSelect>
+      </div>
+
+      {/* Date Range Selection Dropdown */}
+      <div className="mb-3">
+        <CustomSelect value={selectedDateRange} onValueChange={setSelectedDateRange}>
+          <CustomSelectTrigger className={cn(
+            "w-full justify-between text-left",
+            touchMode === 'glove' ? 'min-h-[60px]' : 
+              touchMode === 'precision' ? 'min-h-[44px]' : 
+              'min-h-[48px]',
+            isLargeFont ? 'text-base' : 'text-sm'
+          )}>
+            <CustomSelectValue>
+              {selectedDateRange}
+            </CustomSelectValue>
+          </CustomSelectTrigger>
+          <CustomSelectContent>
+            {dateRangeOptions.map(option => (
+              <CustomSelectItem key={option.value} value={option.value}>
+                {option.label}
+              </CustomSelectItem>
+            ))}
+          </CustomSelectContent>
+        </CustomSelect>
+      </div>
 
       {/* Simple Salary Table - Exactly like Image 1 */}
       <div className="bg-gray-50 dark:bg-gray-800 rounded-lg overflow-hidden">
@@ -323,9 +368,9 @@ export function SalaryView({ profile }: SalaryViewProps) {
                 )}
                 onClick={() => handleRowClick(salary)}
               >
-                <div className="grid grid-cols-7 gap-1 items-center text-sm">
+                <div className="grid grid-cols-7 gap-1 items-center text-xs">
                   <div className="font-medium text-gray-900 dark:text-gray-100 whitespace-nowrap">{salary.month}</div>
-                  <div className="text-gray-600 dark:text-gray-400 whitespace-nowrap">{salary.site}</div>
+                  <div className="text-gray-600 dark:text-gray-400 whitespace-nowrap truncate">{salary.site}</div>
                   <div className="text-center whitespace-nowrap">{salary.workDays}일</div>
                   <div className="text-right whitespace-nowrap">{Math.floor(salary.basicPay / 10000)}만</div>
                   <div className="text-right whitespace-nowrap">{Math.floor(salary.overtimePay / 10000)}만</div>
@@ -349,6 +394,22 @@ export function SalaryView({ profile }: SalaryViewProps) {
               </div>
             ))
           )}
+        </div>
+      </div>
+
+      {/* Usage Guide Message */}
+      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mb-3">
+        <div className="flex items-start gap-2">
+          <div className="flex-shrink-0 mt-0.5">
+            <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
+              <span className="text-white text-xs font-bold">i</span>
+            </div>
+          </div>
+          <div className="text-xs text-blue-800 dark:text-blue-200">
+            <p className="font-medium mb-1">💡 사용 안내</p>
+            <p>• 각 월을 클릭하시면 상세 급여내역과 계산과정을 확인할 수 있습니다</p>
+            <p>• PDF 버튼을 클릭하면 급여명세서를 다운로드할 수 있습니다</p>
+          </div>
         </div>
       </div>
 

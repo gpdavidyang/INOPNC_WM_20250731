@@ -660,6 +660,61 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
     }
   }, [fetchSiteData, loadAnnouncements])
 
+  // Auto-login when no current site and not loading
+  useEffect(() => {
+    const attemptAutoLogin = async () => {
+      // Only attempt auto-login if no current site and not already loading
+      if (currentSite || loading) return
+      
+      // Check if localStorage indicates a previous session
+      const hasStoredSession = localStorage.getItem('inopnc-login-success')
+      if (hasStoredSession) {
+        console.log('🔍 [AUTO-LOGIN] Previous session found in localStorage, skipping auto-login')
+        return
+      }
+      
+      console.log('🚀 [AUTO-LOGIN] Attempting automatic login...')
+      
+      try {
+        // Check if already authenticated
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
+          console.log('✅ [AUTO-LOGIN] User already authenticated:', user.email)
+          fetchSiteData()
+          return
+        }
+        
+        console.log('🔄 [AUTO-LOGIN] No session found, attempting manager login...')
+        
+        // Auto-login with manager credentials
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: 'manager@inopnc.com',
+          password: 'password123'
+        })
+        
+        if (error) {
+          console.error('❌ [AUTO-LOGIN] Auto-login failed:', error)
+          return
+        }
+        
+        console.log('✅ [AUTO-LOGIN] Auto-login successful:', data.user?.email)
+        
+        // Wait for session to establish and fetch site data
+        setTimeout(() => {
+          fetchSiteData()
+        }, 1000)
+        
+      } catch (error) {
+        console.error('❌ [AUTO-LOGIN] Auto-login error:', error)
+      }
+    }
+    
+    // Delay auto-login to avoid conflicts with initial data loading
+    const timeoutId = setTimeout(attemptAutoLogin, 2000)
+    
+    return () => clearTimeout(timeoutId)
+  }, [currentSite, loading, fetchSiteData])
+
   const copyToClipboard = async (text: string, type: string) => {
     try {
       await navigator.clipboard.writeText(text)
@@ -776,8 +831,8 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
         </CardContent>
       </Card>
 
-      {/* Authentication Status Debug - Always show if no current site */}
-      {!currentSite && (
+      {/* Auto-login logic when no current site - removed yellow login box */}
+      {false && (
         <Card className="mb-4 border-yellow-200 bg-yellow-50 dark:bg-yellow-900/20">
           <CardContent className="p-4">
             <div className="space-y-4">

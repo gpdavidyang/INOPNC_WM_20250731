@@ -54,6 +54,15 @@ export default function DashboardLayout({ user, profile, children, initialActive
     }
   }, [pathname]) // ✅ Removed children and activeTab dependency to prevent loops
 
+  // Handle navigation for dedicated pages - MOVED OUT OF RENDER
+  useEffect(() => {
+    if (activeTab === 'attendance' && pathname !== '/dashboard/attendance') {
+      router.push('/dashboard/attendance')
+    } else if (activeTab === 'documents' && pathname !== '/dashboard/documents') {
+      router.push('/dashboard/documents')
+    }
+  }, [activeTab, pathname, router])
+
   // REMOVED: This effect causes circular routing and performance issues
   // Navigation should be handled by user actions, not state changes
   // Each navigation component (sidebar, bottom nav, quick menu) handles its own routing
@@ -175,10 +184,7 @@ export default function DashboardLayout({ user, profile, children, initialActive
       case 'daily-reports':
         return <DailyReportTab profile={profile} />
       case 'attendance':
-        // Navigate to dedicated attendance page instead of rendering inline
-        if (pathname !== '/dashboard/attendance') {
-          router.push('/dashboard/attendance')
-        }
+        // Show fallback content while navigation happens
         return <HomeTab 
           profile={profile} 
           onTabChange={setActiveTab}
@@ -187,11 +193,7 @@ export default function DashboardLayout({ user, profile, children, initialActive
       case 'documents-unified':
         return <DocumentsTabUnified profile={profile} initialSearch={documentsInitialSearch} />
       case 'documents':
-        // Documents has its own dedicated page at /dashboard/documents
-        // This case shouldn't normally be reached when using the dedicated page
-        if (pathname !== '/dashboard/documents') {
-          router.push('/dashboard/documents')
-        }
+        // Show fallback content while navigation happens
         return <HomeTab 
           profile={profile} 
           onTabChange={setActiveTab}

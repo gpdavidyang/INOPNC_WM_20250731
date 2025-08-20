@@ -75,6 +75,13 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
         // 직접 경로는 통합 네비게이션 컨트롤러 사용
         console.log('[BottomNav] Navigating to:', item.href)
         if (pathname !== item.href) {
+          // Temporary fix for documents navigation issue
+          if (item.href === '/dashboard/documents') {
+            console.log('[BottomNav] Using window.location for documents')
+            window.location.href = item.href
+            return
+          }
+          
           navigate(item.href)
         }
       }

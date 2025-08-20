@@ -11,6 +11,7 @@ import {
   Camera, FileCheck, ChevronUp, ChevronDown
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import ShareDialog from '@/components/documents/share-dialog'
 
 interface DocumentsTabProps {
   profile: Profile
@@ -78,6 +79,8 @@ export default function DocumentsTab({ profile }: DocumentsTabProps) {
   const [showShareModal, setShowShareModal] = useState(false)
   const [isSelectionMode, setIsSelectionMode] = useState(false)
   const [isRequiredDocsExpanded, setIsRequiredDocsExpanded] = useState(false)
+  const [shareDialogOpen, setShareDialogOpen] = useState(false)
+  const [documentToShare, setDocumentToShare] = useState<Document | null>(null)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const supabase = createClient()
@@ -415,6 +418,21 @@ export default function DocumentsTab({ profile }: DocumentsTabProps) {
     if (!doc) return
 
     setDocuments(prev => prev.filter(d => d.id !== documentId))
+  }
+
+  const handleShareDocument = (document: Document) => {
+    setDocumentToShare(document)
+    setShareDialogOpen(true)
+  }
+
+  const generateShareUrl = (document: Document) => {
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
+    return `${baseUrl}/dashboard/documents/shared/${document.id}?token=${generateShareToken(document.id)}`
+  }
+
+  const generateShareToken = (documentId: string) => {
+    // Generate a simple share token (in production, this should be more secure)
+    return btoa(`${documentId}-${Date.now()}`).substring(0, 16)
   }
 
   const handleViewDocument = (document: Document) => {
@@ -871,6 +889,13 @@ export default function DocumentsTab({ profile }: DocumentsTabProps) {
                             <Download className="h-4 w-4" />
                           </button>
                           <button
+                            onClick={() => handleShareDocument(document)}
+                            className="p-1.5 text-gray-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg transition-colors"
+                            title="공유하기"
+                          >
+                            <Share2 className="h-4 w-4" />
+                          </button>
+                          <button
                             onClick={() => deleteDocument(document.id)}
                             className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                             title="삭제"
@@ -981,6 +1006,13 @@ export default function DocumentsTab({ profile }: DocumentsTabProps) {
                                 <Download className="h-4 w-4" />
                               </button>
                               <button
+                                onClick={() => handleShareDocument(document)}
+                                className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg transition-colors"
+                                title="공유하기"
+                              >
+                                <Share2 className="h-4 w-4" />
+                              </button>
+                              <button
                                 onClick={() => deleteDocument(document.id)}
                                 className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                                 title="삭제"
@@ -1076,6 +1108,19 @@ export default function DocumentsTab({ profile }: DocumentsTabProps) {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Individual Document Share Dialog */}
+      {shareDialogOpen && documentToShare && (
+        <ShareDialog
+          isOpen={shareDialogOpen}
+          onClose={() => {
+            setShareDialogOpen(false)
+            setDocumentToShare(null)
+          }}
+          document={documentToShare}
+          shareUrl={generateShareUrl(documentToShare)}
+        />
       )}
     </div>
   )

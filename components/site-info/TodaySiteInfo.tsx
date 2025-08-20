@@ -774,7 +774,15 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
                               다시 시도
                             </button>
                             <button
-                              onClick={() => window.open(siteDocuments?.ptw_document?.file_url || '/documents/PTW-2025-55386936.pdf', '_blank')}
+                              onClick={() => {
+                                const pdfUrl = siteDocuments?.ptw_document?.file_url || '/documents/PTW-2025-55386936.pdf'
+                                const title = siteDocuments?.ptw_document?.title || 'PTW 작업허가서'
+                                const docNumber = siteDocuments?.ptw_document?.id || 'PTW-2025-55386936'
+                                
+                                // 새로운 PDF 뷰어 페이지로 이동
+                                const viewerUrl = `/pdf-viewer?url=${encodeURIComponent(pdfUrl)}&title=${encodeURIComponent(title)}&docNumber=${encodeURIComponent(docNumber)}`
+                                window.open(viewerUrl, '_blank')
+                              }}
                               className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-600 text-white text-sm font-medium rounded-lg hover:bg-gray-700 active:bg-gray-800 transition-colors shadow-sm"
                             >
                               <ExternalLink className="h-4 w-4" />
@@ -786,14 +794,20 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
                       
                       <div className="mt-2 flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
                         <span>문서번호: PTW-2025-{siteInfo.id?.slice(0, 8)}</span>
-                        {siteDocuments?.ptw_document && (
-                          <button
-                            onClick={() => window.open(siteDocuments.ptw_document!.file_url, '_blank')}
-                            className="text-gray-600 hover:text-gray-700 dark:text-gray-400"
-                          >
-                            새 창에서 열기
-                          </button>
-                        )}
+                        <button
+                          onClick={() => {
+                            const pdfUrl = siteDocuments?.ptw_document?.file_url || '/documents/PTW-2025-55386936.pdf'
+                            const title = siteDocuments?.ptw_document?.title || 'PTW 작업허가서'
+                            const docNumber = siteDocuments?.ptw_document?.id || 'PTW-2025-55386936'
+                            
+                            // 새로운 PDF 뷰어 페이지로 이동
+                            const viewerUrl = `/pdf-viewer?url=${encodeURIComponent(pdfUrl)}&title=${encodeURIComponent(title)}&docNumber=${encodeURIComponent(docNumber)}`
+                            window.open(viewerUrl, '_blank')
+                          }}
+                          className="text-gray-600 hover:text-gray-700 dark:text-gray-400"
+                        >
+                          새 창에서 열기
+                        </button>
                       </div>
                     </div>
                   </div>

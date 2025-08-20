@@ -177,6 +177,27 @@ export function ToolPalette({
                 )}
               </Button>
             ))}
+            
+            {/* 확대/축소 버튼들 */}
+            {viewTools.map(tool => (
+              <Button
+                key={tool.id}
+                variant="ghost"
+                size="compact"
+                onClick={() => {
+                  console.log('View tool clicked (mobile):', tool.id, tool.label)
+                  onToolChange(tool.id)
+                }}
+                className={cn(
+                  "min-w-[48px] min-h-[48px] p-2 rounded-xl",
+                  "active:scale-95 transition-all duration-200 touch-manipulation",
+                  "bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 hover:from-green-100 hover:to-green-200 dark:hover:from-green-800/30 dark:hover:to-green-700/30 border-2 border-green-200 dark:border-green-700"
+                )}
+                title={tool.label}
+              >
+                <tool.icon className="h-6 w-6 text-green-600 dark:text-green-400" strokeWidth={2.5} />
+              </Button>
+            ))}
           </div>
           
           {/* 삭제 버튼 */}

@@ -32,6 +32,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/custom-select'
+import ShareDialog from '@/components/documents/share-dialog'
 
 interface MarkupDocumentListProps {
   onCreateNew: () => void
@@ -67,6 +68,8 @@ export function MarkupDocumentList({
   const [error, setError] = useState<string | null>(null)
   const [selectedDocuments, setSelectedDocuments] = useState<string[]>([])
   const [showShareModal, setShowShareModal] = useState(false)
+  const [shareDialogOpen, setShareDialogOpen] = useState(false)
+  const [documentToShare, setDocumentToShare] = useState<MarkupDocument | null>(null)
   const [isSelectionMode, setIsSelectionMode] = useState(false)
 
   // 현장 목록 (실제로는 Supabase에서 가져와야 함)
@@ -145,6 +148,21 @@ export function MarkupDocumentList({
     } catch (err) {
       alert(err instanceof Error ? err.message : 'An error occurred while deleting')
     }
+  }
+
+  const handleShareDocument = (document: MarkupDocument) => {
+    setDocumentToShare(document)
+    setShareDialogOpen(true)
+  }
+
+  const generateShareUrl = (document: MarkupDocument) => {
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
+    return `${baseUrl}/dashboard/markup/shared/${document.id}?token=${generateShareToken(document.id)}`
+  }
+
+  const generateShareToken = (documentId: string) => {
+    // Generate a simple share token (in production, this should be more secure)
+    return btoa(`${documentId}-${Date.now()}`).substring(0, 16)
   }
 
   const formatDate = (dateString: string) => {
@@ -544,6 +562,13 @@ export function MarkupDocumentList({
                         <Edit className="h-4 w-4" />
                       </button>
                       <button
+                        onClick={() => handleShareDocument(doc)}
+                        className="p-1.5 text-gray-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg transition-colors"
+                        title="공유하기"
+                      >
+                        <Share2 className="h-4 w-4" />
+                      </button>
+                      <button
                         onClick={() => handleDelete(doc.id)}
                         className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                         title="삭제"
@@ -626,6 +651,13 @@ export function MarkupDocumentList({
                                 title="편집"
                               >
                                 <Edit className="h-4 w-4" />
+                              </button>
+                              <button
+                                onClick={() => handleShareDocument(doc)}
+                                className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg transition-colors"
+                                title="공유하기"
+                              >
+                                <Share2 className="h-4 w-4" />
                               </button>
                               <button
                                 onClick={() => handleDelete(doc.id)}
@@ -736,6 +768,19 @@ export function MarkupDocumentList({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Individual Document Share Dialog */}
+      {shareDialogOpen && documentToShare && (
+        <ShareDialog
+          isOpen={shareDialogOpen}
+          onClose={() => {
+            setShareDialogOpen(false)
+            setDocumentToShare(null)
+          }}
+          document={documentToShare}
+          shareUrl={generateShareUrl(documentToShare)}
+        />
       )}
     </div>
   )

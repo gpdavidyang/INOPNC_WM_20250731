@@ -33,16 +33,12 @@ export default function DocumentsPage({ searchParams }: DocumentsPageProps) {
         console.log('[DocumentsPage] User authenticated:', user.email)
         setUser(user)
 
-        // Get user profile with site information  
+        // Get user profile - simplified query without site_assignments
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select(`
             *,
-            organization:organizations(*),
-            site_assignments(
-              site_id,
-              site:sites(id, name)
-            )
+            organization:organizations(*)
           `)
           .eq('id', user.id)
           .single()

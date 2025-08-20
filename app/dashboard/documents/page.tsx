@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import DashboardLayout from '@/components/dashboard/dashboard-layout'
-import { DocumentsPageWithTabs } from '@/components/documents/documents-page-with-tabs'
+import DocumentsTabUnified from '@/components/dashboard/tabs/documents-tab-unified'
 
 interface DocumentsPageProps {
   searchParams: { [key: string]: string | string[] | undefined }
@@ -82,7 +82,11 @@ export default function DocumentsPage({ searchParams }: DocumentsPageProps) {
       user={user} 
       profile={profile}
     >
-      <DocumentsPageWithTabs profile={profile} searchParams={searchParams} />
+      <DocumentsTabUnified 
+        profile={profile} 
+        initialTab={(searchParams?.tab as 'personal' | 'shared' | 'markup') || 'personal'}
+        initialSearch={searchParams?.search as string}
+      />
     </DashboardLayout>
   )
 }

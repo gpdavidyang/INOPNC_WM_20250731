@@ -12,7 +12,7 @@ import { Card } from '@/components/ui/card'
 import { createClient } from '@/lib/supabase/client'
 import { useFontSize, getFullTypographyClass } from '@/contexts/FontSizeContext'
 import { useTouchMode } from '@/contexts/TouchModeContext'
-import { Package, ArrowDown, ArrowUp, FileText } from 'lucide-react'
+import { Package, ArrowDown, ArrowUp, FileText, AlertCircle } from 'lucide-react'
 import { toast } from 'sonner'
 import { createMaterialTransaction } from '@/app/actions/materials'
 
@@ -122,10 +122,13 @@ export default function InventoryRecordDialog({
       return
     }
 
-    const remainingNum = remainingQuantity ? parseFloat(remainingQuantity) : 0
-    if (remainingQuantity && (isNaN(remainingNum) || remainingNum < 0)) {
-      toast.error('올바른 잔여 수량을 입력해주세요.')
-      return
+    // Check for negative stock warning
+    const projectedStock = calculateProjectedStock()
+    if (projectedStock < 0 && activeTab === 'outgoing') {
+      const confirmed = window.confirm(
+        `사용 후 재고가 음수가 됩니다 (${projectedStock}kg).\n계속 진행하시겠습니까?`
+      )
+      if (!confirmed) return
     }
 
     setSaving(true)
@@ -155,7 +158,7 @@ export default function InventoryRecordDialog({
         site_id: siteId,
         material_id: npcMaterial.id,
         quantity: quantityNum,
-        notes: `${actionText} 기록 - NPC-1000${notes ? ' | ' + notes : ''}${remainingQuantity ? ' | 잔여: ' + remainingQuantity + 'kg' : ''}`
+        notes: `${actionText} 기록 - NPC-1000 | 계산 후 재고: ${projectedStock}kg${notes ? ' | ' + notes : ''}`
       })
 
       if (!transactionResult.success) {
@@ -288,13 +291,63 @@ export default function InventoryRecordDialog({
             />
           </div>
 
-          {/* Summary Card */}
+          {/* Stock Calculation Card */}
+          {quantity && (
+            <Card className="p-4 bg-green-50 dark:bg-green-900/10 border-green-200 dark:border-green-800">
+              <div className="flex items-center gap-2 mb-4">
+                <Package className="h-5 w-5 text-green-600" />
+                <h3 className={`${getFullTypographyClass('heading', 'sm', isLargeFont)} font-medium text-green-800 dark:text-green-400`}>
+                  재고 계산
+                </h3>
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-muted-foreground">현재 재고:</span>
+                  <span className="font-medium text-lg">
+                    {currentStock.toLocaleString()} kg
+                  </span>
+                </div>
+                
+                <div className="flex justify-between items-center py-2 border-t">
+                  <span className="text-muted-foreground">
+                    {activeTab === 'incoming' ? '입고량 (+)' : '사용량 (-)'}:
+                  </span>
+                  <span className={`font-medium text-lg ${
+                    activeTab === 'incoming' ? 'text-green-600' : 'text-red-600'
+                  }`}>
+                    {activeTab === 'incoming' ? '+' : '-'}{parseFloat(quantity || '0').toLocaleString()} kg
+                  </span>
+                </div>
+                
+                <div className="flex justify-between items-center py-2 border-t bg-gray-50 dark:bg-gray-800 -mx-4 px-4 rounded">
+                  <span className="font-semibold">계산 후 재고:</span>
+                  <span className={`font-bold text-xl ${
+                    calculateProjectedStock() < 0 ? 'text-red-600' : 'text-blue-600'
+                  }`}>
+                    {calculateProjectedStock().toLocaleString()} kg
+                  </span>
+                </div>
+                
+                {calculateProjectedStock() < 0 && (
+                  <div className="flex items-center gap-2 mt-2 p-2 bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800 rounded">
+                    <AlertCircle className="h-4 w-4 text-red-600" />
+                    <span className="text-sm text-red-600">
+                      재고가 부족합니다. 음수 재고가 발생할 예정입니다.
+                    </span>
+                  </div>
+                )}
+              </div>
+            </Card>
+          )}
+
+          {/* Transaction Summary */}
           {quantity && (
             <Card className="p-4 bg-blue-50 dark:bg-blue-900/10 border-blue-200 dark:border-blue-800">
               <div className="flex items-center gap-2 mb-3">
                 <FileText className="h-5 w-5 text-blue-600" />
                 <h3 className={`${getFullTypographyClass('heading', 'sm', isLargeFont)} font-medium text-blue-800 dark:text-blue-400`}>
-                  기록 요약
+                  거래 요약
                 </h3>
               </div>
               

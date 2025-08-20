@@ -33,7 +33,8 @@ import {
   Mail,
   Archive,
   MailOpen,
-  History
+  History,
+  Settings
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { ko } from 'date-fns/locale'
@@ -46,6 +47,7 @@ import {
   deleteNotification
 } from '@/app/actions/notifications'
 import { toast } from 'sonner'
+import { NotificationSettings } from './notification-settings'
 
 export function NotificationsContent() {
   const { isLargeFont } = useFontSize()
@@ -58,6 +60,7 @@ export function NotificationsContent() {
   const [selectedNotifications, setSelectedNotifications] = useState<Set<string>>(new Set())
   const [bulkActionLoading, setBulkActionLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showSettings, setShowSettings] = useState(false)
 
   useEffect(() => {
     loadNotifications()
@@ -347,8 +350,40 @@ export function NotificationsContent() {
   }
 
   return (
-    <Tabs defaultValue="active" className="w-full">
-      <TabsList className="grid w-full grid-cols-3 mb-4">
+    <div className="w-full space-y-4">
+      {/* Header with Actions */}
+      <div className="flex items-center justify-between">
+        <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+          알림
+        </h1>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleMarkAllRead}
+            disabled={bulkActionLoading || unreadCount === 0}
+            className="h-8 px-3 text-xs"
+          >
+            {bulkActionLoading ? (
+              <Loader2 className="h-3 w-3 animate-spin" />
+            ) : (
+              <CheckCheck className="h-3 w-3 mr-1" />
+            )}
+            모두읽음
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowSettings(true)}
+            className="h-8 w-8 p-0"
+          >
+            <Settings className="h-3 w-3" />
+          </Button>
+        </div>
+      </div>
+
+      <Tabs defaultValue="active" className="w-full">
+        <TabsList className="grid w-full grid-cols-3 mb-4">
         <TabsTrigger value="active" className="text-sm">
           <Bell className="h-4 w-4 mr-2" />
           활성 알림
@@ -592,6 +627,13 @@ export function NotificationsContent() {
       <TabsContent value="history">
         <NotificationHistory />
       </TabsContent>
-    </Tabs>
+      </Tabs>
+
+      {/* Settings Modal */}
+      <NotificationSettings
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
+      />
+    </div>
   )
 }

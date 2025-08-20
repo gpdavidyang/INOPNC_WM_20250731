@@ -196,7 +196,7 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
                 T맵
               </button>
             </div>
-            <div className="pl-6 text-[11px] text-gray-600 dark:text-gray-400">
+            <div className="pl-6 text-sm text-gray-600 dark:text-gray-400">
               {siteInfo.address.full_address}
             </div>
           </div>
@@ -222,7 +222,7 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
                   T맵
                 </button>
               </div>
-              <div className="pl-6 text-[11px] text-gray-600 dark:text-gray-400">
+              <div className="pl-6 text-sm text-gray-600 dark:text-gray-400">
                 {siteInfo.accommodation.full_address}
               </div>
             </div>
@@ -253,7 +253,7 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
                       <Phone className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
                     </button>
                   </div>
-                  <div className="pl-6 text-[11px] text-gray-600 dark:text-gray-400">
+                  <div className="pl-6 text-sm text-gray-600 dark:text-gray-400">
                     {manager.name} • {manager.phone}
                   </div>
                 </div>
@@ -280,7 +280,7 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
                       <Phone className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
                     </button>
                   </div>
-                  <div className="pl-6 text-[11px] text-gray-600 dark:text-gray-400">
+                  <div className="pl-6 text-sm text-gray-600 dark:text-gray-400">
                     {manager.name} • {manager.phone}
                   </div>
                 </div>
@@ -673,11 +673,11 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
                       {/* Enhanced PDF Viewer - Using browser native PDF support */}
                       <div className="w-full h-96 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden bg-gray-50 dark:bg-gray-900 relative">
                         {/* Primary: Use iframe with browser PDF viewer */}
-                        {!pdfLoadError && siteDocuments?.ptw_document && (
+                        {!pdfLoadError && (
                           <iframe
-                            src={`${siteDocuments.ptw_document.file_url}#view=FitH&toolbar=1&navpanes=0&scrollbar=1`}
+                            src={`${siteDocuments?.ptw_document?.file_url || '/documents/PTW-2025-55386936.pdf'}#view=FitH&toolbar=1&navpanes=0&scrollbar=1`}
                             className="w-full h-full"
-                            title={siteDocuments.ptw_document.title || "PTW 작업허가서"}
+                            title={siteDocuments?.ptw_document?.title || "PTW 작업허가서"}
                             style={{
                               border: 'none',
                               background: '#f9fafb'
@@ -774,9 +774,8 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
                               다시 시도
                             </button>
                             <button
-                              onClick={() => window.open(siteDocuments?.ptw_document?.file_url || '/docs/PTW.pdf', '_blank')}
+                              onClick={() => window.open(siteDocuments?.ptw_document?.file_url || '/documents/PTW-2025-55386936.pdf', '_blank')}
                               className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-600 text-white text-sm font-medium rounded-lg hover:bg-gray-700 active:bg-gray-800 transition-colors shadow-sm"
-                              disabled={!siteDocuments?.ptw_document}
                             >
                               <ExternalLink className="h-4 w-4" />
                               새 창에서 보기
@@ -807,14 +806,13 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
                 onClick={() => {
                   // Download PTW PDF
                   const link = document.createElement('a')
-                  link.href = siteDocuments?.ptw_document?.file_url || '/docs/PTW.pdf'
-                  link.download = siteDocuments?.ptw_document?.file_name || `PTW_${siteInfo.name}_${new Date().toISOString().split('T')[0]}.pdf`
+                  link.href = siteDocuments?.ptw_document?.file_url || '/documents/PTW-2025-55386936.pdf'
+                  link.download = siteDocuments?.ptw_document?.file_name || `PTW-2025-55386936.pdf`
                   document.body.appendChild(link)
                   link.click()
                   document.body.removeChild(link)
                 }}
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gray-600 text-white rounded-xl hover:bg-gray-700 active:bg-gray-800 transition-colors font-medium shadow-sm"
-                disabled={!siteDocuments?.ptw_document}
               >
                 <Download className="h-4 w-4" />
                 <span>다운로드</span>

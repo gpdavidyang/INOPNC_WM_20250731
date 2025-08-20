@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import {
   MapPin, Home, Wrench, Copy, Navigation, User, Phone,
   ChevronDown, ChevronUp, Check, ExternalLink, ShieldCheck, Building2,
-  FileText, Map, Download, X, Eye
+  FileText, Map, Download, X, Eye, Share2
 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { SiteInfo, AccommodationAddress, ProcessInfo } from '@/types/site-info'
@@ -406,32 +406,81 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
                     const fileUrl = siteDocuments?.blueprint_document?.file_url || '/docs/강남A현장_공도면.jpg'
                     const fileName = siteDocuments?.blueprint_document?.file_name || `강남A현장_공도면_${new Date().toISOString().split('T')[0]}.jpg`
                     
-                    // 모바일에서 더 안정적인 다운로드를 위한 처리
-                    if (typeof window !== 'undefined') {
-                      // 브라우저별 호환성 체크
-                      if ('download' in document.createElement('a')) {
-                        // HTML5 download attribute 지원하는 브라우저
-                        const link = document.createElement('a')
-                        link.href = fileUrl
-                        link.download = fileName
-                        link.target = '_blank' // 새 탭에서 열기 (모바일 호환성)
-                        document.body.appendChild(link)
-                        link.click()
-                        document.body.removeChild(link)
+                    // PWA 환경 감지
+                    const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
+                                  (window.navigator as any).standalone === true ||
+                                  document.referrer.includes('android-app://');
+                    
+                    if (isPWA) {
+                      // iOS에서 Web Share API 사용 가능한지 확인
+                      if (navigator.share) {
+                        try {
+                          const response = await fetch(fileUrl)
+                          if (!response.ok) throw new Error('파일 로드 실패')
+                          
+                          const blob = await response.blob()
+                          const file = new File([blob], fileName, { type: blob.type })
+                          
+                          await navigator.share({
+                            title: '강남A현장 공도면',
+                            text: '현장 공도면을 공유합니다',
+                            files: [file]
+                          })
+                          
+                          toast.success('공도면을 공유했습니다')
+                        } catch (shareError) {
+                          console.error('공유 실패:', shareError)
+                          // 공유 실패시 기본 다운로드 시도
+                          fallbackDownload()
+                        }
                       } else {
-                        // 구형 브라우저 또는 iOS Safari
-                        window.open(fileUrl, '_blank')
+                        // Web Share API 미지원시 기본 다운로드
+                        fallbackDownload()
                       }
                       
-                      // 사용자 피드백
+                      async function fallbackDownload() {
+                        try {
+                          const response = await fetch(fileUrl)
+                          if (!response.ok) throw new Error('파일 다운로드 실패')
+                          
+                          const blob = await response.blob()
+                          const url = window.URL.createObjectURL(blob)
+                          
+                          // 다운로드 링크 생성 (PWA 내부에서)
+                          const link = document.createElement('a')
+                          link.href = url
+                          link.download = fileName
+                          link.style.display = 'none'
+                          document.body.appendChild(link)
+                          link.click()
+                          
+                          // 정리
+                          window.URL.revokeObjectURL(url)
+                          document.body.removeChild(link)
+                          
+                          toast.success('공도면이 다운로드되었습니다')
+                        } catch (fetchError) {
+                          console.error('PWA 다운로드 실패:', fetchError)
+                          toast.error('다운로드 실패. 브라우저에서 접속해주세요.')
+                        }
+                      }
+                    } else {
+                      // 일반 브라우저에서는 기존 방식
+                      const link = document.createElement('a')
+                      link.href = fileUrl
+                      link.download = fileName
+                      link.style.display = 'none'
+                      document.body.appendChild(link)
+                      link.click()
+                      document.body.removeChild(link)
+                      
                       toast.success('공도면 다운로드를 시작합니다')
-                      console.log(`다운로드 시작: ${fileName}`)
                     }
+                    
+                    console.log(`다운로드 시작: ${fileName}`)
                   } catch (error) {
                     console.error('다운로드 실패:', error)
-                    toast.error('다운로드 실패. 새 창에서 열어보세요.')
-                    // 오류 시 새 창에서 열기
-                    window.open(siteDocuments?.blueprint_document?.file_url || '/docs/강남A현장_공도면.jpg', '_blank')
+                    toast.error('다운로드에 실패했습니다.')
                   }
                 }}
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gray-600 text-white rounded-xl hover:bg-gray-700 active:bg-gray-800 transition-colors font-medium shadow-sm"

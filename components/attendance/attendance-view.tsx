@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { 
@@ -57,14 +57,12 @@ export function AttendanceView({ profile }: AttendanceViewProps) {
   const [selectedSite, setSelectedSite] = useState<string>('all')
   const [siteHistory, setSiteHistory] = useState<UserSiteHistory[]>([])
   const [attendanceData, setAttendanceData] = useState<AttendanceData[]>([])
-  const [monthlyStats, setMonthlyStats] = useState<MonthlyStats>({
-    totalDays: 0,
-    totalHours: 0,
-    totalLaborHours: 0
-  })
   const [loading, setLoading] = useState(false)
   const [activeTab, setActiveTab] = useState<'personal' | 'company'>('personal')
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
+  
+  // Data cache for performance optimization
+  const [dataCache, setDataCache] = useState<Map<string, { data: AttendanceData[], timestamp: number }>>(new Map())
 
   // Load site history on mount
   useEffect(() => {
@@ -96,14 +94,26 @@ export function AttendanceView({ profile }: AttendanceViewProps) {
     }
   }
 
-  const loadAttendanceData = async () => {
+  const loadAttendanceData = useCallback(async () => {
     if (!profile?.id) return
+    
+    const startDate = startOfMonth(currentDate)
+    const endDate = endOfMonth(currentDate)
+    
+    // Create cache key
+    const cacheKey = `${profile.id}-${selectedSite}-${format(startDate, 'yyyy-MM')}`
+    const cached = dataCache.get(cacheKey)
+    const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
+    
+    // Use cached data if available and not expired
+    if (cached && (Date.now() - cached.timestamp < CACHE_DURATION)) {
+      console.log('[AttendanceView] Using cached data for:', cacheKey)
+      setAttendanceData(cached.data)
+      return
+    }
     
     setLoading(true)
     try {
-      const startDate = startOfMonth(currentDate)
-      const endDate = endOfMonth(currentDate)
-      
       const params = {
         user_id: profile.id,
         site_id: selectedSite === 'all' ? undefined : selectedSite,
@@ -111,17 +121,20 @@ export function AttendanceView({ profile }: AttendanceViewProps) {
         date_to: format(endDate, 'yyyy-MM-dd')
       }
       
+      console.log('[AttendanceView] Fetching attendance data:', params)
       const result = await getAttendanceRecords(params)
       
       if (result.success && result.data) {
-        setAttendanceData(result.data as AttendanceData[])
+        const data = result.data as AttendanceData[]
+        setAttendanceData(data)
         
-        // Calculate monthly statistics
-        const stats = calculateMonthlyStats(result.data as AttendanceData[])
-        setMonthlyStats(stats)
+        // Cache the data
+        setDataCache(prev => new Map(prev.set(cacheKey, { 
+          data, 
+          timestamp: Date.now() 
+        })))
       } else {
         setAttendanceData([])
-        setMonthlyStats({ totalDays: 0, totalHours: 0, totalLaborHours: 0 })
       }
     } catch (error) {
       console.error('Failed to load attendance data:', error)
@@ -129,9 +142,9 @@ export function AttendanceView({ profile }: AttendanceViewProps) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [profile?.id, currentDate, selectedSite, dataCache])
 
-  const calculateMonthlyStats = (data: AttendanceData[]): MonthlyStats => {
+  const calculateMonthlyStats = useCallback((data: AttendanceData[]): MonthlyStats => {
     const presentDays = data.filter(d => d.status === 'present' || d.labor_hours > 0)
     const totalDays = presentDays.length
     const totalHours = data.reduce((sum, d) => sum + (d.work_hours || 0), 0)
@@ -142,7 +155,7 @@ export function AttendanceView({ profile }: AttendanceViewProps) {
       totalHours: Math.round(totalHours * 10) / 10,
       totalLaborHours: Math.round(totalLaborHours * 10) / 10
     }
-  }
+  }, [])
 
   const navigateMonth = (direction: 'prev' | 'next') => {
     setCurrentDate(prev => {
@@ -152,10 +165,10 @@ export function AttendanceView({ profile }: AttendanceViewProps) {
     })
   }
 
-  const getAttendanceForDate = (date: Date): AttendanceData | undefined => {
+  const getAttendanceForDate = useCallback((date: Date): AttendanceData | undefined => {
     const dateStr = format(date, 'yyyy-MM-dd')
     return attendanceData.find(record => record.work_date === dateStr)
-  }
+  }, [attendanceData])
 
   const handleDateClick = (date: Date) => {
     const attendance = getAttendanceForDate(date)
@@ -180,27 +193,36 @@ export function AttendanceView({ profile }: AttendanceViewProps) {
     }
   }
 
-  // Calendar generation
-  const monthStart = startOfMonth(currentDate)
-  const monthEnd = endOfMonth(currentDate)
-  const monthDays = eachDayOfInterval({ start: monthStart, end: monthEnd })
+  // Memoized calendar generation for performance
+  const { fullCalendarDays, monthStart, monthEnd } = useMemo(() => {
+    const monthStart = startOfMonth(currentDate)
+    const monthEnd = endOfMonth(currentDate)
+    const monthDays = eachDayOfInterval({ start: monthStart, end: monthEnd })
+    
+    // Add padding days for calendar grid
+    const startPadding = getDay(monthStart)
+    const calendarDays = [
+      ...Array(startPadding).fill(null),
+      ...monthDays
+    ]
+
+    // Add trailing padding to complete last week
+    const totalCells = calendarDays.length
+    const trailingPadding = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7)
+    const fullCalendarDays = [
+      ...calendarDays,
+      ...Array(trailingPadding).fill(null)
+    ]
+    
+    return { fullCalendarDays, monthStart, monthEnd }
+  }, [currentDate])
   
-  // Add padding days for calendar grid
-  const startPadding = getDay(monthStart)
-  const calendarDays = [
-    ...Array(startPadding).fill(null),
-    ...monthDays
-  ]
+  // Memoized monthly statistics
+  const monthlyStats = useMemo(() => {
+    return calculateMonthlyStats(attendanceData)
+  }, [attendanceData, calculateMonthlyStats])
 
-  // Add trailing padding to complete last week
-  const totalCells = calendarDays.length
-  const trailingPadding = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7)
-  const fullCalendarDays = [
-    ...calendarDays,
-    ...Array(trailingPadding).fill(null)
-  ]
-
-  const getDayClass = (attendance: AttendanceData | undefined, day: Date | null) => {
+  const getDayClass = useCallback((attendance: AttendanceData | undefined, day: Date | null) => {
     if (!day) return ''
     
     const baseClass = 'relative'
@@ -228,10 +250,10 @@ export function AttendanceView({ profile }: AttendanceViewProps) {
     }
     
     return cn(baseClass, textColor, todayClass, statusClass)
-  }
+  }, [])
 
-  // Function to convert site names to abbreviations
-  const getSiteShortName = (siteName: string): string => {
+  // Memoized function to convert site names to abbreviations
+  const getSiteShortName = useCallback((siteName: string): string => {
     // Remove common suffixes like "현장", "A현장", "B현장", etc.
     const cleanName = siteName.replace(/\s*[A-Z]?현장\s*$/g, '').trim()
     
@@ -264,7 +286,7 @@ export function AttendanceView({ profile }: AttendanceViewProps) {
     
     // If no match, return first 2-3 characters of clean name
     return cleanName.length > 3 ? cleanName.substring(0, 2) : cleanName
-  }
+  }, [])
 
   const selectedSiteInfo = siteHistory.find(s => s.site_id === selectedSite)
 

@@ -260,3 +260,43 @@ export async function requestPushPermission() {
     return { success: false, error: '알림 권한이 거부되었습니다.' }
   }
 }
+
+export async function requestPasswordReset(email: string) {
+  const supabase = createClient()
+
+  try {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/update-password`,
+    })
+
+    if (error) {
+      console.error('Password reset request error:', error)
+      return { error: error.message }
+    }
+
+    return { success: true }
+  } catch (error) {
+    console.error('Password reset request error:', error)
+    return { error: '비밀번호 재설정 요청 중 오류가 발생했습니다.' }
+  }
+}
+
+export async function updatePassword(newPassword: string) {
+  const supabase = createClient()
+
+  try {
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword
+    })
+
+    if (error) {
+      console.error('Password update error:', error)
+      return { error: error.message }
+    }
+
+    return { success: true }
+  } catch (error) {
+    console.error('Password update error:', error)
+    return { error: '비밀번호 업데이트 중 오류가 발생했습니다.' }
+  }
+}

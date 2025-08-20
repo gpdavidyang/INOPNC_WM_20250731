@@ -10,10 +10,14 @@ export default function LoginPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get('redirectTo') || '/dashboard'
+  const message = searchParams.get('message')
   
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(
+    message === 'password-updated' ? '비밀번호가 성공적으로 변경되었습니다. 새 비밀번호로 로그인해주세요.' : null
+  )
   const [showPassword, setShowPassword] = useState(false)
   const [isPending, startTransition] = useTransition()
 
@@ -140,6 +144,15 @@ export default function LoginPage() {
                 </div>
               </div>
             </div>
+
+            {successMessage && (
+              <div className="bg-gradient-to-r from-green-50 to-green-100 border border-green-200 text-green-800 px-5 sm:px-6 py-4 sm:py-5 rounded-2xl text-sm sm:text-base flex items-center space-x-3 shadow-lg backdrop-blur-sm animate-in slide-in-from-top-2 duration-300">
+                <svg className="h-6 w-6 sm:h-7 sm:w-7 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span className="font-medium">{successMessage}</span>
+              </div>
+            )}
 
             {error && (
               <div className="bg-gradient-to-r from-red-50 to-red-100 border border-red-200 text-red-800 px-5 sm:px-6 py-4 sm:py-5 rounded-2xl text-sm sm:text-base flex items-center space-x-3 shadow-lg backdrop-blur-sm animate-in slide-in-from-top-2 duration-300">

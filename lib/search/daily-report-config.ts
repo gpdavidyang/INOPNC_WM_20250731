@@ -39,9 +39,7 @@ export const dailyReportSearchFields: SearchFieldConfig[] = [
     operators: ['equals'],
     options: [
       { value: 'draft', label: '임시저장' },
-      { value: 'submitted', label: '제출됨' },
-      { value: 'approved', label: '승인됨' },
-      { value: 'rejected', label: '반려됨' }
+      { value: 'submitted', label: '제출됨' }
     ]
   },
   {
@@ -124,23 +122,6 @@ export const dailyReportQuickFilters: QuickFilter[] = [
         field: 'status',
         operator: 'equals',
         value: 'submitted'
-      }
-    ]
-  },
-  {
-    id: 'approved_today',
-    label: '오늘 승인',
-    icon: 'CheckCircle',
-    filters: [
-      {
-        field: 'status',
-        operator: 'equals',
-        value: 'approved'
-      },
-      {
-        field: 'approved_at',
-        operator: 'gte',
-        value: new Date().toISOString().split('T')[0]
       }
     ]
   },

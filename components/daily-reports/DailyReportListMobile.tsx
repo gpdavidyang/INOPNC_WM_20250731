@@ -234,8 +234,6 @@ export function DailyReportListMobile({ currentUser, sites = [] }: DailyReportLi
                   <CustomSelectItem value="all">전체 상태</CustomSelectItem>
                   <CustomSelectItem value="draft">임시저장</CustomSelectItem>
                   <CustomSelectItem value="submitted">제출됨</CustomSelectItem>
-                  <CustomSelectItem value="approved">승인됨</CustomSelectItem>
-                  <CustomSelectItem value="rejected">반려됨</CustomSelectItem>
                 </CustomSelectContent>
               </CustomSelect>
 

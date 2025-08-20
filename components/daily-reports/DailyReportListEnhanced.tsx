@@ -124,9 +124,7 @@ export function DailyReportListEnhanced({ currentUser, sites = [] }: DailyReport
     if (selectedStatus !== 'all') {
       const statusNames = {
         draft: '임시저장',
-        submitted: '제출됨',
-        approved: '승인됨',
-        rejected: '반려됨'
+        submitted: '제출됨'
       }
       filters.push({ 
         label: `상태: ${statusNames[selectedStatus as keyof typeof statusNames]}`, 
@@ -612,8 +610,6 @@ export function DailyReportListEnhanced({ currentUser, sites = [] }: DailyReport
                   <CustomSelectItem value="all">전체 상태</CustomSelectItem>
                   <CustomSelectItem value="draft">임시저장</CustomSelectItem>
                   <CustomSelectItem value="submitted">제출됨</CustomSelectItem>
-                  <CustomSelectItem value="approved">승인됨</CustomSelectItem>
-                  <CustomSelectItem value="rejected">반려됨</CustomSelectItem>
                 </CustomSelectContent>
               </CustomSelect>
 

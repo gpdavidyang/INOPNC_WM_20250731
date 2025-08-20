@@ -30,7 +30,15 @@ This document defines the comprehensive UI design system for the INOPNC construc
 --toss-blue-600: #2563EB;    /* Hover states */
 --toss-blue-700: #1D4ED8;    /* Active states */
 
-/* Neutral Colors */
+/* Enhanced Layout Structure Colors */
+--main-bg: #F8FAFC;          /* Main container background (lighter) */
+--section-bg: #FFFFFF;       /* Section/card backgrounds (white) */
+--surface-elevated: #FDFDFD; /* Elevated surfaces (very light gray) */
+--divider-subtle: #E2E8F0;   /* Subtle dividers (blue-gray) */
+--divider-prominent: #CBD5E1; /* Prominent dividers (stronger blue-gray) */
+--section-border: #F1F5F9;   /* Section borders (very light blue-gray) */
+
+/* Traditional Neutral Colors */
 --toss-gray-50: #F9FAFB;     /* Light backgrounds */
 --toss-gray-100: #F3F4F6;    /* Secondary backgrounds */
 --toss-gray-200: #E5E7EB;    /* Borders, dividers */
@@ -62,12 +70,58 @@ This document defines the comprehensive UI design system for the INOPNC construc
 --dust-overlay: rgba(0,0,0,0.8); /* Dust protection overlay */
 ```
 
+### Enhanced Section Layout System
+```css
+/* Layout Background Hierarchy */
+.layout-main {
+  background: var(--main-bg);        /* #F8FAFC - Main container background */
+}
+
+.layout-section {
+  background: var(--section-bg);     /* #FFFFFF - Section backgrounds */
+  border: 1px solid var(--section-border);  /* #F1F5F9 - Subtle borders */
+}
+
+.layout-elevated {
+  background: var(--surface-elevated); /* #FDFDFD - Elevated surfaces */
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+}
+
+/* Enhanced Dividers */
+.divider-subtle {
+  border-color: var(--divider-subtle); /* #E2E8F0 - Subtle dividers */
+}
+
+.divider-prominent {
+  border-color: var(--divider-prominent); /* #CBD5E1 - Strong dividers */
+  border-width: 2px;
+}
+```
+
 ### Dark Mode Colors (Enhanced)
 ```css
 /* Premium Dark Mode Backgrounds */
-dark:bg-gray-900             /* Primary background */
-dark:bg-gray-800             /* Card backgrounds */
-dark:bg-gray-700             /* Secondary backgrounds */
+.dark .layout-main {
+  background: #0F172A;              /* Dark main background */
+}
+
+.dark .layout-section {
+  background: #1E293B;              /* Dark section backgrounds */
+  border-color: #334155;            /* Dark section borders */
+}
+
+.dark .layout-elevated {
+  background: #334155;              /* Dark elevated surfaces */
+  box-shadow: 0 4px 6px rgba(0,0,0,0.4);
+}
+
+.dark .divider-subtle {
+  border-color: #475569;            /* Dark subtle dividers */
+}
+
+.dark .divider-prominent {
+  border-color: #64748B;            /* Dark prominent dividers */
+}
 
 /* Premium Gradient Backgrounds */
 .bg-premium-light {
@@ -316,18 +370,31 @@ sizes: {
 "disabled:opacity-50 disabled:cursor-not-allowed"
 ```
 
-### Card Components
+### Enhanced Card System
 ```css
-/* Standard Card */
+/* Standard Section Card */
 .card {
-  @apply bg-white dark:bg-gray-800 rounded-lg shadow-md 
-         hover:shadow-lg transition-shadow duration-200;
+  @apply bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700
+         shadow-sm hover:shadow-md transition-all duration-200;
 }
 
-/* Card with emphasis */
-.card-emphasis {
-  @apply bg-white dark:bg-gray-800 rounded-2xl shadow-lg 
-         border border-gray-200 dark:border-gray-700;
+/* Elevated Card with Enhanced Visual Separation */
+.card-elevated {
+  @apply bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700
+         shadow-md hover:shadow-lg transition-all duration-200
+         ring-1 ring-slate-100 dark:ring-slate-700;
+}
+
+/* Prominent Section Card */
+.card-prominent {
+  @apply bg-white dark:bg-slate-800 rounded-xl border-2 border-slate-300 dark:border-slate-600
+         shadow-lg hover:shadow-xl transition-all duration-200;
+}
+
+/* Section Header Card */
+.card-section-header {
+  @apply bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-800 dark:to-slate-700
+         border border-slate-200 dark:border-slate-600 rounded-xl p-4;
 }
 ```
 

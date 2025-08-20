@@ -145,27 +145,26 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
 
   return (
     <Card 
-      elevation="sm" 
-      className="theme-transition overflow-hidden border border-gray-200/60 dark:border-gray-600/40 shadow-sm bg-white dark:bg-gray-800/50"
+      className="overflow-hidden bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-md hover:shadow-lg transition-all duration-200 ring-1 ring-slate-100 dark:ring-slate-700 rounded-xl"
       aria-labelledby="site-info-section"
     >
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full px-4 py-3.5 hover:bg-gray-50/80 dark:hover:bg-gray-700/50 transition-all duration-200 theme-transition"
+        className="w-full px-4 py-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-all duration-200"
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <h2 id="site-info-section" className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+            <h2 id="site-info-section" className="text-base font-semibold text-slate-900 dark:text-slate-100">
               오늘의 현장 정보
             </h2>
-            <span className="text-xs text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700/60 px-2 py-0.5 rounded-full">
+            <span className="text-xs text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-full font-medium">
               {siteInfo.name}
             </span>
           </div>
           {isExpanded ? (
-            <ChevronUp className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+            <ChevronUp className="h-5 w-5 text-slate-500 dark:text-slate-400" />
           ) : (
-            <ChevronDown className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+            <ChevronDown className="h-5 w-5 text-slate-500 dark:text-slate-400" />
           )}
         </div>
       </button>
@@ -178,7 +177,7 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <MapPin className="h-4 w-4 text-gray-400 flex-shrink-0" />
-              <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">현장 주소</span>
+              <span className="text-xs font-medium text-gray-900 dark:text-gray-100">현장 주소</span>
               <div className="flex-1"></div>
               <button
                 onClick={() => copyToClipboard(siteInfo.address.full_address, '현장주소')}
@@ -194,7 +193,7 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
                 T맵
               </button>
             </div>
-            <div className="pl-6 text-sm text-gray-600 dark:text-gray-400">
+            <div className="pl-6 text-[11px] text-gray-600 dark:text-gray-400">
               {siteInfo.address.full_address}
             </div>
           </div>
@@ -204,7 +203,7 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <Home className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">숙소</span>
+                <span className="text-xs font-medium text-gray-900 dark:text-gray-100">숙소</span>
                 <div className="flex-1"></div>
                 <button
                   onClick={() => copyToClipboard(siteInfo.accommodation!.full_address, '숙소주소')}
@@ -220,7 +219,7 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
                   T맵
                 </button>
               </div>
-              <div className="pl-6 text-sm text-gray-600 dark:text-gray-400">
+              <div className="pl-6 text-[11px] text-gray-600 dark:text-gray-400">
                 {siteInfo.accommodation.full_address}
               </div>
             </div>
@@ -234,7 +233,7 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
                 <div key={index} className="space-y-1 text-sm">
                   <div className="flex items-center gap-2">
                     <User className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                    <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">건축관리자</span>
+                    <span className="text-xs font-medium text-gray-900 dark:text-gray-100">건축관리자</span>
                     <div className="flex-1"></div>
                     <button
                       onClick={() => copyToClipboard(manager.phone, '전화번호')}
@@ -251,7 +250,7 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
                       <Phone className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
                     </button>
                   </div>
-                  <div className="pl-6 text-gray-600 dark:text-gray-400">
+                  <div className="pl-6 text-[11px] text-gray-600 dark:text-gray-400">
                     {manager.name} • {manager.phone}
                   </div>
                 </div>
@@ -261,7 +260,7 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
                 <div key={index} className="space-y-1 text-sm">
                   <div className="flex items-center gap-2">
                     <ShieldCheck className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                    <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">안전관리자</span>
+                    <span className="text-xs font-medium text-gray-900 dark:text-gray-100">안전관리자</span>
                     <div className="flex-1"></div>
                     <button
                       onClick={() => copyToClipboard(manager.phone, '전화번호')}
@@ -278,7 +277,7 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
                       <Phone className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
                     </button>
                   </div>
-                  <div className="pl-6 text-gray-600 dark:text-gray-400">
+                  <div className="pl-6 text-[11px] text-gray-600 dark:text-gray-400">
                     {manager.name} • {manager.phone}
                   </div>
                 </div>
@@ -287,18 +286,18 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
           )}
 
           {/* Work Details */}
-          <div className="flex items-center gap-2 text-sm">
+          <div className="flex items-center gap-2">
             <Wrench className="h-4 w-4 text-gray-400 flex-shrink-0" />
-            <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">작업내용</span>
-            <span className="text-gray-600 dark:text-gray-400 flex-1 ml-2">
+            <span className="text-xs font-medium text-gray-900 dark:text-gray-100">작업내용</span>
+            <span className="text-[11px] text-gray-600 dark:text-gray-400 flex-1 ml-2">
               {siteInfo.process.work_process} • {siteInfo.process.work_section}
             </span>
           </div>
 
           {/* Blueprint Document */}
-          <div className="flex items-center gap-2 text-sm">
+          <div className="flex items-center gap-2">
             <Map className="h-4 w-4 text-gray-400 flex-shrink-0" />
-            <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">현장 공도면</span>
+            <span className="text-xs font-medium text-gray-900 dark:text-gray-100">현장 공도면</span>
             <div className="flex-1"></div>
             <button
               onClick={() => setShowBlueprintModal(true)}
@@ -310,9 +309,9 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
           </div>
 
           {/* PTW Document Preview */}
-          <div className="flex items-center gap-2 text-sm">
+          <div className="flex items-center gap-2">
             <FileText className="h-4 w-4 text-gray-400 flex-shrink-0" />
-            <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">PTW (작업허가서)</span>
+            <span className="text-xs font-medium text-gray-900 dark:text-gray-100">PTW (작업허가서)</span>
             <div className="flex-1"></div>
             <button
               onClick={() => setShowPTWModal(true)}

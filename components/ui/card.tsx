@@ -10,8 +10,9 @@ const Card = React.forwardRef<
   React.HTMLAttributes<HTMLDivElement> & { 
     elevation?: 'sm' | 'md' | 'lg' | 'xl'
     premium?: boolean
+    variant?: 'default' | 'elevated' | 'prominent' | 'section-header'
   }
->(({ className, elevation = 'sm', premium = false, ...props }, ref) => {
+>(({ className, elevation = 'sm', premium = false, variant = 'default', ...props }, ref) => {
   const { touchMode } = useTouchMode()
   
   const touchModeClasses = {
@@ -21,21 +22,27 @@ const Card = React.forwardRef<
   }
   
   const elevationClasses = {
-    sm: "elevation-sm hover:elevation-md",
-    md: "elevation-md hover:elevation-lg",
-    lg: "elevation-lg hover:elevation-xl",
-    xl: "elevation-xl"
+    sm: "shadow-sm hover:shadow-md",
+    md: "shadow-md hover:shadow-lg",
+    lg: "shadow-lg hover:shadow-xl",
+    xl: "shadow-xl hover:shadow-2xl"
+  }
+  
+  const variantClasses = {
+    default: "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl",
+    elevated: "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl ring-1 ring-slate-100 dark:ring-slate-700",
+    prominent: "bg-white dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-600 rounded-xl",
+    'section-header': "bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-800 dark:to-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl"
   }
   
   return (
     <div
       ref={ref}
       className={cn(
-        "rounded-2xl border border-gray-200 dark:border-gray-700",
-        "theme-transition elevation-hover",
+        "transition-all duration-200",
         premium 
           ? "bg-premium-light dark:bg-premium-dark" 
-          : "bg-white dark:bg-gray-800",
+          : variantClasses[variant],
         elevationClasses[elevation],
         touchModeClasses[touchMode],
         className

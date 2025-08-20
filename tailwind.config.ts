@@ -102,6 +102,24 @@ const config: Config = {
           700: '#374151',
           800: '#1F2937',
           900: '#111827'
+        },
+        // Enhanced Layout Structure Colors
+        layout: {
+          'main-bg': '#F8FAFC',        // Main container background
+          'section-bg': '#FFFFFF',     // Section/card backgrounds
+          'elevated': '#FDFDFD',       // Elevated surfaces
+          'divider-subtle': '#E2E8F0', // Subtle dividers
+          'divider-prominent': '#CBD5E1', // Prominent dividers
+          'section-border': '#F1F5F9'  // Section borders
+        },
+        // Dark mode layout colors
+        'layout-dark': {
+          'main-bg': '#0F172A',        // Dark main background
+          'section-bg': '#1E293B',     // Dark section backgrounds
+          'elevated': '#334155',       // Dark elevated surfaces
+          'divider-subtle': '#475569', // Dark subtle dividers
+          'divider-prominent': '#64748B', // Dark prominent dividers
+          'section-border': '#334155'  // Dark section borders
         }
       },
       fontFamily: {

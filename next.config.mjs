@@ -21,13 +21,13 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   
-  // SWC 컴파일러 최적화 - 품질 우선으로 변경
-  swcMinify: false, // 품질 저하 방지를 위해 비활성화
+  // SWC 컴파일러 최적화 - 성능 개선을 위해 활성화
+  swcMinify: true, // 번들 크기 감소 및 성능 향상
   // 프로덕션 빌드 품질 개선을 위한 추가 설정
   productionBrowserSourceMaps: process.env.NODE_ENV === 'production' && process.env.ENABLE_SOURCE_MAPS === 'true',
   
-  // 프로덕션에서 모든 최적화 비활성화 (개발환경과 동일)
-  compress: false,
+  // 프로덕션에서 압축 활성화 (성능 향상)
+  compress: true,
   poweredByHeader: false,
   generateEtags: false,
   onDemandEntries: {
@@ -35,22 +35,21 @@ const nextConfig = {
     pagesBufferLength: 2,
   },
   
-  // Webpack 설정 - 개발환경과 동일하게 모든 압축 완전 비활성화
+  // Webpack 설정 - 프로덕션 최적화 활성화
   webpack: (config, { buildId, dev, isServer, defaultLoaders, nextRuntime, webpack }) => {
-    // 프로덕션에서도 개발환경과 완전히 동일하게 - 모든 압축기 제거
+    // 프로덕션에서 필수 최적화만 적용
     if (!dev) {
-      // 모든 압축기 완전 제거
-      config.optimization.minimizer = [];
-      config.optimization.minimize = false;
+      // 기본 최적화는 유지하되 과도한 압축은 제한
+      config.optimization.minimize = true;
       
-      // CSS 추출 플러그인 설정도 비압축으로
+      // CSS 추출 플러그인을 프로덕션 최적화로 설정
       config.plugins = config.plugins.map((plugin) => {
         if (plugin.constructor.name === 'MiniCssExtractPlugin') {
           plugin.options = {
             ...plugin.options,
-            // CSS 파일도 압축하지 않음
-            filename: dev ? '[name].css' : '[name].css',
-            chunkFilename: dev ? '[id].css' : '[id].css',
+            // 프로덕션용 CSS 파일명 최적화
+            filename: '[name].[contenthash].css',
+            chunkFilename: '[id].[contenthash].css',
           }
         }
         return plugin
@@ -89,8 +88,8 @@ const nextConfig = {
     // Instrumentation hook 비활성화 (개발 모드에서)
     instrumentationHook: process.env.NODE_ENV === 'production',
     
-    // CSS 최적화 비활성화 (개발환경과 동일)
-    optimizeCss: false,
+    // CSS 최적화 활성화 (프로덕션 성능 향상)
+    optimizeCss: true,
     
     // 추가 최적화 비활성화 (개발환경과 동일)
     serverMinification: false,

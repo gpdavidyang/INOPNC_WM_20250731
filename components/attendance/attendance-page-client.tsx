@@ -38,8 +38,8 @@ export function AttendancePageClient({ profile, isPartnerCompany }: AttendancePa
                 "flex-1 py-3 px-4 rounded-xl font-medium transition-all",
                 "min-h-[48px]", // UI Guidelines 표준 버튼 높이
                 activeTab === 'attendance' 
-                  ? "bg-toss-blue-600 text-white shadow-md" 
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200",
+                  ? "bg-toss-blue-600 text-white shadow-lg" 
+                  : "bg-white border-2 border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50 shadow-sm",
                 touchMode === 'glove' && "min-h-[60px] text-base",
                 touchMode === 'precision' && "min-h-[44px] text-sm",
                 touchMode !== 'precision' && touchMode !== 'glove' && "text-sm"
@@ -53,8 +53,8 @@ export function AttendancePageClient({ profile, isPartnerCompany }: AttendancePa
                 "flex-1 py-3 px-4 rounded-xl font-medium transition-all",
                 "min-h-[48px]", // UI Guidelines 표준 버튼 높이
                 activeTab === 'salary' 
-                  ? "bg-toss-blue-600 text-white shadow-md" 
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200",
+                  ? "bg-toss-blue-600 text-white shadow-lg" 
+                  : "bg-white border-2 border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50 shadow-sm",
                 touchMode === 'glove' && "min-h-[60px] text-base",
                 touchMode === 'precision' && "min-h-[44px] text-sm",
                 touchMode !== 'precision' && touchMode !== 'glove' && "text-sm"

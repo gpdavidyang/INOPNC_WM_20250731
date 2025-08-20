@@ -214,8 +214,8 @@ export default function SiteInfoPageNew({
             "flex-1 py-3 px-4 rounded-xl font-medium transition-all",
             "min-h-[48px] flex items-center justify-center gap-2",
             activeTab === 'overview' 
-              ? "bg-toss-blue-600 text-white shadow-md" 
-              : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700",
+              ? "bg-toss-blue-600 text-white shadow-lg" 
+              : "bg-white border-2 border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50 shadow-sm dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:border-gray-500",
             touchMode === 'glove' && "min-h-[60px] text-base",
             touchMode === 'precision' && "min-h-[44px] text-sm",
             touchMode !== 'precision' && touchMode !== 'glove' && "text-sm"
@@ -230,8 +230,8 @@ export default function SiteInfoPageNew({
             "flex-1 py-3 px-4 rounded-xl font-medium transition-all",
             "min-h-[48px] flex items-center justify-center gap-2",
             activeTab === 'materials' 
-              ? "bg-toss-blue-600 text-white shadow-md" 
-              : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700",
+              ? "bg-toss-blue-600 text-white shadow-lg" 
+              : "bg-white border-2 border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50 shadow-sm dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:border-gray-500",
             touchMode === 'glove' && "min-h-[60px] text-base",
             touchMode === 'precision' && "min-h-[44px] text-sm",
             touchMode !== 'precision' && touchMode !== 'glove' && "text-sm"

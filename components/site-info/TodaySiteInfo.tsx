@@ -361,32 +361,10 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
                 
                 {/* Document Details */}
                 <div className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <p className="text-sm text-gray-500 dark:text-gray-400">작업장소</p>
-                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                        {siteInfo.name}
-                      </p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-sm text-gray-500 dark:text-gray-400">작업일자</p>
-                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                        {new Date().toLocaleDateString('ko-KR')}
-                      </p>
-                    </div>
-                  </div>
-                  
                   <div className="space-y-1">
-                    <p className="text-sm text-gray-500 dark:text-gray-400">작업내용</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">작업장소</p>
                     <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                      {siteInfo.process.work_process} - {siteInfo.process.work_section}
-                    </p>
-                  </div>
-                  
-                  <div className="space-y-1">
-                    <p className="text-sm text-gray-500 dark:text-gray-400">작업자</p>
-                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                      {siteInfo.process.member_name}
+                      {siteInfo.name}
                     </p>
                   </div>
                   

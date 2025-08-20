@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -84,14 +84,18 @@ export function SalaryView({ profile }: SalaryViewProps) {
   const [loading, setLoading] = useState(false)
   const [siteHistory, setSiteHistory] = useState<UserSiteHistory[]>([])
   
-  // Date range options
-  const dateRangeOptions: DateRangeOption[] = [
+  // Performance optimizations: Caching system
+  const [salaryCache, setSalaryCache] = useState<Map<string, { data: any, timestamp: number }>>(new Map())
+  const [siteHistoryCache, setSiteHistoryCache] = useState<{ data: UserSiteHistory[], timestamp: number } | null>(null)
+  
+  // Memoized date range options
+  const dateRangeOptions: DateRangeOption[] = useMemo(() => [
     { value: '금월', label: '금월', getMonthsBack: () => 1 },
     { value: '최근3개월', label: '최근3개월', getMonthsBack: () => 3 },
     { value: '최근6개월', label: '최근6개월', getMonthsBack: () => 6 },
     { value: '최근12개월', label: '최근12개월', getMonthsBack: () => 12 },
     { value: '최근24개월', label: '최근24개월', getMonthsBack: () => 24 }
-  ]
+  ], [])
 
   // Load sites and initial data
   useEffect(() => {
@@ -101,20 +105,43 @@ export function SalaryView({ profile }: SalaryViewProps) {
     }
   }, [profile?.id, selectedSite, selectedDateRange])
 
-  const loadSiteHistory = async () => {
+  const loadSiteHistory = useCallback(async () => {
+    const CACHE_DURATION = 10 * 60 * 1000 // 10 minutes for site history
+    
+    // Use cached data if available and not expired
+    if (siteHistoryCache && (Date.now() - siteHistoryCache.timestamp < CACHE_DURATION)) {
+      console.log('[SalaryView] Using cached site history')
+      setSiteHistory(siteHistoryCache.data)
+      return
+    }
+    
     try {
+      console.log('[SalaryView] Fetching site history')
       const result = await getUserSiteHistory()
       if (result.success && result.data) {
-        setSiteHistory(result.data)
+        const data = result.data
+        setSiteHistory(data)
+        setSiteHistoryCache({ data, timestamp: Date.now() })
       }
     } catch (error) {
       console.error('Failed to load site history:', error)
       setSiteHistory([])
     }
-  }
+  }, [siteHistoryCache])
 
-  const loadSalaryHistoryList = async () => {
+  const loadSalaryHistoryList = useCallback(async () => {
     if (!profile?.id) return
+    
+    const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes for salary data
+    const cacheKey = `${profile.id}-${selectedSite}-${selectedDateRange}`
+    
+    // Use cached data if available and not expired
+    const cached = salaryCache.get(cacheKey)
+    if (cached && (Date.now() - cached.timestamp < CACHE_DURATION)) {
+      console.log('[SalaryView] Using cached salary data for:', cacheKey)
+      setMonthlyHistoryList(cached.data)
+      return
+    }
     
     setLoading(true)
     try {
@@ -124,19 +151,28 @@ export function SalaryView({ profile }: SalaryViewProps) {
       
       const historyList = []
       const currentDate = new Date()
+      const salaryPromises = []
       
+      // Parallel API calls instead of sequential for better performance
       for (let i = 0; i < monthsToLoad; i++) {
         const targetDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1)
         const year = targetDate.getFullYear()
         const month = targetDate.getMonth() + 1
         
-        // Calculate monthly salary for each month
-        const calcResult = await calculateMonthlySalary({
-          user_id: profile.id,
-          year: year,
-          month: month
-        })
-        
+        salaryPromises.push(
+          calculateMonthlySalary({
+            user_id: profile.id,
+            year: year,
+            month: month
+          }).then(calcResult => ({ calcResult, year, month, index: i }))
+        )
+      }
+      
+      console.log('[SalaryView] Fetching salary data in parallel:', salaryPromises.length, 'requests')
+      const results = await Promise.all(salaryPromises)
+      
+      // Process results in order
+      for (const { calcResult, year, month, index } of results) {
         if (calcResult.success && calcResult.data) {
           const data = calcResult.data
           const monthStr = `${month.toString().padStart(2, '0')}월`
@@ -160,7 +196,7 @@ export function SalaryView({ profile }: SalaryViewProps) {
             allowance: data.bonus_pay,
             deductions: data.total_deductions,
             netPay: data.net_pay,
-            status: i === 0 ? 'pending' : 'paid', // Current month is pending, others are paid
+            status: index === 0 ? 'pending' : 'paid', // Current month is pending, others are paid
             year: year,
             monthNum: month,
             fullData: data // Store full calculation data
@@ -170,7 +206,20 @@ export function SalaryView({ profile }: SalaryViewProps) {
         }
       }
       
+      // Sort by year/month descending
+      historyList.sort((a, b) => {
+        if (a.year !== b.year) return b.year - a.year
+        return b.monthNum - a.monthNum
+      })
+      
       setMonthlyHistoryList(historyList)
+      
+      // Cache the results
+      setSalaryCache(prev => new Map(prev.set(cacheKey, { 
+        data: historyList, 
+        timestamp: Date.now() 
+      })))
+      
     } catch (error) {
       console.error('Failed to load salary history:', error)
       // Fallback to empty list on error
@@ -178,7 +227,7 @@ export function SalaryView({ profile }: SalaryViewProps) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [profile?.id, selectedSite, selectedDateRange, siteHistory, salaryCache, dateRangeOptions])
 
   const loadSalaryData = async () => {
     if (!profile?.id) return

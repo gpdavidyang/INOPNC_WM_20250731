@@ -75,12 +75,10 @@ export const MarkupCanvas = forwardRef<HTMLCanvasElement, MarkupCanvasProps>(
               }
             }))
           }
-          
-          redrawCanvas()
         }
         img.src = blueprintUrl
       }
-    }, [blueprintUrl, canvas, containerRef, onStateChange, redrawCanvas])
+    }, [blueprintUrl, canvas, containerRef, onStateChange])
 
     // 캔버스 크기 조정
     useEffect(() => {
@@ -152,7 +150,7 @@ export const MarkupCanvas = forwardRef<HTMLCanvasElement, MarkupCanvasProps>(
         window.removeEventListener('resize', resizeCanvas)
         clearTimeout(timeoutId)
       }
-    }, [canvas, containerRef, onStateChange, redrawCanvas])
+    }, [canvas, containerRef, onStateChange])
 
     // 캔버스 좌표 변환
     const getCanvasCoordinates = useCallback((e: React.MouseEvent | MouseEvent) => {
@@ -225,6 +223,14 @@ export const MarkupCanvas = forwardRef<HTMLCanvasElement, MarkupCanvasProps>(
 
       ctx.restore()
     }, [canvas, editorState, currentDrawing])
+
+    // 도면 이미지가 로드되었을 때 redraw
+    useEffect(() => {
+      if (blueprintImageRef.current) {
+        console.log('Blueprint image loaded, redrawing canvas')
+        redrawCanvas()
+      }
+    }, [blueprintUrl, redrawCanvas])
 
     // 마킹 객체 그리기
     const drawMarkupObject = (ctx: CanvasRenderingContext2D, obj: Partial<MarkupObject>, isSelected: boolean) => {
@@ -508,7 +514,8 @@ export const MarkupCanvas = forwardRef<HTMLCanvasElement, MarkupCanvasProps>(
     useEffect(() => {
       console.log('State changed, triggering redraw') // 디버깅용
       redrawCanvas()
-    }, [editorState.markupObjects, editorState.viewerState, editorState.selectedObjects, currentDrawing, redrawCanvas])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [editorState.markupObjects, editorState.viewerState, editorState.selectedObjects, currentDrawing])
 
     // currentDrawing 상태 변경 감지
     useEffect(() => {

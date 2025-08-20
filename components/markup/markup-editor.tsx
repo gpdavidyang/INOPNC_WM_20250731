@@ -265,18 +265,33 @@ export function MarkupEditor({
   }
 
   const handleImageUpload = (imageUrl: string, fileName: string) => {
-    setBlueprintUrl(imageUrl)
-    setBlueprintFileName(fileName)
+    console.log('handleImageUpload called:', { fileName, urlLength: imageUrl.length }) // 디버깅용
     
-    // 새 도면이 업로드되면 기존 마킹 초기화
-    setEditorState(prev => ({
-      ...prev,
-      markupObjects: [],
-      selectedObjects: [],
-      undoStack: [],
-      redoStack: [],
-      currentFile: null
-    }))
+    try {
+      if (!imageUrl || !fileName) {
+        console.error('Invalid image data:', { imageUrl: !!imageUrl, fileName })
+        alert('유효하지 않은 파일 데이터입니다.')
+        return
+      }
+      
+      setBlueprintUrl(imageUrl)
+      setBlueprintFileName(fileName)
+      
+      // 새 도면이 업로드되면 기존 마킹 초기화
+      setEditorState(prev => ({
+        ...prev,
+        markupObjects: [],
+        selectedObjects: [],
+        undoStack: [],
+        redoStack: [],
+        currentFile: null
+      }))
+      
+      console.log('Blueprint uploaded successfully:', fileName) // 디버깅용
+    } catch (error) {
+      console.error('Error handling image upload:', error)
+      alert('이미지 업로드 처리 중 오류가 발생했습니다.')
+    }
   }
 
   // 모바일 여부 확인

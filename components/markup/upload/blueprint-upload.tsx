@@ -18,20 +18,70 @@ export function BlueprintUpload({ onImageUpload, currentImage, currentFileName, 
   const [isDragOver, setIsDragOver] = useState(false)
 
   const handleFileSelect = (file: File) => {
-    if (file && file.type.startsWith('image/')) {
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        const result = e.target?.result as string
-        onImageUpload(result, file.name)
-      }
-      reader.readAsDataURL(file)
+    console.log('File selected:', file.name, file.type, file.size) // 디버깅용
+    
+    // 지원되는 파일 타입 확인 (이미지 또는 PDF)
+    const supportedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'application/pdf']
+    
+    if (!file) {
+      console.error('No file selected')
+      alert('파일이 선택되지 않았습니다.')
+      return
     }
+    
+    if (!supportedTypes.includes(file.type)) {
+      console.error('Unsupported file type:', file.type)
+      alert('지원되지 않는 파일 형식입니다.\nJPG, PNG, PDF 파일만 업로드 가능합니다.')
+      return
+    }
+    
+    // 파일 크기 제한 (10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      console.error('File too large:', file.size)
+      alert('파일 크기가 너무 큽니다.\n10MB 이하의 파일만 업로드 가능합니다.')
+      return
+    }
+    
+    const reader = new FileReader()
+    
+    reader.onload = (e) => {
+      try {
+        const result = e.target?.result as string
+        if (!result) {
+          throw new Error('파일 읽기 실패')
+        }
+        console.log('File read successfully, calling onImageUpload') // 디버깅용
+        onImageUpload(result, file.name)
+      } catch (error) {
+        console.error('Error processing file:', error)
+        alert('파일 처리 중 오류가 발생했습니다.')
+      }
+    }
+    
+    reader.onerror = (e) => {
+      console.error('FileReader error:', e)
+      alert('파일을 읽는 중 오류가 발생했습니다.')
+    }
+    
+    reader.readAsDataURL(file)
   }
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      handleFileSelect(file)
+    console.log('File input changed:', e.target.files?.length) // 디버깅용
+    
+    try {
+      const file = e.target.files?.[0]
+      if (file) {
+        handleFileSelect(file)
+      } else {
+        console.log('No file selected from input')
+      }
+    } catch (error) {
+      console.error('Error handling file input change:', error)
+      alert('파일 선택 중 오류가 발생했습니다.')
+    } finally {
+      // Reset input value to allow selecting the same file again
+      e.target.value = ''
     }
   }
 
@@ -94,7 +144,7 @@ export function BlueprintUpload({ onImageUpload, currentImage, currentFileName, 
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/*"
+        accept="image/jpeg,image/jpg,image/png,image/gif,image/webp,application/pdf"
         onChange={handleFileInputChange}
         className="hidden"
       />

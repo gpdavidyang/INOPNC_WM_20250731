@@ -150,7 +150,6 @@ export default function DailyReportFormEnhanced({
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [progress, setProgress] = useState(0)
   
   // Debug logging
   console.log('DailyReportFormEnhanced props:', { sites, sitesCount: sites?.length })
@@ -283,27 +282,6 @@ export default function DailyReportFormEnhanced({
     return () => clearInterval(interval)
   }, [saveToLocalStorage])
 
-  // Calculate progress
-  useEffect(() => {
-    let completed = 0
-    const total = 12 // Updated total to include process_type
-
-    // Check each section
-    if (formData.site_id) completed += 1
-    if (formData.member_name) completed += 1
-    if (formData.process_type) completed += 1 // Added process_type check
-    if (workContents.length > 0) completed += 1
-    if (workerEntries.length > 0) completed += 1
-    if (photos.length > 0) completed += 1
-    if (receipts.length > 0) completed += 1
-    if (drawings.length > 0) completed += 1
-    if (requestText) completed += 1
-    if (materialData.incoming || materialData.used || materialData.remaining) completed += 1
-    if (specialNotes) completed += 1
-    completed += 1 // Site info is always considered complete
-
-    setProgress((completed / total) * 100)
-  }, [formData, workContents, workerEntries, photos, receipts, drawings, requestText, materialData, specialNotes])
 
   const toggleSection = (section: keyof typeof expandedSections) => {
     setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }))
@@ -609,21 +587,9 @@ export default function DailyReportFormEnhanced({
 
   return (
     <div className="max-w-2xl mx-auto">
-      {/* Progress Bar and Toggle Button */}
+      {/* Toggle Button */}
       <div className="mb-3">
-        <div className="flex items-center justify-between mb-3">
-          <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 border border-blue-100 dark:border-blue-800 flex-1 mr-2">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-600 dark:text-gray-400">작성 진행률</span>
-              <span className="text-sm font-bold text-blue-600 dark:text-blue-400">{Math.round(progress)}%</span>
-            </div>
-            <div className="bg-blue-100 dark:bg-blue-800 rounded-full h-2">
-              <div 
-                className="bg-blue-600 dark:bg-blue-400 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-          </div>
+        <div className="flex justify-end">
           <button
             type="button"
             onClick={handleToggleAll}
@@ -707,14 +673,10 @@ export default function DailyReportFormEnhanced({
               {formData.site_id && sites.find(s => s.id === formData.site_id) && (
                 <div className="pt-2 border-t border-gray-100 dark:border-gray-700">
                   <h3 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">현장 정보</h3>
-                  <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="text-xs">
                     <div>
                       <span className="text-gray-500 dark:text-gray-400">현장명</span>
                       <p className="font-medium text-gray-800 dark:text-gray-200 truncate">{sites.find(s => s.id === formData.site_id)?.name}</p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500 dark:text-gray-400">관리자</span>
-                      <p className="font-medium text-gray-800 dark:text-gray-200 truncate">{(sites.find(s => s.id === formData.site_id) as any)?.manager_name}</p>
                     </div>
                   </div>
                 </div>

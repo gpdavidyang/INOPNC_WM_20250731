@@ -759,7 +759,7 @@ export default function DailyReportFormEnhanced({
                   <div className="space-y-2">
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1 block">부위명 <span className="text-red-400">*</span></label>
+                        <label className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1 block">부재명 <span className="text-red-400">*</span></label>
                         <Select
                           value={content.memberName || ''}
                           onValueChange={(value) => updateWorkContent(content.id, 'memberName', value)}

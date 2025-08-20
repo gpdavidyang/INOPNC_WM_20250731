@@ -331,8 +331,16 @@ function SidebarContent({
 
   // 메뉴 클릭 시 탭 변경과 모바일에서 사이드바 닫기를 동시에 처리
   const handleMenuClick = React.useCallback((item: MenuItem) => {
+    console.log('[Sidebar] handleMenuClick called with:', {
+      id: item.id,
+      href: item.href,
+      isNavigating,
+      pathname
+    })
+    
     // 이미 네비게이션 중이면 무시
     if (isNavigating) {
+      console.log('[Sidebar] Navigation in progress, skipping')
       return
     }
     
@@ -340,17 +348,21 @@ function SidebarContent({
     if (item.href) {
       // 현재 경로와 같으면 무시
       if (pathname === item.href) {
+        console.log('[Sidebar] Same path, skipping:', pathname)
         return
       }
+      console.log('[Sidebar] Navigating with navigate function to:', item.href)
       // 통합 네비게이션 컨트롤러 사용
       navigate(item.href)
     } else {
+      console.log('[Sidebar] Tab-based navigation to:', item.id)
       // For tab-based items, only call onTabChange
       onTabChange(item.id)
     }
     
     // 모바일에서만 사이드바 닫기 (lg 미만 화면에서)
     if (window.innerWidth < 1024) {
+      console.log('[Sidebar] Closing mobile sidebar')
       onClose()
     }
   }, [navigate, pathname, isNavigating, onTabChange, onClose])
@@ -394,19 +406,9 @@ function SidebarContent({
                       e.preventDefault()
                       e.stopPropagation()
                       
-                      // 문서함인 경우 직접 처리
-                      if (item.id === 'documents') {
-                        // 같은 경로면 무시
-                        if (pathname === '/dashboard/documents') {
-                          return
-                        }
-                        
-                        console.log('[Sidebar] Navigating to documents')
-                        // handleMenuClick 사용 (이미 navigate 로직 포함)
-                        handleMenuClick(item)
-                        return
-                      }
+                      console.log('[Sidebar] Menu item clicked:', item.id, 'href:', item.href)
                       
+                      // 통합된 처리
                       handleMenuClick(item)
                     }}
                     {...getRovingProps(index)}

@@ -23,10 +23,9 @@ export async function getSiteDocuments(siteId: string, documentType?: 'ptw' | 'b
     const supabase = createClient()
     
     let query = supabase
-      .from('site_documents')
+      .from('documents')
       .select('*')
       .eq('site_id', siteId)
-      .eq('is_active', true)
       .order('created_at', { ascending: false })
 
     if (documentType) {
@@ -40,7 +39,22 @@ export async function getSiteDocuments(siteId: string, documentType?: 'ptw' | 'b
       return { success: false, error: error.message, data: null }
     }
 
-    return { success: true, data: data as SiteDocument[], error: null }
+    // Convert documents table format to SiteDocument format
+    const siteDocuments = data?.map((doc: any) => ({
+      id: doc.id,
+      site_id: doc.site_id,
+      document_type: doc.document_type,
+      file_name: doc.file_name,
+      file_url: doc.file_url,
+      file_size: doc.file_size,
+      mime_type: doc.mime_type,
+      is_active: true, // documents table doesn't have is_active, assume true
+      created_at: doc.created_at,
+      updated_at: doc.updated_at,
+      title: doc.title // Additional field from documents table
+    })) || []
+
+    return { success: true, data: siteDocuments as SiteDocument[], error: null }
   } catch (error) {
     console.error('Server error fetching site documents:', error)
     return { 

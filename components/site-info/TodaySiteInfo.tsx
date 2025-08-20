@@ -400,10 +400,10 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
                         <Map className="h-4 w-4" />
                         <span>도면 미리보기</span>
                       </div>
-                      {siteInfo.blueprint_document ? (
+                      {siteDocuments?.blueprint_document ? (
                         <img 
-                          src={siteInfo.blueprint_document.file_url} 
-                          alt={siteInfo.blueprint_document.title || "현장 도면"}
+                          src={siteDocuments.blueprint_document.file_url} 
+                          alt={siteDocuments.blueprint_document.title || "현장 도면"}
                           className="w-full h-auto rounded border border-gray-200 dark:border-gray-700"
                           loading="lazy"
                           onError={(e) => {
@@ -427,14 +427,14 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
               <button
                 onClick={() => {
                   const link = document.createElement('a')
-                  link.href = siteInfo.blueprint_document?.file_url || '/docs/샘플도면5.png'
-                  link.download = siteInfo.blueprint_document?.file_name || `도면_${siteInfo.name}_${new Date().toISOString().split('T')[0]}.png`
+                  link.href = siteDocuments?.blueprint_document?.file_url || '/docs/샘플도면5.png'
+                  link.download = siteDocuments?.blueprint_document?.file_name || `도면_${siteInfo.name}_${new Date().toISOString().split('T')[0]}.png`
                   document.body.appendChild(link)
                   link.click()
                   document.body.removeChild(link)
                 }}
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gray-600 text-white rounded-xl hover:bg-gray-700 active:bg-gray-800 transition-colors font-medium shadow-sm"
-                disabled={!siteInfo.blueprint_document}
+                disabled={!siteDocuments?.blueprint_document}
               >
                 <Download className="h-4 w-4" />
                 <span>다운로드</span>
@@ -524,11 +524,11 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
                       {/* Enhanced PDF Viewer - Using browser native PDF support */}
                       <div className="w-full h-96 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden bg-gray-50 dark:bg-gray-900 relative">
                         {/* Primary: Use iframe with browser PDF viewer */}
-                        {!pdfLoadError && siteInfo.ptw_document && (
+                        {!pdfLoadError && siteDocuments?.ptw_document && (
                           <iframe
-                            src={`${siteInfo.ptw_document.file_url}#view=FitH&toolbar=1&navpanes=0&scrollbar=1`}
+                            src={`${siteDocuments.ptw_document.file_url}#view=FitH&toolbar=1&navpanes=0&scrollbar=1`}
                             className="w-full h-full"
-                            title={siteInfo.ptw_document.title || "PTW 작업허가서"}
+                            title={siteDocuments.ptw_document.title || "PTW 작업허가서"}
                             style={{
                               border: 'none',
                               background: '#f9fafb'
@@ -550,7 +550,7 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
                         
                         {/* Fallback: PDF Document Thumbnail or No Document Message */}
                         <div 
-                          className={`w-full h-full flex-col items-center justify-center space-y-4 p-6 bg-white dark:bg-gray-800 ${(pdfLoadError || !siteInfo.ptw_document) ? 'flex' : 'hidden'} absolute inset-0`}
+                          className={`w-full h-full flex-col items-center justify-center space-y-4 p-6 bg-white dark:bg-gray-800 ${(pdfLoadError || !siteDocuments?.ptw_document) ? 'flex' : 'hidden'} absolute inset-0`}
                         >
                           {/* Enhanced PDF Thumbnail Simulation */}
                           <div className="w-full max-w-xs h-48 bg-gradient-to-b from-white to-gray-100 dark:from-gray-700 dark:to-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg overflow-hidden relative">
@@ -602,10 +602,10 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
                           
                           <div className="text-center space-y-2">
                             <h4 className="font-semibold text-gray-900 dark:text-gray-100">
-                              {siteInfo.ptw_document ? 'PTW 작업허가서' : 'PTW 문서 없음'}
+                              {siteDocuments?.ptw_document ? 'PTW 작업허가서' : 'PTW 문서 없음'}
                             </h4>
                             <p className="text-sm text-gray-600 dark:text-gray-400">
-                              {siteInfo.ptw_document ? '이노피앤씨 표준 양식 • PDF 문서' : 'PTW 문서가 등록되지 않았습니다'}
+                              {siteDocuments?.ptw_document ? '이노피앤씨 표준 양식 • PDF 문서' : 'PTW 문서가 등록되지 않았습니다'}
                             </p>
                             <div className="flex items-center justify-center gap-2 text-xs text-green-600 dark:text-green-400">
                               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
@@ -625,9 +625,9 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
                               다시 시도
                             </button>
                             <button
-                              onClick={() => window.open(siteInfo.ptw_document?.file_url || '/docs/PTW.pdf', '_blank')}
+                              onClick={() => window.open(siteDocuments?.ptw_document?.file_url || '/docs/PTW.pdf', '_blank')}
                               className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-600 text-white text-sm font-medium rounded-lg hover:bg-gray-700 active:bg-gray-800 transition-colors shadow-sm"
-                              disabled={!siteInfo.ptw_document}
+                              disabled={!siteDocuments?.ptw_document}
                             >
                               <ExternalLink className="h-4 w-4" />
                               새 창에서 보기
@@ -638,9 +638,9 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
                       
                       <div className="mt-2 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
                         <span>문서번호: PTW-2025-{siteInfo.id?.slice(0, 8)}</span>
-                        {siteInfo.ptw_document && (
+                        {siteDocuments?.ptw_document && (
                           <button
-                            onClick={() => window.open(siteInfo.ptw_document!.file_url, '_blank')}
+                            onClick={() => window.open(siteDocuments.ptw_document!.file_url, '_blank')}
                             className="text-gray-600 hover:text-gray-700 dark:text-gray-400"
                           >
                             새 창에서 열기
@@ -658,14 +658,14 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
                 onClick={() => {
                   // Download PTW PDF
                   const link = document.createElement('a')
-                  link.href = siteInfo.ptw_document?.file_url || '/docs/PTW.pdf'
-                  link.download = siteInfo.ptw_document?.file_name || `PTW_${siteInfo.name}_${new Date().toISOString().split('T')[0]}.pdf`
+                  link.href = siteDocuments?.ptw_document?.file_url || '/docs/PTW.pdf'
+                  link.download = siteDocuments?.ptw_document?.file_name || `PTW_${siteInfo.name}_${new Date().toISOString().split('T')[0]}.pdf`
                   document.body.appendChild(link)
                   link.click()
                   document.body.removeChild(link)
                 }}
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gray-600 text-white rounded-xl hover:bg-gray-700 active:bg-gray-800 transition-colors font-medium shadow-sm"
-                disabled={!siteInfo.ptw_document}
+                disabled={!siteDocuments?.ptw_document}
               >
                 <Download className="h-4 w-4" />
                 <span>다운로드</span>

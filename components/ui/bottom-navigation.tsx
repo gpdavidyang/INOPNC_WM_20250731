@@ -148,11 +148,6 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
                 <span className="truncate max-w-[48px] leading-tight">
                   {item.label}
                 </span>
-                
-                {/* UI Guidelines: 더 미묘한 활성 상태 인디케이터 */}
-                {isActive && (
-                  <div className="absolute top-0.5 left-1/2 transform -translate-x-1/2 w-4 h-px bg-toss-blue-600 dark:bg-toss-blue-400 rounded-full opacity-80"></div>
-                )}
               </button>
             )
           })}

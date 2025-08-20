@@ -295,7 +295,7 @@ export function DailyReportDetailView({
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <dt className="text-sm text-gray-600 mb-1">부위명</dt>
+                    <dt className="text-sm text-gray-600 mb-1">부재명</dt>
                     <dd className="font-medium text-lg">{report.member_name || '-'}</dd>
                   </div>
                   <div>

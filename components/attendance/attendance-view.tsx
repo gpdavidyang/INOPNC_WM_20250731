@@ -82,7 +82,12 @@ export function AttendanceView({ profile }: AttendanceViewProps) {
     try {
       const result = await getUserSiteHistory()
       if (result.success && result.data) {
-        setSiteHistory(result.data)
+        // Remove duplicates based on site_id to prevent React key warnings
+        const uniqueSites = result.data.filter((site, index, self) => 
+          index === self.findIndex(s => s.site_id === site.site_id)
+        )
+        setSiteHistory(uniqueSites)
+        console.log('[AttendanceView] Loaded unique sites:', uniqueSites.length, 'from', result.data.length, 'total')
         // Keep default selection as 'all' instead of auto-selecting user's site
         // This ensures the "전체 현장" (All Sites) option is selected by default
       }

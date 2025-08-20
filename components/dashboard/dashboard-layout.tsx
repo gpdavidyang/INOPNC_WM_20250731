@@ -156,12 +156,18 @@ export default function DashboardLayout({ user, profile, children, initialActive
 
   // 하단 네비게이션 클릭 처리
   const handleBottomNavClick = (tabId: string) => {
+    console.log('[DashboardLayout] handleBottomNavClick called with:', tabId)
+    
     // Check if it's a direct link (starts with /)
     if (tabId.startsWith('/')) {
+      console.log('[DashboardLayout] Direct navigation to:', tabId)
       router.push(tabId)
       return
     }
+    
+    // Handle hash-based navigation
     const cleanTabId = tabId.replace('#', '')
+    console.log('[DashboardLayout] Setting active tab to:', cleanTabId)
     setActiveTab(cleanTabId)
   }
 

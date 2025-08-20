@@ -407,11 +407,11 @@ export default function DailyReportFormEnhanced({
     setShowPhotoModal(false)
     
     if (source === 'camera') {
-      // Camera functionality
+      // 카메라로 직접 촬영
       const input = document.createElement('input')
       input.type = 'file'
       input.accept = 'image/*'
-      input.capture = 'environment'
+      input.capture = 'environment' // 후면 카메라 사용
       input.multiple = true
       input.onchange = (e) => {
         const files = (e.target as HTMLInputElement).files
@@ -419,16 +419,40 @@ export default function DailyReportFormEnhanced({
           const existingPhotos = photos.filter(p => p.type === currentPhotoType)
           const remaining = 30 - existingPhotos.length
           const filesToAdd = Array.from(files).slice(0, remaining)
-          console.log(`선택된 파일 수: ${files.length}, 추가할 파일 수: ${filesToAdd.length}`)
+          console.log(`카메라로 촬영된 파일 수: ${files.length}, 추가할 파일 수: ${filesToAdd.length}`)
           addMultiplePhotos(currentPhotoType, filesToAdd)
         }
       }
       input.click()
-    } else if (source === 'gallery' || source === 'file') {
-      // Gallery/File functionality
+    } else if (source === 'gallery') {
+      // 사진 갤러리에서 선택 (모바일 최적화)
       const input = document.createElement('input')
       input.type = 'file'
-      input.accept = 'image/*'
+      input.accept = 'image/*' // 이미지 파일만
+      input.multiple = true
+      
+      // 모바일에서 갤러리 직접 접근을 위한 설정
+      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+        // 모바일에서는 갤러리 접근을 명시적으로 설정
+        input.accept = 'image/jpeg,image/jpg,image/png,image/gif,image/webp'
+      }
+      
+      input.onchange = (e) => {
+        const files = (e.target as HTMLInputElement).files
+        if (files) {
+          const existingPhotos = photos.filter(p => p.type === currentPhotoType)
+          const remaining = 30 - existingPhotos.length
+          const filesToAdd = Array.from(files).slice(0, remaining)
+          console.log(`갤러리에서 선택된 파일 수: ${files.length}, 추가할 파일 수: ${filesToAdd.length}`)
+          addMultiplePhotos(currentPhotoType, filesToAdd)
+        }
+      }
+      input.click()
+    } else if (source === 'file') {
+      // 파일 시스템에서 선택 (모든 파일 형식 지원)
+      const input = document.createElement('input')
+      input.type = 'file'
+      input.accept = 'image/*,application/pdf,.doc,.docx,.xls,.xlsx' // 이미지 + 문서 파일
       input.multiple = true
       input.onchange = (e) => {
         const files = (e.target as HTMLInputElement).files
@@ -436,7 +460,7 @@ export default function DailyReportFormEnhanced({
           const existingPhotos = photos.filter(p => p.type === currentPhotoType)
           const remaining = 30 - existingPhotos.length
           const filesToAdd = Array.from(files).slice(0, remaining)
-          console.log(`선택된 파일 수: ${files.length}, 추가할 파일 수: ${filesToAdd.length}`)
+          console.log(`파일에서 선택된 파일 수: ${files.length}, 추가할 파일 수: ${filesToAdd.length}`)
           addMultiplePhotos(currentPhotoType, filesToAdd)
         }
       }

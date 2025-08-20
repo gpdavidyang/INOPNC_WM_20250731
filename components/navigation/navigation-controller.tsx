@@ -33,11 +33,13 @@ export function NavigationController({ children }: NavigationControllerProps) {
     
     // 같은 경로 중복 방지
     if (pathname === route) {
+      console.log('[NavigationController] Same route, skipping:', route)
       return
     }
     
-    // 500ms 내 중복 네비게이션 방지
-    if (navState.isNavigating || (now - navState.lastNavigationTime < 500)) {
+    // 300ms 내 중복 네비게이션 방지 (500ms에서 300ms로 단축)
+    if (navState.isNavigating && (now - navState.lastNavigationTime < 300)) {
+      console.log('[NavigationController] Navigation in progress, skipping:', route)
       return
     }
 
@@ -46,29 +48,28 @@ export function NavigationController({ children }: NavigationControllerProps) {
       clearTimeout(navigationTimeoutRef.current)
     }
 
+    console.log('[NavigationController] Navigating to:', route)
     setNavState({
       isNavigating: true,
       pendingRoute: route,
       lastNavigationTime: now
     })
 
-    // requestAnimationFrame으로 부드러운 전환
-    requestAnimationFrame(() => {
-      if (options?.replace) {
-        router.replace(route)
-      } else {
-        router.push(route)
-      }
+    // 즉시 네비게이션 실행 (requestAnimationFrame 제거)
+    if (options?.replace) {
+      router.replace(route)
+    } else {
+      router.push(route)
+    }
 
-      // 네비게이션 완료 후 상태 초기화
-      navigationTimeoutRef.current = setTimeout(() => {
-        setNavState(prev => ({
-          ...prev,
-          isNavigating: false,
-          pendingRoute: null
-        }))
-      }, 300)
-    })
+    // 네비게이션 완료 후 상태 초기화 (더 빠른 초기화)
+    navigationTimeoutRef.current = setTimeout(() => {
+      setNavState(prev => ({
+        ...prev,
+        isNavigating: false,
+        pendingRoute: null
+      }))
+    }, 200)
   }, [router, pathname, navState.isNavigating, navState.lastNavigationTime])
 
   // 탭 기반 네비게이션 처리

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Navigation Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .test-section {
+      margin: 20px 0;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 5px;
+      cursor: pointer;
+      background: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 4px;
+    }
+    button:hover {
+      background: #2563eb;
+    }
+    .result {
+      margin-top: 10px;
+      padding: 10px;
+      background: #f3f4f6;
+      border-radius: 4px;
+      min-height: 50px;
+    }
+    .success {
+      color: green;
+    }
+    .error {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <h1>문서함 Navigation Test</h1>
+  
+  <div class="test-section">
+    <h2>1. Direct Navigation Test</h2>
+    <button onclick="testDirectNavigation()">Test Direct Navigation to /dashboard/documents</button>
+    <div id="direct-result" class="result"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>2. Sidebar Navigation Test</h2>
+    <button onclick="testSidebarNavigation()">Test Sidebar Documents Click</button>
+    <div id="sidebar-result" class="result"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>3. Quick Menu Navigation Test</h2>
+    <button onclick="testQuickMenuNavigation()">Test Quick Menu Documents Click</button>
+    <div id="quickmenu-result" class="result"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>4. Bottom Nav Navigation Test</h2>
+    <button onclick="testBottomNavigation()">Test Bottom Nav Documents Click</button>
+    <div id="bottomnav-result" class="result"></div>
+  </div>
+
+  <script>
+    const baseUrl = 'http://localhost:3001';
+
+    async function testDirectNavigation() {
+      const resultDiv = document.getElementById('direct-result');
+      resultDiv.innerHTML = 'Testing direct navigation...';
+      
+      try {
+        // Test if the documents page is accessible
+        const response = await fetch(`${baseUrl}/dashboard/documents`, {
+          credentials: 'include'
+        });
+        
+        if (response.ok || response.redirected) {
+          resultDiv.innerHTML = `<span class="success">✓ Documents page is accessible. Status: ${response.status}</span>`;
+          if (response.redirected) {
+            resultDiv.innerHTML += `<br>Redirected to: ${response.url}`;
+          }
+        } else {
+          resultDiv.innerHTML = `<span class="error">✗ Failed to access documents page. Status: ${response.status}</span>`;
+        }
+      } catch (error) {
+        resultDiv.innerHTML = `<span class="error">✗ Error: ${error.message}</span>`;
+      }
+    }
+
+    async function testSidebarNavigation() {
+      const resultDiv = document.getElementById('sidebar-result');
+      resultDiv.innerHTML = 'Open the app and click Documents in sidebar, then check console logs...';
+      window.open(`${baseUrl}/dashboard`, '_blank');
+    }
+
+    async function testQuickMenuNavigation() {
+      const resultDiv = document.getElementById('quickmenu-result');
+      resultDiv.innerHTML = 'Open the app and click Documents in quick menu, then check console logs...';
+      window.open(`${baseUrl}/dashboard`, '_blank');
+    }
+
+    async function testBottomNavigation() {
+      const resultDiv = document.getElementById('bottomnav-result');
+      resultDiv.innerHTML = 'Open the app on mobile view and click Documents in bottom nav, then check console logs...';
+      window.open(`${baseUrl}/dashboard`, '_blank');
+    }
+  </script>
+</body>
+</html>

@@ -33,8 +33,9 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
     const handleNavigation = React.useCallback((item: BottomNavItem, e: React.MouseEvent) => {
       e.preventDefault()
       
-      // 이미 네비게이션 중이면 무시
+      // 이미 네비게이션 중이면 무시 (짧은 시간 체크)
       if (isNavigating) {
+        console.log('[BottomNav] Navigation in progress, skipping')
         return
       }
       
@@ -72,6 +73,7 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
         }
       } else {
         // 직접 경로는 통합 네비게이션 컨트롤러 사용
+        console.log('[BottomNav] Navigating to:', item.href)
         if (pathname !== item.href) {
           navigate(item.href)
         }

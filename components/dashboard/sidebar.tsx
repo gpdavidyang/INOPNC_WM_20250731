@@ -394,20 +394,16 @@ function SidebarContent({
                       e.preventDefault()
                       e.stopPropagation()
                       
-                      // 문서함인 경우 통합 네비게이션 사용
-                      if (item.label === '문서함') {
-                        // 이미 네비게이션 중이거나 같은 경로면 무시
-                        if (isNavigating || pathname === '/dashboard/documents') {
+                      // 문서함인 경우 직접 처리
+                      if (item.id === 'documents') {
+                        // 같은 경로면 무시
+                        if (pathname === '/dashboard/documents') {
                           return
                         }
                         
-                        // 통합 네비게이션 컨트롤러 사용
-                        navigate('/dashboard/documents')
-                        
-                        // 모바일에서 사이드바 닫기
-                        if (window.innerWidth < 1024) {
-                          setTimeout(() => onClose(), 100)
-                        }
+                        console.log('[Sidebar] Navigating to documents')
+                        // handleMenuClick 사용 (이미 navigate 로직 포함)
+                        handleMenuClick(item)
                         return
                       }
                       

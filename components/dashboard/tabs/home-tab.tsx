@@ -43,6 +43,7 @@ interface QuickMenuItem {
   icon: React.ReactNode
   path: string
   color: string
+  backgroundColor: string
   description: string
 }
 
@@ -75,6 +76,7 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
       icon: <Calendar className="h-5 w-5" />,
       path: '/dashboard/attendance',
       color: 'text-blue-600 dark:text-blue-400',
+      backgroundColor: 'bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 border-blue-200 dark:border-blue-800',
       description: '출력 및 근무 현황 확인'
     },
     {
@@ -82,7 +84,8 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
       name: '작업일지',
       icon: <FileText className="h-5 w-5" />,
       path: '/dashboard/daily-reports',
-      color: 'text-indigo-600 dark:text-indigo-400',
+      color: 'text-green-600 dark:text-green-400',
+      backgroundColor: 'bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 border-green-200 dark:border-green-800',
       description: '일일 작업 보고서'
     },
     {
@@ -91,6 +94,7 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
       icon: <MapPin className="h-5 w-5" />,
       path: '/dashboard/site-info',
       color: 'text-purple-600 dark:text-purple-400',
+      backgroundColor: 'bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 border-purple-200 dark:border-purple-800',
       description: '현장 세부 정보 및 공가사항'
     },
     {
@@ -98,7 +102,8 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
       name: '문서함',
       icon: <FolderOpen className="h-5 w-5" />,
       path: '/dashboard/documents',
-      color: 'text-green-600 dark:text-green-400',
+      color: 'text-amber-600 dark:text-amber-400',
+      backgroundColor: 'bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/30 border-amber-200 dark:border-amber-800',
       description: '개인 문서 관리'
     },
     {
@@ -107,6 +112,7 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
       icon: <Phone className="h-5 w-5" />,
       path: '/dashboard/emergency',
       color: 'text-red-600 dark:text-red-400',
+      backgroundColor: 'bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 border-red-200 dark:border-red-800',
       description: '긴급전화 및 사고신고'
     },
     {
@@ -115,6 +121,7 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
       icon: <Settings className="h-5 w-5" />,
       path: '/dashboard/settings',
       color: 'text-gray-600 dark:text-gray-400',
+      backgroundColor: 'bg-gray-50 dark:bg-gray-900/20 hover:bg-gray-100 dark:hover:bg-gray-900/30 border-gray-200 dark:border-gray-800',
       description: '앱 설정 및 환경설정'
     },
     {
@@ -123,6 +130,7 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
       icon: <Bell className="h-5 w-5" />,
       path: '/dashboard/notifications',
       color: 'text-yellow-600 dark:text-yellow-400',
+      backgroundColor: 'bg-yellow-50 dark:bg-yellow-900/20 hover:bg-yellow-100 dark:hover:bg-yellow-900/30 border-yellow-200 dark:border-yellow-800',
       description: '중요 알림 및 또기사항'
     },
     {
@@ -131,6 +139,7 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
       icon: <Users className="h-5 w-5" />,
       path: '/dashboard/workers',
       color: 'text-emerald-600 dark:text-emerald-400',
+      backgroundColor: 'bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 border-emerald-200 dark:border-emerald-800',
       description: '작업자 정보 관리'
     },
     {
@@ -139,6 +148,7 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
       icon: <BarChart3 className="h-5 w-5" />,
       path: '/dashboard/statistics',
       color: 'text-cyan-600 dark:text-cyan-400',
+      backgroundColor: 'bg-cyan-50 dark:bg-cyan-900/20 hover:bg-cyan-100 dark:hover:bg-cyan-900/30 border-cyan-200 dark:border-cyan-800',
       description: '작업 통계 및 분석'
     },
     {
@@ -147,6 +157,7 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
       icon: <HardHat className="h-5 w-5" />,
       path: '/dashboard/safety',
       color: 'text-red-600 dark:text-red-400',
+      backgroundColor: 'bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 border-red-200 dark:border-red-800',
       description: '안전 점검 및 관리'
     },
     {
@@ -155,6 +166,7 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
       icon: <Bell className="h-5 w-5" />,
       path: '/dashboard/notifications',
       color: 'text-violet-600 dark:text-violet-400',
+      backgroundColor: 'bg-violet-50 dark:bg-violet-900/20 hover:bg-violet-100 dark:hover:bg-violet-900/30 border-violet-200 dark:border-violet-800',
       description: '알림 및 메시지'
     },
     {
@@ -163,6 +175,7 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
       icon: <ClipboardList className="h-5 w-5" />,
       path: '/dashboard/tasks',
       color: 'text-teal-600 dark:text-teal-400',
+      backgroundColor: 'bg-teal-50 dark:bg-teal-900/20 hover:bg-teal-100 dark:hover:bg-teal-900/30 border-teal-200 dark:border-teal-800',
       description: '할 일 및 업무 관리'
     },
     {
@@ -171,6 +184,7 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
       icon: <MessageSquare className="h-5 w-5" />,
       path: '/dashboard/messages',
       color: 'text-pink-600 dark:text-pink-400',
+      backgroundColor: 'bg-pink-50 dark:bg-pink-900/20 hover:bg-pink-100 dark:hover:bg-pink-900/30 border-pink-200 dark:border-pink-800',
       description: '메시지 및 소통'
     }
   ]
@@ -847,15 +861,11 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
                 <li key={item.id} role="none">
                   <button 
                     onClick={() => {
-                      if (item.id === 'site-info' || item.id === 'daily-reports' || item.id === 'documents') {
-                        router.push(item.path)
-                      } else if (onTabChange) {
-                        onTabChange(item.id)
-                      } else {
-                        router.push(item.path)
-                      }
+                      // All quick menu items should use router.push for navigation
+                      console.log('[QuickMenu] Navigating to:', item.path)
+                      router.push(item.path)
                     }}
-                    className="w-full flex flex-col items-center py-4 px-3 bg-gray-50 dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 border border-gray-300 dark:border-slate-600 hover:border-gray-400 dark:hover:border-slate-500 rounded-xl transition-all duration-200 active:scale-[0.98] touch-manipulation focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 min-h-[72px] shadow-sm hover:shadow-md group"
+                    className={`w-full flex flex-col items-center py-4 px-3 ${item.backgroundColor} rounded-xl transition-all duration-200 active:scale-[0.98] touch-manipulation focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 min-h-[72px] shadow-sm hover:shadow-md group`}
                     aria-label={`${item.name} - ${item.description}`}
                     role="menuitem"
                   >

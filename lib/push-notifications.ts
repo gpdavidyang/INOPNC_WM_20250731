@@ -46,8 +46,32 @@ class PushNotificationService {
 
     try {
       // Get VAPID public key from server
-      const response = await fetch('/api/notifications/vapid')
-      const { publicKey } = await response.json()
+      const response = await fetch('/api/notifications/vapid', {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        timeout: 5000 // 5 second timeout
+      })
+      
+      if (!response.ok) {
+        throw new Error(`VAPID API responded with ${response.status}: ${response.statusText}`)
+      }
+
+      const contentType = response.headers.get('content-type')
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await response.text()
+        throw new Error(`Expected JSON response but got: ${contentType}. Response: ${text.slice(0, 100)}...`)
+      }
+
+      const data = await response.json()
+      
+      if (!data.success || !data.publicKey) {
+        throw new Error(`VAPID API error: ${data.error || 'Unknown error'}`)
+      }
+
+      const { publicKey } = data
       this.publicVapidKey = publicKey
       return true
     } catch (error) {

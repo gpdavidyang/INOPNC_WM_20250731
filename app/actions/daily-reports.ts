@@ -65,8 +65,7 @@ export async function createDailyReport(data: {
       .insert({
         ...data,
         status: 'draft' as DailyReportStatus,
-        created_by: user.id,
-        submitted_by: user.id
+        created_by: user.id
       })
       .select()
       .single()

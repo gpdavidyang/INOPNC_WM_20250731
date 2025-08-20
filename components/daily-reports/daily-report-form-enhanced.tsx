@@ -63,6 +63,7 @@ interface WorkContentEntry {
 }
 
 interface WorkerEntry {
+  id: string // Unique identifier for React key
   worker_id: string
   labor_hours: number
   worker_name?: string // For direct input
@@ -193,6 +194,7 @@ export default function DailyReportFormEnhanced({
   
   // Section 3: Workers
   const [workerEntries, setWorkerEntries] = useState<WorkerEntry[]>([])
+  
   
   // Section 4: Photos
   const [photos, setPhotos] = useState<PhotoEntry[]>([])
@@ -357,6 +359,7 @@ export default function DailyReportFormEnhanced({
   // Worker handlers
   const addWorker = () => {
     setWorkerEntries([...workerEntries, {
+      id: `worker_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       worker_id: '',
       labor_hours: 1.0,
       worker_name: '',
@@ -924,7 +927,7 @@ export default function DailyReportFormEnhanced({
               </button>
 
               {workerEntries.map((entry, index) => (
-                <div key={index} className="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded p-2">
+                <div key={entry.id} className="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded p-2">
                   <div className="flex items-center justify-between mb-1">
                     <h4 className="text-xs font-medium text-gray-700">작업자 {index + 1}</h4>
                     <button

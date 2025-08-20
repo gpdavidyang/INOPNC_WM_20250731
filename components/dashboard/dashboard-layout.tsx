@@ -80,7 +80,7 @@ export default function DashboardLayout({ user, profile, children, initialActive
   const bottomNavItems: BottomNavItem[] = [
     { 
       label: "빠른메뉴", 
-      href: "#home", 
+      href: "/dashboard", 
       icon: <Home /> 
     },
     { 
@@ -111,7 +111,7 @@ export default function DashboardLayout({ user, profile, children, initialActive
     { 
       id: "home",
       label: "빠른메뉴", 
-      href: "#home", 
+      href: "/dashboard", 
       icon: <Home />,
       priority: 'normal'
     },

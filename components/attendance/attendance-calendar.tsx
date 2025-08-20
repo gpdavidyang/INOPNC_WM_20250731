@@ -19,7 +19,8 @@ import {
   MapPin,
   CalendarDays,
   Users,
-  Clock
+  Clock,
+  FileText
 } from 'lucide-react'
 import { getAttendanceRecords, getCompanyAttendanceSummary } from '@/app/actions/attendance'
 import { getSites } from '@/app/actions/sites'
@@ -664,6 +665,17 @@ export function AttendanceCalendar({ profile, isPartnerView }: AttendanceCalenda
                     </div>
                   </div>
                 )}
+                
+                {/* 작업내용 */}
+                <div className="flex items-start gap-2">
+                  <FileText className="h-4 w-4 text-gray-500 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm text-gray-600 mb-1">작업내용</p>
+                    <div className="text-sm text-gray-800 bg-gray-50 dark:bg-gray-800 p-2 rounded-md">
+                      {attendance.work_description || '일반 작업 수행'}
+                    </div>
+                  </div>
+                </div>
               </div>
             )
           })()}

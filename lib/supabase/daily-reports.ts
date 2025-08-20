@@ -84,6 +84,47 @@ export async function createDailyReport(report: Partial<DailyReport>) {
     throw new Error('User not authenticated')
   }
   
+  // Check for existing report with same site_id, work_date, and created_by
+  const { data: existingReport, error: checkError } = await supabase
+    .from('daily_reports')
+    .select('id, status')
+    .eq('site_id', report.site_id)
+    .eq('work_date', report.work_date)
+    .eq('created_by', userData.user.id)
+    .single()
+  
+  if (checkError && checkError.code !== 'PGRST116') {
+    console.error('Error checking existing daily report:', checkError)
+    throw checkError
+  }
+  
+  // If report exists, update it instead of creating new one
+  if (existingReport) {
+    const { data, error } = await supabase
+      .from('daily_reports')
+      .update({
+        member_name: report.member_name,
+        process_type: report.process_type,
+        total_workers: report.total_workers,
+        npc1000_incoming: report.npc1000_incoming,
+        npc1000_used: report.npc1000_used,
+        npc1000_remaining: report.npc1000_remaining,
+        issues: report.issues,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', existingReport.id)
+      .select()
+      .single()
+    
+    if (error) {
+      console.error('Error updating existing daily report:', error)
+      throw error
+    }
+    
+    return data
+  }
+  
+  // Create new report if none exists
   const { data, error } = await supabase
     .from('daily_reports')
     .insert({
@@ -92,6 +133,9 @@ export async function createDailyReport(report: Partial<DailyReport>) {
       member_name: report.member_name,
       process_type: report.process_type,
       total_workers: report.total_workers,
+      npc1000_incoming: report.npc1000_incoming || 0,
+      npc1000_used: report.npc1000_used || 0,
+      npc1000_remaining: report.npc1000_remaining || 0,
       issues: report.issues,
       created_by: userData.user.id,
       status: 'draft' as any

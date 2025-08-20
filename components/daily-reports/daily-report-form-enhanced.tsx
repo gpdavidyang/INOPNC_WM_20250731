@@ -178,7 +178,7 @@ export default function DailyReportFormEnhanced({
   // Form state - Header (Section 1) - Updated to match actual DB schema
   const [formData, setFormData] = useState({
     site_id: (currentUser as any).site_id || '',
-    work_date: '2025-07-30',
+    work_date: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD format
     member_name: '', // Required field
     process_type: '', // Required field  
     total_workers: 0,
@@ -262,7 +262,7 @@ export default function DailyReportFormEnhanced({
         const parsed = JSON.parse(savedData)
         setFormData({
           site_id: parsed.formData?.site_id || (currentUser as any).site_id || '',
-          work_date: parsed.formData?.work_date || '2025-07-30',
+          work_date: parsed.formData?.work_date || new Date().toISOString().split('T')[0],
           member_name: parsed.formData?.member_name || '',
           process_type: parsed.formData?.process_type || '',
           total_workers: parsed.formData?.total_workers || 0,

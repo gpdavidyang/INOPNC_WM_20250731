@@ -64,7 +64,6 @@ export function MyDocuments({ profile }: MyDocumentsProps) {
   const [sortBy, setSortBy] = useState('date')
   const [viewMode, setViewMode] = useState('list')
   const [selectedDocs, setSelectedDocs] = useState<string[]>([])
-  const [isDragging, setIsDragging] = useState(false)
   const [dragOverDocId, setDragOverDocId] = useState<string | null>(null)
   const [requiredDocsExpanded, setRequiredDocsExpanded] = useState(true)
   const [filtersExpanded, setFiltersExpanded] = useState(false)
@@ -112,22 +111,6 @@ export function MyDocuments({ profile }: MyDocumentsProps) {
     handleUploadFiles(files)
   }
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(true)
-  }
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(false)
-  }
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(false)
-    const files = Array.from(e.dataTransfer.files)
-    handleUploadFiles(files)
-  }
 
   const handleUploadFiles = async (files: File[]) => {
     for (const file of files) {
@@ -900,38 +883,16 @@ export function MyDocuments({ profile }: MyDocumentsProps) {
           문서를 불러오는 중...
         </div>
       ) : filteredDocuments.length === 0 ? (
-        /* Compact Upload Area */
-        <div
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-          className={cn(
-            "rounded-xl border-2 border-dashed transition-all",
-            isDragging
-              ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-              : "border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800"
-          )}
-        >
-          <div className="py-8 px-4 text-center">
-            <Upload className={cn(
-              "h-10 w-10 mx-auto mb-3",
-              isDragging ? "text-blue-500" : "text-gray-400"
-            )} />
-            <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              파일을 드래그하여 업로드하거나
-            </p>
-            <Button
-              variant="link"
-              className="text-blue-600 text-sm"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              파일 선택
-            </Button>
-            <p className="text-xs text-gray-500 mt-2">
-              PDF, DOC, XLS, JPG, PNG 파일 지원 (최대 10MB)
-            </p>
-          </div>
-        </div>
+        /* Empty State */
+        <Card className="p-12 text-center">
+          <FileText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+          <p className="text-gray-500">
+            {searchTerm ? '검색 결과가 없습니다.' : '업로드된 문서가 없습니다.'}
+          </p>
+          <p className="text-sm text-gray-400 mt-2">
+            상단의 "파일 업로드" 버튼을 사용해 문서를 업로드하세요.
+          </p>
+        </Card>
       ) : viewMode === 'list' ? (
         /* Mobile-Optimized List View */
         <div className="bg-white dark:bg-gray-800 rounded-lg border divide-y">

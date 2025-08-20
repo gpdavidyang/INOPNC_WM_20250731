@@ -47,16 +47,31 @@ export async function createDailyReport(data: {
       throw new AppError('로그인이 필요합니다.', ErrorType.AUTHENTICATION, 401)
     }
 
-    // Check if report already exists for this date
+    // Check if report already exists for this date and user
     const { data: existing } = await supabase
       .from('daily_reports')
-      .select('id')
+      .select('id, status')
       .eq('site_id', data.site_id)
-      .eq('work_date', data.work_date) // Updated column name
+      .eq('work_date', data.work_date)
+      .eq('created_by', user.id)
       .single()
 
+    // If report exists, update it instead of creating new one
     if (existing) {
-      throw new AppError('해당 날짜의 보고서가 이미 존재합니다.', ErrorType.VALIDATION)
+      const { data: report, error } = await supabase
+        .from('daily_reports')
+        .update({
+          ...data,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', existing.id)
+        .select()
+        .single()
+
+      validateSupabaseResponse(report, error)
+
+      revalidatePath('/dashboard/daily-reports')
+      return { success: true, data: report }
     }
 
     // Create new daily report

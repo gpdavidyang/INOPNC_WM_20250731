@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Card } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/custom-select'
+import { CustomSelect, CustomSelectContent, CustomSelectItem, CustomSelectTrigger, CustomSelectValue } from '@/components/ui/custom-select'
 import { 
   Calendar, 
   Cloud, 
@@ -198,6 +198,7 @@ export default function DailyReportFormEnhanced({
   const [photos, setPhotos] = useState<PhotoEntry[]>([])
   const [showPhotoModal, setShowPhotoModal] = useState(false)
   const [currentPhotoType, setCurrentPhotoType] = useState<'before' | 'after'>('before')
+  const [showDrawingModal, setShowDrawingModal] = useState(false)
   
   // Section 5: Receipts
   const [receipts, setReceipts] = useState<ReceiptEntry[]>([])
@@ -732,25 +733,25 @@ export default function DailyReportFormEnhanced({
             <div className="space-y-2">
               <div>
                 <label className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1 block">현장 <span className="text-red-400">*</span></label>
-                <Select
+                <CustomSelect
                   value={formData.site_id || ''}
                   onValueChange={(value) => setFormData({ ...formData, site_id: value })}
                 >
-                  <SelectTrigger className="w-full h-9 text-sm bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100">
-                    <SelectValue placeholder="현장 선택" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white dark:bg-gray-800 border dark:border-gray-700">
+                  <CustomSelectTrigger className="w-full h-9 text-sm bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100">
+                    <CustomSelectValue placeholder="현장 선택" />
+                  </CustomSelectTrigger>
+                  <CustomSelectContent className="bg-white dark:bg-gray-800 border dark:border-gray-700">
                     {sites && sites.length > 0 ? (
                       sites.map(site => (
-                        <SelectItem key={site.id} value={site.id}>{site.name}</SelectItem>
+                        <CustomSelectItem key={site.id} value={site.id}>{site.name}</CustomSelectItem>
                       ))
                     ) : (
                       <div className="p-2 text-sm text-gray-500 dark:text-gray-400">
                         현장 정보가 없습니다
                       </div>
                     )}
-                  </SelectContent>
-                </Select>
+                  </CustomSelectContent>
+                </CustomSelect>
               </div>
               
               <div className="grid grid-cols-2 gap-2">
@@ -829,20 +830,20 @@ export default function DailyReportFormEnhanced({
                     <div className="grid grid-cols-2 gap-2">
                       <div>
                         <label className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1 block">부재명 <span className="text-red-400">*</span></label>
-                        <Select
+                        <CustomSelect
                           value={content.memberName || ''}
                           onValueChange={(value) => updateWorkContent(content.id, 'memberName', value)}
                         >
-                          <SelectTrigger className="w-full h-8 text-sm bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100">
-                            <SelectValue placeholder="선택" />
-                          </SelectTrigger>
-                          <SelectContent className="bg-white dark:bg-gray-800 border dark:border-gray-700">
-                            <SelectItem value="슬라브">슬라브</SelectItem>
-                            <SelectItem value="거더">거더</SelectItem>
-                            <SelectItem value="기둥">기둥</SelectItem>
-                            <SelectItem value="기타">기타</SelectItem>
-                          </SelectContent>
-                        </Select>
+                          <CustomSelectTrigger className="w-full h-8 text-sm bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100">
+                            <CustomSelectValue placeholder="선택" />
+                          </CustomSelectTrigger>
+                          <CustomSelectContent className="bg-white dark:bg-gray-800 border dark:border-gray-700">
+                            <CustomSelectItem value="슬라브">슬라브</CustomSelectItem>
+                            <CustomSelectItem value="거더">거더</CustomSelectItem>
+                            <CustomSelectItem value="기둥">기둥</CustomSelectItem>
+                            <CustomSelectItem value="기타">기타</CustomSelectItem>
+                          </CustomSelectContent>
+                        </CustomSelect>
                         {content.memberName === '기타' && (
                           <input
                             className="w-full h-8 px-2 mt-1 text-sm bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
@@ -855,20 +856,20 @@ export default function DailyReportFormEnhanced({
 
                       <div>
                         <label className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1 block">작업공정 <span className="text-red-400">*</span></label>
-                        <Select
+                        <CustomSelect
                           value={content.processType || ''}
                           onValueChange={(value) => updateWorkContent(content.id, 'processType', value)}
                         >
-                          <SelectTrigger className="w-full h-8 text-sm bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100">
-                            <SelectValue placeholder="선택" />
-                          </SelectTrigger>
-                          <SelectContent className="bg-white dark:bg-gray-800 border dark:border-gray-700">
-                            <SelectItem value="균열">균열</SelectItem>
-                            <SelectItem value="면">면</SelectItem>
-                            <SelectItem value="마감">마감</SelectItem>
-                            <SelectItem value="기타">기타</SelectItem>
-                          </SelectContent>
-                        </Select>
+                          <CustomSelectTrigger className="w-full h-8 text-sm bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100">
+                            <CustomSelectValue placeholder="선택" />
+                          </CustomSelectTrigger>
+                          <CustomSelectContent className="bg-white dark:bg-gray-800 border dark:border-gray-700">
+                            <CustomSelectItem value="균열">균열</CustomSelectItem>
+                            <CustomSelectItem value="면">면</CustomSelectItem>
+                            <CustomSelectItem value="마감">마감</CustomSelectItem>
+                            <CustomSelectItem value="기타">기타</CustomSelectItem>
+                          </CustomSelectContent>
+                        </CustomSelect>
                         {content.processType === '기타' && (
                           <input
                             className="w-full h-8 px-2 mt-1 text-sm bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
@@ -959,7 +960,7 @@ export default function DailyReportFormEnhanced({
                         </div>
                       ) : (
                         <div className="space-y-1">
-                          <Select
+                          <CustomSelect
                             value={entry.worker_id || ''}
                             onValueChange={(value) => {
                               if (value === 'direct_input') {
@@ -970,44 +971,44 @@ export default function DailyReportFormEnhanced({
                               }
                             }}
                           >
-                            <SelectTrigger className="w-full h-8 text-sm bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100">
-                              <SelectValue placeholder="선택" />
-                            </SelectTrigger>
-                            <SelectContent className="bg-white dark:bg-gray-800 border dark:border-gray-700">
+                            <CustomSelectTrigger className="w-full h-8 text-sm bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100">
+                              <CustomSelectValue placeholder="선택" />
+                            </CustomSelectTrigger>
+                            <CustomSelectContent className="bg-white dark:bg-gray-800 border dark:border-gray-700">
                               {workers.map(worker => (
-                                <SelectItem key={worker.id} value={worker.id}>
+                                <CustomSelectItem key={worker.id} value={worker.id}>
                                   {worker.full_name} ({worker.role})
-                                </SelectItem>
+                                </CustomSelectItem>
                               ))}
-                              <SelectItem value="direct_input">
+                              <CustomSelectItem value="direct_input">
                                 <div className="flex items-center gap-2">
                                   <Plus className="h-3 w-3" />
                                   직접 입력
                                 </div>
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
+                              </CustomSelectItem>
+                            </CustomSelectContent>
+                          </CustomSelect>
                         </div>
                       )}
                     </div>
                     <div>
                       <label className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1 block">공수</label>
-                      <Select
+                      <CustomSelect
                         value={(entry.labor_hours || 0).toString()}
                         onValueChange={(value) => updateWorker(index, 'labor_hours', parseFloat(value))}
                       >
-                        <SelectTrigger className="w-full h-8 text-sm bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100">
-                          <SelectValue placeholder="0.0" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-white dark:bg-gray-800 border dark:border-gray-700">
-                          <SelectItem value="0">0.0</SelectItem>
-                          <SelectItem value="1">1.0</SelectItem>
-                          <SelectItem value="1.5">1.5</SelectItem>
-                          <SelectItem value="2">2.0</SelectItem>
-                          <SelectItem value="2.5">2.5</SelectItem>
-                          <SelectItem value="3">3.0</SelectItem>
-                        </SelectContent>
-                      </Select>
+                        <CustomSelectTrigger className="w-full h-8 text-sm bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100">
+                          <CustomSelectValue placeholder="0.0" />
+                        </CustomSelectTrigger>
+                        <CustomSelectContent className="bg-white dark:bg-gray-800 border dark:border-gray-700">
+                          <CustomSelectItem value="0">0.0</CustomSelectItem>
+                          <CustomSelectItem value="1">1.0</CustomSelectItem>
+                          <CustomSelectItem value="1.5">1.5</CustomSelectItem>
+                          <CustomSelectItem value="2">2.0</CustomSelectItem>
+                          <CustomSelectItem value="2.5">2.5</CustomSelectItem>
+                          <CustomSelectItem value="3">3.0</CustomSelectItem>
+                        </CustomSelectContent>
+                      </CustomSelect>
                     </div>
                   </div>
                 </div>

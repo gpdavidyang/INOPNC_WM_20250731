@@ -548,19 +548,6 @@ export default function SiteInfoPageNew({
                           </span>
                         </div>
 
-                        {/* 현장 기간 */}
-                        {(selectedSiteForDetail.start_date || selectedSiteForDetail.end_date) && (
-                          <div className="flex items-center gap-3">
-                            <Calendar className="h-4 w-4 text-blue-500 flex-shrink-0" />
-                            <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">현장 기간</span>
-                            <div className="text-sm text-gray-900 dark:text-gray-100">
-                              {formatDate(selectedSiteForDetail.start_date)}
-                              {selectedSiteForDetail.end_date && (
-                                <> ~ {formatDate(selectedSiteForDetail.end_date)}</>
-                              )}
-                            </div>
-                          </div>
-                        )}
                       </div>
                     </div>
                   </Card>

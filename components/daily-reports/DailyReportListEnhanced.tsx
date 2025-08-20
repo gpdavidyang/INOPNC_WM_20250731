@@ -77,10 +77,16 @@ export function DailyReportListEnhanced({ currentUser, sites = [] }: DailyReport
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedSite, setSelectedSite] = useState<string>('all')
   const [selectedStatus, setSelectedStatus] = useState<string>('all')
-  const [dateRange, setDateRange] = useState(() => ({
-    from: '2025-07-01', // 7월 1일부터
-    to: '2025-08-31' // 8월 31일까지
-  }))
+  const [dateRange, setDateRange] = useState(() => {
+    const today = new Date()
+    const oneMonthAgo = new Date(today)
+    oneMonthAgo.setMonth(today.getMonth() - 1)
+    
+    return {
+      from: oneMonthAgo.toISOString().split('T')[0], // 1개월 전부터
+      to: today.toISOString().split('T')[0] // 오늘까지
+    }
+  })
   const [stats, setStats] = useState<ReportStats>({
     totalReports: 0,
     draftReports: 0,
@@ -137,6 +143,22 @@ export function DailyReportListEnhanced({ currentUser, sites = [] }: DailyReport
       })
     }
     
+    if (dateRange.from || dateRange.to) {
+      let dateLabel = '기간: '
+      if (dateRange.from && dateRange.to) {
+        dateLabel += `${dateRange.from} ~ ${dateRange.to}`
+      } else if (dateRange.from) {
+        dateLabel += `${dateRange.from} 이후`
+      } else if (dateRange.to) {
+        dateLabel += `${dateRange.to} 이전`
+      }
+      filters.push({ 
+        label: dateLabel, 
+        value: `${dateRange.from}-${dateRange.to}`, 
+        key: 'date' 
+      })
+    }
+    
     return filters
   }
 
@@ -150,6 +172,9 @@ export function DailyReportListEnhanced({ currentUser, sites = [] }: DailyReport
         break
       case 'search':
         setSearchTerm('')
+        break
+      case 'date':
+        setDateRange({ from: '', to: '' })
         break
     }
   }
@@ -592,7 +617,96 @@ export function DailyReportListEnhanced({ currentUser, sites = [] }: DailyReport
                 </CustomSelectContent>
               </CustomSelect>
 
-              {/* 검색어 입력 - 세번째 */}
+              {/* 기간 선택 - 세번째 */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                  <Calendar className="h-4 w-4" />
+                  <span>기간 선택</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Input
+                      type="date"
+                      value={dateRange.from}
+                      onChange={(e) => setDateRange(prev => ({ ...prev, from: e.target.value }))}
+                      className={cn(
+                        "text-sm bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 rounded-lg",
+                        touchMode === 'glove' && "min-h-[60px] text-base",
+                        touchMode === 'precision' && "min-h-[44px] text-sm",
+                        touchMode !== 'precision' && touchMode !== 'glove' && "min-h-[40px] text-sm"
+                      )}
+                      placeholder="시작일"
+                    />
+                  </div>
+                  <div>
+                    <Input
+                      type="date"
+                      value={dateRange.to}
+                      onChange={(e) => setDateRange(prev => ({ ...prev, to: e.target.value }))}
+                      className={cn(
+                        "text-sm bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 rounded-lg",
+                        touchMode === 'glove' && "min-h-[60px] text-base",
+                        touchMode === 'precision' && "min-h-[44px] text-sm",
+                        touchMode !== 'precision' && touchMode !== 'glove' && "min-h-[40px] text-sm"
+                      )}
+                      placeholder="종료일"
+                    />
+                  </div>
+                </div>
+                
+                {/* Quick Date Presets */}
+                <div className="flex flex-wrap gap-1">
+                  <button
+                    onClick={() => {
+                      const today = new Date()
+                      const oneWeekAgo = new Date(today)
+                      oneWeekAgo.setDate(today.getDate() - 7)
+                      setDateRange({
+                        from: oneWeekAgo.toISOString().split('T')[0],
+                        to: today.toISOString().split('T')[0]
+                      })
+                    }}
+                    className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-500 transition-colors"
+                  >
+                    최근 7일
+                  </button>
+                  <button
+                    onClick={() => {
+                      const today = new Date()
+                      const oneMonthAgo = new Date(today)
+                      oneMonthAgo.setMonth(today.getMonth() - 1)
+                      setDateRange({
+                        from: oneMonthAgo.toISOString().split('T')[0],
+                        to: today.toISOString().split('T')[0]
+                      })
+                    }}
+                    className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-500 transition-colors"
+                  >
+                    최근 1개월
+                  </button>
+                  <button
+                    onClick={() => {
+                      const today = new Date()
+                      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
+                      setDateRange({
+                        from: startOfMonth.toISOString().split('T')[0],
+                        to: today.toISOString().split('T')[0]
+                      })
+                    }}
+                    className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-500 transition-colors"
+                  >
+                    이번달
+                  </button>
+                  <button
+                    onClick={() => setDateRange({ from: '', to: '' })}
+                    className="px-2 py-1 text-xs bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-300 rounded hover:bg-red-200 dark:hover:bg-red-800 transition-colors"
+                  >
+                    초기화
+                  </button>
+                </div>
+              </div>
+
+              {/* 검색어 입력 - 네번째 */}
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-4 h-4" />
                 <Input

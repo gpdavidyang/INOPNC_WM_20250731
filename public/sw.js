@@ -1,10 +1,10 @@
 // INOPNC Work Management System Service Worker
 // Provides offline functionality and intelligent caching for construction sites
 
-const CACHE_NAME = 'inopnc-wm-v1.0.7'
-const STATIC_CACHE = 'inopnc-static-v1.0.7'
-const API_CACHE = 'inopnc-api-v1.0.7'
-const IMAGES_CACHE = 'inopnc-images-v1.0.7'
+const CACHE_NAME = 'inopnc-wm-v1.0.8'
+const STATIC_CACHE = 'inopnc-static-v1.0.8'
+const API_CACHE = 'inopnc-api-v1.0.8'
+const IMAGES_CACHE = 'inopnc-images-v1.0.8'
 const OFFLINE_PAGE = '/offline'
 
 // Cache size limits for mobile devices

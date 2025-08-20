@@ -477,71 +477,91 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
                       } catch (canvasError) {
                         console.error('Canvas 방식 실패:', canvasError)
                         
-                        // 방법 3: 브라우저에서 직접 열기 (최후 수단)
-                        const newWindow = window.open()
-                        if (newWindow) {
-                          newWindow.document.write(`
-                            <html>
-                              <head>
-                                <title>강남A현장 공도면</title>
-                                <meta name="viewport" content="width=device-width, initial-scale=1">
-                                <style>
-                                  body { 
-                                    margin: 0; 
-                                    padding: 20px; 
-                                    background: #f5f5f5; 
-                                    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-                                  }
-                                  .container { 
-                                    max-width: 100%; 
-                                    text-align: center; 
-                                  }
-                                  img { 
-                                    max-width: 100%; 
-                                    height: auto; 
-                                    border: 1px solid #ddd; 
-                                    border-radius: 8px;
-                                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-                                  }
-                                  .download-btn {
-                                    margin: 20px 0;
-                                    padding: 12px 24px;
-                                    background: #007AFF;
-                                    color: white;
-                                    border: none;
-                                    border-radius: 8px;
-                                    font-size: 16px;
-                                    cursor: pointer;
-                                  }
-                                  .instruction {
-                                    margin: 20px 0;
-                                    padding: 15px;
-                                    background: #E3F2FD;
-                                    border-radius: 8px;
-                                    color: #1976D2;
-                                  }
-                                </style>
-                              </head>
-                              <body>
-                                <div class="container">
-                                  <h2>강남A현장 공도면</h2>
-                                  <div class="instruction">
-                                    📱 모바일에서 이미지 저장하기:<br>
-                                    • iOS: 이미지를 길게 눌러 "사진에 저장" 선택<br>
-                                    • Android: 이미지를 길게 눌러 "이미지 다운로드" 선택
-                                  </div>
-                                  <img src="${fileUrl}" alt="강남A현장 공도면" />
-                                  <br>
-                                  <button class="download-btn" onclick="window.close()">완료</button>
+                        // 방법 3: PWA 내부에서 직접 이미지 보기 (팝업 차단 해결)
+                        // 현재 모달을 이미지 뷰어로 변환
+                        setShowBlueprintModal(false)
+                        
+                        setTimeout(() => {
+                          // 새로운 전체화면 이미지 모달 생성
+                          const imageModal = document.createElement('div')
+                          imageModal.className = 'fixed inset-0 z-[200] bg-black bg-opacity-90 flex items-center justify-center p-4'
+                          imageModal.innerHTML = `
+                            <div class="relative w-full h-full max-w-4xl max-h-full flex flex-col">
+                              <!-- 헤더 -->
+                              <div class="flex items-center justify-between p-4 text-white">
+                                <h3 class="text-lg font-semibold">강남A현장 공도면</h3>
+                                <button id="closeImageModal" class="p-2 hover:bg-white hover:bg-opacity-20 rounded-lg">
+                                  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                  </svg>
+                                </button>
+                              </div>
+                              
+                              <!-- 이미지 -->
+                              <div class="flex-1 flex items-center justify-center overflow-hidden">
+                                <img 
+                                  src="${fileUrl}" 
+                                  alt="강남A현장 공도면" 
+                                  class="max-w-full max-h-full object-contain"
+                                  style="user-select: none; -webkit-user-select: none;"
+                                />
+                              </div>
+                              
+                              <!-- 저장 안내 -->
+                              <div class="p-4 text-center text-white bg-black bg-opacity-50 rounded-t-lg">
+                                <div class="text-sm mb-3 p-3 bg-blue-600 bg-opacity-80 rounded-lg">
+                                  📱 <strong>이미지 저장 방법:</strong><br>
+                                  • iOS: 이미지를 길게 눌러 "사진에 저장" 선택<br>
+                                  • Android: 이미지를 길게 눌러 "이미지 다운로드" 선택
                                 </div>
-                              </body>
-                            </html>
-                          `)
-                          newWindow.document.close()
-                          toast.success('새 창에서 이미지를 확인하세요!')
-                        } else {
-                          toast.error('팝업이 차단되었습니다. 브라우저 설정을 확인해주세요.')
-                        }
+                                <button id="copyImageUrl" class="px-4 py-2 bg-blue-600 text-white rounded-lg mr-3 hover:bg-blue-700">
+                                  📋 링크 복사
+                                </button>
+                                <button id="closeImageModalBtn" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
+                                  닫기
+                                </button>
+                              </div>
+                            </div>
+                          `
+                          
+                          document.body.appendChild(imageModal)
+                          
+                          // 이벤트 리스너 추가
+                          const closeModal = () => {
+                            document.body.removeChild(imageModal)
+                          }
+                          
+                          document.getElementById('closeImageModal')?.addEventListener('click', closeModal)
+                          document.getElementById('closeImageModalBtn')?.addEventListener('click', closeModal)
+                          
+                          // 링크 복사 기능
+                          document.getElementById('copyImageUrl')?.addEventListener('click', async () => {
+                            try {
+                              const fullUrl = window.location.origin + fileUrl
+                              await navigator.clipboard.writeText(fullUrl)
+                              const button = document.getElementById('copyImageUrl')
+                              if (button) {
+                                button.textContent = '✅ 복사됨'
+                                setTimeout(() => {
+                                  button.textContent = '📋 링크 복사'
+                                }, 2000)
+                              }
+                            } catch (err) {
+                              console.error('링크 복사 실패:', err)
+                            }
+                          })
+                          
+                          // 배경 클릭시 닫기
+                          imageModal.addEventListener('click', (e) => {
+                            if (e.target === imageModal) {
+                              closeModal()
+                            }
+                          })
+                          
+                          toast.success('이미지를 길게 눌러 저장하세요!')
+                        }, 300)
+                        
+                        return
                       }
                     } else {
                       // 일반 브라우저에서는 기존 방식

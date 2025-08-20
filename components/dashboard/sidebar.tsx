@@ -297,9 +297,20 @@ function SidebarContent({
 }: any) {
   const router = useRouter()
   const pathname = usePathname()
-  const navigation = useOptionalNavigation()
-  const navigate = navigation?.navigate
-  const isNavigating = navigation?.isNavigating || false
+  
+  // Safe navigation hook usage with error handling
+  let navigation = null
+  let navigate = null
+  let isNavigating = false
+  
+  try {
+    navigation = useOptionalNavigation()
+    navigate = navigation?.navigate
+    isNavigating = navigation?.isNavigating || false
+  } catch (error) {
+    console.warn('[Sidebar] NavigationController not available, using fallback navigation:', error)
+    // Keep navigate as null, will use router.push fallback
+  }
   
   // Determine active tab based on current pathname
   const getActiveTabFromPath = () => {

@@ -3,9 +3,9 @@ import { Database } from '@/types/database'
 import * as Sentry from '@sentry/nextjs'
 import { performanceTracker } from '@/lib/monitoring/performance-metrics'
 
-// Direct access to environment variables for client-side
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+// Direct access to environment variables for client-side with trim to remove any whitespace/newlines
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim()
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim()
 
 // Extend window object for cookie caching
 declare global {
@@ -50,11 +50,23 @@ class EnhancedSupabaseClient {
     this.config = { ...defaultConfig, ...config }
     
     // CRITICAL FIX: Ensure proper cookie handling for session synchronization
-    // Create client with explicit cookie configuration to read/write cookies properly
+    // Create client with explicit cookie configuration and realtime settings
     this.client = createBrowserClient<Database>(
       SUPABASE_URL!,
       SUPABASE_ANON_KEY!,
       {
+        realtime: {
+          // Enhanced WebSocket connection settings for better reliability
+          heartbeatIntervalMs: 30000,      // 30 seconds heartbeat
+          reconnectAfterMs: (attempt) => Math.min(attempt * 1000, 30000), // Exponential backoff
+          timeout: 10000,                  // 10 seconds timeout
+          logger: (level, message, ...args) => {
+            // Only log errors and warnings to avoid spam
+            if (level === 'error' || level === 'warn') {
+              console.log(`[SUPABASE-REALTIME-${level.toUpperCase()}]`, message, ...args)
+            }
+          }
+        },
         cookies: {
           // Get all cookies from document.cookie for proper session reading
           getAll() {
@@ -428,6 +440,18 @@ export function createClient(config?: ClientConfig) {
       SUPABASE_URL!,
       SUPABASE_ANON_KEY!,
       {
+        realtime: {
+          // Enhanced WebSocket connection settings for better reliability
+          heartbeatIntervalMs: 30000,      // 30 seconds heartbeat
+          reconnectAfterMs: (attempt) => Math.min(attempt * 1000, 30000), // Exponential backoff
+          timeout: 10000,                  // 10 seconds timeout
+          logger: (level, message, ...args) => {
+            // Only log errors and warnings to avoid spam
+            if (level === 'error' || level === 'warn') {
+              console.log(`[SUPABASE-REALTIME-${level.toUpperCase()}]`, message, ...args)
+            }
+          }
+        },
         cookies: {
           getAll() {
             const cookies: { name: string; value: string }[] = []

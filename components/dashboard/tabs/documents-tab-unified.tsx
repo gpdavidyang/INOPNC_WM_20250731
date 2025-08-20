@@ -26,46 +26,51 @@ export default function DocumentsTabUnified({ profile, initialTab = 'personal', 
 
   return (
     <div className="space-y-4">
-      {/* Tab Navigation */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-        <div className="flex">
+      {/* Button Navigation - Consistent with Attendance/Site Info Pages */}
+      <div className="flex flex-col gap-3">
+        {/* First Row: 내문서함, 공유문서함 */}
+        <div className="flex gap-3">
           <button
             onClick={() => setActiveTab('personal')}
-            className={`flex-1 px-2 py-3 text-xs font-medium border-b-2 transition-colors ${
+            className={`flex-1 py-4 px-4 rounded-2xl font-semibold text-sm transition-all duration-200 ${
               activeTab === 'personal'
-                ? 'border-blue-500 text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
-                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
+                ? 'bg-blue-600 text-white shadow-lg'
+                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
             }`}
           >
-            <div className="flex flex-col items-center justify-center gap-1">
-              <FolderOpen className="h-4 w-4" />
-              <span className="leading-tight">내문서함</span>
+            <div className="flex items-center justify-center gap-2">
+              <FolderOpen className="h-5 w-5" />
+              <span>내문서함</span>
             </div>
           </button>
           <button
             onClick={() => setActiveTab('shared')}
-            className={`flex-1 px-2 py-3 text-xs font-medium border-b-2 transition-colors ${
+            className={`flex-1 py-4 px-4 rounded-2xl font-semibold text-sm transition-all duration-200 ${
               activeTab === 'shared'
-                ? 'border-blue-500 text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
-                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
+                ? 'bg-blue-600 text-white shadow-lg'
+                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
             }`}
           >
-            <div className="flex flex-col items-center justify-center gap-1">
-              <Share2 className="h-4 w-4" />
-              <span className="leading-tight">공유문서함</span>
+            <div className="flex items-center justify-center gap-2">
+              <Share2 className="h-5 w-5" />
+              <span>공유문서함</span>
             </div>
           </button>
+        </div>
+        
+        {/* Second Row: 도면마킹 */}
+        <div className="flex">
           <button
             onClick={() => setActiveTab('markup')}
-            className={`flex-1 px-2 py-3 text-xs font-medium border-b-2 transition-colors ${
+            className={`w-full py-4 px-4 rounded-2xl font-semibold text-sm transition-all duration-200 ${
               activeTab === 'markup'
-                ? 'border-blue-500 text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
-                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
+                ? 'bg-blue-600 text-white shadow-lg'
+                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
             }`}
           >
-            <div className="flex flex-col items-center justify-center gap-1">
-              <Edit3 className="h-4 w-4" />
-              <span className="leading-tight whitespace-nowrap">도면마킹</span>
+            <div className="flex items-center justify-center gap-2">
+              <Edit3 className="h-5 w-5" />
+              <span>도면마킹</span>
             </div>
           </button>
         </div>

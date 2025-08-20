@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { createDailyReport } from '@/app/actions/daily-reports'
+import { createDailyReport, submitDailyReport } from '@/app/actions/daily-reports'
 import { uploadPhotoToStorage } from '@/app/actions/simple-upload'
 import { addBulkAttendance } from '@/app/actions/attendance'
 import { Button } from '@/components/ui/button'
@@ -676,15 +676,21 @@ export default function DailyReportFormEnhanced({
 
       // Submit for approval if requested
       if (submitForApproval) {
-        const { submitDailyReport } = await import('@/app/actions/daily-reports')
-        await submitDailyReport(dailyReportId)
+        const submitResult = await submitDailyReport(dailyReportId)
+        if (!submitResult.success) {
+          showErrorNotification(submitResult.error || '일일보고서 제출에 실패했습니다', 'handleSubmit')
+          return
+        }
       }
 
       // Clear localStorage after successful submit
       localStorage.removeItem('dailyReportDraft')
       
-      // Show success message
-      toast.success('일일보고서가 성공적으로 작성되었습니다.')
+      // Show success message based on action
+      const successMessage = submitForApproval 
+        ? '일일보고서가 성공적으로 제출되었습니다.'
+        : '일일보고서가 성공적으로 작성되었습니다.'
+      toast.success(successMessage)
 
       // Redirect
       router.push('/dashboard/daily-reports')

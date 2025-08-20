@@ -38,7 +38,8 @@ import {
   Image as ImageIcon,
   MoreHorizontal,
   FolderOpen,
-  CameraIcon
+  CameraIcon,
+  Eye
 } from 'lucide-react'
 import { Site, Profile, Material } from '@/types'
 import { cn } from '@/lib/utils'
@@ -524,12 +525,6 @@ export default function DailyReportFormEnhanced({
       if (!formData.site_id) {
         throw new Error('현장을 선택해주세요')
       }
-      if (!formData.member_name) {
-        throw new Error('담당자명을 입력해주세요')
-      }
-      if (!formData.process_type) {
-        throw new Error('공정 구분을 입력해주세요')
-      }
       if (workContents.length === 0) {
         throw new Error('작업 내용을 입력해주세요')
       }
@@ -538,16 +533,25 @@ export default function DailyReportFormEnhanced({
       }
 
       // Create daily report with actual DB schema
+      // Extract data from work contents for required fields
+      const firstWorkContent = workContents[0]
+      const memberName = firstWorkContent?.memberName === '기타' 
+        ? (firstWorkContent?.memberNameOther || '미입력')
+        : (firstWorkContent?.memberName || '미입력')
+      const processType = firstWorkContent?.processType === '기타'
+        ? (firstWorkContent?.processTypeOther || '일반작업')
+        : (firstWorkContent?.processType || '일반작업')
+        
       const reportResult = await createDailyReport({
         site_id: formData.site_id,
         work_date: formData.work_date,
-        member_name: formData.member_name,
-        process_type: formData.process_type,
-        total_workers: formData.total_workers,
-        npc1000_incoming: formData.npc1000_incoming,
-        npc1000_used: formData.npc1000_used,
-        npc1000_remaining: formData.npc1000_remaining,
-        issues: formData.issues || specialNotes
+        member_name: memberName,
+        process_type: processType,
+        total_workers: workerEntries.length,
+        npc1000_incoming: parseFloat(materialData.incoming) || 0,
+        npc1000_used: parseFloat(materialData.used) || 0,
+        npc1000_remaining: parseFloat(materialData.remaining) || 0,
+        issues: specialNotes || ''
       })
 
       if (!reportResult.success || !reportResult.data) {
@@ -1134,40 +1138,58 @@ export default function DailyReportFormEnhanced({
                           
                           {/* 이미지 미리보기 */}
                           {receipt.preview && (
-                            <div className="mt-2 relative">
-                              <img 
-                                src={receipt.preview} 
-                                alt="영수증 미리보기" 
-                                className="w-full max-h-32 object-contain rounded border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  // 전체화면 미리보기 모달 열기
-                                  const modal = document.createElement('div')
-                                  modal.className = 'fixed inset-0 z-[200] bg-black bg-opacity-90 flex items-center justify-center p-4'
-                                  modal.innerHTML = `
-                                    <div class="relative max-w-full max-h-full">
-                                      <img src="${receipt.preview}" alt="영수증 전체보기" class="max-w-full max-h-full object-contain rounded" />
-                                      <button class="absolute top-4 right-4 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70 transition-colors" onclick="document.body.removeChild(this.closest('.fixed'))">
-                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                        </svg>
-                                      </button>
+                            <div className="mt-2">
+                              <div className="relative group cursor-pointer" onClick={() => {
+                                // 전체화면 미리보기 모달 열기
+                                const modal = document.createElement('div')
+                                modal.className = 'fixed inset-0 z-[200] bg-black bg-opacity-90 flex items-center justify-center p-4'
+                                modal.innerHTML = `
+                                  <div class="relative max-w-full max-h-full">
+                                    <img src="${receipt.preview}" alt="영수증 전체보기" class="max-w-full max-h-full object-contain rounded shadow-2xl" />
+                                    <button class="absolute top-4 right-4 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70 transition-colors" onclick="document.body.removeChild(this.closest('.fixed'))">
+                                      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                      </svg>
+                                    </button>
+                                    <div class="absolute bottom-4 left-4 right-4 bg-black bg-opacity-50 text-white p-3 rounded-lg text-center">
+                                      <p class="text-sm font-medium">영수증 미리보기</p>
+                                      <p class="text-xs text-gray-300 mt-1">클릭하거나 ESC 키로 닫기</p>
                                     </div>
-                                  `
-                                  modal.onclick = (e) => {
-                                    if (e.target === modal) {
-                                      document.body.removeChild(modal)
-                                    }
+                                  </div>
+                                `
+                                modal.onclick = (e) => {
+                                  if (e.target === modal) {
+                                    document.body.removeChild(modal)
                                   }
-                                  document.body.appendChild(modal)
-                                }}
-                                className="absolute top-1 right-1 bg-black bg-opacity-50 text-white p-1 rounded hover:bg-opacity-70 transition-colors"
-                                title="전체화면으로 보기"
-                              >
-                                <Eye className="h-3 w-3" />
-                              </button>
+                                }
+                                // ESC 키로 모달 닫기
+                                const handleKeyDown = (e) => {
+                                  if (e.key === 'Escape') {
+                                    document.body.removeChild(modal)
+                                    document.removeEventListener('keydown', handleKeyDown)
+                                  }
+                                }
+                                document.addEventListener('keydown', handleKeyDown)
+                                document.body.appendChild(modal)
+                              }}>
+                                <img 
+                                  src={receipt.preview} 
+                                  alt="영수증 미리보기 - 클릭하여 확대" 
+                                  className="w-full max-h-32 object-contain rounded border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 transition-all duration-200 group-hover:border-blue-400 dark:group-hover:border-blue-500 group-hover:shadow-lg"
+                                />
+                                
+                                {/* 호버 오버레이 */}
+                                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 rounded flex items-center justify-center">
+                                  <div className="bg-white bg-opacity-90 dark:bg-gray-800 dark:bg-opacity-90 px-3 py-1 rounded-full text-xs font-medium text-gray-700 dark:text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-lg">
+                                    클릭하여 확대보기
+                                  </div>
+                                </div>
+                                
+                                {/* 확대 아이콘 */}
+                                <div className="absolute top-2 right-2 bg-black bg-opacity-50 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                  <Eye className="h-4 w-4" />
+                                </div>
+                              </div>
                             </div>
                           )}
                           
@@ -1396,7 +1418,7 @@ export default function DailyReportFormEnhanced({
           <button
             type="button"
             onClick={() => handleSubmit(true)}
-            disabled={loading || !formData.site_id || !formData.member_name || !formData.process_type || workContents.length === 0 || workerEntries.length === 0}
+            disabled={loading || !formData.site_id || workContents.length === 0 || workerEntries.length === 0}
             className="flex-1 h-11 bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 rounded-lg flex items-center justify-center gap-2 text-sm font-medium text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (

@@ -281,7 +281,7 @@ export async function requestPasswordReset(email: string) {
   }
 }
 
-export async function updatePassword(newPassword: string) {
+export async function updatePasswordWithToken(newPassword: string) {
   const supabase = createClient()
 
   try {

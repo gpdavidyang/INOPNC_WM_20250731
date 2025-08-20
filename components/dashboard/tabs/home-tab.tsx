@@ -1194,7 +1194,7 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
 
             <CardContent className="max-h-[60vh] overflow-y-auto">
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                원하는 빠른메뉴 항목을 선택하고 드래그하여 순서를 변경하세요. (최대 8개)
+                원하는 빠른메뉴 항목을 선택하고 드래그하여 순서를 변경하세요. (최대 5개)
               </p>
               
               {/* Selected Items with Drag & Drop */}
@@ -1278,7 +1278,7 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
                       key={item.id}
                       className="flex items-center p-2 rounded-lg border-2 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 transition-all cursor-pointer"
                       onClick={() => {
-                        if (selectedQuickMenuItems.length < 8) {
+                        if (selectedQuickMenuItems.length < 5) {
                           toggleQuickMenuItem(item.id)
                         }
                       }}
@@ -1300,16 +1300,16 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
                 </div>
               </div>
 
-              {selectedQuickMenuItems.length >= 8 && (
+              {selectedQuickMenuItems.length >= 5 && (
                 <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">
-                  최대 8개까지 선택할 수 있습니다.
+                  최대 5개까지 선택할 수 있습니다.
                 </p>
               )}
             </CardContent>
             
             <div className="flex items-center justify-between p-4 border-t border-gray-200 dark:border-gray-700">
               <span className="text-sm text-gray-500 dark:text-gray-400">
-                {selectedQuickMenuItems.length}/8 선택됨
+                {selectedQuickMenuItems.length}/5 선택됨
               </span>
               <div className="flex gap-2">
                 <button

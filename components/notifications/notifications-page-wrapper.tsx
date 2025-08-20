@@ -32,7 +32,7 @@ export function NotificationsPageWrapper({ user, profile }: NotificationsPageWra
   // PRD 사양에 맞는 하단 네비게이션 아이템 구성
   const bottomNavItems: BottomNavItem[] = [
     { 
-      label: "홈(빠른메뉴)", 
+      label: "빠른화면", 
       href: "/dashboard", 
       icon: <Home /> 
     },

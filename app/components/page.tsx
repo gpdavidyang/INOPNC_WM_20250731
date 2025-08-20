@@ -54,7 +54,7 @@ export default function ComponentsPage() {
   // Bottom Navigation demo data - PRD 사양에 맞게 업데이트
   const bottomNavItems = [
     { 
-      label: "홈(빠른메뉴)", 
+      label: "빠른화면", 
       href: "/dashboard", 
       icon: <Home /> 
     },
@@ -151,7 +151,7 @@ export default function ComponentsPage() {
             <div>
               <Text size="sm" color="muted" className="mb-2">모바일 하단 내비게이션 - PRD 사양 적용</Text>
               <div className="text-xs text-gray-600 space-y-1">
-                <p>• PRD 메뉴 구성: 홈(빠른메뉴), 출력현황, 작업일지, 공도면, 내문서함</p>
+                <p>• PRD 메뉴 구성: 빠른화면, 출력현황, 작업일지, 공도면, 내문서함</p>
                 <p>• 공도면 특수 동작: 활성 현장으로 자동 필터링</p>
                 <p>• 디자인: 44x44px 터치 영역, 24x24px 아이콘, 10px 폰트</p>
               </div>

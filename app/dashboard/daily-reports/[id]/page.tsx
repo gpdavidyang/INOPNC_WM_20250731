@@ -56,7 +56,7 @@ export default async function DailyReportDetailPage({
   // Bottom navigation items
   const bottomNavItems: BottomNavItem[] = [
     { 
-      label: "홈(빠른메뉴)", 
+      label: "빠른화면", 
       href: "/dashboard", 
       icon: <Home /> 
     },

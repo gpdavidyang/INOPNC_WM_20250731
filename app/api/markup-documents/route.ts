@@ -22,10 +22,24 @@ export async function GET(request: NextRequest) {
     const site = searchParams.get('site')
     const offset = (page - 1) * limit
     
-    // 기본 쿼리 생성
+    // 기본 쿼리 생성 - 관계 정보 포함
     let query = supabase
       .from('markup_documents')
-      .select('*, created_by_profile:profiles!markup_documents_created_by_fkey(full_name)', { count: 'exact' })
+      .select(`
+        *,
+        creator:created_by (
+          id,
+          full_name,
+          email,
+          role
+        ),
+        site:site_id (
+          id,
+          name,
+          address,
+          status
+        )
+      `, { count: 'exact' })
       .eq('is_deleted', false)
       .order('created_at', { ascending: false })
     
@@ -56,10 +70,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch documents' }, { status: 500 })
     }
     
-    // 프로필 정보를 평면화
+    // 관계 정보를 포함한 문서 포맷팅
     const formattedDocuments = documents?.map((doc: any) => ({
       ...doc,
-      created_by_name: doc.created_by_profile?.full_name || 'Unknown'
+      created_by_name: doc.creator?.full_name || 'Unknown',
+      creator_email: doc.creator?.email || '',
+      creator_role: doc.creator?.role || '',
+      site_name: doc.site?.name || '',
+      site_address: doc.site?.address || ''
     })) || []
     
     const totalPages = Math.ceil((count || 0) / limit)

@@ -29,6 +29,8 @@ interface Document {
   status?: 'completed' | 'pending' | 'processing' | 'review'
   isRequired?: boolean
   documentType?: string
+  site?: string
+  siteAddress?: string
 }
 
 interface RequiredDocument {
@@ -177,17 +179,39 @@ export default function DocumentsTab({ profile }: DocumentsTabProps) {
       }
 
       // Mock data for demo - in real implementation, this would fetch from Supabase
-      const mockDocuments: Document[] = [
-        {
-          id: '1',
-          name: '2024년 7월 작업일지.pdf',
-          type: 'application/pdf',
-          size: 2048576, // 2MB
-          category: 'work-reports',
-          uploadedAt: '2024-08-01T10:30:00Z',
-          uploadedBy: profile.full_name,
-          url: '/documents/sample.pdf'
-        },
+      // API에서 실제 데이터 가져오기
+      const response = await fetch('/api/documents?type=personal')
+      const result = await response.json()
+      
+      let mockDocuments: Document[] = []
+      
+      if (result.success && result.data.length > 0) {
+        // API 데이터를 Document 형식으로 변환
+        mockDocuments = result.data.map((doc: any) => ({
+          id: doc.id,
+          name: doc.title,
+          type: doc.mime_type,
+          size: doc.file_size || 1024000,
+          category: doc.document_type || 'personal',
+          uploadedAt: doc.created_at,
+          uploadedBy: doc.owner?.full_name || doc.owner_name || profile.full_name,
+          url: doc.file_url,
+          site: doc.site?.name || doc.site_name,
+          siteAddress: doc.site?.address || doc.site_address
+        }))
+      } else {
+        // Fallback 데이터
+        mockDocuments = [
+          {
+            id: '1',
+            name: '2024년 7월 작업일지.pdf',
+            type: 'application/pdf',
+            size: 2048576, // 2MB
+            category: 'work-reports',
+            uploadedAt: '2024-08-01T10:30:00Z',
+            uploadedBy: profile.full_name,
+            url: '/documents/sample.pdf'
+          },
         {
           id: '2',
           name: '안전점검표_8월.docx',
@@ -226,6 +250,7 @@ export default function DocumentsTab({ profile }: DocumentsTabProps) {
           uploadedBy: profile.full_name
         }
       ]
+      }
 
       // Combine markup documents with mock documents
       const allDocuments = [...markupDocuments, ...mockDocuments]
@@ -911,18 +936,31 @@ export default function DocumentsTab({ profile }: DocumentsTabProps) {
                           </span>
                         </div>
                         
-                        {/* File Info - Simplified Layout */}
+                        {/* File Info - Enhanced Layout with Site Info */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between">
                             <div className="flex-1 min-w-0">
                               <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate mb-1">
                                 {document.name}
                               </h4>
-                              <div className="text-xs text-gray-500 dark:text-gray-400">
-                                {new Date(document.uploadedAt).toLocaleDateString('ko-KR', {
-                                  month: 'short',
-                                  day: 'numeric'
-                                })}
+                              <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mb-1">
+                                <span>
+                                  {new Date(document.uploadedAt).toLocaleDateString('ko-KR', {
+                                    month: 'short',
+                                    day: 'numeric'
+                                  })}
+                                </span>
+                                {document.site && (
+                                  <>
+                                    <span>•</span>
+                                    <span className="truncate max-w-24" title={document.siteAddress}>
+                                      {document.site}
+                                    </span>
+                                  </>
+                                )}
+                              </div>
+                              <div className="text-xs text-gray-400 dark:text-gray-500 truncate">
+                                작성자: {document.uploadedBy}
                               </div>
                             </div>
                             

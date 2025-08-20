@@ -52,6 +52,7 @@
     "docs:create-shared": "node scripts/create-shared-documents.js",
     "docs:create-markups": "node scripts/create-markup-documents.js",
     "docs:create-all": "node scripts/create-all-documents.js",
+    "docs:create-integrated": "node scripts/create-integrated-documents.js",
     "docs:upload-files": "node scripts/upload-real-files.js",
     "verify:db": "tsx scripts/verify-database-usage.ts",
     "sync:ui-guidelines": "node scripts/sync-ui-guidelines.js",

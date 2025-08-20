@@ -789,19 +789,6 @@ export default function DailyReportFormEnhanced({
               </div>
 
 
-              
-              {/* 현장 정보 (컴팩트) */}
-              {formData.site_id && sites.find(s => s.id === formData.site_id) && (
-                <div className="pt-2 border-t border-gray-100 dark:border-gray-700">
-                  <h3 className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">현장 정보</h3>
-                  <div className="text-xs">
-                    <div>
-                      <span className="text-gray-500 dark:text-gray-400">현장명</span>
-                      <p className="font-medium text-gray-800 dark:text-gray-200 truncate">{sites.find(s => s.id === formData.site_id)?.name}</p>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
 

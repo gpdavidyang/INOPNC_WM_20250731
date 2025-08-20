@@ -199,21 +199,21 @@ export function NotificationSettings({ isOpen, onClose }: NotificationSettingsPr
     icon: any
     children: React.ReactNode 
   }) => (
-    <Card className="p-4">
-      <div className="flex items-start gap-3">
-        <Icon className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
-        <div className="flex-1 space-y-3">
+    <Card className="p-5 sm:p-6 border-gray-200 dark:border-gray-700">
+      <div className="flex items-start gap-4">
+        <Icon className="h-6 w-6 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+        <div className="flex-1 space-y-4">
           <div>
-            <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+            <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">
               {title}
             </h3>
             {description && (
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
                 {description}
               </p>
             )}
           </div>
-          <div className="space-y-3">
+          <div className="space-y-4">
             {children}
           </div>
         </div>
@@ -234,19 +234,20 @@ export function NotificationSettings({ isOpen, onClose }: NotificationSettingsPr
           </DialogDescription>
         </DialogHeader>
         
-        <div className="flex-1 overflow-y-auto space-y-4 px-1">
+        <div className="flex-1 overflow-y-auto space-y-6 px-1">
           {/* 푸시 알림 설정 */}
           <SettingCard
             title="푸시 알림"
             description="모바일 기기와 브라우저에서 받을 푸시 알림을 설정합니다."
             icon={Smartphone}
           >
-            <div className="flex items-center justify-between">
-              <Label htmlFor="push-enabled" className="font-medium">
+            <div className="flex items-center justify-between py-2">
+              <Label htmlFor="push-enabled" className="font-medium text-base">
                 푸시 알림 사용
               </Label>
               <Switch
                 id="push-enabled"
+                size="lg"
                 checked={settings.pushNotifications.enabled}
                 onCheckedChange={(enabled) => 
                   updateNestedSettings('pushNotifications', { enabled })
@@ -256,53 +257,53 @@ export function NotificationSettings({ isOpen, onClose }: NotificationSettingsPr
             
             {settings.pushNotifications.enabled && (
               <div className="space-y-3 pl-4 border-l-2 border-gray-100 dark:border-gray-700">
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="push-work-reports" className="text-sm">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="flex items-center justify-between py-1.5">
+                    <Label htmlFor="push-work-reports" className="text-sm font-medium">
                       작업일지
                     </Label>
                     <Switch
                       id="push-work-reports"
-                      size="sm"
+                      size="md"
                       checked={settings.pushNotifications.workReports}
                       onCheckedChange={(workReports) => 
                         updateNestedSettings('pushNotifications', { workReports })
                       }
                     />
                   </div>
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="push-approvals" className="text-sm">
+                  <div className="flex items-center justify-between py-1.5">
+                    <Label htmlFor="push-approvals" className="text-sm font-medium">
                       승인 알림
                     </Label>
                     <Switch
                       id="push-approvals"
-                      size="sm"
+                      size="md"
                       checked={settings.pushNotifications.approvals}
                       onCheckedChange={(approvals) => 
                         updateNestedSettings('pushNotifications', { approvals })
                       }
                     />
                   </div>
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="push-warnings" className="text-sm">
+                  <div className="flex items-center justify-between py-1.5">
+                    <Label htmlFor="push-warnings" className="text-sm font-medium">
                       경고 메시지
                     </Label>
                     <Switch
                       id="push-warnings"
-                      size="sm"
+                      size="md"
                       checked={settings.pushNotifications.warnings}
                       onCheckedChange={(warnings) => 
                         updateNestedSettings('pushNotifications', { warnings })
                       }
                     />
                   </div>
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="push-errors" className="text-sm">
+                  <div className="flex items-center justify-between py-1.5">
+                    <Label htmlFor="push-errors" className="text-sm font-medium">
                       오류 알림
                     </Label>
                     <Switch
                       id="push-errors"
-                      size="sm"
+                      size="md"
                       checked={settings.pushNotifications.errors}
                       onCheckedChange={(errors) => 
                         updateNestedSettings('pushNotifications', { errors })
@@ -320,12 +321,13 @@ export function NotificationSettings({ isOpen, onClose }: NotificationSettingsPr
             description="등록된 이메일 주소로 받을 알림을 설정합니다."
             icon={Mail}
           >
-            <div className="flex items-center justify-between">
-              <Label htmlFor="email-enabled" className="font-medium">
+            <div className="flex items-center justify-between py-2">
+              <Label htmlFor="email-enabled" className="font-medium text-base">
                 이메일 알림 사용
               </Label>
               <Switch
                 id="email-enabled"
+                size="lg"
                 checked={settings.emailNotifications.enabled}
                 onCheckedChange={(enabled) => 
                   updateNestedSettings('emailNotifications', { enabled })
@@ -342,7 +344,7 @@ export function NotificationSettings({ isOpen, onClose }: NotificationSettingsPr
                     </Label>
                     <Switch
                       id="email-system"
-                      size="sm"
+                      size="md"
                       checked={settings.emailNotifications.systemNotices}
                       onCheckedChange={(systemNotices) => 
                         updateNestedSettings('emailNotifications', { systemNotices })
@@ -355,7 +357,7 @@ export function NotificationSettings({ isOpen, onClose }: NotificationSettingsPr
                     </Label>
                     <Switch
                       id="email-approvals"
-                      size="sm"
+                      size="md"
                       checked={settings.emailNotifications.approvals}
                       onCheckedChange={(approvals) => 
                         updateNestedSettings('emailNotifications', { approvals })
@@ -375,7 +377,7 @@ export function NotificationSettings({ isOpen, onClose }: NotificationSettingsPr
                       </Label>
                       <Switch
                         id="email-daily"
-                        size="sm"
+                        size="md"
                         checked={settings.emailNotifications.dailySummary}
                         onCheckedChange={(dailySummary) => 
                           updateNestedSettings('emailNotifications', { dailySummary })
@@ -388,7 +390,7 @@ export function NotificationSettings({ isOpen, onClose }: NotificationSettingsPr
                       </Label>
                       <Switch
                         id="email-weekly"
-                        size="sm"
+                        size="md"
                         checked={settings.emailNotifications.weeklySummary}
                         onCheckedChange={(weeklySummary) => 
                           updateNestedSettings('emailNotifications', { weeklySummary })
@@ -413,6 +415,7 @@ export function NotificationSettings({ isOpen, onClose }: NotificationSettingsPr
               </Label>
               <Switch
                 id="quiet-hours"
+                size="lg"
                 checked={settings.schedule.quietHours.enabled}
                 onCheckedChange={(enabled) => 
                   updateNestedSettings('schedule', { 
@@ -489,6 +492,7 @@ export function NotificationSettings({ isOpen, onClose }: NotificationSettingsPr
               </Label>
               <Switch
                 id="workdays-only"
+                size="lg"
                 checked={settings.schedule.workdaysOnly}
                 onCheckedChange={(workdaysOnly) => 
                   updateNestedSettings('schedule', { workdaysOnly })
@@ -509,6 +513,7 @@ export function NotificationSettings({ isOpen, onClose }: NotificationSettingsPr
               </Label>
               <Switch
                 id="sound-enabled"
+                size="lg"
                 checked={settings.sound.enabled}
                 onCheckedChange={(enabled) => 
                   updateNestedSettings('sound', { enabled })
@@ -551,6 +556,7 @@ export function NotificationSettings({ isOpen, onClose }: NotificationSettingsPr
                 </Label>
                 <Switch
                   id="show-previews"
+                  size="lg"
                   checked={settings.privacy.showPreviews}
                   onCheckedChange={(showPreviews) => 
                     updateNestedSettings('privacy', { showPreviews })
@@ -564,6 +570,7 @@ export function NotificationSettings({ isOpen, onClose }: NotificationSettingsPr
                 </Label>
                 <Switch
                   id="show-sender"
+                  size="lg"
                   checked={settings.privacy.showSenderInfo}
                   onCheckedChange={(showSenderInfo) => 
                     updateNestedSettings('privacy', { showSenderInfo })

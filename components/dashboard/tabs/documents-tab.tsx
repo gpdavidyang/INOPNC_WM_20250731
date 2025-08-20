@@ -72,7 +72,6 @@ export default function DocumentsTab({ profile }: DocumentsTabProps) {
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState<UploadProgress[]>([])
-  const [isDragOver, setIsDragOver] = useState(false)
   const [selectedDocuments, setSelectedDocuments] = useState<string[]>([])
   const [showShareModal, setShowShareModal] = useState(false)
   const [isSelectionMode, setIsSelectionMode] = useState(false)
@@ -383,21 +382,6 @@ export default function DocumentsTab({ profile }: DocumentsTabProps) {
     fileInputRef.current?.removeAttribute('data-document-type')
   }
 
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragOver(true)
-  }, [])
-
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragOver(false)
-  }, [])
-
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragOver(false)
-    handleFileSelect(e.dataTransfer.files)
-  }, [selectedCategory, requiredDocuments])
 
   const deleteDocument = async (documentId: string) => {
     if (!confirm('정말 삭제하시겠습니까?')) return
@@ -627,33 +611,6 @@ export default function DocumentsTab({ profile }: DocumentsTabProps) {
         </div>
       </div>
 
-      {/* Drop Zone */}
-      <div
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-        className={`bg-white dark:bg-gray-800 rounded-xl border-2 border-dashed transition-colors ${
-          isDragOver 
-            ? 'border-blue-400 bg-blue-50 dark:bg-blue-900/20' 
-            : 'border-gray-300 dark:border-gray-600'
-        } p-6`}
-      >
-        <div className="text-center">
-          <Upload className={`mx-auto h-8 w-8 mb-3 ${isDragOver ? 'text-blue-500' : 'text-gray-400'}`} />
-          <p className={`text-sm ${isDragOver ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400'}`}>
-            파일을 드래그하여 업로드하거나{' '}
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="text-blue-600 hover:text-blue-700 underline"
-            >
-              파일 선택
-            </button>
-          </p>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            PDF, DOC, XLS, JPG, PNG 파일 지원 (최대 10MB)
-          </p>
-        </div>
-      </div>
 
       {/* 필수 서류 체크리스트 */}
       <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl border border-blue-200 dark:border-blue-700 p-4">

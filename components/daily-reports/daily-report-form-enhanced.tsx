@@ -580,15 +580,19 @@ export default function DailyReportFormEnhanced({
       // Save to localStorage before submit
       saveToLocalStorage()
 
-      // Validate required fields
+      // Validate required fields (strict validation only for submission)
       if (!formData.site_id) {
         throw new Error('현장을 선택해주세요')
       }
-      if (workContents.length === 0) {
-        throw new Error('작업 내용을 입력해주세요')
-      }
-      if (workerEntries.length === 0) {
-        throw new Error('작업자를 입력해주세요')
+      
+      if (submitForApproval) {
+        // Strict validation for submission
+        if (workContents.length === 0) {
+          throw new Error('작업 내용을 입력해주세요')
+        }
+        if (workerEntries.length === 0) {
+          throw new Error('작업자를 입력해주세요')
+        }
       }
 
       // Create daily report with actual DB schema
@@ -1499,11 +1503,8 @@ export default function DailyReportFormEnhanced({
         <div className="mt-6 flex gap-3">
           <button
             type="button"
-            onClick={() => {
-              saveToLocalStorage()
-              toast.success('임시저장되었습니다')
-            }}
-            disabled={loading}
+            onClick={() => handleSubmit(false)}
+            disabled={loading || !formData.site_id}
             className="flex-1 h-11 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600 rounded-lg flex items-center justify-center gap-2 text-sm font-medium text-gray-800 dark:text-gray-200 transition-colors disabled:opacity-50"
           >
             <Save className="h-4 w-4" />

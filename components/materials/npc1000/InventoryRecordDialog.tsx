@@ -38,10 +38,11 @@ export default function InventoryRecordDialog({
   // State
   const [saving, setSaving] = useState(false)
   const [activeTab, setActiveTab] = useState<'incoming' | 'outgoing'>('incoming')
+  const [currentStock, setCurrentStock] = useState<number>(0)
+  const [loadingStock, setLoadingStock] = useState(false)
   
   // Form state
   const [quantity, setQuantity] = useState('')
-  const [remainingQuantity, setRemainingQuantity] = useState('')
   const [notes, setNotes] = useState('')
 
   // Touch-responsive sizing
@@ -57,15 +58,57 @@ export default function InventoryRecordDialog({
     return 'h-4 w-4'
   }
 
+  // Fetch current stock for the site
+  const fetchCurrentStock = async () => {
+    setLoadingStock(true)
+    try {
+      const supabase = createClient()
+      
+      // Get NPC-1000 material ID
+      const { data: npcMaterial } = await supabase
+        .from('materials')
+        .select('id')
+        .eq('code', 'NPC-1000')
+        .single()
+
+      if (!npcMaterial) return
+
+      // Get current inventory for this site
+      const { data: inventory } = await supabase
+        .from('material_inventory')
+        .select('current_stock')
+        .eq('material_id', npcMaterial.id)
+        .eq('site_id', siteId)
+        .single()
+
+      setCurrentStock(inventory?.current_stock || 0)
+    } catch (error) {
+      console.error('Error fetching current stock:', error)
+      setCurrentStock(0)
+    } finally {
+      setLoadingStock(false)
+    }
+  }
+
   // Reset form when dialog opens
   useEffect(() => {
     if (open) {
       setQuantity('')
-      setRemainingQuantity('')
       setNotes('')
       setActiveTab('incoming')
+      fetchCurrentStock()
     }
-  }, [open])
+  }, [open, siteId])
+
+  // Calculate projected stock after transaction
+  const calculateProjectedStock = () => {
+    const quantityNum = parseFloat(quantity) || 0
+    if (activeTab === 'incoming') {
+      return currentStock + quantityNum
+    } else {
+      return currentStock - quantityNum
+    }
+  }
 
   const submitRecord = async () => {
     if (!quantity) {
@@ -206,20 +249,21 @@ export default function InventoryRecordDialog({
               </div>
 
               <div>
-                <Label htmlFor="remaining" className={getFullTypographyClass('body', 'sm', isLargeFont)}>
-                  잔여 수량
+                <Label className={getFullTypographyClass('body', 'sm', isLargeFont)}>
+                  현재 재고
                 </Label>
                 <div className="flex gap-2">
-                  <Input
-                    id="remaining"
-                    type="number"
-                    step="1"
-                    min="0"
-                    placeholder="0"
-                    value={remainingQuantity}
-                    onChange={(e) => setRemainingQuantity(e.target.value)}
-                    className="flex-1"
-                  />
+                  <div className="flex-1 flex items-center px-3 py-2 bg-gray-50 dark:bg-gray-800 border rounded-md">
+                    {loadingStock ? (
+                      <span className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-muted-foreground`}>
+                        조회중...
+                      </span>
+                    ) : (
+                      <span className={`${getFullTypographyClass('body', 'sm', isLargeFont)} font-medium`}>
+                        {currentStock.toLocaleString()}
+                      </span>
+                    )}
+                  </div>
                   <div className="flex items-center px-3 py-2 bg-gray-50 dark:bg-gray-800 border rounded-md">
                     <span className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-muted-foreground`}>
                       kg

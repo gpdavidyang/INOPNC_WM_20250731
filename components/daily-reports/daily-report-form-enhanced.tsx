@@ -79,6 +79,7 @@ interface ReceiptEntry {
   amount: string
   date: string
   file: File | null
+  preview?: string | null
 }
 
 interface MaterialEntry {
@@ -211,6 +212,21 @@ export default function DailyReportFormEnhanced({
     used: '',
     remaining: ''
   })
+
+  // Auto-calculate remaining quantity when incoming or used changes
+  const updateMaterialData = (field: keyof MaterialEntry, value: string) => {
+    const newData = { ...materialData, [field]: value }
+    
+    // Auto-calculate remaining = incoming - used
+    if (field === 'incoming' || field === 'used') {
+      const incoming = parseFloat(newData.incoming) || 0
+      const used = parseFloat(newData.used) || 0
+      const remaining = Math.max(0, incoming - used) // Ensure non-negative
+      newData.remaining = remaining.toString()
+    }
+    
+    setMaterialData(newData)
+  }
   
   // Section 10: Special Notes
   const [specialNotes, setSpecialNotes] = useState<string>('')
@@ -253,11 +269,18 @@ export default function DailyReportFormEnhanced({
         setWorkContents(parsed.workContents || [])
         setWorkerEntries(parsed.workerEntries || [])
         setRequestText(parsed.requestText || '')
-        setMaterialData({
+        const loadedMaterialData = {
           incoming: parsed.materialData?.incoming || '',
           used: parsed.materialData?.used || '',
           remaining: parsed.materialData?.remaining || ''
-        })
+        }
+        // Recalculate remaining on load if incoming/used exist
+        if (loadedMaterialData.incoming || loadedMaterialData.used) {
+          const incoming = parseFloat(loadedMaterialData.incoming) || 0
+          const used = parseFloat(loadedMaterialData.used) || 0
+          loadedMaterialData.remaining = Math.max(0, incoming - used).toString()
+        }
+        setMaterialData(loadedMaterialData)
         setSpecialNotes(parsed.specialNotes || '')
         setExpandedSections(parsed.expandedSections || {
           siteInfo: true,
@@ -914,14 +937,17 @@ export default function DailyReportFormEnhanced({
             <div className="pt-2 space-y-3">
               {/* Before Photos */}
               <div>
-                <h4 className="text-xs font-medium text-gray-700 mb-2">작업전 사진 (최대 30장)</h4>
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                  <h4 className="text-xs font-bold text-red-700 dark:text-red-300">작업전 사진 (최대 30장)</h4>
+                </div>
                 <button
                   type="button"
                   onClick={() => openPhotoModal('before')}
-                  className="flex flex-col items-center justify-center w-full h-16 border-2 border-dashed border-gray-200 dark:border-gray-600 rounded hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all cursor-pointer"
+                  className="flex flex-col items-center justify-center w-full h-16 border-2 border-dashed border-red-200 dark:border-red-600 rounded bg-red-50/30 dark:bg-red-900/20 hover:border-red-300 dark:hover:border-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 transition-all cursor-pointer"
                 >
-                  <Camera className="h-4 w-4 text-gray-500 mb-1" />
-                  <p className="text-xs text-gray-500">클릭하여 사진 선택</p>
+                  <Camera className="h-4 w-4 text-red-600 dark:text-red-400 mb-1" />
+                  <p className="text-xs text-red-600 dark:text-red-400">작업전 사진 선택</p>
                 </button>
 
                 <div className="mt-2 grid grid-cols-4 gap-1.5">
@@ -930,7 +956,7 @@ export default function DailyReportFormEnhanced({
                       <img 
                         src={photo.preview || ''} 
                         alt="작업전" 
-                        className="w-full h-12 object-cover rounded"
+                        className="w-full h-12 object-cover rounded border-2 border-red-300 dark:border-red-500"
                       />
                       <button
                         type="button"
@@ -946,14 +972,17 @@ export default function DailyReportFormEnhanced({
 
               {/* After Photos */}
               <div>
-                <h4 className="text-xs font-medium text-gray-700 mb-2">작업후 사진 (최대 30장)</h4>
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                  <h4 className="text-xs font-bold text-blue-700 dark:text-blue-300">작업후 사진 (최대 30장)</h4>
+                </div>
                 <button
                   type="button"
                   onClick={() => openPhotoModal('after')}
-                  className="flex flex-col items-center justify-center w-full h-16 border-2 border-dashed border-gray-200 dark:border-gray-600 rounded hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all cursor-pointer"
+                  className="flex flex-col items-center justify-center w-full h-16 border-2 border-dashed border-blue-200 dark:border-blue-600 rounded bg-blue-50/30 dark:bg-blue-900/20 hover:border-blue-300 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-all cursor-pointer"
                 >
-                  <Camera className="h-4 w-4 text-gray-500 mb-1" />
-                  <p className="text-xs text-gray-500">클릭하여 사진 선택</p>
+                  <Camera className="h-4 w-4 text-blue-600 dark:text-blue-400 mb-1" />
+                  <p className="text-xs text-blue-600 dark:text-blue-400">작업후 사진 선택</p>
                 </button>
 
                 <div className="mt-2 grid grid-cols-4 gap-1.5">
@@ -962,12 +991,12 @@ export default function DailyReportFormEnhanced({
                       <img 
                         src={photo.preview || ''} 
                         alt="작업후" 
-                        className="w-full h-12 object-cover rounded"
+                        className="w-full h-12 object-cover rounded border-2 border-blue-300 dark:border-blue-500"
                       />
                       <button
                         type="button"
                         onClick={() => removePhoto(photo.id)}
-                        className="absolute -top-1 -right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow transition-colors"
+                        className="absolute -top-1 -right-1 bg-blue-500 hover:bg-blue-600 text-white rounded-full p-1 shadow transition-colors"
                       >
                         <X className="h-3 w-3" />
                       </button>
@@ -1049,13 +1078,112 @@ export default function DailyReportFormEnhanced({
                         accept="image/*,.pdf"
                         onChange={(e) => {
                           if (e.target.files?.[0]) {
-                            updateReceipt(receipt.id, 'file', e.target.files[0])
+                            const file = e.target.files[0]
+                            updateReceipt(receipt.id, 'file', file)
+                            
+                            // 미리보기 생성
+                            if (file.type.startsWith('image/')) {
+                              const reader = new FileReader()
+                              reader.onload = (e) => {
+                                updateReceipt(receipt.id, 'preview', e.target?.result as string)
+                              }
+                              reader.readAsDataURL(file)
+                            } else {
+                              updateReceipt(receipt.id, 'preview', null)
+                            }
                           }
                         }}
                         className="w-full text-xs text-gray-700 file:mr-2 file:py-1.5 file:px-2 file:rounded file:border-0 file:text-xs file:font-medium file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200"
                       />
+                      
+                      {/* 파일 정보 및 미리보기 */}
                       {receipt.file && (
-                        <p className="text-xs text-gray-600 mt-1">{receipt.file.name}</p>
+                        <div className="mt-2">
+                          <div className="flex items-center justify-between bg-gray-100 dark:bg-gray-600 rounded-lg p-2">
+                            <div className="flex items-center gap-2">
+                              <div className="flex-shrink-0">
+                                {receipt.file.type.startsWith('image/') ? (
+                                  <ImageIcon className="h-4 w-4 text-blue-500" />
+                                ) : receipt.file.type === 'application/pdf' ? (
+                                  <FileText className="h-4 w-4 text-red-500" />
+                                ) : (
+                                  <FileText className="h-4 w-4 text-gray-500" />
+                                )}
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <p className="text-xs font-medium text-gray-700 dark:text-gray-300 truncate">
+                                  {receipt.file.name}
+                                </p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">
+                                  {(receipt.file.size / 1024 / 1024).toFixed(2)} MB
+                                </p>
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                updateReceipt(receipt.id, 'file', null)
+                                updateReceipt(receipt.id, 'preview', null)
+                              }}
+                              className="flex-shrink-0 p-1 hover:bg-red-100 dark:hover:bg-red-900/30 rounded text-red-500 hover:text-red-600 transition-colors"
+                              title="파일 삭제"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
+                          
+                          {/* 이미지 미리보기 */}
+                          {receipt.preview && (
+                            <div className="mt-2 relative">
+                              <img 
+                                src={receipt.preview} 
+                                alt="영수증 미리보기" 
+                                className="w-full max-h-32 object-contain rounded border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  // 전체화면 미리보기 모달 열기
+                                  const modal = document.createElement('div')
+                                  modal.className = 'fixed inset-0 z-[200] bg-black bg-opacity-90 flex items-center justify-center p-4'
+                                  modal.innerHTML = `
+                                    <div class="relative max-w-full max-h-full">
+                                      <img src="${receipt.preview}" alt="영수증 전체보기" class="max-w-full max-h-full object-contain rounded" />
+                                      <button class="absolute top-4 right-4 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70 transition-colors" onclick="document.body.removeChild(this.closest('.fixed'))">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                        </svg>
+                                      </button>
+                                    </div>
+                                  `
+                                  modal.onclick = (e) => {
+                                    if (e.target === modal) {
+                                      document.body.removeChild(modal)
+                                    }
+                                  }
+                                  document.body.appendChild(modal)
+                                }}
+                                className="absolute top-1 right-1 bg-black bg-opacity-50 text-white p-1 rounded hover:bg-opacity-70 transition-colors"
+                                title="전체화면으로 보기"
+                              >
+                                <Eye className="h-3 w-3" />
+                              </button>
+                            </div>
+                          )}
+                          
+                          {/* PDF 미리보기 안내 */}
+                          {receipt.file.type === 'application/pdf' && (
+                            <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded border border-blue-200 dark:border-blue-700">
+                              <div className="flex items-center gap-2">
+                                <FileText className="h-4 w-4 text-blue-500 flex-shrink-0" />
+                                <div className="flex-1">
+                                  <p className="text-xs font-medium text-blue-700 dark:text-blue-300">PDF 파일</p>
+                                  <p className="text-xs text-blue-600 dark:text-blue-400">작업일지 제출 후 확인 가능합니다</p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       )}
                     </div>
                   </div>
@@ -1191,33 +1319,40 @@ export default function DailyReportFormEnhanced({
               
               <div className="grid grid-cols-3 gap-2">
                 <div>
-                  <label className="text-xs font-medium text-gray-600 mb-1 block">입고량</label>
+                  <label className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1 block">입고량</label>
                   <input
                     type="number"
+                    min="0"
+                    step="0.1"
                     value={materialData.incoming || ''}
-                    onChange={(e) => setMaterialData({ ...materialData, incoming: e.target.value })}
+                    onChange={(e) => updateMaterialData('incoming', e.target.value)}
                     placeholder="0"
                     className="w-full h-8 px-2 text-sm bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-gray-600 mb-1 block">사용량</label>
+                  <label className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1 block">사용량</label>
                   <input
                     type="number"
+                    min="0"
+                    step="0.1"
                     value={materialData.used || ''}
-                    onChange={(e) => setMaterialData({ ...materialData, used: e.target.value })}
+                    onChange={(e) => updateMaterialData('used', e.target.value)}
                     placeholder="0"
                     className="w-full h-8 px-2 text-sm bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-gray-600 mb-1 block">재고량</label>
+                  <label className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1 block">
+                    재고량 
+                    <span className="text-xs text-blue-600 dark:text-blue-400 font-normal">(자동계산)</span>
+                  </label>
                   <input
                     type="number"
                     value={materialData.remaining || ''}
-                    onChange={(e) => setMaterialData({ ...materialData, remaining: e.target.value })}
+                    readOnly
                     placeholder="0"
-                    className="w-full h-8 px-2 text-sm bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
+                    className="w-full h-8 px-2 text-sm bg-gray-100 dark:bg-gray-600 border border-gray-200 dark:border-gray-600 rounded text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 cursor-not-allowed"
                   />
                 </div>
               </div>
@@ -1283,9 +1418,12 @@ export default function DailyReportFormEnhanced({
             
             <div className="text-center mb-6">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">사진 선택</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                {currentPhotoType === 'before' ? '작업전' : '작업후'} 사진을 어떻게 추가하시겠어요?
-              </p>
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <div className={`w-3 h-3 rounded-full ${currentPhotoType === 'before' ? 'bg-red-500' : 'bg-blue-500'}`}></div>
+                <p className={`text-sm font-bold ${currentPhotoType === 'before' ? 'text-red-700 dark:text-red-300' : 'text-blue-700 dark:text-blue-300'}`}>
+                  {currentPhotoType === 'before' ? '작업전' : '작업후'} 사진을 어떻게 추가하시겠어요?
+                </p>
+              </div>
             </div>
             
             <div className="space-y-3">

@@ -389,9 +389,9 @@ export function SalaryView({ profile }: SalaryViewProps) {
             <div className="whitespace-nowrap">월</div>
             <div className="whitespace-nowrap">현장</div>
             <div className="text-center whitespace-nowrap">근무일</div>
-            <div className="text-right whitespace-nowrap">기본급</div>
-            <div className="text-right whitespace-nowrap">연장수당</div>
-            <div className="text-right whitespace-nowrap">실지급액</div>
+            <div className="text-right whitespace-nowrap">기본</div>
+            <div className="text-right whitespace-nowrap">연장</div>
+            <div className="text-right whitespace-nowrap">실지급</div>
             <div className="text-center whitespace-nowrap">PDF</div>
           </div>
         </div>

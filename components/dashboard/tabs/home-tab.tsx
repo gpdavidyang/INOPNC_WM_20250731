@@ -816,12 +816,14 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
         </Card>
       )}
 
-      {/* Quick Menu Section - Enhanced Section Design */}
+      {/* Quick Menu Section - High Contrast Design */}
       <Card 
-        className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-md hover:shadow-lg transition-all duration-200 ring-1 ring-slate-100 dark:ring-slate-700 rounded-xl"
+        variant="elevated"
+        elevation="md"
+        className="transition-all duration-200"
         aria-labelledby="quick-menu-section"
       >
-        <CardHeader className="pb-3 pt-4 px-4 border-b border-slate-200/80 dark:border-slate-600/60">
+        <CardHeader className="pb-3 pt-4 px-4 border-b border-gray-200 dark:border-slate-600">
           <div className="flex items-center justify-between">
             <CardTitle id="quick-menu-section" className="text-base font-semibold text-slate-900 dark:text-slate-100">
               빠른메뉴
@@ -853,11 +855,11 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
                         router.push(item.path)
                       }
                     }}
-                    className="w-full flex flex-col items-center py-4 px-3 bg-slate-50 dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 border border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500 rounded-xl transition-all duration-200 active:scale-[0.98] touch-manipulation focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 min-h-[72px] shadow-sm hover:shadow-md group"
+                    className="w-full flex flex-col items-center py-4 px-3 bg-gray-50 dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 border border-gray-300 dark:border-slate-600 hover:border-gray-400 dark:hover:border-slate-500 rounded-xl transition-all duration-200 active:scale-[0.98] touch-manipulation focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 min-h-[72px] shadow-sm hover:shadow-md group"
                     aria-label={`${item.name} - ${item.description}`}
                     role="menuitem"
                   >
-                    <div className={`mb-2 p-2 rounded-lg bg-white dark:bg-slate-800 shadow-sm group-hover:shadow-md transition-all duration-200 border border-slate-200/50 dark:border-slate-600/50 ${item.color}`} aria-hidden="true">
+                    <div className={`mb-2 p-2 rounded-lg bg-white dark:bg-slate-800 shadow-sm group-hover:shadow-md transition-all duration-200 border border-gray-200 dark:border-slate-600 ${item.color}`} aria-hidden="true">
                       {React.cloneElement(item.icon as React.ReactElement, {
                         className: "h-5 w-5",
                         strokeWidth: 2
@@ -1011,12 +1013,12 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
         error={error ? new Error(error) : null}
       />
 
-      {/* Site History Section - Enhanced Design */}
+      {/* Site History Section - High Contrast Design */}
       {siteHistory.length > 0 && (
-        <Card className="overflow-hidden bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-md hover:shadow-lg transition-all duration-200 ring-1 ring-slate-100 dark:ring-slate-700 rounded-xl">
+        <Card variant="elevated" elevation="md" className="overflow-hidden transition-all duration-200">
           <button
             onClick={() => setSiteHistoryExpanded(!siteHistoryExpanded)}
-            className="w-full px-4 py-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-all duration-200"
+            className="w-full px-4 py-4 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-all duration-200"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -1108,8 +1110,8 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
         </Card>
       )}
 
-      {/* Announcements Section - Enhanced Design */}
-      <Card className="overflow-hidden bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-md hover:shadow-lg transition-all duration-200 ring-1 ring-slate-100 dark:ring-slate-700 rounded-xl">
+      {/* Announcements Section - High Contrast Design */}
+      <Card variant="elevated" elevation="md" className="overflow-hidden transition-all duration-200">
         <button
           onClick={() => setAnnouncementExpanded(!announcementExpanded)}
           className="w-full px-4 py-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-all duration-200"
@@ -1132,7 +1134,7 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
         </button>
         
         {announcementExpanded && (
-          <div className="divide-y divide-slate-200 dark:divide-slate-600 animate-in slide-in-from-top-1 duration-200">
+          <div className="divide-y divide-gray-200 dark:divide-slate-600 animate-in slide-in-from-top-1 duration-200">
             {announcements.map((announcement: any) => (
               <div key={announcement.id} className="p-2.5 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors theme-transition">
                 <div className="flex items-start justify-between mb-1">
@@ -1161,8 +1163,8 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
         )}
       </Card>
 
-      {/* Recent Activities Section - Enhanced Design */}
-      <Card className="overflow-hidden bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-md hover:shadow-lg transition-all duration-200 ring-1 ring-slate-100 dark:ring-slate-700 rounded-xl">
+      {/* Recent Activities Section - High Contrast Design */}
+      <Card variant="elevated" elevation="md" className="overflow-hidden transition-all duration-200">
         <button
           onClick={() => setRecentActivitiesExpanded(!recentActivitiesExpanded)}
           className="w-full px-4 py-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-all duration-200"

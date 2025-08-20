@@ -103,23 +103,27 @@ const config: Config = {
           800: '#1F2937',
           900: '#111827'
         },
-        // Enhanced Layout Structure Colors
+        // Enhanced Layout Structure Colors (High Contrast Version)
         layout: {
-          'main-bg': '#F8FAFC',        // Main container background
-          'section-bg': '#FFFFFF',     // Section/card backgrounds
-          'elevated': '#FDFDFD',       // Elevated surfaces
-          'divider-subtle': '#E2E8F0', // Subtle dividers
-          'divider-prominent': '#CBD5E1', // Prominent dividers
-          'section-border': '#F1F5F9'  // Section borders
+          'main-bg': '#F1F5F9',        // Main container background (darker slate-100)
+          'section-bg': '#FFFFFF',     // Section/card backgrounds (pure white)
+          'elevated': '#FEFEFE',       // Elevated surfaces (off-white)
+          'divider-subtle': '#D1D5DB', // Subtle dividers (stronger gray-300)
+          'divider-prominent': '#9CA3AF', // Prominent dividers (gray-400)
+          'section-border': '#E5E7EB', // Section borders (gray-200)
+          'section-shadow': 'rgba(0, 0, 0, 0.08)', // Section shadow color
+          'elevated-shadow': 'rgba(0, 0, 0, 0.12)' // Elevated shadow color
         },
-        // Dark mode layout colors
+        // Dark mode layout colors (Enhanced Contrast)
         'layout-dark': {
-          'main-bg': '#0F172A',        // Dark main background
-          'section-bg': '#1E293B',     // Dark section backgrounds
-          'elevated': '#334155',       // Dark elevated surfaces
-          'divider-subtle': '#475569', // Dark subtle dividers
-          'divider-prominent': '#64748B', // Dark prominent dividers
-          'section-border': '#334155'  // Dark section borders
+          'main-bg': '#0F172A',        // Dark main background (slate-900)
+          'section-bg': '#1E293B',     // Dark section backgrounds (slate-800)
+          'elevated': '#334155',       // Dark elevated surfaces (slate-700)
+          'divider-subtle': '#475569', // Dark subtle dividers (slate-600)
+          'divider-prominent': '#64748B', // Dark prominent dividers (slate-500)
+          'section-border': '#374151', // Dark section borders (gray-700)
+          'section-shadow': 'rgba(0, 0, 0, 0.25)', // Dark section shadow
+          'elevated-shadow': 'rgba(0, 0, 0, 0.35)' // Dark elevated shadow
         }
       },
       fontFamily: {

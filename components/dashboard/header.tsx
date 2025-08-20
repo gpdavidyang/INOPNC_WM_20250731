@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { Menu } from 'lucide-react'
 import { NotificationDropdown } from '@/components/notifications/notification-dropdown'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
@@ -40,9 +41,11 @@ export default function Header({ onMenuClick, isSidebarOpen = false }: HeaderPro
             </button>
 
             <div className="flex items-center">
-              <h1 className="text-base font-bold text-toss-gray-900 dark:text-toss-gray-100">
-                INOPNC
-              </h1>
+              <Link href="/dashboard" className="group">
+                <h1 className="text-base font-bold text-toss-gray-900 dark:text-toss-gray-100 group-hover:text-toss-blue-600 dark:group-hover:text-toss-blue-400 transition-colors duration-200 cursor-pointer">
+                  INOPNC
+                </h1>
+              </Link>
             </div>
           </div>
 

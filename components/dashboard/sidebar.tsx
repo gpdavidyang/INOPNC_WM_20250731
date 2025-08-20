@@ -9,7 +9,7 @@ import {
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter, usePathname } from 'next/navigation'
-import { useNavigation } from '@/components/navigation/navigation-controller'
+import { useOptionalNavigation } from '@/components/navigation/navigation-controller'
 import { signOut } from '@/app/auth/actions'
 import { useRovingTabIndex } from '@/hooks/use-keyboard-navigation'
 
@@ -297,7 +297,9 @@ function SidebarContent({
 }: any) {
   const router = useRouter()
   const pathname = usePathname()
-  const { navigate, isNavigating } = useNavigation()
+  const navigation = useOptionalNavigation()
+  const navigate = navigation?.navigate
+  const isNavigating = navigation?.isNavigating || false
   
   // Determine active tab based on current pathname
   const getActiveTabFromPath = () => {
@@ -364,8 +366,18 @@ function SidebarContent({
       }
       
       console.log('[Sidebar] Navigating with navigate function to:', item.href)
-      // 통합 네비게이션 컨트롤러 사용
-      navigate(item.href)
+      // 통합 네비게이션 컨트롤러 사용 (available이면)
+      if (navigate) {
+        navigate(item.href)
+      } else {
+        // Fallback to router.push when NavigationController is not available
+        console.log('[Sidebar] NavigationController not available, using router.push')
+        router.push(item.href)
+        // 모바일에서만 사이드바 닫기
+        if (window.innerWidth < 1024) {
+          onClose()
+        }
+      }
     } else {
       console.log('[Sidebar] Tab-based navigation to:', item.id)
       // For tab-based items, only call onTabChange

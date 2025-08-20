@@ -109,3 +109,9 @@ export function useNavigation() {
   }
   return context
 }
+
+// Optional hook that returns null if not within NavigationController
+export function useOptionalNavigation() {
+  const context = useContext(NavigationContext)
+  return context
+}

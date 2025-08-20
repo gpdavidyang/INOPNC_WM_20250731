@@ -32,7 +32,7 @@ export default function DocumentsTabUnified({ profile, initialTab = 'personal', 
         <div className="flex gap-3">
           <button
             onClick={() => setActiveTab('personal')}
-            className={`flex-1 py-4 px-4 rounded-2xl font-semibold text-sm transition-all duration-200 ${
+            className={`flex-1 py-3 px-4 rounded-xl font-medium text-sm min-h-[48px] transition-all duration-200 ${
               activeTab === 'personal'
                 ? 'bg-blue-600 text-white shadow-lg'
                 : 'bg-white border-2 border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50 shadow-sm dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:border-gray-500'
@@ -45,7 +45,7 @@ export default function DocumentsTabUnified({ profile, initialTab = 'personal', 
           </button>
           <button
             onClick={() => setActiveTab('shared')}
-            className={`flex-1 py-4 px-4 rounded-2xl font-semibold text-sm transition-all duration-200 ${
+            className={`flex-1 py-3 px-4 rounded-xl font-medium text-sm min-h-[48px] transition-all duration-200 ${
               activeTab === 'shared'
                 ? 'bg-blue-600 text-white shadow-lg'
                 : 'bg-white border-2 border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50 shadow-sm dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:border-gray-500'
@@ -62,7 +62,7 @@ export default function DocumentsTabUnified({ profile, initialTab = 'personal', 
         <div className="flex">
           <button
             onClick={() => setActiveTab('markup')}
-            className={`w-full py-4 px-4 rounded-2xl font-semibold text-sm transition-all duration-200 ${
+            className={`w-full py-3 px-4 rounded-xl font-medium text-sm min-h-[48px] transition-all duration-200 ${
               activeTab === 'markup'
                 ? 'bg-blue-600 text-white shadow-lg'
                 : 'bg-white border-2 border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50 shadow-sm dark:bg-gray-800 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:border-gray-500'

@@ -45,7 +45,7 @@ export function AttendancePageClient({ profile, isPartnerCompany }: AttendancePa
                 touchMode !== 'precision' && touchMode !== 'glove' && "text-sm"
               )}
             >
-              출근정보
+              출력정보
             </button>
             <button
               onClick={() => setActiveTab('salary')}

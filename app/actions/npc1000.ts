@@ -32,20 +32,21 @@ export async function getNPC1000Records(siteId: string, period?: 'today' | '7day
         id,
         site_id,
         work_date,
-        work_content,
+        process_type,
+        issues,
         npc1000_incoming,
         npc1000_used,
-        npc1000_stock,
+        npc1000_remaining,
         created_at,
         created_by,
-        profiles!daily_reports_created_by_fkey (
+        profiles:created_by (
           id,
           full_name
         )
       `)
       .eq('site_id', siteId)
       .eq('is_deleted', false)
-      .not('npc1000_incoming', 'is', null)
+      .not('npc1000_used', 'is', null)
       .order('work_date', { ascending: false })
 
     // Apply date filter based on period
@@ -84,13 +85,13 @@ export async function getNPC1000Records(siteId: string, period?: 'today' | '7day
       date: report.work_date,
       incoming_qty: report.npc1000_incoming || 0,
       used_qty: report.npc1000_used || 0,
-      stock_qty: report.npc1000_stock || 0,
+      stock_qty: report.npc1000_remaining || 0,
       work_log_id: report.id,
       created_by: report.created_by,
       created_at: report.created_at,
       daily_report: {
         id: report.id,
-        work_content: report.work_content,
+        work_content: `${report.process_type}${report.issues ? ` - ${report.issues}` : ''}`,
         created_by: report.profiles
       }
     })) || []
@@ -124,7 +125,7 @@ export async function getNPC1000Summary(siteId: string) {
     const today = new Date().toISOString().split('T')[0]
     const { data: todayData } = await supabase
       .from('daily_reports')
-      .select('npc1000_incoming, npc1000_used, npc1000_stock')
+      .select('npc1000_incoming, npc1000_used, npc1000_remaining')
       .eq('site_id', siteId)
       .eq('work_date', today)
       .eq('is_deleted', false)
@@ -133,22 +134,22 @@ export async function getNPC1000Summary(siteId: string) {
     // Get all records for cumulative totals
     const { data: allData } = await supabase
       .from('daily_reports')
-      .select('npc1000_incoming, npc1000_used, npc1000_stock, work_date')
+      .select('npc1000_incoming, npc1000_used, npc1000_remaining, work_date')
       .eq('site_id', siteId)
       .eq('is_deleted', false)
-      .not('npc1000_incoming', 'is', null)
+      .not('npc1000_used', 'is', null)
       .order('work_date', { ascending: false })
 
     const summary = {
       today: {
         incoming: todayData?.npc1000_incoming || 0,
         used: todayData?.npc1000_used || 0,
-        stock: todayData?.npc1000_stock || 0
+        stock: todayData?.npc1000_remaining || 0
       },
       cumulative: {
         totalIncoming: allData?.reduce((sum, r) => sum + (r.npc1000_incoming || 0), 0) || 0,
         totalUsed: allData?.reduce((sum, r) => sum + (r.npc1000_used || 0), 0) || 0,
-        currentStock: allData && allData.length > 0 ? (allData[0].npc1000_stock || 0) : 0
+        currentStock: allData && allData.length > 0 ? (allData[0].npc1000_remaining || 0) : 0
       }
     }
 

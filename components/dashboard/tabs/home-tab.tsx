@@ -1039,7 +1039,7 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
                         </>
                       )}
                     </div>
-                    <div className={`text-[10px] mt-0.5 ${
+                    <div className={`text-sm mt-0.5 ${
                       site.site_status === 'active' 
                         ? 'text-green-600 dark:text-green-400'
                         : site.site_status === 'completed'
@@ -1090,18 +1090,18 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
                     <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">
                       {announcement.title}
                     </h4>
-                    <span className={`px-1.5 py-0.5 text-[10px] rounded-full ${getPriorityColor(announcement.priority)}`}>
+                    <span className={`px-1.5 py-0.5 text-sm rounded-full ${getPriorityColor(announcement.priority)}`}>
                       {announcement.priority === 'high' ? '긴급' : 
                        announcement.priority === 'medium' ? '중요' : '일반'}
                     </span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[11px] text-gray-500 dark:text-gray-400">
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
                       {announcement.createdAt}
                     </span>
                   </div>
                 </div>
-                <p className="text-[11px] text-gray-600 dark:text-gray-400">{announcement.content}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{announcement.content}</p>
               </div>
             ))}
           </div>
@@ -1132,42 +1132,42 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
           <div className="p-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors theme-transition">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-[10px] font-semibold text-blue-700 dark:text-blue-300">김</span>
+                <span className="text-sm font-semibold text-blue-700 dark:text-blue-300">김</span>
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-900 dark:text-gray-100">김철수</span>
-                  <span className="text-[11px] text-gray-500 dark:text-gray-400">10분 전</span>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">10분 전</span>
                 </div>
-                <p className="text-[11px] text-gray-600 dark:text-gray-400 truncate">작업일지를 제출했습니다</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 truncate">작업일지를 제출했습니다</p>
               </div>
             </div>
           </div>
           <div className="p-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors theme-transition">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-[10px] font-semibold text-green-700 dark:text-green-300">박</span>
+                <span className="text-sm font-semibold text-green-700 dark:text-green-300">박</span>
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-900 dark:text-gray-100">박현장</span>
-                  <span className="text-[11px] text-gray-500 dark:text-gray-400">30분 전</span>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">30분 전</span>
                 </div>
-                <p className="text-[11px] text-gray-600 dark:text-gray-400 truncate">작업일지를 승인했습니다</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 truncate">작업일지를 승인했습니다</p>
               </div>
             </div>
           </div>
           <div className="p-2 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors theme-transition">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-[10px] font-semibold text-purple-700 dark:text-purple-300">이</span>
+                <span className="text-sm font-semibold text-purple-700 dark:text-purple-300">이</span>
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-900 dark:text-gray-100">이파트너</span>
-                  <span className="text-[11px] text-gray-500 dark:text-gray-400">1시간 전</span>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">1시간 전</span>
                 </div>
-                <p className="text-[11px] text-gray-600 dark:text-gray-400 truncate">문서를 업로드했습니다</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 truncate">문서를 업로드했습니다</p>
               </div>
             </div>
           </div>

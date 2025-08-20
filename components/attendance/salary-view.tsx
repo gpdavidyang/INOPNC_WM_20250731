@@ -323,7 +323,7 @@ export function SalaryView({ profile }: SalaryViewProps) {
 
   return (
     <div className="space-y-2">
-      {/* Site Selection Dropdown - Consistent with 출근정보 screen */}
+      {/* Site Selection Dropdown - Consistent with 출력정보 screen */}
       <div className="mb-3">
         <CustomSelect value={selectedSite} onValueChange={setSelectedSite}>
           <CustomSelectTrigger className={cn(

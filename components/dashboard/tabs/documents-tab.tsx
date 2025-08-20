@@ -436,12 +436,21 @@ export default function DocumentsTab({ profile }: DocumentsTabProps) {
   }
 
   const handleViewDocument = (document: Document) => {
+    if (!document) {
+      console.error('Document not found')
+      alert('문서를 찾을 수 없습니다.')
+      return
+    }
+    
     if (document.type === 'markup-document') {
       // Open markup document in markup editor
       router.push(`/dashboard/markup?open=${document.id}`)
     } else if (document.url) {
       // For other documents, open in new tab
       window.open(document.url, '_blank')
+    } else {
+      console.error('Document URL not found')
+      alert('문서 URL을 찾을 수 없습니다.')
     }
   }
 
@@ -486,7 +495,6 @@ export default function DocumentsTab({ profile }: DocumentsTabProps) {
     documents.some(doc => doc.documentType === reqDoc.id && doc.status === 'completed')
   ).length
   const totalRequiredDocs = requiredDocuments.filter(doc => doc.isRequired).length
-  const completionPercentage = Math.round((uploadedRequiredDocs / totalRequiredDocs) * 100)
 
   // 선택된 문서 공유 함수
   const handleShare = (method: 'sms' | 'email' | 'kakao' | 'link') => {
@@ -533,15 +541,18 @@ export default function DocumentsTab({ profile }: DocumentsTabProps) {
     <div className="space-y-4">
       {/* Header with Selection Mode */}
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-        <div className="flex items-center justify-between mb-4">
+        {/* 헤더와 통합된 액션 버튼들 */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-3">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">내문서함</h2>
             {isSelectionMode && (
-              <span className="text-sm text-blue-600 dark:text-blue-400">
+              <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-sm font-medium rounded-md">
                 {selectedDocuments.length}개 선택됨
               </span>
             )}
           </div>
+          
+          {/* 액션 버튼 그룹 */}
           <div className="flex items-center gap-2">
             {isSelectionMode ? (
               <>
@@ -550,7 +561,7 @@ export default function DocumentsTab({ profile }: DocumentsTabProps) {
                     setIsSelectionMode(false)
                     setSelectedDocuments([])
                   }}
-                  className="px-3 py-2 text-sm text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+                  className="px-3 py-2 text-sm text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                 >
                   취소
                 </button>
@@ -560,14 +571,14 @@ export default function DocumentsTab({ profile }: DocumentsTabProps) {
                   className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
                 >
                   <Share2 className="h-4 w-4" />
-                  공유하기
+                  선택 공유
                 </button>
               </>
             ) : (
               <>
                 <button
                   onClick={() => setIsSelectionMode(true)}
-                  className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-lg"
+                  className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                 >
                   <CheckCircle className="h-4 w-4" />
                   선택
@@ -674,19 +685,6 @@ export default function DocumentsTab({ profile }: DocumentsTabProps) {
           </button>
         </div>
         
-        {/* 진행률 표시 - 항상 보임 */}
-        <div className={isRequiredDocsExpanded ? "mb-4" : ""}>
-          <div className="flex items-center justify-between text-sm mb-1">
-            <span className="text-gray-600 dark:text-gray-400">전체 진행률</span>
-            <span className="font-medium text-blue-600 dark:text-blue-400">{completionPercentage}%</span>
-          </div>
-          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-            <div 
-              className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${completionPercentage}%` }}
-            />
-          </div>
-        </div>
 
         {/* 필수 서류 목록 - 펼쳐진 경우에만 표시 */}
         {isRequiredDocsExpanded && (

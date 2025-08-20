@@ -176,7 +176,7 @@ export function MarkupEditor({
       return
     }
 
-    // 일반 도구 변경
+    // 일반 도구 변경 (팬 도구 포함)
     setEditorState(prev => ({
       ...prev,
       toolState: {

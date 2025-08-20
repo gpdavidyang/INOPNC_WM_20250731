@@ -64,7 +64,7 @@ export interface MarkupMetadata {
 }
 
 // 현재 선택된 도구
-export type ToolType = 'select' | 'box-gray' | 'box-red' | 'box-blue' | 'text' | 'pen' | 'zoom-in' | 'zoom-out'
+export type ToolType = 'select' | 'box-gray' | 'box-red' | 'box-blue' | 'text' | 'pen' | 'pan' | 'zoom-in' | 'zoom-out'
 
 // 도구 상태
 export interface ToolState {

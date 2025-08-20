@@ -21,8 +21,32 @@ export const MarkupCanvas = forwardRef<HTMLCanvasElement, MarkupCanvasProps>(
     const [textInputOpen, setTextInputOpen] = useState(false)
     const [textInputPosition, setTextInputPosition] = useState({ x: 0, y: 0 })
     
+    // 팬 기능을 위한 상태
+    const [isPanning, setIsPanning] = useState(false)
+    const [panStart, setPanStart] = useState({ x: 0, y: 0 })
+    const [lastPanPosition, setLastPanPosition] = useState({ x: 0, y: 0 })
+    
+    // 터치 제스처를 위한 상태
+    const [touches, setTouches] = useState<Array<{ id: number, x: number, y: number }>>([])
+    const [lastDistance, setLastDistance] = useState(0)
+    const [lastTouchCenter, setLastTouchCenter] = useState({ x: 0, y: 0 })
+    
     // Canvas ref 처리
     const canvas = canvasRef && 'current' in canvasRef ? canvasRef.current : internalCanvasRef.current
+
+    // 터치 제스처 헬퍼 함수들
+    const getTouchDistance = (touch1: { x: number, y: number }, touch2: { x: number, y: number }) => {
+      const dx = touch1.x - touch2.x
+      const dy = touch1.y - touch2.y
+      return Math.sqrt(dx * dx + dy * dy)
+    }
+
+    const getTouchCenter = (touch1: { x: number, y: number }, touch2: { x: number, y: number }) => {
+      return {
+        x: (touch1.x + touch2.x) / 2,
+        y: (touch1.y + touch2.y) / 2
+      }
+    }
 
     // 도면 이미지 로드 및 크기 조정
     useEffect(() => {
@@ -307,6 +331,18 @@ export const MarkupCanvas = forwardRef<HTMLCanvasElement, MarkupCanvasProps>(
         return
       }
       
+      // Pan tool - start panning
+      if (activeTool === 'pan') {
+        console.log('🔥 Pan tool - starting pan')
+        setIsPanning(true)
+        setPanStart({ x: e.clientX, y: e.clientY })
+        setLastPanPosition({ 
+          x: editorState.viewerState.panX, 
+          y: editorState.viewerState.panY 
+        })
+        return
+      }
+      
       setIsMouseDown(true)
       setStartPoint(coords)
 
@@ -363,10 +399,27 @@ export const MarkupCanvas = forwardRef<HTMLCanvasElement, MarkupCanvasProps>(
     }
 
     const handleMouseMove = (e: React.MouseEvent) => {
+      const { activeTool } = editorState.toolState
+      
+      // Pan tool handling
+      if (isPanning && activeTool === 'pan') {
+        const deltaX = e.clientX - panStart.x
+        const deltaY = e.clientY - panStart.y
+        
+        onStateChange(prev => ({
+          ...prev,
+          viewerState: {
+            ...prev.viewerState,
+            panX: lastPanPosition.x + deltaX,
+            panY: lastPanPosition.y + deltaY
+          }
+        }))
+        return
+      }
+      
       if (!isMouseDown) return
       
       const coords = getCanvasCoordinates(e)
-      const { activeTool } = editorState.toolState
 
       console.log('🔥 Mouse move:', { activeTool, coords, currentDrawing: !!currentDrawing }) // 디버깅용
 
@@ -393,6 +446,12 @@ export const MarkupCanvas = forwardRef<HTMLCanvasElement, MarkupCanvasProps>(
 
     const handleMouseUp = () => {
       console.log('🔥 Mouse up, currentDrawing:', currentDrawing) // 디버깅용
+      
+      // Pan tool cleanup
+      if (isPanning) {
+        setIsPanning(false)
+        return
+      }
       
       if (currentDrawing) {
         // 현재 그리기를 완료하고 저장
@@ -510,6 +569,142 @@ export const MarkupCanvas = forwardRef<HTMLCanvasElement, MarkupCanvasProps>(
       return null
     }
 
+    // 터치 이벤트 핸들러들
+    const handleTouchStart = useCallback((e: React.TouchEvent) => {
+      e.preventDefault()
+      
+      const rect = canvas?.getBoundingClientRect()
+      if (!rect) return
+
+      const newTouches = Array.from(e.touches).map(touch => ({
+        id: touch.identifier,
+        x: touch.clientX - rect.left,
+        y: touch.clientY - rect.top
+      }))
+      
+      setTouches(newTouches)
+      
+      if (newTouches.length === 2) {
+        // 두 손가락 터치 시작 - 줌/팬 제스처 초기화
+        const distance = getTouchDistance(newTouches[0], newTouches[1])
+        const center = getTouchCenter(newTouches[0], newTouches[1])
+        
+        setLastDistance(distance)
+        setLastTouchCenter(center)
+        
+        console.log('🔥 Two finger touch started:', { distance, center })
+      } else if (newTouches.length === 1) {
+        // 단일 터치 - 기존 마우스 이벤트로 변환
+        const mouseEvent = {
+          clientX: e.touches[0].clientX,
+          clientY: e.touches[0].clientY,
+          target: e.target,
+          currentTarget: e.currentTarget,
+          preventDefault: () => e.preventDefault(),
+          stopPropagation: () => e.stopPropagation()
+        } as any
+        handleMouseDown(mouseEvent)
+      }
+    }, [canvas])
+
+    const handleTouchMove = useCallback((e: React.TouchEvent) => {
+      e.preventDefault()
+      
+      const rect = canvas?.getBoundingClientRect()
+      if (!rect) return
+
+      const newTouches = Array.from(e.touches).map(touch => ({
+        id: touch.identifier,
+        x: touch.clientX - rect.left,
+        y: touch.clientY - rect.top
+      }))
+      
+      if (newTouches.length === 2 && touches.length === 2) {
+        // 두 손가락 터치 이동 - 줌/팬 제스처
+        const distance = getTouchDistance(newTouches[0], newTouches[1])
+        const center = getTouchCenter(newTouches[0], newTouches[1])
+        
+        // 핀치 줌
+        if (lastDistance > 0) {
+          const zoomDelta = distance / lastDistance
+          const currentZoom = editorState.viewerState.zoom
+          const newZoom = Math.max(0.1, Math.min(5, currentZoom * zoomDelta))
+          
+          // 줌 중심점 계산
+          const { panX, panY } = editorState.viewerState
+          const newPanX = center.x - (center.x - panX) * (newZoom / currentZoom)
+          const newPanY = center.y - (center.y - panY) * (newZoom / currentZoom)
+          
+          onStateChange(prev => ({
+            ...prev,
+            viewerState: {
+              ...prev.viewerState,
+              zoom: newZoom,
+              panX: newPanX,
+              panY: newPanY
+            }
+          }))
+        }
+        
+        // 두 손가락 팬
+        const panDeltaX = center.x - lastTouchCenter.x
+        const panDeltaY = center.y - lastTouchCenter.y
+        
+        if (Math.abs(panDeltaX) > 2 || Math.abs(panDeltaY) > 2) { // 최소 이동 거리
+          onStateChange(prev => ({
+            ...prev,
+            viewerState: {
+              ...prev.viewerState,
+              panX: prev.viewerState.panX + panDeltaX,
+              panY: prev.viewerState.panY + panDeltaY
+            }
+          }))
+        }
+        
+        setLastDistance(distance)
+        setLastTouchCenter(center)
+        
+        console.log('🔥 Two finger gesture:', { distance, center, panDeltaX, panDeltaY })
+      } else if (newTouches.length === 1) {
+        // 단일 터치 이동 - 기존 마우스 이벤트로 변환
+        const mouseEvent = {
+          clientX: e.touches[0].clientX,
+          clientY: e.touches[0].clientY,
+          target: e.target,
+          currentTarget: e.currentTarget,
+          preventDefault: () => e.preventDefault(),
+          stopPropagation: () => e.stopPropagation()
+        } as any
+        handleMouseMove(mouseEvent)
+      }
+      
+      setTouches(newTouches)
+    }, [canvas, touches, lastDistance, lastTouchCenter, editorState.viewerState, onStateChange])
+
+    const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+      e.preventDefault()
+      
+      const newTouches = Array.from(e.touches).map(touch => ({
+        id: touch.identifier,
+        x: touch.clientX,
+        y: touch.clientY
+      }))
+      
+      setTouches(newTouches)
+      
+      if (newTouches.length === 0) {
+        // 모든 터치 종료
+        setLastDistance(0)
+        setLastTouchCenter({ x: 0, y: 0 })
+        handleMouseUp()
+        console.log('🔥 All touches ended')
+      } else if (newTouches.length === 1) {
+        // 두 손가락에서 한 손가락으로 변경
+        setLastDistance(0)
+        console.log('🔥 Touch count reduced to 1')
+      }
+    }, [])
+
     // 마크업 객체 또는 뷰어 상태가 변경될 때마다 다시 그리기
     useEffect(() => {
       console.log('State changed, triggering redraw') // 디버깅용
@@ -542,44 +737,58 @@ export const MarkupCanvas = forwardRef<HTMLCanvasElement, MarkupCanvasProps>(
           className={`w-full h-full ${
             editorState.toolState.activeTool === 'text' ? 'cursor-text' : 
             editorState.toolState.activeTool === 'select' ? 'cursor-pointer' :
+            editorState.toolState.activeTool === 'pan' ? 'cursor-move' :
             'cursor-crosshair'
           }`}
           onPointerDown={(e) => {
-            console.log('🔥 Pointer down:', e.clientX, e.clientY)
-            // Convert pointer event to mouse event for consistency
-            const mouseEvent = {
-              clientX: e.clientX,
-              clientY: e.clientY,
-              target: e.target,
-              currentTarget: e.currentTarget,
-              preventDefault: () => e.preventDefault(),
-              stopPropagation: () => e.stopPropagation()
-            } as any
-            handleMouseDown(mouseEvent)
+            console.log('🔥 Pointer down:', e.clientX, e.clientY, 'pointerType:', e.pointerType)
+            // 터치 이벤트가 아닌 경우에만 처리 (마우스, 펜 등)
+            if (e.pointerType !== 'touch') {
+              const mouseEvent = {
+                clientX: e.clientX,
+                clientY: e.clientY,
+                target: e.target,
+                currentTarget: e.currentTarget,
+                preventDefault: () => e.preventDefault(),
+                stopPropagation: () => e.stopPropagation()
+              } as any
+              handleMouseDown(mouseEvent)
+            }
           }}
           onPointerMove={(e) => {
-            console.log('🔥 Pointer move:', e.clientX, e.clientY)
-            if (!isMouseDown) return
-            const mouseEvent = {
-              clientX: e.clientX,
-              clientY: e.clientY,
-              target: e.target,
-              currentTarget: e.currentTarget,
-              preventDefault: () => e.preventDefault(),
-              stopPropagation: () => e.stopPropagation()
-            } as any
-            handleMouseMove(mouseEvent)
+            console.log('🔥 Pointer move:', e.clientX, e.clientY, 'pointerType:', e.pointerType)
+            // 터치 이벤트가 아닌 경우에만 처리
+            if (e.pointerType !== 'touch' && (isMouseDown || isPanning)) {
+              const mouseEvent = {
+                clientX: e.clientX,
+                clientY: e.clientY,
+                target: e.target,
+                currentTarget: e.currentTarget,
+                preventDefault: () => e.preventDefault(),
+                stopPropagation: () => e.stopPropagation()
+              } as any
+              handleMouseMove(mouseEvent)
+            }
           }}
           onPointerUp={(e) => {
-            console.log('🔥 Pointer up:', e.clientX, e.clientY)
-            handleMouseUp()
+            console.log('🔥 Pointer up:', e.clientX, e.clientY, 'pointerType:', e.pointerType)
+            // 터치 이벤트가 아닌 경우에만 처리
+            if (e.pointerType !== 'touch') {
+              handleMouseUp()
+            }
           }}
           onPointerLeave={(e) => {
             console.log('🔥 Pointer leave')
-            handleMouseUp()
+            // 터치 이벤트가 아닌 경우에만 처리
+            if (e.pointerType !== 'touch') {
+              handleMouseUp()
+            }
           }}
           onDoubleClick={handleDoubleClick}
           onWheel={handleWheel}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
           onClick={(e) => {
             console.log('🔥 Canvas clicked:', e.clientX, e.clientY)
           }}

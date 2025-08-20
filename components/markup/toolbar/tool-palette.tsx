@@ -12,6 +12,7 @@ import {
   Undo2,
   Redo2,
   Trash2,
+  Move,
   ZoomIn,
   ZoomOut
 } from 'lucide-react'
@@ -67,8 +68,9 @@ export function ToolPalette({
   ]
 
   const viewTools = [
-    { id: 'zoom-in' as ToolType, icon: ZoomIn, label: '확대', color: '' },
-    { id: 'zoom-out' as ToolType, icon: ZoomOut, label: '축소', color: '' },
+    { id: 'pan' as ToolType, icon: Move, label: '이동', color: 'text-purple-600 dark:text-purple-400' },
+    { id: 'zoom-in' as ToolType, icon: ZoomIn, label: '확대', color: 'text-green-600 dark:text-green-400' },
+    { id: 'zoom-out' as ToolType, icon: ZoomOut, label: '축소', color: 'text-green-600 dark:text-green-400' },
   ]
 
   if (isMobile) {
@@ -191,11 +193,13 @@ export function ToolPalette({
                 className={cn(
                   "min-w-[48px] min-h-[48px] p-2 rounded-xl",
                   "active:scale-95 transition-all duration-200 touch-manipulation",
-                  "bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 hover:from-green-100 hover:to-green-200 dark:hover:from-green-800/30 dark:hover:to-green-700/30 border-2 border-green-200 dark:border-green-700"
+                  tool.id === 'pan' 
+                    ? "bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 hover:from-purple-100 hover:to-purple-200 dark:hover:from-purple-800/30 dark:hover:to-purple-700/30 border-2 border-purple-200 dark:border-purple-700"
+                    : "bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 hover:from-green-100 hover:to-green-200 dark:hover:from-green-800/30 dark:hover:to-green-700/30 border-2 border-green-200 dark:border-green-700"
                 )}
                 title={tool.label}
               >
-                <tool.icon className="h-6 w-6 text-green-600 dark:text-green-400" strokeWidth={2.5} />
+                <tool.icon className={cn("h-6 w-6", tool.color || "text-green-600 dark:text-green-400")} strokeWidth={2.5} />
               </Button>
             ))}
           </div>
@@ -313,7 +317,7 @@ export function ToolPalette({
             )}
             title={tool.label}
           >
-            <tool.icon className={cn("h-5 w-5 flex-shrink-0", "text-gray-900 dark:text-gray-100", activeTool === tool.id && "text-white")} strokeWidth={2.5} />
+            <tool.icon className={cn("h-5 w-5 flex-shrink-0", tool.color || "text-gray-900 dark:text-gray-100", activeTool === tool.id && "text-white")} strokeWidth={2.5} />
             {(!touchMode || touchMode === 'normal') && (
               <span className={`${getFullTypographyClass('caption', 'xs', isLargeFont)} font-medium truncate`}>{tool.label}</span>
             )}

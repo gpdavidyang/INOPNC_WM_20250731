@@ -39,13 +39,8 @@ export async function getNPC1000Records(siteId: string, period?: 'today' | '7day
         npc1000_remaining,
         created_at,
         created_by,
-        profiles:created_by (
-          id,
-          full_name
-        )
       `)
       .eq('site_id', siteId)
-      .eq('is_deleted', false)
       .not('npc1000_used', 'is', null)
       .order('work_date', { ascending: false })
 
@@ -92,7 +87,10 @@ export async function getNPC1000Records(siteId: string, period?: 'today' | '7day
       daily_report: {
         id: report.id,
         work_content: `${report.process_type}${report.issues ? ` - ${report.issues}` : ''}`,
-        created_by: report.profiles
+        created_by: {
+          id: report.created_by,
+          full_name: 'Unknown User'
+        }
       }
     })) || []
 
@@ -128,7 +126,6 @@ export async function getNPC1000Summary(siteId: string) {
       .select('npc1000_incoming, npc1000_used, npc1000_remaining')
       .eq('site_id', siteId)
       .eq('work_date', today)
-      .eq('is_deleted', false)
       .single()
 
     // Get all records for cumulative totals
@@ -136,7 +133,6 @@ export async function getNPC1000Summary(siteId: string) {
       .from('daily_reports')
       .select('npc1000_incoming, npc1000_used, npc1000_remaining, work_date')
       .eq('site_id', siteId)
-      .eq('is_deleted', false)
       .not('npc1000_used', 'is', null)
       .order('work_date', { ascending: false })
 

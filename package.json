@@ -49,6 +49,7 @@
     "seed:scenarios": "tsx scripts/seed-test-scenarios.ts",
     "seed:all": "npm run seed:full && npm run seed:scenarios",
     "docs:create-samples": "node scripts/create-sample-documents.js",
+    "docs:create-shared": "node scripts/create-shared-documents.js",
     "docs:upload-files": "node scripts/upload-real-files.js",
     "verify:db": "tsx scripts/verify-database-usage.ts",
     "sync:ui-guidelines": "node scripts/sync-ui-guidelines.js",

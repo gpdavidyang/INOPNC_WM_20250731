@@ -624,54 +624,46 @@ export function AttendanceCalendar({ profile, isPartnerView }: AttendanceCalenda
             }
             
             return (
-              <div className="space-y-3">
-                <div className="flex items-center gap-4">
-                  {attendance.labor_hours !== null && attendance.labor_hours !== undefined && (
-                    <Badge variant={
-                      attendance.labor_hours >= 1.0 ? 'success' : 
-                      attendance.labor_hours >= 0.5 ? 'warning' : 
-                      attendance.labor_hours > 0 ? 'secondary' : 
-                      'default'
-                    }>
-                      {attendance.labor_hours} 공수
-                    </Badge>
-                  )}
-                  {attendance.site_name && (
-                    <span className="text-sm text-gray-600">
-                      현장: {attendance.site_name}
-                    </span>
-                  )}
-                </div>
-                
-                {attendance.check_in_time && (
-                  <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-4">
+                {/* 현장명 */}
+                {attendance.site_name && (
+                  <div className="flex items-center gap-2">
+                    <Building2 className="h-4 w-4 text-gray-500" />
                     <div>
-                      <p className="text-sm text-gray-600">출근 시간</p>
-                      <p className="font-medium">{attendance.check_in_time}</p>
+                      <p className="text-sm text-gray-600">현장</p>
+                      <p className="font-medium">{attendance.site_name}</p>
                     </div>
-                    {attendance.check_out_time && (
-                      <div>
-                        <p className="text-sm text-gray-600">퇴근 시간</p>
-                        <p className="font-medium">{attendance.check_out_time}</p>
-                      </div>
-                    )}
                   </div>
                 )}
                 
-                <div className="grid grid-cols-2 gap-4">
-                  {attendance.work_hours && (
+                {/* 공수 */}
+                {attendance.labor_hours !== null && attendance.labor_hours !== undefined && (
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-gray-500" />
                     <div>
-                      <p className="text-sm text-gray-600">근무 시간</p>
-                      <p className="font-medium">{attendance.work_hours}시간</p>
+                      <p className="text-sm text-gray-600">작업</p>
+                      <Badge variant={
+                        attendance.labor_hours >= 1.0 ? 'success' : 
+                        attendance.labor_hours >= 0.5 ? 'warning' : 
+                        attendance.labor_hours > 0 ? 'secondary' : 
+                        'default'
+                      }>
+                        {attendance.labor_hours} 공수
+                      </Badge>
                     </div>
-                  )}
-                  {attendance.overtime_hours && attendance.overtime_hours > 0 && (
+                  </div>
+                )}
+                
+                {/* 작업자명 */}
+                {profile?.full_name && (
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 text-gray-500" />
                     <div>
-                      <p className="text-sm text-gray-600">연장 근무</p>
-                      <p className="font-medium">{attendance.overtime_hours}시간</p>
+                      <p className="text-sm text-gray-600">작업자</p>
+                      <p className="font-medium">{profile.full_name}</p>
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
             )
           })()}

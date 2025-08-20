@@ -356,9 +356,6 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
                     <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                       지하 1층 구간 도면
                     </h4>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-                      도면번호: BP-2025-{siteInfo.id?.slice(0, 8)}
-                    </p>
                   </div>
                 </div>
                 

@@ -56,14 +56,9 @@ export default function DashboardLayout({ user, profile, children, initialActive
     }
   }, [pathname]) // ✅ Removed children and activeTab dependency to prevent loops
 
-  // Handle navigation for dedicated pages - MOVED OUT OF RENDER
-  useEffect(() => {
-    if (activeTab === 'attendance' && pathname !== '/dashboard/attendance') {
-      router.push('/dashboard/attendance')
-    } else if (activeTab === 'documents' && pathname !== '/dashboard/documents') {
-      router.push('/dashboard/documents')
-    }
-  }, [activeTab, pathname, router])
+  // REMOVED: This effect was causing redirect loops
+  // The dedicated pages (attendance, documents) handle their own routing
+  // and the activeTab state is derived from the pathname, not the other way around
 
   // REMOVED: This effect causes circular routing and performance issues
   // Navigation should be handled by user actions, not state changes

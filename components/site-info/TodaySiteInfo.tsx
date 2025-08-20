@@ -292,7 +292,7 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
           <div className="flex items-center gap-2">
             <Wrench className="h-4 w-4 text-gray-400 flex-shrink-0" />
             <span className="text-sm font-medium text-gray-900 dark:text-gray-100">작업내용</span>
-            <span className="text-[11px] text-gray-600 dark:text-gray-400 flex-1 ml-2">
+            <span className="text-sm text-gray-600 dark:text-gray-400 flex-1 ml-2">
               {siteInfo.process.work_process} • {siteInfo.process.work_section}
             </span>
           </div>

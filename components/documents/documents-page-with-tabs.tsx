@@ -10,11 +10,13 @@ import {
   FolderOpen,
   Users,
   Settings,
-  Plus
+  Plus,
+  PenTool
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { MyDocuments } from './my-documents'
 import { SharedDocuments } from './shared-documents'
+import { MarkupEditor } from '@/components/markup/markup-editor'
 import { useFontSize } from '@/contexts/FontSizeContext'
 import { useTouchMode } from '@/contexts/TouchModeContext'
 
@@ -32,6 +34,9 @@ export function DocumentsPageWithTabs({ profile, searchParams }: DocumentsPageWi
   const initialSearch = searchParams?.search as string || ''
   
   const [activeTab, setActiveTab] = useState(initialTab)
+  
+  console.log('[DocumentsPageWithTabs] Rendering with activeTab:', activeTab)
+  console.log('[DocumentsPageWithTabs] SearchParams:', searchParams)
   
   // Auto-switch to shared documents tab if searching for "공도면"
   useEffect(() => {
@@ -52,6 +57,12 @@ export function DocumentsPageWithTabs({ profile, searchParams }: DocumentsPageWi
       name: '공유문서함',
       icon: Share2,
       description: '조직에서 공유한 문서'
+    },
+    {
+      id: 'markup-editor',
+      name: '도면마킹',
+      icon: PenTool,
+      description: '도면에 마킹 및 편집'
     }
   ]
 
@@ -91,7 +102,7 @@ export function DocumentsPageWithTabs({ profile, searchParams }: DocumentsPageWi
         onValueChange={setActiveTab}
         className="flex-1 flex flex-col"
       >
-        <TabsList className="grid w-full grid-cols-2 gap-2 mb-2 bg-gray-100 dark:bg-gray-700 p-1">
+        <TabsList className="grid w-full grid-cols-3 gap-2 mb-2 bg-gray-100 dark:bg-gray-700 p-1">
           {tabs.map((tab) => {
             const Icon = tab.icon
             return (
@@ -119,6 +130,10 @@ export function DocumentsPageWithTabs({ profile, searchParams }: DocumentsPageWi
               profile={profile} 
               initialSearch={activeTab === 'shared-documents' ? initialSearch : undefined}
             />
+          </TabsContent>
+
+          <TabsContent value="markup-editor" className="h-full mt-0">
+            <MarkupEditor profile={profile} />
           </TabsContent>
 
         </div>

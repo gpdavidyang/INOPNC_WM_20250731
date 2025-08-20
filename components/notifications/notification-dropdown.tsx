@@ -122,7 +122,7 @@ export function NotificationDropdown() {
                 size="compact"
                 onClick={handleMarkAllRead}
                 disabled={markingAllRead}
-                className="h-7 sm:h-6 text-xs text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 px-2"
+                className="h-7 sm:h-6 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 px-2"
                 aria-label="모든 알림을 읽음으로 표시"
               >
                 <CheckCheck className="h-3 w-3 mr-1" />
@@ -131,7 +131,7 @@ export function NotificationDropdown() {
               <Button
                 variant="ghost"
                 size="compact"
-                className="h-7 w-7 sm:h-6 sm:w-6 text-xs text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 p-0"
+                className="h-7 w-7 sm:h-6 sm:w-6 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 p-0"
                 onClick={() => {
                   setOpen(false)
                   window.location.href = '/dashboard/settings/notifications'
@@ -143,7 +143,7 @@ export function NotificationDropdown() {
               <Button
                 variant="ghost"
                 size="compact"
-                className="h-7 w-7 sm:h-6 sm:w-6 text-xs text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 p-0"
+                className="h-7 w-7 sm:h-6 sm:w-6 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 p-0"
                 onClick={() => setOpen(false)}
                 aria-label="알림 창 닫기"
               >
@@ -167,7 +167,7 @@ export function NotificationDropdown() {
         <div className="p-1.5">
           <Button 
             variant="outline" 
-            className="w-full text-xs h-8 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 min-h-[36px] sm:min-h-[32px] touch-target-glove"
+            className="w-full text-sm h-8 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 min-h-[36px] sm:min-h-[32px] touch-target-glove"
             onClick={() => {
               setOpen(false)
               window.location.href = '/dashboard/notifications'

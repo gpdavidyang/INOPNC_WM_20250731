@@ -188,7 +188,7 @@ export function NotificationList({ className, onNotificationClick }: Notificatio
                     {notification.title}
                   </h4>
                   <p className={cn(
-                    "text-xs mt-1 leading-relaxed line-clamp-2",
+                    "text-sm mt-1 leading-relaxed line-clamp-2",
                     notification.read 
                       ? "text-gray-500 dark:text-gray-400" 
                       : "text-gray-600 dark:text-gray-300"
@@ -196,7 +196,7 @@ export function NotificationList({ className, onNotificationClick }: Notificatio
                     {notification.message}
                   </p>
                   <div className="flex items-center gap-2 mt-2">
-                    <span className="text-xs text-gray-400 dark:text-gray-500">
+                    <span className="text-sm text-gray-400 dark:text-gray-500">
                       {formatDistanceToNow(new Date(notification.created_at), {
                         addSuffix: true,
                         locale: ko

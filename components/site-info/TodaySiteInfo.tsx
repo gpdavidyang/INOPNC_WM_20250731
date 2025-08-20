@@ -160,7 +160,7 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
             <h2 id="site-info-section" className="text-base font-semibold text-slate-900 dark:text-slate-100">
               오늘의 현장 정보
             </h2>
-            <span className="text-xs text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-full font-medium">
+            <span className="text-sm text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-full font-medium">
               {siteInfo.name}
             </span>
           </div>
@@ -180,7 +180,7 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <MapPin className="h-4 w-4 text-gray-400 flex-shrink-0" />
-              <span className="text-xs font-medium text-gray-900 dark:text-gray-100">현장 주소</span>
+              <span className="text-sm font-medium text-gray-900 dark:text-gray-100">현장 주소</span>
               <div className="flex-1"></div>
               <button
                 onClick={() => copyToClipboard(siteInfo.address.full_address, '현장주소')}
@@ -191,7 +191,7 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
               </button>
               <button
                 onClick={() => openTMap(siteInfo.address.full_address, siteInfo.name)}
-                className="px-2 py-1 text-xs font-medium bg-gray-50 text-gray-600 hover:bg-gray-100 rounded transition-colors"
+                className="px-2 py-1 text-sm font-medium bg-gray-50 text-gray-600 hover:bg-gray-100 rounded transition-colors"
               >
                 T맵
               </button>
@@ -206,7 +206,7 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <Home className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                <span className="text-xs font-medium text-gray-900 dark:text-gray-100">숙소</span>
+                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">숙소</span>
                 <div className="flex-1"></div>
                 <button
                   onClick={() => copyToClipboard(siteInfo.accommodation!.full_address, '숙소주소')}
@@ -217,7 +217,7 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
                 </button>
                 <button
                   onClick={() => openTMap(siteInfo.accommodation!.full_address, '숙소')}
-                  className="px-2 py-1 text-xs font-medium bg-gray-50 text-gray-600 hover:bg-gray-100 rounded transition-colors"
+                  className="px-2 py-1 text-sm font-medium bg-gray-50 text-gray-600 hover:bg-gray-100 rounded transition-colors"
                 >
                   T맵
                 </button>
@@ -236,7 +236,7 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
                 <div key={index} className="space-y-1 text-sm">
                   <div className="flex items-center gap-2">
                     <User className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                    <span className="text-xs font-medium text-gray-900 dark:text-gray-100">건축관리자</span>
+                    <span className="text-sm font-medium text-gray-900 dark:text-gray-100">건축관리자</span>
                     <div className="flex-1"></div>
                     <button
                       onClick={() => copyToClipboard(manager.phone, '전화번호')}
@@ -263,7 +263,7 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
                 <div key={index} className="space-y-1 text-sm">
                   <div className="flex items-center gap-2">
                     <ShieldCheck className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                    <span className="text-xs font-medium text-gray-900 dark:text-gray-100">안전관리자</span>
+                    <span className="text-sm font-medium text-gray-900 dark:text-gray-100">안전관리자</span>
                     <div className="flex-1"></div>
                     <button
                       onClick={() => copyToClipboard(manager.phone, '전화번호')}
@@ -291,7 +291,7 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
           {/* Work Details */}
           <div className="flex items-center gap-2">
             <Wrench className="h-4 w-4 text-gray-400 flex-shrink-0" />
-            <span className="text-xs font-medium text-gray-900 dark:text-gray-100">작업내용</span>
+            <span className="text-sm font-medium text-gray-900 dark:text-gray-100">작업내용</span>
             <span className="text-[11px] text-gray-600 dark:text-gray-400 flex-1 ml-2">
               {siteInfo.process.work_process} • {siteInfo.process.work_section}
             </span>
@@ -300,11 +300,11 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
           {/* Blueprint Document */}
           <div className="flex items-center gap-2">
             <Map className="h-4 w-4 text-gray-400 flex-shrink-0" />
-            <span className="text-xs font-medium text-gray-900 dark:text-gray-100">현장 공도면</span>
+            <span className="text-sm font-medium text-gray-900 dark:text-gray-100">현장 공도면</span>
             <div className="flex-1"></div>
             <button
               onClick={() => setShowBlueprintModal(true)}
-              className="px-2 py-1 text-xs bg-gray-50 text-gray-600 hover:bg-gray-100 rounded transition-colors"
+              className="px-2 py-1 text-sm bg-gray-50 text-gray-600 hover:bg-gray-100 rounded transition-colors"
               title="도면 보기"
             >
               미리보기
@@ -314,11 +314,11 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
           {/* PTW Document Preview */}
           <div className="flex items-center gap-2">
             <FileText className="h-4 w-4 text-gray-400 flex-shrink-0" />
-            <span className="text-xs font-medium text-gray-900 dark:text-gray-100">PTW (작업허가서)</span>
+            <span className="text-sm font-medium text-gray-900 dark:text-gray-100">PTW (작업허가서)</span>
             <div className="flex-1"></div>
             <button
               onClick={() => setShowPTWModal(true)}
-              className="px-2 py-1 text-xs bg-gray-50 text-gray-600 hover:bg-gray-100 rounded transition-colors"
+              className="px-2 py-1 text-sm bg-gray-50 text-gray-600 hover:bg-gray-100 rounded transition-colors"
               title="작업허가서 보기"
             >
               미리보기
@@ -372,7 +372,7 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
                   <div className="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
                     {/* Blueprint Preview */}
                     <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
-                      <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400 mb-2">
+                      <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-2">
                         <Map className="h-4 w-4" />
                         <span>도면 미리보기</span>
                       </div>
@@ -665,7 +665,7 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
                   <div className="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
                     {/* PTW Document Preview */}
                     <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
-                      <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400 mb-2">
+                      <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-2">
                         <FileText className="h-4 w-4" />
                         <span>PTW 문서 미리보기</span>
                       </div>
@@ -704,21 +704,21 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
                           {/* Enhanced PDF Thumbnail Simulation */}
                           <div className="w-full max-w-xs h-48 bg-gradient-to-b from-white to-gray-100 dark:from-gray-700 dark:to-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg overflow-hidden relative">
                             {/* PDF Header */}
-                            <div className="bg-gray-600 text-white text-xs px-2 py-1.5 font-semibold">
+                            <div className="bg-gray-600 text-white text-sm px-2 py-1.5 font-semibold">
                               작업허가서(PTW) - INOPNC
                             </div>
                             
                             {/* PDF Content Preview */}
                             <div className="p-2.5 space-y-1.5">
-                              <div className="flex justify-between items-center text-xs">
+                              <div className="flex justify-between items-center text-sm">
                                 <span className="text-gray-600 dark:text-gray-400 font-medium">업체명:</span>
                                 <span className="text-gray-800 dark:text-gray-200">H서비스 남부팀</span>
                               </div>
-                              <div className="flex justify-between items-center text-xs">
+                              <div className="flex justify-between items-center text-sm">
                                 <span className="text-gray-600 dark:text-gray-400 font-medium">작성자:</span>
                                 <span className="text-gray-800 dark:text-gray-200">김재형</span>
                               </div>
-                              <div className="flex justify-between items-center text-xs">
+                              <div className="flex justify-between items-center text-sm">
                                 <span className="text-gray-600 dark:text-gray-400 font-medium">현장명:</span>
                                 <span className="text-gray-800 dark:text-gray-200">{siteInfo.name}</span>
                               </div>
@@ -726,10 +726,10 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
                               
                               {/* Table simulation */}
                               <div className="space-y-1">
-                                <div className="bg-blue-100 dark:bg-blue-900/40 rounded text-xs p-1.5 text-center font-semibold text-blue-800 dark:text-blue-200">
+                                <div className="bg-blue-100 dark:bg-blue-900/40 rounded text-sm p-1.5 text-center font-semibold text-blue-800 dark:text-blue-200">
                                   작업허가서 승인 현황
                                 </div>
-                                <div className="grid grid-cols-2 gap-1 text-xs">
+                                <div className="grid grid-cols-2 gap-1 text-sm">
                                   <div className="bg-green-50 dark:bg-green-900/30 p-1.5 text-center rounded border border-green-200 dark:border-green-700">
                                     <div className="font-medium text-green-800 dark:text-green-200">허가</div>
                                   </div>
@@ -737,14 +737,14 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
                                     <div className="font-medium text-blue-800 dark:text-blue-200">검토완료</div>
                                   </div>
                                 </div>
-                                <div className="text-xs text-center text-gray-500 dark:text-gray-400 mt-2">
+                                <div className="text-sm text-center text-gray-500 dark:text-gray-400 mt-2">
                                   {new Date().toLocaleDateString('ko-KR')} 승인
                                 </div>
                               </div>
                             </div>
                             
                             {/* PDF Footer */}
-                            <div className="absolute bottom-0 left-0 right-0 bg-gray-100 dark:bg-gray-700 text-xs text-center py-1 text-gray-600 dark:text-gray-400 font-medium">
+                            <div className="absolute bottom-0 left-0 right-0 bg-gray-100 dark:bg-gray-700 text-sm text-center py-1 text-gray-600 dark:text-gray-400 font-medium">
                               PTW-2025-{siteInfo.id?.slice(0, 8)} • Page 1
                             </div>
                           </div>
@@ -756,7 +756,7 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
                             <p className="text-sm text-gray-600 dark:text-gray-400">
                               {siteDocuments?.ptw_document ? '이노피앤씨 표준 양식 • PDF 문서' : 'PTW 문서가 등록되지 않았습니다'}
                             </p>
-                            <div className="flex items-center justify-center gap-2 text-xs text-green-600 dark:text-green-400">
+                            <div className="flex items-center justify-center gap-2 text-sm text-green-600 dark:text-green-400">
                               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                               <span className="font-medium">승인 완료</span>
                             </div>
@@ -785,7 +785,7 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
                         </div>
                       </div>
                       
-                      <div className="mt-2 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                      <div className="mt-2 flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
                         <span>문서번호: PTW-2025-{siteInfo.id?.slice(0, 8)}</span>
                         {siteDocuments?.ptw_document && (
                           <button

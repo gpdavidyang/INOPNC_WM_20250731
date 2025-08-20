@@ -743,11 +743,11 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
                 <h2 id="work-log-section" className="text-white font-semibold text-sm whitespace-nowrap">
                   작업일지 작성
                 </h2>
-                <p className="text-white/90 text-xs mt-0.5">오늘의 작업 내용을 기록하세요</p>
+                <p className="text-white/90 text-sm mt-0.5">오늘의 작업 내용을 기록하세요</p>
               </div>
               <button
                 onClick={() => router.push('/dashboard/daily-reports/new')}
-                className="flex items-center gap-1 px-3 py-1.5 bg-white/95 hover:bg-white text-blue-600 text-xs font-medium rounded-lg transition-colors touch-manipulation focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-blue-600 shadow-sm ml-2"
+                className="flex items-center gap-1 px-3 py-1.5 bg-white/95 hover:bg-white text-blue-600 text-sm font-medium rounded-lg transition-colors touch-manipulation focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-blue-600 shadow-sm ml-2"
                 aria-label="새 작업일지 작성하기"
               >
                 <Plus className="h-3.5 w-3.5" aria-hidden="true" />
@@ -772,7 +772,7 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
             </CardTitle>
             <button
               onClick={() => setQuickMenuSettingsOpen(true)}
-              className="flex items-center gap-1 px-2 py-1 text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-md transition-all duration-200 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+              className="flex items-center gap-1 px-2 py-1 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-md transition-all duration-200 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
               aria-label="빠른메뉴 설정"
             >
               <Settings className="h-3 w-3" aria-hidden="true" />
@@ -838,7 +838,7 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
                 {loading && (
                   <div className="flex items-center gap-2 mt-2">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-600"></div>
-                    <span className="text-xs text-yellow-600">데이터 로딩 중...</span>
+                    <span className="text-sm text-yellow-600">데이터 로딩 중...</span>
                   </div>
                 )}
               </div>
@@ -943,7 +943,7 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
                 </button>
               </div>
               
-              <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
+              <div className="text-sm text-gray-500 dark:text-gray-400 space-y-1">
                 <div>빠른 로그인: manager@inopnc.com / password123</div>
                 <div>현재 상태: currentSite={currentSite ? '있음' : '없음'}, loading={loading ? '로딩중' : '완료'}</div>
               </div>
@@ -969,7 +969,7 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">현장 참여 이력</h3>
-                <span className="text-xs text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-full font-medium">{siteHistory.length}개 현장</span>
+                <span className="text-sm text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-full font-medium">{siteHistory.length}개 현장</span>
               </div>
               {siteHistoryExpanded ? (
                 <ChevronUp className="h-5 w-5 text-slate-500 dark:text-slate-400" />
@@ -981,7 +981,9 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
           
           {siteHistoryExpanded && (
             <div className="divide-y divide-gray-100 dark:divide-gray-700 max-h-48 overflow-y-auto">
-            {siteHistory.map((site, index) => (
+            {siteHistory
+              .sort((a, b) => new Date(b.assigned_date).getTime() - new Date(a.assigned_date).getTime())
+              .map((site, index) => (
               <button 
                 key={`${site.site_id}-${index}`} 
                 onClick={() => router.push(`/dashboard/site-info?siteId=${site.site_id}`)}
@@ -989,15 +991,15 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5 mb-0.5">
-                      <h4 className="text-xs font-medium text-gray-900 dark:text-gray-100 truncate">
+                      <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
                         {site.site_name}
                       </h4>
                       {site.is_active && (
-                        <span className="px-1.5 py-0 bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 text-[10px] rounded-full">
+                        <span className="px-1.5 py-0 bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 text-sm rounded-full">
                           현재
                         </span>
                       )}
-                      <span className={`px-1.5 py-0 text-[10px] rounded-full ${
+                      <span className={`px-1.5 py-0 text-sm rounded-full ${
                         site.user_role === 'site_manager' 
                           ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400'
                           : site.user_role === 'supervisor'
@@ -1008,11 +1010,11 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
                          site.user_role === 'supervisor' ? '감독관' : '작업자'}
                       </span>
                     </div>
-                    <p className="text-[11px] text-gray-600 dark:text-gray-400 truncate">{site.site_address}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 truncate">{site.site_address}</p>
                     
                     {/* Work details if available */}
                     {(site.work_process || site.work_section) && (
-                      <div className="mt-0.5 text-[10px] text-gray-500 dark:text-gray-500">
+                      <div className="mt-0.5 text-sm text-gray-500 dark:text-gray-500">
                         {site.work_process && <span>{site.work_process}</span>}
                         {site.work_process && site.work_section && <span className="mx-1">•</span>}
                         {site.work_section && <span>{site.work_section}</span>}
@@ -1020,7 +1022,7 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
                     )}
                   </div>
                   <div className="text-right flex-shrink-0 ml-2">
-                    <div className="text-[10px] text-gray-500 dark:text-gray-400">
+                    <div className="text-sm text-gray-500 dark:text-gray-400">
                       {new Date(site.assigned_date).toLocaleDateString('ko-KR', {
                         year: '2-digit',
                         month: '2-digit',
@@ -1066,7 +1068,7 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
             <div className="flex items-center gap-3">
               <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">공지사항</h3>
               {announcements.filter(a => !a.isRead).length > 0 && (
-                <span className="px-2 py-0.5 bg-red-500/90 text-white text-xs font-medium rounded-full shadow-sm">
+                <span className="px-2 py-0.5 bg-red-500/90 text-white text-sm font-medium rounded-full shadow-sm">
                   {announcements.filter(a => !a.isRead).length}
                 </span>
               )}
@@ -1085,7 +1087,7 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
               <div key={announcement.id} className="p-2.5 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors theme-transition">
                 <div className="flex items-start justify-between mb-1">
                   <div className="flex items-center gap-1.5">
-                    <h4 className="text-xs font-medium text-gray-900 dark:text-gray-100">
+                    <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">
                       {announcement.title}
                     </h4>
                     <span className={`px-1.5 py-0.5 text-[10px] rounded-full ${getPriorityColor(announcement.priority)}`}>
@@ -1097,9 +1099,6 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
                     <span className="text-[11px] text-gray-500 dark:text-gray-400">
                       {announcement.createdAt}
                     </span>
-                    {!announcement.isRead && (
-                      <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
-                    )}
                   </div>
                 </div>
                 <p className="text-[11px] text-gray-600 dark:text-gray-400">{announcement.content}</p>
@@ -1118,7 +1117,7 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">최근 활동</h3>
-              <span className="text-xs text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-full font-medium">실시간</span>
+              <span className="text-sm text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-full font-medium">실시간</span>
             </div>
             {recentActivitiesExpanded ? (
               <ChevronUp className="h-5 w-5 text-slate-500 dark:text-slate-400" />
@@ -1137,7 +1136,7 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-gray-900 dark:text-gray-100">김철수</span>
+                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">김철수</span>
                   <span className="text-[11px] text-gray-500 dark:text-gray-400">10분 전</span>
                 </div>
                 <p className="text-[11px] text-gray-600 dark:text-gray-400 truncate">작업일지를 제출했습니다</p>
@@ -1151,7 +1150,7 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-gray-900 dark:text-gray-100">박현장</span>
+                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">박현장</span>
                   <span className="text-[11px] text-gray-500 dark:text-gray-400">30분 전</span>
                 </div>
                 <p className="text-[11px] text-gray-600 dark:text-gray-400 truncate">작업일지를 승인했습니다</p>
@@ -1165,7 +1164,7 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-gray-900 dark:text-gray-100">이파트너</span>
+                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">이파트너</span>
                   <span className="text-[11px] text-gray-500 dark:text-gray-400">1시간 전</span>
                 </div>
                 <p className="text-[11px] text-gray-600 dark:text-gray-400 truncate">문서를 업로드했습니다</p>
@@ -1202,7 +1201,7 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
                 <div className="mb-6">
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">선택된 메뉴</h4>
-                    <span className="text-xs text-gray-500 dark:text-gray-400">드래그 또는 화살표로 순서 변경</span>
+                    <span className="text-sm text-gray-500 dark:text-gray-400">드래그 또는 화살표로 순서 변경</span>
                   </div>
                   <div className="space-y-2">
                     {selectedQuickMenuItems.map((itemId, index) => {
@@ -1290,7 +1289,7 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
                         <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">
                           {item.name}
                         </h4>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                        <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
                           {item.description}
                         </p>
                       </div>
@@ -1301,7 +1300,7 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
               </div>
 
               {selectedQuickMenuItems.length >= 5 && (
-                <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">
+                <p className="text-sm text-amber-600 dark:text-amber-400 mt-2">
                   최대 5개까지 선택할 수 있습니다.
                 </p>
               )}

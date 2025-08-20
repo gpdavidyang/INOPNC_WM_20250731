@@ -65,6 +65,8 @@ interface WorkContentEntry {
 interface WorkerEntry {
   worker_id: string
   labor_hours: number
+  worker_name?: string // For direct input
+  is_direct_input?: boolean // To track if this is direct input
 }
 
 interface PhotoEntry {
@@ -355,7 +357,9 @@ export default function DailyReportFormEnhanced({
   const addWorker = () => {
     setWorkerEntries([...workerEntries, {
       worker_id: '',
-      labor_hours: 1.0
+      labor_hours: 1.0,
+      worker_name: '',
+      is_direct_input: false
     }])
   }
 
@@ -425,6 +429,57 @@ export default function DailyReportFormEnhanced({
   const openPhotoModal = (type: 'before' | 'after') => {
     setCurrentPhotoType(type)
     setShowPhotoModal(true)
+  }
+
+  // Drawing selection modal handlers
+  const openDrawingModal = () => {
+    setShowDrawingModal(true)
+  }
+
+  const handleDrawingSelection = (source: 'camera' | 'gallery' | 'file') => {
+    setShowDrawingModal(false)
+    
+    if (source === 'camera') {
+      // 카메라로 직접 촬영
+      const input = document.createElement('input')
+      input.type = 'file'
+      input.accept = 'image/*,.pdf,.dwg'
+      input.capture = 'environment' // 후면 카메라 사용
+      input.multiple = true
+      input.onchange = (e) => {
+        const files = (e.target as HTMLInputElement).files
+        if (files) {
+          setDrawings([...drawings, ...Array.from(files)])
+        }
+      }
+      input.click()
+    } else if (source === 'gallery') {
+      // 사진 갤러리에서 선택
+      const input = document.createElement('input')
+      input.type = 'file'
+      input.accept = 'image/*'
+      input.multiple = true
+      input.onchange = (e) => {
+        const files = (e.target as HTMLInputElement).files
+        if (files) {
+          setDrawings([...drawings, ...Array.from(files)])
+        }
+      }
+      input.click()
+    } else if (source === 'file') {
+      // 파일에서 선택
+      const input = document.createElement('input')
+      input.type = 'file'
+      input.accept = '.pdf,.dwg,.png,.jpg,.jpeg'
+      input.multiple = true
+      input.onchange = (e) => {
+        const files = (e.target as HTMLInputElement).files
+        if (files) {
+          setDrawings([...drawings, ...Array.from(files)])
+        }
+      }
+      input.click()
+    }
   }
 
   const handlePhotoSelection = (source: 'camera' | 'gallery' | 'file') => {
@@ -574,9 +629,10 @@ export default function DailyReportFormEnhanced({
       // Save attendance records
       if (workerEntries.length > 0) {
         const attendanceData = workerEntries
-          .filter(w => w.worker_id)
+          .filter(w => w.worker_id || (w.is_direct_input && w.worker_name))
           .map(w => ({
-            worker_id: w.worker_id,
+            worker_id: w.worker_id || `direct_${Date.now()}_${Math.random()}`, // Generate ID for direct input
+            worker_name: w.is_direct_input ? w.worker_name : undefined, // Include name for direct input
             check_in_time: '08:00',
             check_out_time: w.labor_hours === 1.0 ? '17:00' : '20:00', // Overtime if > 1.0
             work_type: workContents[0]?.processType || '일반작업'
@@ -881,21 +937,58 @@ export default function DailyReportFormEnhanced({
                   <div className="grid grid-cols-3 gap-2">
                     <div className="col-span-2">
                       <label className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1 block">작업자</label>
-                      <Select
-                        value={entry.worker_id || ''}
-                        onValueChange={(value) => updateWorker(index, 'worker_id', value)}
-                      >
-                        <SelectTrigger className="w-full h-8 text-sm bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100">
-                          <SelectValue placeholder="선택" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-white dark:bg-gray-800 border dark:border-gray-700">
-                          {workers.map(worker => (
-                            <SelectItem key={worker.id} value={worker.id}>
-                              {worker.full_name} ({worker.role})
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      {entry.is_direct_input ? (
+                        <div className="space-y-1">
+                          <input
+                            type="text"
+                            value={entry.worker_name || ''}
+                            onChange={(e) => updateWorker(index, 'worker_name', e.target.value)}
+                            placeholder="작업자 이름 입력"
+                            className="w-full h-8 px-2 text-sm bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              updateWorker(index, 'is_direct_input', false)
+                              updateWorker(index, 'worker_name', '')
+                            }}
+                            className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                          >
+                            목록에서 선택
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="space-y-1">
+                          <Select
+                            value={entry.worker_id || ''}
+                            onValueChange={(value) => {
+                              if (value === 'direct_input') {
+                                updateWorker(index, 'is_direct_input', true)
+                                updateWorker(index, 'worker_id', '')
+                              } else {
+                                updateWorker(index, 'worker_id', value)
+                              }
+                            }}
+                          >
+                            <SelectTrigger className="w-full h-8 text-sm bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100">
+                              <SelectValue placeholder="선택" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-white dark:bg-gray-800 border dark:border-gray-700">
+                              {workers.map(worker => (
+                                <SelectItem key={worker.id} value={worker.id}>
+                                  {worker.full_name} ({worker.role})
+                                </SelectItem>
+                              ))}
+                              <SelectItem value="direct_input">
+                                <div className="flex items-center gap-2">
+                                  <Plus className="h-3 w-3" />
+                                  직접 입력
+                                </div>
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
                     </div>
                     <div>
                       <label className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1 block">공수</label>
@@ -1235,23 +1328,14 @@ export default function DailyReportFormEnhanced({
                 도면 마킹 도구에서 생성된 마킹 도면을 첨부하세요
               </p>
               
-              <label className="cursor-pointer">
-                <div className="flex flex-col items-center justify-center w-full h-16 border-2 border-dashed border-gray-200 dark:border-gray-600 rounded hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all">
-                  <Map className="h-4 w-4 text-gray-500 mb-1" />
-                  <p className="text-xs text-gray-500">클릭하여 도면 파일 선택</p>
-                </div>
-                <input
-                  type="file"
-                  multiple
-                  accept=".pdf,.dwg,.png,.jpg,.jpeg"
-                  onChange={(e) => {
-                    if (e.target.files) {
-                      setDrawings([...drawings, ...Array.from(e.target.files)])
-                    }
-                  }}
-                  className="hidden"
-                />
-              </label>
+              <button
+                type="button"
+                onClick={openDrawingModal}
+                className="flex flex-col items-center justify-center w-full h-16 border-2 border-dashed border-indigo-200 dark:border-indigo-600 rounded bg-indigo-50/30 dark:bg-indigo-900/20 hover:border-indigo-300 dark:hover:border-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-all cursor-pointer"
+              >
+                <Map className="h-4 w-4 text-indigo-600 dark:text-indigo-400 mb-1" />
+                <p className="text-xs text-indigo-600 dark:text-indigo-400 font-medium">클릭하여 도면 파일 선택</p>
+              </button>
 
               {drawings.length > 0 && (
                 <div className="mt-2 space-y-1.5">
@@ -1476,6 +1560,59 @@ export default function DailyReportFormEnhanced({
             
             <button
               onClick={() => setShowPhotoModal(false)}
+              className="w-full h-14 mt-6 text-gray-600 dark:text-gray-400 text-base font-medium hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors touch-manipulation"
+            >
+              취소
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Drawing Selection Modal */}
+      {showDrawingModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-end justify-center z-50" onClick={() => setShowDrawingModal(false)}>
+          <div className="bg-white dark:bg-gray-800 rounded-t-3xl w-full max-w-md p-6 pb-8 safe-area-pb" onClick={(e) => e.stopPropagation()}>
+            {/* Modal handle */}
+            <div className="w-10 h-1 bg-gray-300 dark:bg-gray-600 rounded-full mx-auto mb-4"></div>
+            
+            <div className="text-center mb-6">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">도면 선택</h3>
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <div className="w-3 h-3 rounded-full bg-indigo-500"></div>
+                <p className="text-sm font-bold text-indigo-700 dark:text-indigo-300">
+                  진행 도면을 어떻게 추가하시겠어요?
+                </p>
+              </div>
+            </div>
+            
+            <div className="space-y-3">
+              <button
+                onClick={() => handleDrawingSelection('camera')}
+                className="w-full h-16 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 active:bg-gray-200 dark:active:bg-gray-500 border border-gray-200 dark:border-gray-600 rounded-xl flex items-center justify-center gap-3 text-gray-800 dark:text-gray-200 transition-colors touch-manipulation"
+              >
+                <Camera className="h-6 w-6" />
+                <span className="font-medium text-base">카메라로 촬영</span>
+              </button>
+              
+              <button
+                onClick={() => handleDrawingSelection('gallery')}
+                className="w-full h-16 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 active:bg-gray-200 dark:active:bg-gray-500 border border-gray-200 dark:border-gray-600 rounded-xl flex items-center justify-center gap-3 text-gray-800 dark:text-gray-200 transition-colors touch-manipulation"
+              >
+                <ImageIcon className="h-6 w-6" />
+                <span className="font-medium text-base">사진 갤러리</span>
+              </button>
+              
+              <button
+                onClick={() => handleDrawingSelection('file')}
+                className="w-full h-16 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 active:bg-gray-200 dark:active:bg-gray-500 border border-gray-200 dark:border-gray-600 rounded-xl flex items-center justify-center gap-3 text-gray-800 dark:text-gray-200 transition-colors touch-manipulation"
+              >
+                <FolderOpen className="h-6 w-6" />
+                <span className="font-medium text-base">파일 업로드</span>
+              </button>
+            </div>
+            
+            <button
+              onClick={() => setShowDrawingModal(false)}
               className="w-full h-14 mt-6 text-gray-600 dark:text-gray-400 text-base font-medium hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors touch-manipulation"
             >
               취소

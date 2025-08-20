@@ -22,7 +22,7 @@ export function DailyReportsPageClient({ profile, sites }: DailyReportsPageClien
   // Bottom navigation items
   const bottomNavItems: BottomNavItem[] = [
     { 
-      label: "홈(빠른메뉴)", 
+      label: "빠른화면", 
       href: "/dashboard", 
       icon: <Home /> 
     },

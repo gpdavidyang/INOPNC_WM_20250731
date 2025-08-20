@@ -11,6 +11,7 @@ import { SiteInfo, AccommodationAddress, ProcessInfo } from '@/types/site-info'
 import ManagerContacts from './ManagerContacts'
 import { TMap } from '@/lib/external-apps'
 import { getSiteDocumentsPTWAndBlueprint, SiteDocument } from '@/app/actions/site-documents'
+import { toast } from 'sonner'
 
 interface TodaySiteInfoProps {
   siteInfo: SiteInfo | null
@@ -400,16 +401,41 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
             {/* Modal Actions */}
             <div className="flex gap-3 p-4 sm:p-5 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
               <button
-                onClick={() => {
-                  const link = document.createElement('a')
-                  link.href = siteDocuments?.blueprint_document?.file_url || '/docs/샘플도면5.png'
-                  link.download = siteDocuments?.blueprint_document?.file_name || `도면_${siteInfo.name}_${new Date().toISOString().split('T')[0]}.png`
-                  document.body.appendChild(link)
-                  link.click()
-                  document.body.removeChild(link)
+                onClick={async () => {
+                  try {
+                    const fileUrl = siteDocuments?.blueprint_document?.file_url || '/docs/강남A현장_공도면.jpg'
+                    const fileName = siteDocuments?.blueprint_document?.file_name || `강남A현장_공도면_${new Date().toISOString().split('T')[0]}.jpg`
+                    
+                    // 모바일에서 더 안정적인 다운로드를 위한 처리
+                    if (typeof window !== 'undefined') {
+                      // 브라우저별 호환성 체크
+                      if ('download' in document.createElement('a')) {
+                        // HTML5 download attribute 지원하는 브라우저
+                        const link = document.createElement('a')
+                        link.href = fileUrl
+                        link.download = fileName
+                        link.target = '_blank' // 새 탭에서 열기 (모바일 호환성)
+                        document.body.appendChild(link)
+                        link.click()
+                        document.body.removeChild(link)
+                      } else {
+                        // 구형 브라우저 또는 iOS Safari
+                        window.open(fileUrl, '_blank')
+                      }
+                      
+                      // 사용자 피드백
+                      toast.success('공도면 다운로드를 시작합니다')
+                      console.log(`다운로드 시작: ${fileName}`)
+                    }
+                  } catch (error) {
+                    console.error('다운로드 실패:', error)
+                    toast.error('다운로드 실패. 새 창에서 열어보세요.')
+                    // 오류 시 새 창에서 열기
+                    window.open(siteDocuments?.blueprint_document?.file_url || '/docs/강남A현장_공도면.jpg', '_blank')
+                  }
                 }}
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gray-600 text-white rounded-xl hover:bg-gray-700 active:bg-gray-800 transition-colors font-medium shadow-sm"
-                disabled={!siteDocuments?.blueprint_document}
+                disabled={false}
               >
                 <Download className="h-4 w-4" />
                 <span>다운로드</span>

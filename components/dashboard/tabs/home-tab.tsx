@@ -863,6 +863,14 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
                     onClick={() => {
                       // All quick menu items should use router.push for navigation
                       console.log('[QuickMenu] Navigating to:', item.path)
+                      
+                      // Temporary fix for documents navigation issue
+                      if (item.path === '/dashboard/documents') {
+                        console.log('[QuickMenu] Using window.location for documents')
+                        window.location.href = item.path
+                        return
+                      }
+                      
                       router.push(item.path)
                     }}
                     className={`w-full flex flex-col items-center py-4 px-3 ${item.backgroundColor} rounded-xl transition-all duration-200 active:scale-[0.98] touch-manipulation focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 min-h-[72px] shadow-sm hover:shadow-md group`}

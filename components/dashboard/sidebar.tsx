@@ -351,6 +351,18 @@ function SidebarContent({
         console.log('[Sidebar] Same path, skipping:', pathname)
         return
       }
+      
+      // Temporary fix for documents navigation issue
+      if (item.href === '/dashboard/documents') {
+        console.log('[Sidebar] Using window.location for documents')
+        window.location.href = item.href
+        // 모바일에서만 사이드바 닫기
+        if (window.innerWidth < 1024) {
+          onClose()
+        }
+        return
+      }
+      
       console.log('[Sidebar] Navigating with navigate function to:', item.href)
       // 통합 네비게이션 컨트롤러 사용
       navigate(item.href)

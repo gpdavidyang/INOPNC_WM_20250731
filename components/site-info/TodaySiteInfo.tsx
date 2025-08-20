@@ -406,62 +406,141 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
                     const fileUrl = siteDocuments?.blueprint_document?.file_url || '/docs/강남A현장_공도면.jpg'
                     const fileName = siteDocuments?.blueprint_document?.file_name || `강남A현장_공도면_${new Date().toISOString().split('T')[0]}.jpg`
                     
-                    // PWA 환경 감지
+                    // PWA 환경 감지 (더 정확한 방법)
                     const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
                                   (window.navigator as any).standalone === true ||
-                                  document.referrer.includes('android-app://');
+                                  document.referrer.includes('android-app://') ||
+                                  window.location.protocol === 'https:' && 
+                                  window.location.hostname !== 'localhost';
                     
+                    // 사용자 에이전트 확인
+                    const userAgent = navigator.userAgent.toLowerCase()
+                    const isIOS = /iphone|ipad|ipod/.test(userAgent)
+                    const isAndroid = /android/.test(userAgent)
+                    const isChrome = /chrome/.test(userAgent)
+                    const isSafari = /safari/.test(userAgent) && !/chrome/.test(userAgent)
+                    
+                    console.log('브라우저 환경:', { isPWA, isIOS, isAndroid, isChrome, isSafari })
+                    
+                    // === 방법 1: 직접 이미지 보기 (가장 확실한 방법) ===
                     if (isPWA) {
-                      // iOS에서 Web Share API 사용 가능한지 확인
-                      if (navigator.share) {
-                        try {
-                          const response = await fetch(fileUrl)
-                          if (!response.ok) throw new Error('파일 로드 실패')
-                          
-                          const blob = await response.blob()
-                          const file = new File([blob], fileName, { type: blob.type })
-                          
+                      // PWA에서는 이미지를 새 창에서 보여주고 사용자가 직접 저장하도록 안내
+                      try {
+                        // Canvas를 이용한 이미지 처리 방식
+                        const img = new Image()
+                        img.crossOrigin = 'anonymous'
+                        
+                        await new Promise((resolve, reject) => {
+                          img.onload = resolve
+                          img.onerror = reject
+                          img.src = fileUrl
+                        })
+                        
+                        // Canvas에 이미지 그리기
+                        const canvas = document.createElement('canvas')
+                        canvas.width = img.width
+                        canvas.height = img.height
+                        const ctx = canvas.getContext('2d')!
+                        ctx.drawImage(img, 0, 0)
+                        
+                        // Blob으로 변환
+                        const blob = await new Promise<Blob>((resolve) => {
+                          canvas.toBlob((blob) => resolve(blob!), 'image/jpeg', 0.9)
+                        })
+                        
+                        // 방법 1: iOS Web Share API (가장 선호)
+                        if (isIOS && navigator.share && navigator.canShare?.({ files: [new File([blob], fileName, { type: 'image/jpeg' })] })) {
+                          const file = new File([blob], fileName, { type: 'image/jpeg' })
                           await navigator.share({
                             title: '강남A현장 공도면',
-                            text: '현장 공도면을 공유합니다',
+                            text: '현장 공도면입니다',
                             files: [file]
                           })
-                          
-                          toast.success('공도면을 공유했습니다')
-                        } catch (shareError) {
-                          console.error('공유 실패:', shareError)
-                          // 공유 실패시 기본 다운로드 시도
-                          fallbackDownload()
+                          toast.success('공도면을 공유했습니다!')
+                          return
                         }
-                      } else {
-                        // Web Share API 미지원시 기본 다운로드
-                        fallbackDownload()
-                      }
-                      
-                      async function fallbackDownload() {
-                        try {
-                          const response = await fetch(fileUrl)
-                          if (!response.ok) throw new Error('파일 다운로드 실패')
-                          
-                          const blob = await response.blob()
-                          const url = window.URL.createObjectURL(blob)
-                          
-                          // 다운로드 링크 생성 (PWA 내부에서)
-                          const link = document.createElement('a')
-                          link.href = url
-                          link.download = fileName
-                          link.style.display = 'none'
-                          document.body.appendChild(link)
-                          link.click()
-                          
-                          // 정리
-                          window.URL.revokeObjectURL(url)
-                          document.body.removeChild(link)
-                          
-                          toast.success('공도면이 다운로드되었습니다')
-                        } catch (fetchError) {
-                          console.error('PWA 다운로드 실패:', fetchError)
-                          toast.error('다운로드 실패. 브라우저에서 접속해주세요.')
+                        
+                        // 방법 2: Data URL 다운로드
+                        const dataUrl = canvas.toDataURL('image/jpeg', 0.9)
+                        const downloadLink = document.createElement('a')
+                        downloadLink.href = dataUrl
+                        downloadLink.download = fileName
+                        downloadLink.style.display = 'none'
+                        
+                        // 강제 클릭 이벤트
+                        document.body.appendChild(downloadLink)
+                        downloadLink.click()
+                        document.body.removeChild(downloadLink)
+                        
+                        toast.success('공도면이 다운로드되었습니다!')
+                        
+                      } catch (canvasError) {
+                        console.error('Canvas 방식 실패:', canvasError)
+                        
+                        // 방법 3: 브라우저에서 직접 열기 (최후 수단)
+                        const newWindow = window.open()
+                        if (newWindow) {
+                          newWindow.document.write(`
+                            <html>
+                              <head>
+                                <title>강남A현장 공도면</title>
+                                <meta name="viewport" content="width=device-width, initial-scale=1">
+                                <style>
+                                  body { 
+                                    margin: 0; 
+                                    padding: 20px; 
+                                    background: #f5f5f5; 
+                                    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+                                  }
+                                  .container { 
+                                    max-width: 100%; 
+                                    text-align: center; 
+                                  }
+                                  img { 
+                                    max-width: 100%; 
+                                    height: auto; 
+                                    border: 1px solid #ddd; 
+                                    border-radius: 8px;
+                                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                                  }
+                                  .download-btn {
+                                    margin: 20px 0;
+                                    padding: 12px 24px;
+                                    background: #007AFF;
+                                    color: white;
+                                    border: none;
+                                    border-radius: 8px;
+                                    font-size: 16px;
+                                    cursor: pointer;
+                                  }
+                                  .instruction {
+                                    margin: 20px 0;
+                                    padding: 15px;
+                                    background: #E3F2FD;
+                                    border-radius: 8px;
+                                    color: #1976D2;
+                                  }
+                                </style>
+                              </head>
+                              <body>
+                                <div class="container">
+                                  <h2>강남A현장 공도면</h2>
+                                  <div class="instruction">
+                                    📱 모바일에서 이미지 저장하기:<br>
+                                    • iOS: 이미지를 길게 눌러 "사진에 저장" 선택<br>
+                                    • Android: 이미지를 길게 눌러 "이미지 다운로드" 선택
+                                  </div>
+                                  <img src="${fileUrl}" alt="강남A현장 공도면" />
+                                  <br>
+                                  <button class="download-btn" onclick="window.close()">완료</button>
+                                </div>
+                              </body>
+                            </html>
+                          `)
+                          newWindow.document.close()
+                          toast.success('새 창에서 이미지를 확인하세요!')
+                        } else {
+                          toast.error('팝업이 차단되었습니다. 브라우저 설정을 확인해주세요.')
                         }
                       }
                     } else {
@@ -480,7 +559,7 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
                     console.log(`다운로드 시작: ${fileName}`)
                   } catch (error) {
                     console.error('다운로드 실패:', error)
-                    toast.error('다운로드에 실패했습니다.')
+                    toast.error('오류가 발생했습니다. 잠시 후 다시 시도해주세요.')
                   }
                 }}
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gray-600 text-white rounded-xl hover:bg-gray-700 active:bg-gray-800 transition-colors font-medium shadow-sm"

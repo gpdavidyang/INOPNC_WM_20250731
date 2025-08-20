@@ -4,7 +4,7 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { useNavigation } from '@/components/navigation/navigation-controller'
+import { useOptionalNavigation } from '@/components/navigation/navigation-controller'
 
 export interface BottomNavItem {
   label: string
@@ -28,7 +28,19 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
   ({ className, items, currentUser, onTabChange, activeTab, ...props }, ref) => {
     const pathname = usePathname()
     const router = useRouter()
-    const { navigate, isNavigating } = useNavigation()
+    // Safe navigation hook usage with error handling
+    let navigation = null
+    let navigate = null
+    let isNavigating = false
+    
+    try {
+      navigation = useOptionalNavigation()
+      navigate = navigation?.navigate
+      isNavigating = navigation?.isNavigating || false
+    } catch (error) {
+      console.warn('[BottomNavigation] NavigationController not available, using fallback navigation:', error)
+      // Keep navigate as null, will use router.push fallback
+    }
 
     const handleNavigation = React.useCallback((item: BottomNavItem, e: React.MouseEvent) => {
       e.preventDefault()
@@ -82,7 +94,14 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
             return
           }
           
-          navigate(item.href)
+          // 통합 네비게이션 컨트롤러 사용 (available이면)
+          if (navigate) {
+            navigate(item.href)
+          } else {
+            // Fallback to router.push when NavigationController is not available
+            console.log('[BottomNavigation] NavigationController not available, using router.push')
+            router.push(item.href)
+          }
         }
       }
     }, [isNavigating, navigate, pathname, currentUser, onTabChange, router])

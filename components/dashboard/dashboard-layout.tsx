@@ -37,27 +37,60 @@ export default function DashboardLayout({ user, profile, children, initialActive
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [documentsInitialSearch, setDocumentsInitialSearch] = useState<string | undefined>()
 
-  // Helper function to get active tab from pathname
+  // Helper function to get active tab from pathname and hash
   const getCurrentActiveTabFromPath = (path: string) => {
+    // Check for hash-based navigation first
+    if (typeof window !== 'undefined' && window.location.hash) {
+      const hash = window.location.hash.replace('#', '')
+      if (hash === 'documents-unified' || hash === 'documents') return 'documents-unified'
+      if (hash === 'home') return 'home'
+      if (hash === 'daily-reports') return 'daily-reports'
+      if (hash === 'attendance') return 'attendance'
+      if (hash === 'profile') return 'profile'
+    }
+    
+    // Fallback to path-based navigation
     if (path.includes('/dashboard/site-info')) return 'site-info'
     if (path.includes('/dashboard/daily-reports')) return 'daily-reports'
     if (path.includes('/dashboard/attendance')) return 'attendance'
     if (path.includes('/dashboard/documents')) return 'documents-unified'
     if (path.includes('/dashboard/markup')) return 'documents-unified'
     if (path.includes('/dashboard/profile')) return 'profile'
-    if (path === '/dashboard') return 'home'
+    if (path === '/dashboard') {
+      // Check if there's a hash for dashboard home page
+      if (typeof window !== 'undefined' && window.location.hash) {
+        const hash = window.location.hash.replace('#', '')
+        if (hash && hash !== 'home') return hash
+      }
+      return 'home'
+    }
     return 'home'
   }
 
-  // Update activeTab based on current pathname - OPTIMIZED
+  // Update activeTab based on current pathname and hash - OPTIMIZED
   useEffect(() => {
     // Performance optimization: Use single evaluation
     const newTab = getCurrentActiveTabFromPath(pathname)
     // Only update if actually changed to prevent re-renders
     if (newTab !== activeTab) {
+      console.log('[DashboardLayout] Tab change:', activeTab, '->', newTab)
       setActiveTab(newTab)
     }
   }, [pathname]) // ✅ Removed children and activeTab dependency to prevent loops
+
+  // Listen for hash changes to support direct hash navigation
+  useEffect(() => {
+    const handleHashChange = () => {
+      const newTab = getCurrentActiveTabFromPath(pathname)
+      if (newTab !== activeTab) {
+        console.log('[DashboardLayout] Hash change detected, tab change:', activeTab, '->', newTab)
+        setActiveTab(newTab)
+      }
+    }
+
+    window.addEventListener('hashchange', handleHashChange)
+    return () => window.removeEventListener('hashchange', handleHashChange)
+  }, [pathname, activeTab])
 
   // 컴포넌트 프리로드 - 사용자 역할에 따라
   useEffect(() => {
@@ -171,6 +204,15 @@ export default function DashboardLayout({ user, profile, children, initialActive
     // Check if it's a direct link (starts with /)
     if (tabId.startsWith('/')) {
       console.log('[DashboardLayout] Direct navigation to:', tabId)
+      
+      // Special handling for documents page - use hash navigation instead
+      if (tabId === '/dashboard/documents') {
+        console.log('[DashboardLayout] Converting documents page to hash navigation')
+        window.location.hash = 'documents-unified'
+        setActiveTab('documents-unified')
+        return
+      }
+      
       router.push(tabId)
       return
     }

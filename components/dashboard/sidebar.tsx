@@ -366,6 +366,24 @@ function SidebarContent({
       }
       
       console.log('[Sidebar] Navigating to:', item.href)
+      
+      // Special handling for documents page - use hash navigation to avoid nested DashboardLayout
+      if (item.href === '/dashboard/documents') {
+        console.log('[Sidebar] Using hash navigation for documents')
+        if (pathname !== '/dashboard') {
+          router.push('/dashboard#documents-unified')
+        } else {
+          window.location.hash = 'documents-unified'
+          onTabChange('documents-unified')
+        }
+        
+        // Close sidebar on mobile devices
+        if (window.innerWidth < 1024) {
+          onClose()
+        }
+        return
+      }
+      
       // Use navigation controller if available, otherwise fallback to router
       if (navigate) {
         navigate(item.href)

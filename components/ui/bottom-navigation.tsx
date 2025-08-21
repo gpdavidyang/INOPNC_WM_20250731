@@ -87,6 +87,20 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
         // 직접 경로는 통합 네비게이션 컨트롤러 사용
         console.log('[BottomNav] Navigating to:', item.href)
         if (pathname !== item.href) {
+          // Special handling for documents page - use hash navigation to avoid nested DashboardLayout
+          if (item.href === '/dashboard/documents') {
+            console.log('[BottomNav] Using hash navigation for documents')
+            if (pathname !== '/dashboard') {
+              router.push('/dashboard#documents-unified')
+            } else {
+              window.location.hash = 'documents-unified'
+              if (onTabChange) {
+                onTabChange('documents-unified')
+              }
+            }
+            return
+          }
+          
           // Use navigation controller if available, otherwise fallback to router
           if (navigate) {
             navigate(item.href)

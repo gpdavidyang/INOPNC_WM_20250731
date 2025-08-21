@@ -365,29 +365,19 @@ function SidebarContent({
         return
       }
       
-      // Temporary fix for documents navigation issue
-      if (item.href === '/dashboard/documents') {
-        console.log('[Sidebar] Using window.location for documents')
-        window.location.href = item.href
-        // 모바일에서만 사이드바 닫기
-        if (window.innerWidth < 1024) {
-          onClose()
-        }
-        return
-      }
-      
-      console.log('[Sidebar] Navigating with navigate function to:', item.href)
-      // 통합 네비게이션 컨트롤러 사용 (available이면)
+      console.log('[Sidebar] Navigating to:', item.href)
+      // Use navigation controller if available, otherwise fallback to router
       if (navigate) {
         navigate(item.href)
       } else {
         // Fallback to router.push when NavigationController is not available
         console.log('[Sidebar] NavigationController not available, using router.push')
         router.push(item.href)
-        // 모바일에서만 사이드바 닫기
-        if (window.innerWidth < 1024) {
-          onClose()
-        }
+      }
+      
+      // Close sidebar on mobile devices
+      if (window.innerWidth < 1024) {
+        onClose()
       }
     } else {
       console.log('[Sidebar] Tab-based navigation to:', item.id)

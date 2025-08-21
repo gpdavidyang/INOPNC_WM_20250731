@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, createContext, useContext } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 
 interface NavigationControllerProps {
@@ -13,6 +13,16 @@ interface NavigationState {
   lastNavigationTime: number
 }
 
+// Context definition moved before component to use in nested check
+interface NavigationContextType {
+  navigate: (route: string, options?: { replace?: boolean }) => void
+  handleTabChange: (tabId: string) => string
+  isNavigating: boolean
+  pendingRoute: string | null
+}
+
+const NavigationContext = createContext<NavigationContextType | null>(null)
+
 /**
  * 통합 네비게이션 컨트롤러
  * 모든 네비게이션 요소의 중복 실행 방지 및 성능 최적화
@@ -20,6 +30,14 @@ interface NavigationState {
 export function NavigationController({ children }: NavigationControllerProps) {
   const router = useRouter()
   const pathname = usePathname()
+  
+  // Check if we're already inside a NavigationController to prevent nesting
+  const existingContext = useContext(NavigationContext)
+  if (existingContext) {
+    console.warn('[NavigationController] Already inside a NavigationController, skipping nested instance')
+    return <>{children}</>
+  }
+  
   const [navState, setNavState] = useState<NavigationState>({
     isNavigating: false,
     pendingRoute: null,
@@ -37,8 +55,8 @@ export function NavigationController({ children }: NavigationControllerProps) {
       return
     }
     
-    // 300ms 내 중복 네비게이션 방지 (500ms에서 300ms로 단축)
-    if (navState.isNavigating && (now - navState.lastNavigationTime < 300)) {
+    // 100ms 내 중복 네비게이션 방지 (더 빠른 응답)
+    if (navState.isNavigating && (now - navState.lastNavigationTime < 100)) {
       console.log('[NavigationController] Navigation in progress, skipping:', route)
       return
     }
@@ -55,11 +73,22 @@ export function NavigationController({ children }: NavigationControllerProps) {
       lastNavigationTime: now
     })
 
-    // 즉시 네비게이션 실행 (requestAnimationFrame 제거)
-    if (options?.replace) {
-      router.replace(route)
-    } else {
-      router.push(route)
+    // 즉시 네비게이션 실행
+    try {
+      if (options?.replace) {
+        router.replace(route)
+      } else {
+        router.push(route)
+      }
+    } catch (error) {
+      console.error('[NavigationController] Navigation error:', error)
+      // Reset state on error
+      setNavState({
+        isNavigating: false,
+        pendingRoute: null,
+        lastNavigationTime: 0
+      })
+      return
     }
 
     // 네비게이션 완료 후 상태 초기화 (더 빠른 초기화)
@@ -69,7 +98,7 @@ export function NavigationController({ children }: NavigationControllerProps) {
         isNavigating: false,
         pendingRoute: null
       }))
-    }, 200)
+    }, 100)
   }, [router, pathname, navState.isNavigating, navState.lastNavigationTime])
 
   // 탭 기반 네비게이션 처리
@@ -89,18 +118,6 @@ export function NavigationController({ children }: NavigationControllerProps) {
     </NavigationContext.Provider>
   )
 }
-
-// Context for providing navigation functions
-import { createContext, useContext } from 'react'
-
-interface NavigationContextType {
-  navigate: (route: string, options?: { replace?: boolean }) => void
-  handleTabChange: (tabId: string) => string
-  isNavigating: boolean
-  pendingRoute: string | null
-}
-
-const NavigationContext = createContext<NavigationContextType | null>(null)
 
 export function useNavigation() {
   const context = useContext(NavigationContext)

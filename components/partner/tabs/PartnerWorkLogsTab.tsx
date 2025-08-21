@@ -9,6 +9,7 @@ import {
   Eye, CheckCircle, Filter,
   ChevronDown, ChevronUp
 } from 'lucide-react'
+import WorkLogDetailModal from '../WorkLogDetailModal'
 
 interface PartnerWorkLogsTabProps {
   profile: Profile
@@ -38,6 +39,8 @@ export default function PartnerWorkLogsTab({ profile, sites }: PartnerWorkLogsTa
   const [loading, setLoading] = useState(true)
   const [filtersExpanded, setFiltersExpanded] = useState(false)
   const [siteDropdownOpen, setSiteDropdownOpen] = useState(false)
+  const [selectedLog, setSelectedLog] = useState<WorkLog | null>(null)
+  const [detailModalOpen, setDetailModalOpen] = useState(false)
 
   const supabase = createClient()
 
@@ -203,6 +206,11 @@ export default function PartnerWorkLogsTab({ profile, sites }: PartnerWorkLogsTa
 
   const handleSearch = () => {
     loadWorkLogs()
+  }
+
+  const handleViewDetail = (log: WorkLog) => {
+    setSelectedLog(log)
+    setDetailModalOpen(true)
   }
 
   return (
@@ -433,6 +441,7 @@ export default function PartnerWorkLogsTab({ profile, sites }: PartnerWorkLogsTa
                   </div>
                   <div className="flex flex-col items-end gap-2">
                     <button
+                      onClick={() => handleViewDetail(log)}
                       className="p-1.5 text-gray-400 hover:text-blue-600 transition-colors"
                       title="보기"
                     >
@@ -517,6 +526,7 @@ export default function PartnerWorkLogsTab({ profile, sites }: PartnerWorkLogsTa
                     <td className="px-4 py-4 whitespace-nowrap text-sm">
                       <div className="flex items-center gap-1">
                         <button
+                          onClick={() => handleViewDetail(log)}
                           className="p-1.5 text-gray-400 hover:text-blue-600 transition-colors"
                           title="보기"
                         >
@@ -531,6 +541,16 @@ export default function PartnerWorkLogsTab({ profile, sites }: PartnerWorkLogsTa
           </table>
         </div>
       </div>
+
+      {/* Work Log Detail Modal */}
+      <WorkLogDetailModal
+        isOpen={detailModalOpen}
+        onClose={() => {
+          setDetailModalOpen(false)
+          setSelectedLog(null)
+        }}
+        workLog={selectedLog}
+      />
     </div>
   )
 }

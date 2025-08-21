@@ -157,7 +157,7 @@ export default function PartnerPrintStatusTab({ profile, sites }: PartnerPrintSt
     
     // Empty cells for days before the first day of the month
     for (let i = 0; i < firstDay; i++) {
-      days.push(<div key={`empty-${i}`} className="h-8"></div>)
+      days.push(<div key={`empty-${i}`} className="h-16"></div>)
     }
     
     // Days of the month
@@ -186,7 +186,7 @@ export default function PartnerPrintStatusTab({ profile, sites }: PartnerPrintSt
         <button
           key={day}
           onClick={() => setSelectedDate(dayDate)}
-          className={`h-16 w-full rounded-lg border transition-all touch-manipulation relative flex flex-col items-center justify-start p-2 ${
+          className={`h-16 w-full rounded-lg border transition-all touch-manipulation relative flex flex-col items-center justify-start p-1 ${
             isSelected
               ? 'border-blue-500 ring-2 ring-blue-500 bg-white dark:bg-gray-800'
               : isToday
@@ -207,18 +207,18 @@ export default function PartnerPrintStatusTab({ profile, sites }: PartnerPrintSt
             {day}
           </div>
           
-          {/* 공수 정보 */}
+          {/* 공수 및 현장 정보 */}
           {totalLaborHours > 0 && (
-            <div className="text-xs font-bold text-gray-900 dark:text-gray-100">
-              {totalLaborHours.toFixed(1).replace('.0', '')}
-            </div>
-          )}
-          
-          {/* 현장명 약어 */}
-          {totalLaborHours > 0 && siteName && (
-            <div className="text-xs text-gray-600 dark:text-gray-400 truncate max-w-full px-1">
-              {siteName.replace(/\s*현장$/g, '').replace(/\s+/g, '')}
-            </div>
+            <>
+              <div className="text-xs font-bold text-gray-900 dark:text-gray-100">
+                {totalLaborHours.toFixed(1).replace('.0', '')}
+              </div>
+              {siteName && (
+                <div className="text-[10px] text-gray-600 dark:text-gray-400 truncate w-full px-0.5 font-medium">
+                  {siteName.replace(/\s*현장$/g, '').replace(/\s+/g, '')}
+                </div>
+              )}
+            </>
           )}
         </button>
       )
@@ -242,8 +242,9 @@ export default function PartnerPrintStatusTab({ profile, sites }: PartnerPrintSt
         <select
           value={selectedSite}
           onChange={(e) => setSelectedSite(e.target.value)}
-          className="w-full pl-8 pr-3 py-1.5 h-8 text-sm font-medium border border-gray-300 dark:border-gray-600 rounded-lg
-            bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full pl-10 pr-4 py-2 h-10 text-sm font-medium border border-gray-300 dark:border-gray-600 rounded-lg
+            bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+            hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors"
         >
           <option value="all">전체 현장</option>
           {displaySites.map(site => (
@@ -252,7 +253,7 @@ export default function PartnerPrintStatusTab({ profile, sites }: PartnerPrintSt
             </option>
           ))}
         </select>
-        <Building2 className="absolute left-2 top-2 h-3 w-3 text-gray-500 dark:text-gray-400 pointer-events-none" />
+        <Building2 className="absolute left-3 top-3 h-4 w-4 text-gray-500 dark:text-gray-400 pointer-events-none" />
       </div>
 
       {/* Calendar - Exactly matching screenshot */}

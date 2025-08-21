@@ -41,7 +41,10 @@ import {
   CameraIcon,
   Eye
 } from 'lucide-react'
-import { Site, Profile, Material } from '@/types'
+import { Site, Profile, Material, PhotoGroup } from '@/types'
+import ConstructionPhotoMatrix from './construction-photo-matrix'
+import PhotoGridPreview from './photo-grid-preview'
+import PDFReportGenerator from './pdf-report-generator'
 import { cn } from '@/lib/utils'
 import { showErrorNotification } from '@/lib/error-handling'
 import { toast } from 'sonner'
@@ -196,10 +199,13 @@ export default function DailyReportFormEnhanced({
   const [workerEntries, setWorkerEntries] = useState<WorkerEntry[]>([])
   
   
-  // Section 4: Photos
+  // Section 4: Photos (Legacy)
   const [photos, setPhotos] = useState<PhotoEntry[]>([])
   const [showPhotoModal, setShowPhotoModal] = useState(false)
   const [currentPhotoType, setCurrentPhotoType] = useState<'before' | 'after'>('before')
+  
+  // Section 5: Construction Photo Groups (New)
+  const [photoGroups, setPhotoGroups] = useState<PhotoGroup[]>([])
   const [showDrawingModal, setShowDrawingModal] = useState(false)
   
   // Section 5: Receipts
@@ -1022,86 +1028,59 @@ export default function DailyReportFormEnhanced({
             </div>
           </CollapsibleSection>
 
-          {/* Section 5: Photo Upload */}
+          {/* Section 5: Construction Photo Matrix */}
           <CollapsibleSection
-            title="사진 업로드"
+            title="부재별 공정 사진 관리"
             icon={Camera}
             isExpanded={expandedSections.photos}
             onToggle={() => toggleSection('photos')}
-            badge={photos.length > 0 && (
-              <span className="px-2 py-0.5 bg-purple-500/20 text-purple-400 rounded-full text-xs font-medium">{photos.length}장</span>
+            badge={photoGroups.length > 0 && (
+              <span className="px-2 py-0.5 bg-purple-500/20 text-purple-400 rounded-full text-xs font-medium">
+                {photoGroups.length}개 그룹
+              </span>
             )}
           >
-            <div className="pt-2 space-y-3">
-              {/* Before Photos */}
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                  <h4 className="text-xs font-bold text-red-700 dark:text-red-300">작업전 사진 (최대 30장)</h4>
+            <div className="pt-2">
+              <p className="text-xs text-gray-500 mb-4">
+                부재명과 공정별로 작업 전/후 사진을 체계적으로 관리하여 자동 PDF 보고서를 생성하세요
+              </p>
+              
+              <ConstructionPhotoMatrix
+                dailyReportId={formData.id || 'temp'}
+                initialPhotoGroups={photoGroups}
+                onPhotoGroupsChange={setPhotoGroups}
+                onGeneratePDF={() => {
+                  // PDF 생성 로직
+                  console.log('PDF 생성 요청')
+                }}
+              />
+              
+              {/* 미리보기 및 PDF 생성 */}
+              {photoGroups.length > 0 && (
+                <div className="mt-6 space-y-4">
+                  <div className="border-t border-gray-200 pt-4">
+                    <PhotoGridPreview
+                      photoGroups={photoGroups}
+                      siteName={sites.find(s => s.id === formData.site_id)?.name}
+                      reportDate={formData.report_date}
+                      reporterName={currentUser.full_name}
+                      onGeneratePDF={() => {
+                        // PDF 생성 로직
+                        console.log('PDF 보고서 생성')
+                      }}
+                    />
+                  </div>
+                  
+                  <div className="border-t border-gray-200 pt-4">
+                    <PDFReportGenerator
+                      photoGroups={photoGroups}
+                      siteName={sites.find(s => s.id === formData.site_id)?.name}
+                      reportDate={formData.report_date}
+                      reporterName={currentUser.full_name}
+                    />
+                  </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => openPhotoModal('before')}
-                  className="flex flex-col items-center justify-center w-full h-16 border-2 border-dashed border-red-200 dark:border-red-600 rounded bg-red-50/30 dark:bg-red-900/20 hover:border-red-300 dark:hover:border-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 transition-all cursor-pointer"
-                >
-                  <Camera className="h-4 w-4 text-red-600 dark:text-red-400 mb-1" />
-                  <p className="text-xs text-red-600 dark:text-red-400">작업전 사진 선택</p>
-                </button>
-
-                <div className="mt-2 grid grid-cols-4 gap-1.5">
-                  {photos.filter(p => p.type === 'before').map(photo => (
-                    <div key={photo.id} className="relative group">
-                      <img 
-                        src={photo.preview || ''} 
-                        alt="작업전" 
-                        className="w-full h-12 object-cover rounded border-2 border-red-300 dark:border-red-500"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removePhoto(photo.id)}
-                        className="absolute -top-1 -right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 shadow transition-colors"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* After Photos */}
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                  <h4 className="text-xs font-bold text-blue-700 dark:text-blue-300">작업후 사진 (최대 30장)</h4>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => openPhotoModal('after')}
-                  className="flex flex-col items-center justify-center w-full h-16 border-2 border-dashed border-blue-200 dark:border-blue-600 rounded bg-blue-50/30 dark:bg-blue-900/20 hover:border-blue-300 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-all cursor-pointer"
-                >
-                  <Camera className="h-4 w-4 text-blue-600 dark:text-blue-400 mb-1" />
-                  <p className="text-xs text-blue-600 dark:text-blue-400">작업후 사진 선택</p>
-                </button>
-
-                <div className="mt-2 grid grid-cols-4 gap-1.5">
-                  {photos.filter(p => p.type === 'after').map(photo => (
-                    <div key={photo.id} className="relative group">
-                      <img 
-                        src={photo.preview || ''} 
-                        alt="작업후" 
-                        className="w-full h-12 object-cover rounded border-2 border-blue-300 dark:border-blue-500"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removePhoto(photo.id)}
-                        className="absolute -top-1 -right-1 bg-blue-500 hover:bg-blue-600 text-white rounded-full p-1 shadow transition-colors"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              )}
             </div>
           </CollapsibleSection>
 

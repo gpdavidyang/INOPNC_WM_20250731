@@ -36,6 +36,74 @@ export interface Profile {
   push_subscription_updated_at?: string | null
 }
 
+// 건설 공정 타입
+export type ConstructionProcessType = 
+  | 'formwork'          // 거푸집
+  | 'rebar'            // 철근
+  | 'concrete'         // 콘크리트
+  | 'curing'           // 양생
+  | 'finishing'        // 마감
+  | 'inspection'       // 검사
+  | 'other'            // 기타
+
+// 부재 타입
+export type ComponentType = 
+  | 'column'           // 기둥
+  | 'beam'             // 보
+  | 'slab'             // 슬라브
+  | 'wall'             // 벽체
+  | 'foundation'       // 기초
+  | 'stair'            // 계단
+  | 'other'            // 기타
+
+// 건설 사진 데이터
+export interface ConstructionPhoto {
+  id: string
+  component_name: string       // 부재명 (예: "기둥-1", "보-A동", "슬라브-3층")
+  component_type: ComponentType
+  process_type: ConstructionProcessType
+  stage: 'before' | 'after'
+  file_url: string
+  thumbnail_url?: string
+  description?: string
+  coordinates?: { x: number, y: number }
+  timestamp: string
+  file_size?: number
+  file_name?: string
+  daily_report_id?: string
+  uploaded_by: string
+  created_at: string
+  updated_at: string
+}
+
+// 사진 그룹 (동일 부재/공정의 전후 사진 묶음)
+export interface PhotoGroup {
+  id: string
+  component_name: string
+  component_type: ComponentType
+  process_type: ConstructionProcessType
+  before_photos: ConstructionPhoto[]
+  after_photos: ConstructionPhoto[]
+  progress_status: 'not_started' | 'in_progress' | 'completed'
+  notes?: string
+  daily_report_id: string
+  created_at: string
+  updated_at: string
+}
+
+// 사진 업로드 진행률
+export interface PhotoProgress {
+  component_name: string
+  component_type: ComponentType
+  processes: {
+    process_type: ConstructionProcessType
+    has_before: boolean
+    has_after: boolean
+    completed: boolean
+  }[]
+  overall_progress: number // 0-100%
+}
+
 // 조직 타입
 export type OrganizationType = 'head_office' | 'branch_office' | 'department'
 

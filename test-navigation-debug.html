@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>네비게이션 디버그 테스트</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .debug-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        .nav-item { padding: 10px; margin: 5px; background: #f0f0f0; cursor: pointer; }
+        .nav-item:hover { background: #e0e0e0; }
+        .active { background: #007bff; color: white; }
+        .log { background: #f8f9fa; padding: 10px; border-left: 4px solid #007bff; margin: 10px 0; }
+        #console-log { max-height: 300px; overflow-y: auto; background: #000; color: #0f0; padding: 10px; font-family: monospace; }
+    </style>
+</head>
+<body>
+    <h1>🔍 문서함 네비게이션 디버그 테스트</h1>
+    
+    <div class="debug-section">
+        <h2>현재 상태</h2>
+        <div id="current-status">
+            <p>현재 URL: <span id="current-url">-</span></p>
+            <p>현재 해시: <span id="current-hash">-</span></p>
+            <p>활성 탭: <span id="active-tab">-</span></p>
+        </div>
+    </div>
+
+    <div class="debug-section">
+        <h2>🏠 빠른메뉴 (홈탭)</h2>
+        <div class="nav-item" onclick="quickMenuNavigate('documents')">
+            📁 문서함 (빠른메뉴)
+        </div>
+    </div>
+
+    <div class="debug-section">
+        <h2>📱 하단 네비게이션</h2>
+        <div class="nav-item" onclick="bottomNavNavigate('#documents-unified')">
+            📁 문서함 (하단 네비게이션)
+        </div>
+    </div>
+
+    <div class="debug-section">
+        <h2>📋 사이드바</h2>
+        <div class="nav-item" onclick="sidebarNavigate('#documents-unified')">
+            📁 문서함 (사이드바)
+        </div>
+    </div>
+
+    <div class="debug-section">
+        <h2>🧪 테스트 시나리오</h2>
+        <button onclick="testScenario1()">시나리오 1: 홈 → 문서함</button>
+        <button onclick="testScenario2()">시나리오 2: 문서함에서 다른 탭으로</button>
+        <button onclick="testScenario3()">시나리오 3: 직접 URL 접근</button>
+        <button onclick="clearLogs()">로그 클리어</button>
+    </div>
+
+    <div class="debug-section">
+        <h2>📊 콘솔 로그</h2>
+        <div id="console-log"></div>
+    </div>
+
+    <script>
+        let activeTab = 'home';
+        let navigationCount = 0;
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEl = document.getElementById('console-log');
+            const color = type === 'error' ? '#ff6b6b' : type === 'warning' ? '#feca57' : '#0f0';
+            logEl.innerHTML += `<div style="color: ${color}">[${timestamp}] ${message}</div>`;
+            logEl.scrollTop = logEl.scrollHeight;
+            console.log(`[NAV-DEBUG] ${message}`);
+        }
+
+        function updateStatus() {
+            document.getElementById('current-url').textContent = window.location.href;
+            document.getElementById('current-hash').textContent = window.location.hash || '(없음)';
+            document.getElementById('active-tab').textContent = activeTab;
+        }
+
+        function simulateTabChange(tabId) {
+            log(`📍 탭 변경: ${activeTab} → ${tabId}`);
+            activeTab = tabId;
+            updateStatus();
+            
+            // 실제 onTabChange 로직 시뮬레이션
+            if (tabId === 'documents-unified') {
+                log('✅ 문서함 탭 활성화됨');
+            }
+        }
+
+        function quickMenuNavigate(itemId) {
+            navigationCount++;
+            log(`🏠 [빠른메뉴 #${navigationCount}] 클릭: ${itemId}`);
+            
+            // 홈탭의 실제 로직 시뮬레이션
+            if (itemId === 'documents') {
+                const path = '#documents-unified';
+                log(`🏠 [빠른메뉴] 해시 네비게이션: ${path}`);
+                
+                if (path.startsWith('#')) {
+                    const tabId = path.replace('#', '');
+                    log(`🏠 [빠간메뉴] onTabChange 호출: ${tabId}`);
+                    simulateTabChange(tabId);
+                    window.location.hash = path;
+                    return;
+                }
+            }
+            
+            log('❌ [빠른메뉴] 예상하지 못한 경로', 'error');
+        }
+
+        function bottomNavNavigate(href) {
+            navigationCount++;
+            log(`📱 [하단네비 #${navigationCount}] 클릭: ${href}`);
+            
+            // 하단 네비게이션의 실제 로직 시뮬레이션
+            if (href.startsWith('#')) {
+                const tabId = href.replace('#', '');
+                log(`📱 [하단네비] onTabChange 호출: ${tabId}`);
+                simulateTabChange(tabId);
+                window.location.hash = href;
+            } else {
+                log(`📱 [하단네비] 직접 경로 이동: ${href}`);
+                // 실제로는 router.push 호출됨
+                if (href === '/dashboard/documents') {
+                    log('⚠️ [하단네비] /dashboard/documents 감지 - 리다이렉트 루프 위험!', 'warning');
+                }
+            }
+        }
+
+        function sidebarNavigate(href) {
+            navigationCount++;
+            log(`📋 [사이드바 #${navigationCount}] 클릭: ${href}`);
+            
+            // 사이드바의 실제 로직 시뮬레이션
+            if (href.startsWith('#')) {
+                const tabId = href.replace('#', '');
+                log(`📋 [사이드바] onTabChange 호출: ${tabId}`);
+                simulateTabChange(tabId);
+                window.location.hash = href;
+            } else {
+                log(`📋 [사이드바] 직접 경로 이동: ${href}`);
+                // 실제로는 router.push 호출됨
+                if (href === '/dashboard/documents') {
+                    log('⚠️ [사이드바] /dashboard/documents 감지 - 리다이렉트 루프 위험!', 'warning');
+                }
+            }
+        }
+
+        function testScenario1() {
+            log('🧪 === 시나리오 1: 홈 → 문서함 ===');
+            simulateTabChange('home');
+            setTimeout(() => quickMenuNavigate('documents'), 500);
+        }
+
+        function testScenario2() {
+            log('🧪 === 시나리오 2: 문서함에서 다른 탭으로 ===');
+            simulateTabChange('documents-unified');
+            setTimeout(() => bottomNavNavigate('#home'), 500);
+        }
+
+        function testScenario3() {
+            log('🧪 === 시나리오 3: 직접 URL 접근 ===');
+            log('🌐 사용자가 /dashboard/documents를 직접 입력');
+            log('🔄 서버 사이드 리다이렉트 → /dashboard#documents-unified');
+            window.location.hash = 'documents-unified';
+            simulateTabChange('documents-unified');
+        }
+
+        function clearLogs() {
+            document.getElementById('console-log').innerHTML = '';
+            navigationCount = 0;
+            log('🧹 로그 클리어됨');
+        }
+
+        // 해시 변경 감지
+        window.addEventListener('hashchange', function() {
+            log(`🔗 해시 변경 감지: ${window.location.hash}`);
+            updateStatus();
+        });
+
+        // 초기 상태 설정
+        updateStatus();
+        log('🚀 네비게이션 디버그 테스트 시작');
+        log('💡 각 네비게이션 버튼을 클릭해서 동작을 확인하세요');
+    </script>
+</body>
+</html>

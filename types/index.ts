@@ -230,11 +230,15 @@ export interface DailyReport {
   approved_at?: string | null
   created_at: string
   updated_at: string
+  // 사진대지 PDF 정보
+  has_photo_grid_pdf?: boolean | null
+  photo_grid_pdf_count?: number | null
   // Join된 데이터
   site?: {
     id: string
     name: string
   } | null
+  photo_grid_reports?: PhotoGridReport[] | null
 }
 
 // 작업자별 공수
@@ -352,6 +356,80 @@ export interface ApprovalRequest {
 
 // Export all construction-specific types
 export * from './construction'
+
+// 사진대지 PDF 보고서 상태
+export type PhotoGridReportStatus = 'active' | 'archived' | 'deleted'
+
+// 사진대지 PDF 생성 방법
+export type PhotoGridGenerationMethod = 'canvas' | 'html'
+
+// 사진대지 PDF 보고서
+export interface PhotoGridReport {
+  id: string
+  daily_report_id: string
+  
+  // 파일 정보
+  title: string
+  file_name: string
+  file_url: string
+  file_size?: number | null
+  mime_type?: string | null
+  
+  // 사진 메타데이터
+  total_photo_groups: number
+  total_before_photos: number
+  total_after_photos: number
+  component_types?: string[] | null
+  process_types?: string[] | null
+  
+  // PDF 생성 정보
+  generated_by?: string | null
+  generation_method?: PhotoGridGenerationMethod | null
+  pdf_options?: any | null // PDF 생성 옵션 JSON
+  
+  // 상태 관리
+  status: PhotoGridReportStatus
+  version: number
+  notes?: string | null
+  
+  // 다운로드 추적
+  download_count: number
+  last_downloaded_at?: string | null
+  last_downloaded_by?: string | null
+  
+  // 타임스탬프
+  created_at: string
+  updated_at: string
+  
+  // 조인된 데이터
+  daily_report?: DailyReport | null
+  generated_by_profile?: Profile | null
+  last_downloaded_by_profile?: Profile | null
+}
+
+// 사진대지 PDF 생성 옵션
+export interface PhotoGridPDFOptions {
+  title: string
+  siteName: string
+  reportDate: string
+  reporterName: string
+  photoGroups: PhotoGroup[]
+  generationMethod: PhotoGridGenerationMethod
+  includeMetadata?: boolean
+  compression?: number
+}
+
+// 사진대지 PDF 통계
+export interface PhotoGridReportStats {
+  total_reports: number
+  total_file_size: number
+  total_downloads: number
+  reports_by_method: Record<PhotoGridGenerationMethod, number>
+  reports_by_status: Record<PhotoGridReportStatus, number>
+  average_file_size: number
+  most_downloaded: PhotoGridReport | null
+  recent_reports: PhotoGridReport[]
+}
 
 // 마킹 도면 문서
 export interface MarkupDocument {

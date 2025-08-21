@@ -100,33 +100,7 @@ export async function generatePDFWithCanvas(options: PDFGeneratorOptions): Promi
       y += 10
     })
 
-    // 요약
-    if (y < height - 150) {
-      y += 20
-      ctx.beginPath()
-      ctx.moveTo(50, y)
-      ctx.lineTo(width - 50, y)
-      ctx.stroke()
-      
-      y += 30
-      ctx.font = 'bold 14px "Apple SD Gothic Neo", "Malgun Gothic", sans-serif'
-      ctx.fillText('작업 요약', 50, y)
-      y += 25
-      
-      ctx.font = '11px "Apple SD Gothic Neo", "Malgun Gothic", sans-serif'
-      const totalGroups = options.photoGroups.length
-      const completedGroups = options.photoGroups.filter(g => g.progress_status === 'completed').length
-      const totalBeforePhotos = options.photoGroups.reduce((sum, g) => sum + (g.before_photos?.length || 0), 0)
-      const totalAfterPhotos = options.photoGroups.reduce((sum, g) => sum + (g.after_photos?.length || 0), 0)
-      
-      ctx.fillText(`총 항목: ${totalGroups}개`, 70, y)
-      y += 20
-      ctx.fillText(`완료 항목: ${completedGroups}개`, 70, y)
-      y += 20
-      ctx.fillText(`작업전 사진: ${totalBeforePhotos}장`, 70, y)
-      y += 20
-      ctx.fillText(`작업후 사진: ${totalAfterPhotos}장`, 70, y)
-    }
+    // 작업요약 섹션 제거됨
 
     // Canvas를 이미지로 변환
     const imgData = canvas.toDataURL('image/png')
@@ -284,14 +258,8 @@ export function generateHTMLBasedPDF(options: PDFGeneratorOptions): string {
   const totalBeforePhotos = options.photoGroups.reduce((sum, g) => sum + (g.before_photos?.length || 0), 0)
   const totalAfterPhotos = options.photoGroups.reduce((sum, g) => sum + (g.after_photos?.length || 0), 0)
 
+  // 작업요약 섹션 제거됨
   html += `
-      <div class="summary">
-        <h3>작업 요약</h3>
-        <div class="summary-item">총 항목: <strong>${totalGroups}개</strong></div>
-        <div class="summary-item">완료 항목: <strong>${completedGroups}개</strong></div>
-        <div class="summary-item">작업전 사진: <strong>${totalBeforePhotos}장</strong></div>
-        <div class="summary-item">작업후 사진: <strong>${totalAfterPhotos}장</strong></div>
-      </div>
     </body>
     </html>
   `

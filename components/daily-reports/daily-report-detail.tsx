@@ -6,12 +6,16 @@ import { formatDate, formatDateTime } from '@/lib/utils'
 import Link from 'next/link'
 import { submitDailyReport, approveDailyReport } from '@/lib/supabase/daily-reports'
 import { useRouter } from 'next/navigation'
+import PhotoGridReportSection from './photo-grid-report-section'
+import type { PhotoGroup } from '@/types'
 
 interface DailyReportDetailProps {
   report: any
+  photoGroups?: PhotoGroup[] // 사진 그룹 데이터 (사진대지 PDF 생성용)
+  canManage?: boolean // PDF 편집/삭제 권한
 }
 
-export default function DailyReportDetail({ report }: DailyReportDetailProps) {
+export default function DailyReportDetail({ report, photoGroups = [], canManage = false }: DailyReportDetailProps) {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
@@ -227,6 +231,16 @@ export default function DailyReportDetail({ report }: DailyReportDetailProps) {
               </div>
             </div>
           )}
+
+          {/* PDF 보고서 관리 섹션 */}
+          <PhotoGridReportSection
+            dailyReportId={report.id}
+            photoGroups={photoGroups}
+            siteName={report.site?.name}
+            reportDate={report.work_date}
+            reporterName={report.created_by_profile?.full_name}
+            canManage={canManage}
+          />
         </div>
 
         {/* Sidebar */}

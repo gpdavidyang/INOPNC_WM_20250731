@@ -9,6 +9,7 @@ import {
   Material,
   WorkLogMaterial
 } from '@/types'
+import { AdditionalPhotoData } from '@/types/daily-reports'
 import { revalidatePath } from 'next/cache'
 import { 
   AppError, 
@@ -499,3 +500,305 @@ export async function getDailyReportById(id: string) {
 //     return { success: false, error: 'Failed to delete work log material' }
 //   }
 // }
+
+// ==========================================
+// ADDITIONAL PHOTOS ACTIONS
+// ==========================================
+
+/**
+ * 작업일지 추가 사진 업로드
+ */
+export async function uploadAdditionalPhotos(
+  reportId: string,
+  photos: { file: File; type: 'before' | 'after'; description?: string }[]
+) {
+  try {
+    const supabase = createClient()
+    
+    // Get current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError || !user) {
+      throw new AppError('로그인이 필요합니다.', ErrorType.AUTHENTICATION, 401)
+    }
+
+    // Verify daily report exists and user has permission
+    const { data: report, error: reportError } = await supabase
+      .from('daily_reports')
+      .select('id, created_by')
+      .eq('id', reportId)
+      .single()
+
+    if (reportError || !report) {
+      throw new AppError('작업일지를 찾을 수 없습니다.', ErrorType.NOT_FOUND, 404)
+    }
+
+    const uploadResults: AdditionalPhotoData[] = []
+    const errors: string[] = []
+
+    for (const photoData of photos) {
+      try {
+        // Get current count for upload order
+        const { data: existingPhotos } = await supabase
+          .from('daily_report_additional_photos')
+          .select('upload_order')
+          .eq('daily_report_id', reportId)
+          .eq('photo_type', photoData.type)
+          .order('upload_order', { ascending: false })
+          .limit(1)
+
+        const nextOrder = existingPhotos && existingPhotos.length > 0 
+          ? existingPhotos[0].upload_order + 1 
+          : 1
+
+        // Check file size limit (10MB)
+        if (photoData.file.size > 10 * 1024 * 1024) {
+          errors.push(`${photoData.file.name}: 파일 크기가 10MB를 초과합니다.`)
+          continue
+        }
+
+        // Generate unique filename
+        const fileExt = photoData.file.name.split('.').pop()
+        const fileName = `${reportId}_${photoData.type}_${nextOrder}_${Date.now()}.${fileExt}`
+        const filePath = `daily-reports/${reportId}/additional/${photoData.type}/${fileName}`
+
+        // Upload to Supabase Storage
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('daily-reports')
+          .upload(filePath, photoData.file, {
+            upsert: false,
+            contentType: photoData.file.type
+          })
+
+        if (uploadError) {
+          errors.push(`${photoData.file.name}: 업로드 실패 - ${uploadError.message}`)
+          continue
+        }
+
+        // Get public URL
+        const { data: { publicUrl } } = supabase.storage
+          .from('daily-reports')
+          .getPublicUrl(uploadData.path)
+
+        // Save to database
+        const { data: dbData, error: dbError } = await supabase
+          .from('daily_report_additional_photos')
+          .insert({
+            daily_report_id: reportId,
+            photo_type: photoData.type,
+            file_url: publicUrl,
+            file_path: uploadData.path,
+            file_name: photoData.file.name,
+            file_size: photoData.file.size,
+            description: photoData.description || '',
+            upload_order: nextOrder,
+            uploaded_by: user.id
+          })
+          .select()
+          .single()
+
+        if (dbError) {
+          // If database insert fails, clean up storage
+          await supabase.storage
+            .from('daily-reports')
+            .remove([uploadData.path])
+          
+          errors.push(`${photoData.file.name}: 데이터베이스 저장 실패 - ${dbError.message}`)
+          continue
+        }
+
+        uploadResults.push({
+          id: dbData.id,
+          filename: dbData.file_name,
+          url: dbData.file_url,
+          path: dbData.file_path,
+          photo_type: dbData.photo_type as 'before' | 'after',
+          file_size: dbData.file_size,
+          description: dbData.description,
+          upload_order: dbData.upload_order,
+          uploaded_by: dbData.uploaded_by,
+          uploaded_at: dbData.created_at
+        })
+
+      } catch (photoError) {
+        logError(photoError, 'uploadAdditionalPhotos - individual photo')
+        errors.push(`${photoData.file.name}: 처리 중 오류 발생`)
+      }
+    }
+
+    revalidatePath('/dashboard/daily-reports')
+    revalidatePath(`/dashboard/daily-reports/${reportId}`)
+
+    return { 
+      success: true, 
+      data: uploadResults,
+      errors: errors.length > 0 ? errors : undefined
+    }
+  } catch (error) {
+    logError(error, 'uploadAdditionalPhotos')
+    return { 
+      success: false, 
+      error: error instanceof AppError ? error.message : '사진 업로드에 실패했습니다.' 
+    }
+  }
+}
+
+/**
+ * 작업일지 추가 사진 삭제
+ */
+export async function deleteAdditionalPhoto(photoId: string) {
+  try {
+    const supabase = createClient()
+    
+    // Get current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError || !user) {
+      throw new AppError('로그인이 필요합니다.', ErrorType.AUTHENTICATION, 401)
+    }
+
+    // Get photo data
+    const { data: photo, error: photoError } = await supabase
+      .from('daily_report_additional_photos')
+      .select('*')
+      .eq('id', photoId)
+      .single()
+
+    if (photoError || !photo) {
+      throw new AppError('사진을 찾을 수 없습니다.', ErrorType.NOT_FOUND, 404)
+    }
+
+    // Check permission - user must be owner or admin/manager
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    const isOwner = photo.uploaded_by === user.id
+    const isManager = profile?.role && ['admin', 'system_admin', 'site_manager'].includes(profile.role)
+
+    if (!isOwner && !isManager) {
+      throw new AppError('사진을 삭제할 권한이 없습니다.', ErrorType.FORBIDDEN, 403)
+    }
+
+    // Delete from storage
+    const { error: storageError } = await supabase.storage
+      .from('daily-reports')
+      .remove([photo.file_path])
+
+    if (storageError) {
+      console.warn('Storage deletion failed:', storageError)
+      // Continue with database deletion even if storage fails
+    }
+
+    // Delete from database
+    const { error: deleteError } = await supabase
+      .from('daily_report_additional_photos')
+      .delete()
+      .eq('id', photoId)
+
+    if (deleteError) {
+      throw new AppError('사진 삭제에 실패했습니다.', ErrorType.DATABASE, 500)
+    }
+
+    // Reorder remaining photos
+    const { data: remainingPhotos, error: fetchError } = await supabase
+      .from('daily_report_additional_photos')
+      .select('id, upload_order')
+      .eq('daily_report_id', photo.daily_report_id)
+      .eq('photo_type', photo.photo_type)
+      .order('upload_order', { ascending: true })
+
+    if (!fetchError && remainingPhotos) {
+      for (let i = 0; i < remainingPhotos.length; i++) {
+        const newOrder = i + 1
+        if (remainingPhotos[i].upload_order !== newOrder) {
+          await supabase
+            .from('daily_report_additional_photos')
+            .update({ upload_order: newOrder })
+            .eq('id', remainingPhotos[i].id)
+        }
+      }
+    }
+
+    revalidatePath('/dashboard/daily-reports')
+    revalidatePath(`/dashboard/daily-reports/${photo.daily_report_id}`)
+
+    return { success: true }
+  } catch (error) {
+    logError(error, 'deleteAdditionalPhoto')
+    return { 
+      success: false, 
+      error: error instanceof AppError ? error.message : '사진 삭제에 실패했습니다.' 
+    }
+  }
+}
+
+/**
+ * 작업일지의 추가 사진 목록 조회
+ */
+export async function getAdditionalPhotos(reportId: string) {
+  try {
+    const supabase = createClient()
+    
+    const { data: photos, error } = await supabase
+      .from('daily_report_additional_photos')
+      .select(`
+        id,
+        photo_type,
+        file_url,
+        file_path,
+        file_name,
+        file_size,
+        description,
+        upload_order,
+        uploaded_by,
+        created_at,
+        profiles:uploaded_by(full_name)
+      `)
+      .eq('daily_report_id', reportId)
+      .order('photo_type', { ascending: true })
+      .order('upload_order', { ascending: true })
+
+    if (error) {
+      throw new AppError('사진 목록 조회에 실패했습니다.', ErrorType.DATABASE, 500)
+    }
+
+    const beforePhotos: AdditionalPhotoData[] = []
+    const afterPhotos: AdditionalPhotoData[] = []
+
+    photos?.forEach(photo => {
+      const photoData: AdditionalPhotoData = {
+        id: photo.id,
+        filename: photo.file_name,
+        url: photo.file_url,
+        path: photo.file_path,
+        photo_type: photo.photo_type as 'before' | 'after',
+        file_size: photo.file_size,
+        description: photo.description || '',
+        upload_order: photo.upload_order,
+        uploaded_by: photo.uploaded_by,
+        uploaded_at: photo.created_at
+      }
+
+      if (photo.photo_type === 'before') {
+        beforePhotos.push(photoData)
+      } else {
+        afterPhotos.push(photoData)
+      }
+    })
+
+    return { 
+      success: true, 
+      data: {
+        before: beforePhotos,
+        after: afterPhotos
+      }
+    }
+  } catch (error) {
+    logError(error, 'getAdditionalPhotos')
+    return { 
+      success: false, 
+      error: error instanceof AppError ? error.message : '사진 목록 조회에 실패했습니다.' 
+    }
+  }
+}

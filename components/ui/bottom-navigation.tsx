@@ -117,15 +117,36 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
       } else {
         // 직접 경로는 통합 네비게이션 컨트롤러 사용
         console.log('[BottomNav] Navigating to:', item.href)
-        if (pathname !== item.href) {
-          // Use navigation controller if available, otherwise fallback to router
-          if (navigate) {
-            navigate(item.href)
+        
+        // Include hash in comparison to ensure navigation works from hash routes
+        const currentFullPath = `${pathname}${window.location.hash}`
+        const targetFullPath = item.href
+        
+        if (currentFullPath !== targetFullPath) {
+          // Clear any existing hash when navigating to a new route
+          if (!item.href.includes('#') && window.location.hash) {
+            console.log('[BottomNav] Clearing hash for clean navigation')
+            window.location.hash = ''
+            // Small delay to ensure hash is cleared before navigation
+            setTimeout(() => {
+              if (navigate) {
+                navigate(item.href)
+              } else {
+                console.log('[BottomNavigation] NavigationController not available, using router.push')
+                router.push(item.href)
+              }
+            }, 10)
           } else {
-            // Fallback to router.push when NavigationController is not available
-            console.log('[BottomNavigation] NavigationController not available, using router.push')
-            router.push(item.href)
+            // Normal navigation
+            if (navigate) {
+              navigate(item.href)
+            } else {
+              console.log('[BottomNavigation] NavigationController not available, using router.push')
+              router.push(item.href)
+            }
           }
+        } else {
+          console.log('[BottomNav] Already on target route, skipping navigation')
         }
       }
     }, [isNavigating, navigate, pathname, currentUser, onTabChange, router])
@@ -175,8 +196,10 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
                   "active:scale-95 touch-manipulation",
                   // 포커스 표시 - UI Guidelines 색상
                   "focus-visible:outline-2 focus-visible:outline-toss-blue-500 focus-visible:outline-offset-1",
-                  // UI Guidelines 색상 시스템 적용 - 모든 항목을 회색으로 통일
-                  "text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+                  // UI Guidelines 색상 시스템 적용 - 활성/비활성 상태 통일
+                  isActive 
+                    ? "text-gray-800 dark:text-gray-200" // 활성 상태: 진한 회색
+                    : "text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300" // 비활성 상태: 기본 회색
                 )}
                 aria-label={`${item.label}으로 이동`}
                 aria-current={isActive ? "page" : undefined}

@@ -9,21 +9,24 @@ import {
   CheckCircle,
   AlertCircle
 } from 'lucide-react'
-import { PhotoGroup } from '@/types'
-import { generatePDFWithCanvas, generateHTMLBasedPDF } from '@/lib/pdf-generator-canvas'
+import { PhotoGroup, PhotoGridPDFOptions } from '@/types'
+import { generatePDFWithCanvas, generateHTMLBasedPDF } from '@/lib/pdf-generator-korean'
+import { createPhotoGridReport } from '@/lib/supabase/photo-grid-reports'
 
 interface PDFReportGeneratorProps {
   photoGroups: PhotoGroup[]
+  dailyReportId: string // 필수: DB 저장을 위해 필요
   siteName?: string
   reportDate?: string
   reporterName?: string
   onGenerationStart?: () => void
-  onGenerationComplete?: (pdfUrl: string) => void
+  onGenerationComplete?: (pdfUrl: string, reportId?: string) => void
   onGenerationError?: (error: string) => void
 }
 
 export default function PDFReportGenerator({
   photoGroups,
+  dailyReportId,
   siteName = '강남 A현장',
   reportDate,
   reporterName = '작업자',
@@ -35,12 +38,19 @@ export default function PDFReportGenerator({
   const [generationStatus, setGenerationStatus] = useState<'idle' | 'success' | 'error'>('idle')
   const [errorMessage, setErrorMessage] = useState('')
 
-  // PDF 생성 함수
+  // PDF 생성 및 데이터베이스 저장 함수
   const generatePDF = async () => {
     if (photoGroups.length === 0) {
       setErrorMessage('사진 데이터가 없습니다. 먼저 사진을 업로드해주세요.')
       setGenerationStatus('error')
       onGenerationError?.('사진 데이터가 없습니다.')
+      return
+    }
+
+    if (!dailyReportId) {
+      setErrorMessage('작업일지 ID가 없습니다.')
+      setGenerationStatus('error')
+      onGenerationError?.('작업일지 정보가 없습니다.')
       return
     }
 
@@ -50,18 +60,56 @@ export default function PDFReportGenerator({
     onGenerationStart?.()
 
     try {
-      // 이노피앤씨 양식 기반 HTML 템플릿 생성
-      const htmlContent = generateHTMLTemplate()
+      // PDF 생성 옵션 준비
+      const pdfOptions: PhotoGridPDFOptions = {
+        title: `사진대지양식_${siteName}`,
+        siteName,
+        reportDate: reportDate || new Date().toLocaleDateString('ko-KR'),
+        reporterName,
+        photoGroups,
+        generationMethod: 'canvas', // 기본적으로 Canvas 방식 사용
+        includeMetadata: true,
+        compression: 0.8
+      }
       
-      // PDF 변환 (실제 구현시에는 서버 API 호출)
-      const pdfBlob = await convertHTMLToPDF(htmlContent)
+      // Canvas로 PDF 생성
+      const pdfBlob = await generatePDFWithCanvas(pdfOptions)
       
-      // 파일 다운로드
-      const fileName = `사진대지양식_${siteName}_${reportDate || new Date().toLocaleDateString('ko-KR').replace(/\./g, '')}.pdf`
-      downloadPDF(pdfBlob, fileName)
+      // 메타데이터 추출
+      const componentTypes = [...new Set(photoGroups.map(g => g.component_type))]
+      const processTypes = [...new Set(photoGroups.map(g => g.process_type))]
+      const totalBeforePhotos = photoGroups.reduce((sum, g) => sum + (g.before_photos?.length || 0), 0)
+      const totalAfterPhotos = photoGroups.reduce((sum, g) => sum + (g.after_photos?.length || 0), 0)
       
-      setGenerationStatus('success')
-      onGenerationComplete?.(URL.createObjectURL(pdfBlob))
+      const metadata = {
+        componentTypes,
+        processTypes,
+        totalPhotoGroups: photoGroups.length,
+        totalBeforePhotos,
+        totalAfterPhotos
+      }
+      
+      // 데이터베이스에 저장
+      const saveResult = await createPhotoGridReport(
+        dailyReportId,
+        pdfBlob,
+        pdfOptions,
+        metadata
+      )
+      
+      if (!saveResult.success) {
+        // DB 저장 실패 시도 다운로드 제공
+        console.warn('DB 저장 실패, 직접 다운로드 제공:', saveResult.error)
+        const fileName = `사진대지양식_${siteName}_${reportDate || new Date().toLocaleDateString('ko-KR').replace(/\./g, '')}.pdf`
+        downloadPDF(pdfBlob, fileName)
+        
+        setGenerationStatus('success')
+        onGenerationComplete?.(URL.createObjectURL(pdfBlob))
+      } else {
+        // 성공적으로 DB에 저장됨
+        setGenerationStatus('success')
+        onGenerationComplete?.(saveResult.data!.file_url, saveResult.data!.id)
+      }
     } catch (error) {
       console.error('PDF 생성 오류:', error)
       setErrorMessage('PDF 생성 중 오류가 발생했습니다.')
@@ -211,40 +259,7 @@ export default function PDFReportGenerator({
             page-break-before: always;
           }
           
-          .summary {
-            margin-top: 30px;
-            padding: 15px;
-            background-color: #f8f9fa;
-            border-radius: 5px;
-          }
-          
-          .summary h3 {
-            margin: 0 0 10px 0;
-            font-size: 16px;
-          }
-          
-          .summary-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
-            margin-top: 15px;
-          }
-          
-          .summary-item {
-            text-align: center;
-          }
-          
-          .summary-number {
-            font-size: 24px;
-            font-weight: bold;
-            color: #2196f3;
-          }
-          
-          .summary-label {
-            font-size: 12px;
-            color: #666;
-            margin-top: 5px;
-          }
+          /* 작업요약 스타일 제거됨 */
         </style>
       </head>
       <body>
@@ -301,9 +316,15 @@ export default function PDFReportGenerator({
         `
         
         // 작업 전 사진
-        if (group.before_photos.length > 0) {
+        if (group.before_photos && group.before_photos.length > 0) {
           const photo = group.before_photos[0] // 첫 번째 사진만 표시
-          html += `<img src="${photo.file_url}" alt="작업 전 사진" />`
+          // Base64 이미지나 Blob URL인지 확인하여 올바른 형식으로 처리
+          const imageUrl = photo.file_url || photo.url || photo.preview_url
+          if (imageUrl) {
+            html += `<img src="${imageUrl}" alt="작업 전 사진" crossorigin="anonymous" />`
+          } else {
+            html += '<div class="no-photo">사진 없음</div>'
+          }
         } else {
           html += '<div class="no-photo">사진 없음</div>'
         }
@@ -314,9 +335,15 @@ export default function PDFReportGenerator({
         `
         
         // 작업 후 사진
-        if (group.after_photos.length > 0) {
+        if (group.after_photos && group.after_photos.length > 0) {
           const photo = group.after_photos[0] // 첫 번째 사진만 표시
-          html += `<img src="${photo.file_url}" alt="작업 후 사진" />`
+          // Base64 이미지나 Blob URL인지 확인하여 올바른 형식으로 처리
+          const imageUrl = photo.file_url || photo.url || photo.preview_url
+          if (imageUrl) {
+            html += `<img src="${imageUrl}" alt="작업 후 사진" crossorigin="anonymous" />`
+          } else {
+            html += '<div class="no-photo">사진 없음</div>'
+          }
         } else {
           html += '<div class="no-photo">사진 없음</div>'
         }
@@ -334,34 +361,8 @@ export default function PDFReportGenerator({
       `
     })
 
-    // 요약 정보
-    const totalGroups = photoGroups.length
-    const completedGroups = photoGroups.filter(g => g.progress_status === 'completed').length
-    const totalBeforePhotos = photoGroups.reduce((sum, g) => sum + g.before_photos.length, 0)
-    const totalAfterPhotos = photoGroups.reduce((sum, g) => sum + g.after_photos.length, 0)
-
+    // 작업요약 섹션 제거됨
     html += `
-        <div class="summary">
-          <h3>작업 요약</h3>
-          <div class="summary-grid">
-            <div class="summary-item">
-              <div class="summary-number">${totalGroups}</div>
-              <div class="summary-label">총 항목</div>
-            </div>
-            <div class="summary-item">
-              <div class="summary-number">${completedGroups}</div>
-              <div class="summary-label">완료 항목</div>
-            </div>
-            <div class="summary-item">
-              <div class="summary-number">${totalBeforePhotos}</div>
-              <div class="summary-label">작업전 사진</div>
-            </div>
-            <div class="summary-item">
-              <div class="summary-number">${totalAfterPhotos}</div>
-              <div class="summary-label">작업후 사진</div>
-            </div>
-          </div>
-        </div>
       </body>
       </html>
     `
@@ -455,7 +456,7 @@ export default function PDFReportGenerator({
       {generationStatus === 'success' && (
         <div className="flex items-center gap-2 text-green-600 text-sm">
           <CheckCircle className="h-4 w-4" />
-          <span>PDF 보고서가 성공적으로 생성되었습니다.</span>
+          <span>PDF 보고서가 성공적으로 생성되고 저장되었습니다.</span>
         </div>
       )}
 
@@ -478,6 +479,7 @@ export default function PDFReportGenerator({
         <p>• 이노피앤씨 표준 양식으로 PDF가 생성됩니다</p>
         <p>• 부재명별로 공정 순서에 따라 정리됩니다</p>
         <p>• 작업 전/후 사진이 대비되어 표시됩니다</p>
+        <p>• 생성된 PDF는 자동으로 데이터베이스에 저장됩니다</p>
       </div>
     </div>
   )

@@ -42,8 +42,10 @@ import {
   Eye
 } from 'lucide-react'
 import { Site, Profile, Material, PhotoGroup, ComponentType, ConstructionProcessType } from '@/types'
+import { AdditionalPhotoData } from '@/types/daily-reports'
 import PhotoGridPreview from './photo-grid-preview'
 import PDFReportGenerator from './pdf-report-generator'
+import AdditionalPhotoUploadSection from './additional-photo-upload-section'
 import { cn } from '@/lib/utils'
 import { showErrorNotification } from '@/lib/error-handling'
 import { toast } from 'sonner'
@@ -172,6 +174,7 @@ export default function DailyReportFormEnhanced({
     workContent: true,
     workers: false,
     photos: false,
+    additionalPhotos: false,
     receipts: false,
     drawings: false,
     requests: false,
@@ -216,6 +219,10 @@ export default function DailyReportFormEnhanced({
   // Section 5: Receipts
   const [receipts, setReceipts] = useState<ReceiptEntry[]>([])
   
+  // Section 5.5: Additional Photos
+  const [additionalBeforePhotos, setAdditionalBeforePhotos] = useState<AdditionalPhotoData[]>([])
+  const [additionalAfterPhotos, setAdditionalAfterPhotos] = useState<AdditionalPhotoData[]>([])
+  
   // Section 6: Drawings
   const [drawings, setDrawings] = useState<File[]>([])
   
@@ -257,6 +264,8 @@ export default function DailyReportFormEnhanced({
       workerEntries,
       photos: photos.map(p => ({ ...p, file: null, preview: p.preview })), // Don't save file objects
       receipts: receipts.map(r => ({ ...r, file: null })),
+      additionalBeforePhotos: additionalBeforePhotos.map(p => ({ ...p, file: null })),
+      additionalAfterPhotos: additionalAfterPhotos.map(p => ({ ...p, file: null })),
       requestText,
       materialData,
       specialNotes,
@@ -264,7 +273,7 @@ export default function DailyReportFormEnhanced({
       lastSaved: new Date().toISOString()
     }
     localStorage.setItem('dailyReportDraft', JSON.stringify(reportData))
-  }, [formData, workContents, workerEntries, photos, receipts, requestText, materialData, specialNotes, expandedSections])
+  }, [formData, workContents, workerEntries, photos, receipts, additionalBeforePhotos, additionalAfterPhotos, requestText, materialData, specialNotes, expandedSections])
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -300,11 +309,14 @@ export default function DailyReportFormEnhanced({
         }
         setMaterialData(loadedMaterialData)
         setSpecialNotes(parsed.specialNotes || '')
+        setAdditionalBeforePhotos(parsed.additionalBeforePhotos || [])
+        setAdditionalAfterPhotos(parsed.additionalAfterPhotos || [])
         setExpandedSections(parsed.expandedSections || {
           siteInfo: true,
           workContent: true,
           workers: false,
           photos: false,
+          additionalPhotos: false,
           receipts: false,
           drawings: false,
           requests: false,
@@ -1340,6 +1352,31 @@ export default function DailyReportFormEnhanced({
                   작업자를 추가하려면 &quot;작업자 추가&quot; 버튼을 클릭하세요
                 </p>
               )}
+            </div>
+          </CollapsibleSection>
+
+          {/* Section 3.5: Additional Photos */}
+          <CollapsibleSection
+            title="추가 사진 업로드"
+            icon={Camera}
+            isExpanded={expandedSections.additionalPhotos}
+            onToggle={() => toggleSection('additionalPhotos')}
+            badge={(additionalBeforePhotos.length + additionalAfterPhotos.length) > 0 && (
+              <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded-full text-xs font-medium">
+                {additionalBeforePhotos.length + additionalAfterPhotos.length}장
+              </span>
+            )}
+          >
+            <div className="pt-2">
+              <AdditionalPhotoUploadSection
+                beforePhotos={additionalBeforePhotos}
+                afterPhotos={additionalAfterPhotos}
+                onBeforePhotosChange={setAdditionalBeforePhotos}
+                onAfterPhotosChange={setAdditionalAfterPhotos}
+                maxPhotosPerType={30}
+                maxFileSize={10 * 1024 * 1024} // 10MB
+                disabled={false}
+              />
             </div>
           </CollapsibleSection>
 

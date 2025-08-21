@@ -26,6 +26,8 @@ export interface DailyReportFormData {
   workers?: WorkerData[]
   before_photos?: PhotoData[]
   after_photos?: PhotoData[]
+  additional_before_photos?: AdditionalPhotoData[]
+  additional_after_photos?: AdditionalPhotoData[]
   receipts?: ReceiptData[]
 }
 
@@ -146,6 +148,20 @@ export interface PhotoData {
   description?: string
   type: 'before' | 'after' | 'progress'
   file_size?: number
+  uploaded_at?: string
+}
+
+export interface AdditionalPhotoData {
+  id?: string
+  file?: File
+  url?: string
+  path?: string
+  filename: string
+  description?: string
+  photo_type: 'before' | 'after'
+  file_size?: number
+  upload_order: number
+  uploaded_by?: string
   uploaded_at?: string
 }
 

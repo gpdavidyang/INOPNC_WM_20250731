@@ -370,6 +370,18 @@ function SidebarContent({
       // Special handling for documents page - use hash navigation to avoid nested DashboardLayout
       if (item.href === '/dashboard/documents') {
         console.log('[Sidebar] Using hash navigation for documents')
+        
+        // Check if we're already on the documents tab
+        const currentHash = window.location.hash.replace('#', '')
+        if (currentHash === 'documents-unified') {
+          console.log('[Sidebar] Already on documents tab, skipping navigation')
+          if (window.innerWidth < 1024) {
+            onClose()
+          }
+          return
+        }
+        
+        // Navigate to documents tab
         if (pathname !== '/dashboard') {
           router.push('/dashboard#documents-unified')
         } else {

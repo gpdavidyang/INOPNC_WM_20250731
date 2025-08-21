@@ -90,6 +90,15 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
           // Special handling for documents page - use hash navigation to avoid nested DashboardLayout
           if (item.href === '/dashboard/documents') {
             console.log('[BottomNav] Using hash navigation for documents')
+            
+            // Check if we're already on the documents tab
+            const currentHash = window.location.hash.replace('#', '')
+            if (pathname === '/dashboard' && currentHash === 'documents-unified') {
+              console.log('[BottomNav] Already on documents tab, skipping navigation')
+              return
+            }
+            
+            // Navigate to documents tab
             if (pathname !== '/dashboard') {
               router.push('/dashboard#documents-unified')
             } else {

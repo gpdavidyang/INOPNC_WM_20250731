@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>문서함 네비게이션 수동 테스트</title>
+    <style>
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #1f2937;
+            border-bottom: 2px solid #3b82f6;
+            padding-bottom: 10px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+        }
+        .test-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin: 5px 0;
+            background: #f9fafb;
+            border-radius: 4px;
+        }
+        .status {
+            display: flex;
+            gap: 10px;
+        }
+        .status button {
+            padding: 5px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .pass {
+            background: #10b981;
+            color: white;
+        }
+        .fail {
+            background: #ef4444;
+            color: white;
+        }
+        .pending {
+            background: #6b7280;
+            color: white;
+        }
+        .result-summary {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f3f4f6;
+            border-radius: 8px;
+        }
+        .instructions {
+            background: #fef3c7;
+            border: 1px solid #fbbf24;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .instructions h3 {
+            margin-top: 0;
+            color: #92400e;
+        }
+        .instructions ol {
+            margin: 10px 0;
+        }
+        .instructions li {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 문서함 네비게이션 수동 테스트</h1>
+    
+    <div class="instructions">
+        <h3>📋 테스트 방법</h3>
+        <ol>
+            <li>개발 서버 실행: <code>npm run dev</code></li>
+            <li>브라우저에서 <a href="http://localhost:3000/auth/login" target="_blank">http://localhost:3000/auth/login</a> 접속</li>
+            <li>테스트 계정으로 로그인: <code>worker@inopnc.com / password123</code></li>
+            <li>아래 각 테스트 케이스를 순서대로 수행</li>
+            <li>각 테스트 결과를 ✅ Pass 또는 ❌ Fail로 표시</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h2>1️⃣ 홈(대시보드)에서 문서함 이동</h2>
+        <div class="test-item">
+            <span>홈 > 사이드바 "문서함" 클릭</span>
+            <div class="status">
+                <button class="pending" onclick="updateStatus(this, 'pending')">⏳ 대기</button>
+                <button onclick="updateStatus(this, 'pass')">✅ Pass</button>
+                <button onclick="updateStatus(this, 'fail')">❌ Fail</button>
+            </div>
+        </div>
+        <div class="test-item">
+            <span>홈 > 하단바 "문서함" 클릭</span>
+            <div class="status">
+                <button class="pending" onclick="updateStatus(this, 'pending')">⏳ 대기</button>
+                <button onclick="updateStatus(this, 'pass')">✅ Pass</button>
+                <button onclick="updateStatus(this, 'fail')">❌ Fail</button>
+            </div>
+        </div>
+        <div class="test-item">
+            <span>홈 > 빠른메뉴 "문서함" 클릭</span>
+            <div class="status">
+                <button class="pending" onclick="updateStatus(this, 'pending')">⏳ 대기</button>
+                <button onclick="updateStatus(this, 'pass')">✅ Pass</button>
+                <button onclick="updateStatus(this, 'fail')">❌ Fail</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>2️⃣ 출력현황에서 문서함 이동</h2>
+        <div class="test-item">
+            <span>출력현황 > 사이드바 "문서함" 클릭</span>
+            <div class="status">
+                <button class="pending" onclick="updateStatus(this, 'pending')">⏳ 대기</button>
+                <button onclick="updateStatus(this, 'pass')">✅ Pass</button>
+                <button onclick="updateStatus(this, 'fail')">❌ Fail</button>
+            </div>
+        </div>
+        <div class="test-item">
+            <span>출력현황 > 하단바 "문서함" 클릭</span>
+            <div class="status">
+                <button class="pending" onclick="updateStatus(this, 'pending')">⏳ 대기</button>
+                <button onclick="updateStatus(this, 'pass')">✅ Pass</button>
+                <button onclick="updateStatus(this, 'fail')">❌ Fail</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>3️⃣ 작업일지에서 문서함 이동</h2>
+        <div class="test-item">
+            <span>작업일지 > 사이드바 "문서함" 클릭</span>
+            <div class="status">
+                <button class="pending" onclick="updateStatus(this, 'pending')">⏳ 대기</button>
+                <button onclick="updateStatus(this, 'pass')">✅ Pass</button>
+                <button onclick="updateStatus(this, 'fail')">❌ Fail</button>
+            </div>
+        </div>
+        <div class="test-item">
+            <span>작업일지 > 하단바 "문서함" 클릭</span>
+            <div class="status">
+                <button class="pending" onclick="updateStatus(this, 'pending')">⏳ 대기</button>
+                <button onclick="updateStatus(this, 'pass')">✅ Pass</button>
+                <button onclick="updateStatus(this, 'fail')">❌ Fail</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>4️⃣ 현장정보에서 문서함 이동</h2>
+        <div class="test-item">
+            <span>현장정보 > 사이드바 "문서함" 클릭</span>
+            <div class="status">
+                <button class="pending" onclick="updateStatus(this, 'pending')">⏳ 대기</button>
+                <button onclick="updateStatus(this, 'pass')">✅ Pass</button>
+                <button onclick="updateStatus(this, 'fail')">❌ Fail</button>
+            </div>
+        </div>
+        <div class="test-item">
+            <span>현장정보 > 하단바 "문서함" 클릭</span>
+            <div class="status">
+                <button class="pending" onclick="updateStatus(this, 'pending')">⏳ 대기</button>
+                <button onclick="updateStatus(this, 'pass')">✅ Pass</button>
+                <button onclick="updateStatus(this, 'fail')">❌ Fail</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>5️⃣ 문서함 내부에서 다른 메뉴 이동</h2>
+        <div class="test-item">
+            <span>문서함 > 내문서함 > 사이드바 다른 메뉴들</span>
+            <div class="status">
+                <button class="pending" onclick="updateStatus(this, 'pending')">⏳ 대기</button>
+                <button onclick="updateStatus(this, 'pass')">✅ Pass</button>
+                <button onclick="updateStatus(this, 'fail')">❌ Fail</button>
+            </div>
+        </div>
+        <div class="test-item">
+            <span>문서함 > 내문서함 > 하단바 다른 메뉴들</span>
+            <div class="status">
+                <button class="pending" onclick="updateStatus(this, 'pending')">⏳ 대기</button>
+                <button onclick="updateStatus(this, 'pass')">✅ Pass</button>
+                <button onclick="updateStatus(this, 'fail')">❌ Fail</button>
+            </div>
+        </div>
+        <div class="test-item">
+            <span>문서함 > 공유문서함 > 사이드바 다른 메뉴들</span>
+            <div class="status">
+                <button class="pending" onclick="updateStatus(this, 'pending')">⏳ 대기</button>
+                <button onclick="updateStatus(this, 'pass')">✅ Pass</button>
+                <button onclick="updateStatus(this, 'fail')">❌ Fail</button>
+            </div>
+        </div>
+        <div class="test-item">
+            <span>문서함 > 공유문서함 > 하단바 빠른메뉴</span>
+            <div class="status">
+                <button class="pending" onclick="updateStatus(this, 'pending')">⏳ 대기</button>
+                <button onclick="updateStatus(this, 'pass')">✅ Pass</button>
+                <button onclick="updateStatus(this, 'fail')">❌ Fail</button>
+            </div>
+        </div>
+        <div class="test-item">
+            <span>문서함 > 공유문서함 > 하단바 출력/작업/현장</span>
+            <div class="status">
+                <button class="pending" onclick="updateStatus(this, 'pending')">⏳ 대기</button>
+                <button onclick="updateStatus(this, 'pass')">✅ Pass</button>
+                <button onclick="updateStatus(this, 'fail')">❌ Fail</button>
+            </div>
+        </div>
+        <div class="test-item">
+            <span>문서함 > 도면마킹 > 사이드바 다른 메뉴들</span>
+            <div class="status">
+                <button class="pending" onclick="updateStatus(this, 'pending')">⏳ 대기</button>
+                <button onclick="updateStatus(this, 'pass')">✅ Pass</button>
+                <button onclick="updateStatus(this, 'fail')">❌ Fail</button>
+            </div>
+        </div>
+        <div class="test-item">
+            <span>문서함 > 도면마킹 > 하단바 빠른메뉴</span>
+            <div class="status">
+                <button class="pending" onclick="updateStatus(this, 'pending')">⏳ 대기</button>
+                <button onclick="updateStatus(this, 'pass')">✅ Pass</button>
+                <button onclick="updateStatus(this, 'fail')">❌ Fail</button>
+            </div>
+        </div>
+        <div class="test-item">
+            <span>문서함 > 필수제출서류 > 모든 네비게이션</span>
+            <div class="status">
+                <button class="pending" onclick="updateStatus(this, 'pending')">⏳ 대기</button>
+                <button onclick="updateStatus(this, 'pass')">✅ Pass</button>
+                <button onclick="updateStatus(this, 'fail')">❌ Fail</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="result-summary">
+        <h2>📊 테스트 결과 요약</h2>
+        <div id="summary">
+            <p>총 테스트: <span id="total">17</span>개</p>
+            <p>✅ 성공: <span id="passed">0</span>개</p>
+            <p>❌ 실패: <span id="failed">0</span>개</p>
+            <p>⏳ 대기: <span id="pending">17</span>개</p>
+        </div>
+    </div>
+
+    <script>
+        function updateStatus(button, status) {
+            const statusDiv = button.parentElement;
+            const buttons = statusDiv.querySelectorAll('button');
+            
+            // Reset all buttons
+            buttons.forEach(btn => {
+                btn.classList.remove('pass', 'fail', 'pending');
+            });
+            
+            // Set the clicked button's status
+            if (status === 'pass') {
+                buttons[1].classList.add('pass');
+            } else if (status === 'fail') {
+                buttons[2].classList.add('fail');
+            } else {
+                buttons[0].classList.add('pending');
+            }
+            
+            updateSummary();
+        }
+        
+        function updateSummary() {
+            const allItems = document.querySelectorAll('.test-item');
+            let passed = 0;
+            let failed = 0;
+            let pending = 0;
+            
+            allItems.forEach(item => {
+                if (item.querySelector('.pass')) passed++;
+                else if (item.querySelector('.fail')) failed++;
+                else pending++;
+            });
+            
+            document.getElementById('passed').textContent = passed;
+            document.getElementById('failed').textContent = failed;
+            document.getElementById('pending').textContent = pending;
+        }
+    </script>
+</body>
+</html>

@@ -10,6 +10,7 @@ import {
   AlertCircle
 } from 'lucide-react'
 import { PhotoGroup } from '@/types'
+import { generatePDFWithCanvas, generateHTMLBasedPDF } from '@/lib/pdf-generator-canvas'
 
 interface PDFReportGeneratorProps {
   photoGroups: PhotoGroup[]
@@ -368,26 +369,54 @@ export default function PDFReportGenerator({
     return html
   }
 
-  // HTML을 PDF로 변환 (임시 구현)
+  // HTML을 PDF로 변환
   const convertHTMLToPDF = async (htmlContent: string): Promise<Blob> => {
-    // 실제 구현시에는 서버 API 호출
-    // 예: puppeteer, jsPDF, html2pdf 등 사용
-    
-    // 임시로 HTML 파일 생성하여 브라우저에서 인쇄
-    const printWindow = window.open('', '_blank')
-    if (printWindow) {
-      printWindow.document.write(htmlContent)
-      printWindow.document.close()
+    try {
+      const pdfOptions = {
+        title: '건설 공사 사진 대지',
+        siteName: siteName,
+        reportDate: reportDate || new Date().toLocaleDateString('ko-KR'),
+        reporterName: reporterName,
+        photoGroups: photoGroups
+      }
       
-      // 잠시 후 인쇄 다이얼로그 열기
-      setTimeout(() => {
-        printWindow.print()
-        printWindow.close()
-      }, 1000)
+      // Canvas를 사용한 PDF 생성 (한글 지원)
+      const pdfBlob = await generatePDFWithCanvas(pdfOptions)
+      return pdfBlob
+    } catch (error) {
+      console.error('PDF 변환 오류:', error)
+      
+      // 폴백: HTML 기반 PDF로 인쇄
+      try {
+        const pdfOptions = {
+          title: '건설 공사 사진 대지',
+          siteName: siteName,
+          reportDate: reportDate || new Date().toLocaleDateString('ko-KR'),
+          reporterName: reporterName,
+          photoGroups: photoGroups
+        }
+        
+        const htmlForPrint = generateHTMLBasedPDF(pdfOptions)
+        
+        // 새 창에서 HTML 열고 인쇄
+        const printWindow = window.open('', '_blank')
+        if (printWindow) {
+          printWindow.document.write(htmlForPrint)
+          printWindow.document.close()
+          
+          // 잠시 후 인쇄 다이얼로그 열기
+          setTimeout(() => {
+            printWindow.print()
+          }, 500)
+        }
+        
+        // HTML Blob 반환
+        return new Blob([htmlForPrint], { type: 'text/html; charset=utf-8' })
+      } catch (fallbackError) {
+        console.error('Fallback PDF 생성 오류:', fallbackError)
+        return new Blob([htmlContent], { type: 'text/html; charset=utf-8' })
+      }
     }
-    
-    // 임시 Blob 반환 (실제로는 서버에서 PDF 생성)
-    return new Blob([htmlContent], { type: 'text/html' })
   }
 
   // PDF 다운로드

@@ -65,7 +65,7 @@ const generalUserMenuItems: MenuItem[] = [
     label: '문서함',
     icon: FolderOpen,
     roles: ['worker', 'site_manager', 'customer_manager'],
-    href: '#documents-unified'
+    href: '/dashboard#documents-unified'
   },
   {
     id: 'profile',
@@ -359,14 +359,41 @@ function SidebarContent({
     
     // Admin pages or items with href should navigate to separate routes
     if (item.href) {
-      // 현재 경로와 같으면 무시
-      if (pathname === item.href) {
-        console.log('[Sidebar] Same path, skipping:', pathname)
+      // Special handling for documents tab - always navigate to /dashboard#documents-unified
+      if (item.id === 'documents' || item.href.includes('#documents-unified')) {
+        console.log('[Sidebar] Navigating to documents tab')
+        // Always navigate to the documents tab, even if we're already on /dashboard
+        const targetUrl = '/dashboard#documents-unified'
+        
+        // Check if we're already on the dashboard page
+        if (pathname === '/dashboard' || pathname === '/dashboard/') {
+          // We're on dashboard, just change the hash and trigger tab change
+          window.location.hash = 'documents-unified'
+          onTabChange('documents-unified')
+        } else {
+          // Navigate to dashboard with the documents hash
+          if (navigate) {
+            navigate(targetUrl)
+          } else {
+            router.push(targetUrl)
+          }
+        }
+        
+        // Close sidebar on mobile
+        if (window.innerWidth < 1024) {
+          onClose()
+        }
+        return
+      }
+      
+      // Check if current path matches (accounting for hash)
+      const currentFullPath = pathname + (window.location.hash || '')
+      if (currentFullPath === item.href) {
+        console.log('[Sidebar] Same path, skipping:', currentFullPath)
         return
       }
       
       console.log('[Sidebar] Navigating to:', item.href)
-      
       
       // Use navigation controller if available, otherwise fallback to router
       if (navigate) {
@@ -392,7 +419,7 @@ function SidebarContent({
       console.log('[Sidebar] Closing mobile sidebar')
       onClose()
     }
-  }, [navigate, pathname, isNavigating, onTabChange, onClose])
+  }, [navigate, router, pathname, isNavigating, onTabChange, onClose])
 
   return (
     <div className="flex-1 flex flex-col overflow-y-auto">

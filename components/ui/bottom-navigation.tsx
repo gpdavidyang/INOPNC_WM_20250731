@@ -44,6 +44,7 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
 
     const handleNavigation = React.useCallback((item: BottomNavItem, e: React.MouseEvent) => {
       e.preventDefault()
+      e.stopPropagation() // Stop event bubbling
       
       // 이미 네비게이션 중이면 무시 (짧은 시간 체크)
       if (isNavigating) {
@@ -71,6 +72,36 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
             onTabChange('shared-documents')
           } else {
             router.push(`${item.href}?no_site_assigned=true`)
+          }
+        }
+        return
+      }
+      
+      // Special handling for documents - ensure proper navigation
+      if (item.href === '#documents-unified' || item.href.includes('documents')) {
+        console.log('[BottomNav] Documents navigation detected')
+        
+        // Check current location
+        if (pathname === '/dashboard' || pathname === '/dashboard/') {
+          // We're on dashboard, handle via tab change
+          if (onTabChange) {
+            console.log('[BottomNav] Calling onTabChange for documents-unified')
+            onTabChange('documents-unified')
+            // Also update the hash for consistency
+            window.location.hash = 'documents-unified'
+          } else {
+            // No tab change handler, navigate directly
+            window.location.hash = 'documents-unified'
+          }
+        } else {
+          // We're on another page, navigate to dashboard with documents hash
+          const targetUrl = '/dashboard#documents-unified'
+          console.log('[BottomNav] Navigating to:', targetUrl)
+          
+          if (navigate) {
+            navigate(targetUrl)
+          } else {
+            router.push(targetUrl)
           }
         }
         return

@@ -374,44 +374,93 @@ export default function DailyReportFormEnhanced({
     setWorkContents(workContents.filter(wc => wc.id !== id))
   }
 
-  // 작업 내용별 사진 업로드 함수
-  const handleWorkContentPhotoUpload = (workId: string, type: 'before' | 'after', files: File[]) => {
-    setWorkContents(prevContents => 
-      prevContents.map(content => {
-        if (content.id !== workId) return content
-        
-        const newContent = { ...content }
-        const photosField = type === 'before' ? 'beforePhotos' : 'afterPhotos'
-        const previewsField = type === 'before' ? 'beforePhotoPreviews' : 'afterPhotoPreviews'
-        
-        // 최대 10장 제한
-        const currentPhotos = content[photosField] as File[]
-        const remaining = 10 - currentPhotos.length
-        const filesToAdd = files.slice(0, remaining)
-        
-        newContent[photosField] = [...currentPhotos, ...filesToAdd]
-        
-        // 미리보기 생성
-        filesToAdd.forEach(file => {
+  // 작업 내용별 사진 업로드 함수 - 모바일 PWA 지원 개선
+  const handleWorkContentPhotoUpload = async (workId: string, type: 'before' | 'after', files: File[]) => {
+    if (!files || files.length === 0) {
+      console.log('No files selected')
+      return
+    }
+    
+    try {
+      const photosField = type === 'before' ? 'beforePhotos' : 'afterPhotos'
+      const previewsField = type === 'before' ? 'beforePhotoPreviews' : 'afterPhotoPreviews'
+      
+      // 현재 작업 내용 찾기
+      const currentContent = workContents.find(c => c.id === workId)
+      if (!currentContent) {
+        console.error('Work content not found:', workId)
+        return
+      }
+      
+      const currentPhotos = currentContent[photosField] as File[] || []
+      const currentPreviews = currentContent[previewsField] as string[] || []
+      const remaining = 10 - currentPhotos.length
+      
+      if (remaining <= 0) {
+        toast.error(`최대 10장까지 업로드 가능합니다`)
+        return
+      }
+      
+      const filesToAdd = files.slice(0, remaining)
+      console.log(`Adding ${filesToAdd.length} files to ${type} photos`)
+      
+      // 먼저 파일 배열 업데이트
+      const newPhotos = [...currentPhotos, ...filesToAdd]
+      const newPreviews: string[] = [...currentPreviews]
+      
+      // 미리보기 생성을 Promise로 처리
+      const previewPromises = filesToAdd.map(file => {
+        return new Promise<string>((resolve, reject) => {
           const reader = new FileReader()
-          reader.onloadend = () => {
-            setWorkContents(prev => 
-              prev.map(c => 
-                c.id === workId 
-                  ? {
-                      ...c,
-                      [previewsField]: [...(c[previewsField] as string[]), reader.result as string]
-                    }
-                  : c
-              )
-            )
+          reader.onload = () => {
+            const result = reader.result as string
+            resolve(result)
+          }
+          reader.onerror = (error) => {
+            console.error('FileReader error:', error)
+            reject(error)
           }
           reader.readAsDataURL(file)
         })
-        
-        return newContent
       })
-    )
+      
+      try {
+        const previews = await Promise.all(previewPromises)
+        newPreviews.push(...previews)
+        
+        // 상태 업데이트
+        setWorkContents(prevContents =>
+          prevContents.map(content =>
+            content.id === workId
+              ? {
+                  ...content,
+                  [photosField]: newPhotos,
+                  [previewsField]: newPreviews
+                }
+              : content
+          )
+        )
+        
+        toast.success(`${filesToAdd.length}개 사진이 추가되었습니다`)
+      } catch (previewError) {
+        console.error('Preview generation error:', previewError)
+        // 미리보기 생성 실패해도 파일은 추가
+        setWorkContents(prevContents =>
+          prevContents.map(content =>
+            content.id === workId
+              ? {
+                  ...content,
+                  [photosField]: newPhotos
+                }
+              : content
+          )
+        )
+        toast.warning('사진이 추가되었지만 미리보기 생성에 실패했습니다')
+      }
+    } catch (error) {
+      console.error('Photo upload error:', error)
+      toast.error('사진 업로드 중 오류가 발생했습니다')
+    }
   }
 
   // 작업 내용별 사진 삭제 함수
@@ -985,25 +1034,33 @@ export default function DailyReportFormEnhanced({
                         </label>
                         
                         <div className="space-y-2">
-                          {/* 업로드 버튼 */}
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const input = document.createElement('input')
-                              input.type = 'file'
-                              input.accept = 'image/*'
-                              input.multiple = true
-                              input.onchange = (e) => {
-                                const files = Array.from((e.target as HTMLInputElement).files || [])
-                                handleWorkContentPhotoUpload(content.id, 'before', files)
-                              }
-                              input.click()
-                            }}
-                            className="w-full h-8 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded flex items-center justify-center gap-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 transition-colors"
-                          >
-                            <Upload className="h-3.5 w-3.5" />
-                            사진 업로드
-                          </button>
+                          {/* 업로드 버튼 - 모바일 최적화 */}
+                          <label className="block">
+                            <input
+                              type="file"
+                              accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                              multiple
+                              className="hidden"
+                              onChange={async (e) => {
+                                try {
+                                  const files = e.target.files ? Array.from(e.target.files) : []
+                                  if (files.length > 0) {
+                                    console.log(`Uploading ${files.length} files for work content ${content.id}`)
+                                    await handleWorkContentPhotoUpload(content.id, 'before', files)
+                                  }
+                                } catch (error) {
+                                  console.error('File upload error:', error)
+                                  toast.error('사진 업로드에 실패했습니다')
+                                } finally {
+                                  e.target.value = '' // Reset input for re-selection
+                                }
+                              }}
+                            />
+                            <div className="w-full h-8 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 active:bg-blue-200 dark:active:bg-blue-900/40 border border-blue-200 dark:border-blue-700 rounded flex items-center justify-center gap-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 transition-colors cursor-pointer touch-manipulation">
+                              <Upload className="h-3.5 w-3.5" />
+                              사진 업로드
+                            </div>
+                          </label>
                           
                           {/* 미리보기 */}
                           {content.beforePhotoPreviews && content.beforePhotoPreviews.length > 0 && (
@@ -1043,25 +1100,33 @@ export default function DailyReportFormEnhanced({
                         </label>
                         
                         <div className="space-y-2">
-                          {/* 업로드 버튼 */}
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const input = document.createElement('input')
-                              input.type = 'file'
-                              input.accept = 'image/*'
-                              input.multiple = true
-                              input.onchange = (e) => {
-                                const files = Array.from((e.target as HTMLInputElement).files || [])
-                                handleWorkContentPhotoUpload(content.id, 'after', files)
-                              }
-                              input.click()
-                            }}
-                            className="w-full h-8 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 border border-green-200 dark:border-green-700 rounded flex items-center justify-center gap-1.5 text-xs font-medium text-green-600 dark:text-green-400 transition-colors"
-                          >
-                            <Upload className="h-3.5 w-3.5" />
-                            사진 업로드
-                          </button>
+                          {/* 업로드 버튼 - 모바일 최적화 */}
+                          <label className="block">
+                            <input
+                              type="file"
+                              accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                              multiple
+                              className="hidden"
+                              onChange={async (e) => {
+                                try {
+                                  const files = e.target.files ? Array.from(e.target.files) : []
+                                  if (files.length > 0) {
+                                    console.log(`Uploading ${files.length} files for work content ${content.id}`)
+                                    await handleWorkContentPhotoUpload(content.id, 'after', files)
+                                  }
+                                } catch (error) {
+                                  console.error('File upload error:', error)
+                                  toast.error('사진 업로드에 실패했습니다')
+                                } finally {
+                                  e.target.value = '' // Reset input for re-selection
+                                }
+                              }}
+                            />
+                            <div className="w-full h-8 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 active:bg-green-200 dark:active:bg-green-900/40 border border-green-200 dark:border-green-700 rounded flex items-center justify-center gap-1.5 text-xs font-medium text-green-600 dark:text-green-400 transition-colors cursor-pointer touch-manipulation">
+                              <Upload className="h-3.5 w-3.5" />
+                              사진 업로드
+                            </div>
+                          </label>
                           
                           {/* 미리보기 */}
                           {content.afterPhotoPreviews && content.afterPhotoPreviews.length > 0 && (

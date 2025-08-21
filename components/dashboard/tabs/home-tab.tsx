@@ -792,10 +792,20 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
                       console.log('[QuickMenu] Navigating to:', item.path)
                       
                       // Handle hash-based navigation for documents tab
-                      if (item.path.startsWith('#')) {
+                      if (item.path.startsWith('#') || item.id === 'documents') {
                         const tabId = item.path.replace('#', '')
                         console.log('[QuickMenu] Setting active tab to:', tabId)
-                        onTabChange(tabId)
+                        
+                        // Always ensure we're on the dashboard page for tab navigation
+                        const currentPath = window.location.pathname
+                        if (currentPath !== '/dashboard' && currentPath !== '/dashboard/') {
+                          // Navigate to dashboard with the tab hash
+                          router.push(`/dashboard#${tabId}`)
+                        } else {
+                          // We're on dashboard, just change the tab
+                          onTabChange(tabId)
+                          window.location.hash = tabId
+                        }
                         return
                       }
                       

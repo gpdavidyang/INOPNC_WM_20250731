@@ -183,7 +183,13 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
 
   // Fetch real site data with improved session handling
   const fetchSiteData = useCallback(async (retryCount = 0) => {
-    const MAX_RETRIES = 2
+    const MAX_RETRIES = 1 // 재시도 횟수 줄임
+    
+    // 이미 로딩 중이거나 데이터가 있으면 중복 실행 방지
+    if ((loading || currentSite) && retryCount === 0) {
+      console.log('🔍 [HOME-TAB] Already loading or data exists, skipping duplicate request')
+      return
+    }
     
     try {
       setLoading(true)
@@ -319,7 +325,7 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
       setLoading(false)
       console.log('🏁 [HOME-TAB] fetchSiteData completed')
     }
-  }, [])
+  }, []) // dependencies 제거하여 무한 루프 방지
   
   const [announcements, setAnnouncements] = useState<Announcement[]>([])
   
@@ -598,7 +604,10 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
         // If we have a valid session, fetch site data
         if (validSession && currentUser) {
           console.log('✅ [HOME-TAB] User authenticated, fetching site data...')
-          fetchSiteData()
+          // fetchSiteData를 한 번만 호출하도록 보장
+          if (!loading && !currentSite) {
+            fetchSiteData()
+          }
         } else {
           console.log('⚠️ [HOME-TAB] No valid authentication')
           
@@ -628,7 +637,7 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
     }
 
     initializeComponent()
-  }, [fetchSiteData, loadAnnouncements, initialCurrentSite]) // Add initialCurrentSite to dependencies
+  }, [fetchSiteData, loadAnnouncements, initialCurrentSite, loading, currentSite]) // Add dependencies to prevent re-initialization
 
   // Add auth state change listener to refetch data when authentication changes
   useEffect(() => {
@@ -689,11 +698,11 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
         const supabase = createClient()
         const { data: { session } } = await supabase.auth.getSession()
         
-        if (session) {
+        if (session && !loading && !currentSite) { // 추가 체크
           console.log('✅ [HOME-TAB] Session confirmed, fetching site data...')
           fetchSiteData()
         } else {
-          console.warn('⚠️ [HOME-TAB] Auto-login successful but session not yet available, skipping fetch')
+          console.warn('⚠️ [HOME-TAB] Auto-login successful but session not yet available or already loading')
         }
       }, 2000) // Longer delay for proper session propagation
       return () => clearTimeout(timer)

@@ -129,28 +129,28 @@ export default function DashboardLayout({ user, profile, children, initialActive
     { 
       label: "빠른메뉴", 
       href: "/dashboard", 
-      icon: <Home /> 
+      icon: <Home className="stroke-current fill-none" /> 
     },
     { 
       label: "출력정보", 
       href: "/dashboard/attendance", 
-      icon: <Calendar /> 
+      icon: <Calendar className="stroke-current fill-none" /> 
     },
     { 
       label: "작업일지", 
       href: "/dashboard/daily-reports", 
-      icon: <FileText />, 
+      icon: <FileText className="stroke-current fill-none" />, 
       badge: 3 // TODO: 실제 미완성 보고서 수로 동적 설정
     },
     { 
       label: "현장정보", 
       href: "/dashboard/site-info", 
-      icon: <MapPin /> 
+      icon: <MapPin className="stroke-current fill-none" /> 
     },
     { 
       label: "문서함", 
       href: "#documents-unified", 
-      icon: <FolderOpen /> 
+      icon: <FolderOpen className="stroke-current fill-none" /> 
     }
   ]
   
@@ -160,14 +160,14 @@ export default function DashboardLayout({ user, profile, children, initialActive
       id: "home",
       label: "빠른메뉴", 
       href: "/dashboard", 
-      icon: <Home />,
+      icon: <Home className="stroke-current fill-none" />,
       priority: 'normal'
     },
     { 
       id: "attendance",
       label: "출력정보", 
       href: "/dashboard/attendance", 
-      icon: <Calendar />,
+      icon: <Calendar className="stroke-current fill-none" />,
       priority: 'high', // 출근 기록은 중요
       badge: 1
     },
@@ -175,7 +175,7 @@ export default function DashboardLayout({ user, profile, children, initialActive
       id: "daily-reports",
       label: "작업일지", 
       href: "/dashboard/daily-reports", 
-      icon: <FileText />, 
+      icon: <FileText className="stroke-current fill-none" />, 
       priority: 'high',
       badge: 3
     },
@@ -183,14 +183,14 @@ export default function DashboardLayout({ user, profile, children, initialActive
       id: "site-info",
       label: "현장정보", 
       href: "/dashboard/site-info", 
-      icon: <MapPin />,
+      icon: <MapPin className="stroke-current fill-none" />,
       priority: 'normal'
     },
     { 
       id: "documents",
       label: "문서함", 
       href: "#documents-unified", 
-      icon: <FolderOpen />,
+      icon: <FolderOpen className="stroke-current fill-none" />,
       priority: 'normal'
     }
   ]

@@ -208,7 +208,9 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
                   {React.cloneElement(item.icon as React.ReactElement, {
                     className: "h-6 w-6", // Larger icons for better visibility (24x24px)
                     "aria-hidden": "true",
-                    strokeWidth: isActive ? 2.5 : 1.5 // Enhanced stroke for outdoor visibility
+                    strokeWidth: isActive ? 2.5 : 1.5, // Enhanced stroke for outdoor visibility
+                    stroke: "currentColor", // Ensure icons use current text color
+                    fill: "none" // Ensure no fill color override
                   })}
                   {item.badge && (
                     <div className="absolute -right-1 -top-1 flex h-3 w-3 items-center justify-center rounded-full bg-red-500 text-[7px] font-bold text-white min-w-[12px]">

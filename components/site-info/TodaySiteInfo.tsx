@@ -33,12 +33,19 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
     blueprint_document: SiteDocument | null
   } | null>(null)
   const [documentsLoading, setDocumentsLoading] = useState(false)
+  const [documentsFetched, setDocumentsFetched] = useState(false) // 중복 fetch 방지
 
   // Fetch documents when siteInfo changes
   useEffect(() => {
     const fetchDocuments = async () => {
       if (!siteInfo?.id) {
         setSiteDocuments(null)
+        setDocumentsFetched(false)
+        return
+      }
+
+      // 이미 fetch한 경우 중복 요청 방지
+      if (documentsFetched && siteDocuments) {
         return
       }
 
@@ -47,20 +54,23 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
         const result = await getSiteDocumentsPTWAndBlueprint(siteInfo.id)
         if (result.success && result.data) {
           setSiteDocuments(result.data)
+          setDocumentsFetched(true)
         } else {
           console.error('Failed to fetch site documents:', result.error)
           setSiteDocuments(null)
+          setDocumentsFetched(true) // 실패해도 재시도 방지
         }
       } catch (error) {
         console.error('Error fetching site documents:', error)
         setSiteDocuments(null)
+        setDocumentsFetched(true) // 에러 발생해도 재시도 방지
       } finally {
         setDocumentsLoading(false)
       }
     }
 
     fetchDocuments()
-  }, [siteInfo?.id])
+  }, [siteInfo?.id, documentsFetched, siteDocuments])
 
   // Reset PDF load error when modal is opened
   useEffect(() => {
@@ -135,10 +145,21 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
   if (!siteInfo) {
     return (
       <Card elevation="sm" className="theme-transition border border-gray-200 dark:border-gray-700 shadow-md bg-gradient-to-br from-white to-gray-50/50 dark:from-gray-800 dark:to-gray-900/50">
-        <CardContent>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            현재 배정된 현장이 없습니다.
-          </p>
+        <CardContent className="p-4">
+          <div className="flex items-center gap-3">
+            <MapPin className="h-5 w-5 text-gray-400" />
+            <div>
+              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">현장 정보</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                {loading ? '현장 정보를 불러오는 중...' : '현재 배정된 현장이 없습니다.'}
+              </p>
+              {!loading && (
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
+                  관리자에게 현장 배정을 요청하세요.
+                </p>
+              )}
+            </div>
+          </div>
         </CardContent>
       </Card>
     )

@@ -358,7 +358,7 @@ export default function DocumentsTab({
         status: 'error',
         error: validation
       }])
-      return
+      return Promise.reject(new Error(validation))
     }
 
     const progressItem: UploadProgress = {
@@ -406,8 +406,19 @@ export default function DocumentsTab({
       )
 
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || '업로드 실패')
+        let errorMessage = '업로드 실패'
+        try {
+          const errorData = await response.json()
+          errorMessage = errorData.error || errorData.message || '업로드 실패'
+        } catch (parseError) {
+          // If can't parse error response, use default message
+        }
+        
+        if (response.status === 401) {
+          errorMessage = '인증이 필요합니다. 다시 로그인해 주세요.'
+        }
+        
+        throw new Error(errorMessage)
       }
 
       const result = await response.json()
@@ -458,19 +469,26 @@ export default function DocumentsTab({
     }
   }
 
-  const handleFileSelect = (files: FileList | null) => {
-    if (!files) return
+  const handleFileSelect = async (files: FileList | null) => {
+    if (!files || files.length === 0) {
+      return
+    }
     
     const documentType = fileInputRef.current?.getAttribute('data-document-type')
     
     setUploading(true)
-    Array.from(files).forEach(file => {
-      uploadFile(file, selectedCategory === 'all' ? 'misc' : selectedCategory, documentType || undefined)
-    })
-    setUploading(false)
-    
-    // Reset the document type attribute
-    fileInputRef.current?.removeAttribute('data-document-type')
+    try {
+      // Process files sequentially to avoid overwhelming the API
+      for (const file of Array.from(files)) {
+        await uploadFile(file, selectedCategory === 'all' ? 'misc' : selectedCategory, documentType || undefined)
+      }
+    } catch (error) {
+      console.error('Batch upload error:', error)
+    } finally {
+      setUploading(false)
+      // Reset the document type attribute
+      fileInputRef.current?.removeAttribute('data-document-type')
+    }
   }
 
 
@@ -879,12 +897,24 @@ export default function DocumentsTab({
                       ) : (
                         <button
                           onClick={() => {
-                            fileInputRef.current?.setAttribute('data-document-type', reqDoc.id)
-                            fileInputRef.current?.click()
+                            if (!fileInputRef.current) {
+                              console.error('File input ref is not available')
+                              return
+                            }
+                            if (uploading) {
+                              return // Prevent multiple uploads
+                            }
+                            fileInputRef.current.setAttribute('data-document-type', reqDoc.id)
+                            fileInputRef.current.click()
                           }}
-                          className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-md transition-colors"
+                          disabled={uploading}
+                          className={`px-3 py-1.5 text-white text-xs font-medium rounded-md transition-colors ${
+                            uploading 
+                              ? 'bg-gray-400 cursor-not-allowed' 
+                              : 'bg-blue-600 hover:bg-blue-700'
+                          }`}
                         >
-                          업로드하기
+                          {uploading ? '업로드 중...' : '업로드하기'}
                         </button>
                       )}
                     </div>

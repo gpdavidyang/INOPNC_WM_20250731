@@ -312,6 +312,39 @@ export const MarkupCanvas = forwardRef<HTMLCanvasElement, MarkupCanvasProps>(
         ctx.globalAlpha = 0.5
         ctx.fillRect(box.x || 0, box.y || 0, box.width || 0, box.height || 0)
         
+        // 박스 안에 라벨 텍스트 그리기
+        if (box.label && (box.width || 0) > 60 && (box.height || 0) > 30) {
+          ctx.save()
+          ctx.globalAlpha = 1
+          ctx.fillStyle = '#FFFFFF'
+          ctx.font = 'bold 14px sans-serif'
+          ctx.textAlign = 'center'
+          ctx.textBaseline = 'middle'
+          
+          // 박스 중앙에 텍스트 그리기
+          const centerX = (box.x || 0) + (box.width || 0) / 2
+          const centerY = (box.y || 0) + (box.height || 0) / 2
+          
+          // 텍스트 배경 추가 (가독성 향상)
+          const textMetrics = ctx.measureText(box.label)
+          const textWidth = textMetrics.width
+          const textHeight = 16
+          const padding = 4
+          
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.7)'
+          ctx.fillRect(
+            centerX - textWidth/2 - padding,
+            centerY - textHeight/2 - padding,
+            textWidth + padding * 2,
+            textHeight + padding * 2
+          )
+          
+          // 실제 텍스트 그리기
+          ctx.fillStyle = '#FFFFFF'
+          ctx.fillText(box.label, centerX, centerY)
+          ctx.restore()
+        }
+        
         if (isSelected) {
           ctx.strokeStyle = '#1F2937'
           ctx.lineWidth = 2
@@ -659,6 +692,7 @@ export const MarkupCanvas = forwardRef<HTMLCanvasElement, MarkupCanvasProps>(
           console.log('🔥 단일 터치 패닝 시작 (도구:', activeTool, ')')
         } else {
           // Drawing tools (box, pen, text)는 마우스 이벤트로 처리
+          console.log('🔥 터치 시작 - Drawing tool:', activeTool)
           const mouseEvent = {
             clientX: e.touches[0].clientX,
             clientY: e.touches[0].clientY,
@@ -667,6 +701,7 @@ export const MarkupCanvas = forwardRef<HTMLCanvasElement, MarkupCanvasProps>(
             preventDefault: () => {},
             stopPropagation: () => e.stopPropagation()
           } as any
+          setIsMouseDown(true) // 터치 시작 시 마우스 다운 상태로 설정
           handleMouseDown(mouseEvent)
         }
       }
@@ -737,6 +772,7 @@ export const MarkupCanvas = forwardRef<HTMLCanvasElement, MarkupCanvasProps>(
           console.log('🔥 단일 터치 패닝:', { activeTool, deltaX, deltaY })
         } else if (isMouseDown) {
           // Drawing tools의 drawing 동작
+          console.log('🔥 터치 이동 - Drawing tool:', activeTool, 'currentDrawing:', !!currentDrawing)
           const mouseEvent = {
             clientX: e.touches[0].clientX,
             clientY: e.touches[0].clientY,
@@ -763,19 +799,28 @@ export const MarkupCanvas = forwardRef<HTMLCanvasElement, MarkupCanvasProps>(
       
       if (remainingTouches.length === 0) {
         // 모든 터치 종료
+        const { activeTool } = editorState.toolState
+        console.log('🔥 모든 터치 종료 - activeTool:', activeTool, 'isMouseDown:', isMouseDown, 'currentDrawing:', !!currentDrawing)
+        
         setIsGesturing(false)
         setIsPanning(false)
         setLastDistance(0)
         setLastTouchCenter({ x: 0, y: 0 })
-        handleMouseUp()
-        console.log('🔥 모든 터치 종료')
+        
+        // Drawing tools의 경우 반드시 마우스 업 이벤트 처리
+        if (isMouseDown || currentDrawing) {
+          console.log('🔥 Drawing tool 터치 종료 - handleMouseUp 호출')
+          handleMouseUp()
+        }
+        
+        console.log('🔥 모든 터치 종료 완료')
       } else if (remainingTouches.length === 1 && isGesturing) {
         // 두 손가락에서 한 손가락으로 변경 - 제스처 종료
         setIsGesturing(false)
         setLastDistance(0)
         console.log('🔥 제스처 종료, 단일 터치로 변경')
       }
-    }, [isGesturing])
+    }, [isGesturing, editorState.toolState, isMouseDown, currentDrawing, handleMouseUp])
 
     // 마크업 객체 또는 뷰어 상태가 변경될 때마다 다시 그리기
     useEffect(() => {

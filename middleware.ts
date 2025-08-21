@@ -76,7 +76,7 @@ export async function middleware(request: NextRequest) {
     }
 
     // Public routes that don't require authentication
-    const publicPaths = ['/auth/login', '/auth/signup']
+    const publicPaths = ['/auth/login', '/auth/signup', '/auth/signup-request', '/auth/reset-password', '/auth/update-password']
     const isPublicPath = publicPaths.some(path => pathname.startsWith(path))
     
     // Demo pages that are accessible regardless of auth status

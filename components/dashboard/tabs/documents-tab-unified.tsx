@@ -87,16 +87,6 @@ export default function DocumentsTabUnified({ profile, initialTab = 'personal', 
             <div className="flex items-center justify-center gap-2">
               <FileCheck className="h-5 w-5" />
               <span>필수 제출 서류</span>
-              {/* Progress Badge */}
-              <span className={`px-1.5 py-0.5 text-xs font-bold rounded-full ${
-                activeTab === 'required'
-                  ? 'bg-white/20 text-white'
-                  : requiredDocsProgress.completed < requiredDocsProgress.total
-                  ? 'bg-orange-200 text-orange-800 dark:bg-orange-800 dark:text-orange-200'
-                  : 'bg-green-200 text-green-800 dark:bg-green-800 dark:text-green-200'
-              }`}>
-                {requiredDocsProgress.completed}/{requiredDocsProgress.total}
-              </span>
             </div>
             {/* Progress Indicator Line */}
             {activeTab !== 'required' && (

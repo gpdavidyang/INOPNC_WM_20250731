@@ -155,22 +155,34 @@ export default function SharedDocumentsTab({ profile, initialSearch }: SharedDoc
   const [shareDialogOpen, setShareDialogOpen] = useState(false)
   const [documentToShare, setDocumentToShare] = useState<SharedDocument | null>(null)
 
-  // 현장 목록 (실제로는 Supabase에서 가져와야 함)
-  const sites = [
-    { id: 'all', name: '전체 현장' },
-    { id: 'site1', name: '서울 아파트 신축공사' },
-    { id: 'site2', name: '부산 오피스텔 건설' },
-    { id: 'site3', name: '대구 상가 리모델링' },
-    { id: 'site4', name: '인천 공장 신축' }
-  ]
+  // 현장 목록 state
+  const [sites, setSites] = useState<Array<{id: string, name: string}>>([
+    { id: 'all', name: '전체 현장' }
+  ])
 
   const supabase = createClient()
   const router = useRouter()
 
   useEffect(() => {
+    loadSites()
     loadDocuments()
     loadActivityLog()
   }, [])
+
+  const loadSites = async () => {
+    try {
+      const response = await fetch('/api/sites')
+      if (response.ok) {
+        const result = await response.json()
+        if (result.success && result.data) {
+          setSites(result.data)
+        }
+      }
+    } catch (error) {
+      console.error('Error loading sites:', error)
+      // Keep default fallback sites
+    }
+  }
 
   const loadDocuments = async () => {
     setLoading(true)

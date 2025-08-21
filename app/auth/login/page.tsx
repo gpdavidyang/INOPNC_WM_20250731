@@ -194,10 +194,10 @@ export default function LoginPage() {
 
             <div className="mt-3 sm:mt-6 space-y-1.5 sm:space-y-3 text-center">
               <Link 
-                href="/auth/signup" 
-                className="block text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                href="/auth/signup-request" 
+                className="block text-sm text-green-600 hover:text-green-700 font-medium transition-colors"
               >
-                계정이 없으신가요? 회원가입
+                계정이 없으신가요? 회원가입 승인요청
               </Link>
               <Link 
                 href="/auth/reset-password" 

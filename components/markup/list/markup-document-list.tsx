@@ -223,7 +223,7 @@ export function MarkupDocumentList({
       <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <h2 className="text-xs font-medium text-gray-700 dark:text-gray-300">도면마킹</h2>
+            <h2 className="text-xs font-medium text-gray-700 dark:text-gray-300">도면문서함</h2>
             {isSelectionMode && (
               <span className="text-xs text-blue-600 dark:text-blue-400">
                 {selectedDocuments.length}개 선택됨
@@ -265,7 +265,7 @@ export function MarkupDocumentList({
                   className="flex items-center gap-1 px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-md transition-colors touch-manipulation"
                 >
                   <Plus className="h-3 w-3" />
-                  새 마킹
+                  업로드
                 </button>
               </>
             )}
@@ -278,7 +278,7 @@ export function MarkupDocumentList({
             <Search className="absolute left-2 top-1.5 h-3 w-3 text-gray-400" />
             <input
               type="text"
-              placeholder="도면 제목 검색..."
+              placeholder="파일명 검색..."
               value={searchQuery}
               onChange={(e) => handleSearch(e.target.value)}
               className="w-full pl-7 pr-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-xs focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
@@ -492,8 +492,8 @@ export function MarkupDocumentList({
                   onClick={onCreateNew}
                   className="mt-4 flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors mx-auto"
                 >
-                  <Plus className="h-4 w-4" />
-                  첫 번째 마킹 도면 만들기
+                  <Plus className="h-3 w-3" />
+                  첫 번째 도면 업로드하기
                 </button>
               )}
             </div>
@@ -561,7 +561,7 @@ export function MarkupDocumentList({
                         {loadingDocId === doc.id ? (
                           <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
                         ) : (
-                          <Eye className="h-4 w-4" />
+                          <Eye className="h-3 w-3" />
                         )}
                       </button>
                       <button
@@ -569,21 +569,21 @@ export function MarkupDocumentList({
                         className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors"
                         title="편집"
                       >
-                        <Edit className="h-4 w-4" />
+                        <Edit className="h-3 w-3" />
                       </button>
                       <button
                         onClick={() => handleShareDocument(doc)}
                         className="p-1.5 text-gray-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg transition-colors"
                         title="공유하기"
                       >
-                        <Share2 className="h-4 w-4" />
+                        <Share2 className="h-3 w-3" />
                       </button>
                       <button
                         onClick={() => handleDelete(doc.id)}
                         className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                         title="삭제"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-3 w-3" />
                       </button>
                     </div>
                   </div>
@@ -655,35 +655,35 @@ export function MarkupDocumentList({
                                   onOpenDocument(doc)
                                 }}
                                 disabled={loadingDocId === doc.id}
-                                className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                 title="미리보기"
                               >
                                 {loadingDocId === doc.id ? (
                                   <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
                                 ) : (
-                                  <Eye className="h-4 w-4" />
+                                  <Eye className="h-3 w-3" />
                                 )}
                               </button>
                               <button
                                 onClick={() => onEditDocument(doc)}
-                                className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors"
+                                className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-colors"
                                 title="편집"
                               >
-                                <Edit className="h-4 w-4" />
+                                <Edit className="h-3 w-3" />
                               </button>
                               <button
                                 onClick={() => handleShareDocument(doc)}
-                                className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg transition-colors"
+                                className="p-1.5 text-gray-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded transition-colors"
                                 title="공유하기"
                               >
-                                <Share2 className="h-4 w-4" />
+                                <Share2 className="h-3 w-3" />
                               </button>
                               <button
                                 onClick={() => handleDelete(doc.id)}
-                                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
                                 title="삭제"
                               >
-                                <Trash2 className="h-4 w-4" />
+                                <Trash2 className="h-3 w-3" />
                               </button>
                             </div>
                           </div>

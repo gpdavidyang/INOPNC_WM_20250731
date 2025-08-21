@@ -174,10 +174,25 @@ export default function SignupPage() {
               </div>
             </div>
 
-            <div className="mt-6 text-center">
-              <Link href="/auth/login" className="text-sm text-blue-600 hover:text-blue-500">
-                이미 계정이 있으신가요? 로그인
-              </Link>
+            <div className="mt-6 text-center space-y-3">
+              <div>
+                <Link href="/auth/signup-request" className="text-sm text-green-600 hover:text-green-500 font-medium">
+                  신규 회원가입 승인요청 →
+                </Link>
+              </div>
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-300" />
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-white text-gray-500">또는</span>
+                </div>
+              </div>
+              <div>
+                <Link href="/auth/login" className="text-sm text-blue-600 hover:text-blue-500">
+                  이미 계정이 있으신가요? 로그인
+                </Link>
+              </div>
             </div>
           </div>
         </div>

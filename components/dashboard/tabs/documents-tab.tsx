@@ -201,30 +201,32 @@ export default function DocumentsTab({
         })
       }
 
-      // Mock data for demo - in real implementation, this would fetch from Supabase
-      // API에서 실제 데이터 가져오기
-      const response = await fetch('/api/documents?type=personal')
+      // Fetch documents from API with proper error handling
+      const response = await fetch('/api/documents?type=personal&includeRequired=true')
       const result = await response.json()
       
-      let mockDocuments: Document[] = []
+      let apiDocuments: Document[] = []
       
-      if (result.success && result.data.length > 0) {
+      if (result.success && result.data && Array.isArray(result.data)) {
         // API 데이터를 Document 형식으로 변환
-        mockDocuments = result.data.map((doc: any) => ({
+        apiDocuments = result.data.map((doc: any) => ({
           id: doc.id,
-          name: doc.title,
-          type: doc.mime_type,
-          size: doc.file_size || 1024000,
-          category: doc.document_type || 'personal',
-          uploadedAt: doc.created_at,
-          uploadedBy: doc.owner?.full_name || doc.owner_name || profile.full_name,
-          url: doc.file_url,
+          name: doc.name || doc.title || doc.filename,
+          type: doc.type || doc.mime_type,
+          size: doc.size || doc.file_size || 0,
+          category: doc.category || doc.document_type || 'personal',
+          uploadedAt: doc.uploadedAt || doc.created_at,
+          uploadedBy: doc.uploadedBy || doc.owner?.full_name || doc.owner_name || profile.full_name,
+          url: doc.url || doc.file_url,
           site: doc.site?.name || doc.site_name,
-          siteAddress: doc.site?.address || doc.site_address
+          siteAddress: doc.site?.address || doc.site_address,
+          status: doc.status || 'completed',
+          documentType: doc.documentType,
+          isRequired: doc.isRequired || false
         }))
       } else {
-        // Fallback 데이터
-        mockDocuments = [
+        // Fallback 데이터 (빈 배열로 시작)
+        apiDocuments = [
           {
             id: '1',
             name: '2024년 7월 작업일지.pdf',
@@ -275,8 +277,8 @@ export default function DocumentsTab({
       ]
       }
 
-      // Combine markup documents with mock documents
-      const allDocuments = [...markupDocuments, ...mockDocuments]
+      // Combine markup documents with API documents
+      const allDocuments = [...markupDocuments, ...apiDocuments]
       
       setDocuments(allDocuments)
     } catch (error) {
@@ -368,52 +370,88 @@ export default function DocumentsTab({
     setUploadProgress(prev => [...prev, progressItem])
 
     try {
-      // Simulate upload progress
-      for (let progress = 0; progress <= 100; progress += 10) {
-        await new Promise(resolve => setTimeout(resolve, 100))
-        setUploadProgress(prev => 
-          prev.map(item => 
-            item.fileName === file.name 
-              ? { ...item, progress }
-              : item
-          )
-        )
+      // Create FormData for file upload
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('category', category)
+      formData.append('uploadedBy', profile.full_name)
+      if (documentType) {
+        formData.append('documentType', documentType)
+        const reqDoc = requiredDocuments.find(doc => doc.id === documentType)
+        if (reqDoc) {
+          formData.append('isRequired', reqDoc.isRequired.toString())
+        }
       }
 
-      // Mock successful upload
-      const newDocument: Document = {
-        id: Date.now().toString(),
-        name: file.name,
-        type: file.type,
-        size: file.size,
-        category: category,
-        uploadedAt: new Date().toISOString(),
-        uploadedBy: profile.full_name,
-        status: 'completed',
-        documentType: documentType,
-        isRequired: documentType ? requiredDocuments.find(doc => doc.id === documentType)?.isRequired : false
-      }
-
-      setDocuments(prev => [newDocument, ...prev])
-
+      // Upload file to server
       setUploadProgress(prev => 
         prev.map(item => 
           item.fileName === file.name 
-            ? { ...item, progress: 100, status: 'completed' }
+            ? { ...item, progress: 20 }
             : item
         )
       )
 
-      // Remove completed upload after 3 seconds
-      setTimeout(() => {
-        setUploadProgress(prev => prev.filter(item => item.fileName !== file.name))
-      }, 3000)
+      const response = await fetch('/api/documents', {
+        method: 'POST',
+        body: formData
+      })
 
-    } catch (error) {
       setUploadProgress(prev => 
         prev.map(item => 
           item.fileName === file.name 
-            ? { ...item, status: 'error', error: '업로드 실패' }
+            ? { ...item, progress: 80 }
+            : item
+        )
+      )
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || '업로드 실패')
+      }
+
+      const result = await response.json()
+      
+      if (result.success) {
+        // Add the new document to the list
+        const newDocument: Document = {
+          id: result.data.id,
+          name: result.data.name,
+          type: result.data.type,
+          size: result.data.size,
+          category: result.data.category,
+          uploadedAt: result.data.uploadedAt,
+          uploadedBy: result.data.uploadedBy,
+          status: 'completed',
+          documentType: result.data.documentType,
+          isRequired: result.data.isRequired || false
+        }
+
+        setDocuments(prev => [newDocument, ...prev])
+
+        setUploadProgress(prev => 
+          prev.map(item => 
+            item.fileName === file.name 
+              ? { ...item, progress: 100, status: 'completed' }
+              : item
+          )
+        )
+
+        // Remove completed upload after 3 seconds
+        setTimeout(() => {
+          setUploadProgress(prev => prev.filter(item => item.fileName !== file.name))
+        }, 3000)
+
+      } else {
+        throw new Error(result.error || '업로드 처리 실패')
+      }
+
+    } catch (error) {
+      console.error('File upload error:', error)
+      setUploadProgress(prev => 
+        prev.map(item => 
+          item.fileName === file.name 
+            ? { ...item, status: 'error', error: error instanceof Error ? error.message : '업로드 실패' }
             : item
         )
       )
@@ -585,76 +623,53 @@ export default function DocumentsTab({
     <div className="space-y-4">
       {/* Compact Document Management Header - Hide if showing only required docs */}
       {!showOnlyRequiredDocs && (
-      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-        {/* Primary Actions - Compact Layout */}
-        <div className="p-3">
-          <div className="flex items-center justify-between gap-3">
-            {/* Left: Primary Action or Selection Info */}
-            <div className="flex items-center gap-2">
-              {isSelectionMode ? (
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => {
-                      setIsSelectionMode(false)
-                      setSelectedDocuments([])
-                    }}
-                    className="p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-                    aria-label="선택 모드 종료"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                  <span className="text-xs font-medium text-gray-900 dark:text-gray-100">
-                    {selectedDocuments.length === 0 ? '항목 선택' : `${selectedDocuments.length}개 선택`}
-                  </span>
-                  {selectedDocuments.length > 0 && (
-                    <>
-                      <button
-                        onClick={() => setSelectedDocuments([])}
-                        className="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
-                      >
-                        해제
-                      </button>
-                      <div className="flex items-center gap-1 ml-2">
-                        <button
-                          onClick={() => setShowShareModal(true)}
-                          className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
-                        >
-                          <Share2 className="h-3 w-3" />
-                          공유
-                        </button>
-                        <button
-                          onClick={handleDeleteSelected}
-                          className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                          삭제
-                        </button>
-                      </div>
-                    </>
-                  )}
-                </div>
-              ) : (
+      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <h2 className="text-xs font-medium text-gray-700 dark:text-gray-300">내문서함</h2>
+            {isSelectionMode && (
+              <span className="text-xs text-blue-600 dark:text-blue-400">
+                {selectedDocuments.length}개 선택됨
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-1">
+            {isSelectionMode ? (
+              <>
                 <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs font-medium rounded transition-colors touch-manipulation"
+                  onClick={() => {
+                    setIsSelectionMode(false)
+                    setSelectedDocuments([])
+                  }}
+                  className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
                 >
-                  <Upload className="h-3.5 w-3.5" />
-                  <span>파일 업로드</span>
+                  취소
                 </button>
-              )}
-            </div>
-
-            {/* Right: Secondary Actions */}
-            {!isSelectionMode && (
-              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => setShowShareModal(true)}
+                  disabled={selectedDocuments.length === 0}
+                  className="flex items-center gap-1 px-2 py-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white text-xs font-medium rounded-md transition-colors"
+                >
+                  <Share2 className="h-3 w-3" />
+                  공유
+                </button>
+              </>
+            ) : (
+              <>
                 <button
                   onClick={() => setIsSelectionMode(true)}
-                  className="flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                  className="flex items-center gap-1 px-2 py-1 text-xs text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md"
                 >
-                  <CheckCircle className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">선택</span>
+                  <CheckCircle className="h-3 w-3" />
+                  선택
                 </button>
-                
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex items-center gap-1 px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-md transition-colors touch-manipulation"
+                >
+                  <Upload className="h-3 w-3" />
+                  업로드
+                </button>
                 <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded overflow-hidden">
                   <button
                     onClick={() => setViewMode('list')}
@@ -679,25 +694,24 @@ export default function DocumentsTab({
                     <Grid className="h-3.5 w-3.5" />
                   </button>
                 </div>
-              </div>
+              </>
             )}
           </div>
         </div>
 
-        {/* Search and Filter Bar - Compact */}
-        <div className="border-t border-gray-200 dark:border-gray-700 px-3 py-2">
-          <div className="flex gap-2">
-            <div className="flex-1 relative">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400 pointer-events-none" />
-              <input
-                type="text"
-                placeholder="파일명으로 검색..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-8 pr-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-900/50 text-gray-900 dark:text-gray-100 text-xs placeholder-gray-500 dark:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 focus:bg-white dark:focus:bg-gray-900 transition-colors"
-              />
-            </div>
-            
+        {/* Search and Filters - Compact Design */}
+        <div className="flex flex-col sm:flex-row gap-2">
+          <div className="flex-1 relative">
+            <Search className="absolute left-2 top-1.5 h-3 w-3 text-gray-400" />
+            <input
+              type="text"
+              placeholder="파일명 검색..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-7 pr-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-xs focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+          <div className="flex flex-wrap gap-1">
             <div className="relative">
               <select
                 value={`${sortBy}-${sortOrder}`}
@@ -726,7 +740,7 @@ export default function DocumentsTab({
         <div className="flex items-center justify-between mb-4">
           <div className="flex-1">
             <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">
-              {showOnlyRequiredDocs ? '현장 입장을 위한 필수 서류 업로드' : '필수 제출 서류'} ({uploadedRequiredDocs}/{totalRequiredDocs}개 완료)
+              {showOnlyRequiredDocs ? '필수 서류 업로드' : '필수 제출 서류'} ({uploadedRequiredDocs}/{totalRequiredDocs}개 완료)
             </h3>
             {showOnlyRequiredDocs && (
               <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
@@ -799,15 +813,19 @@ export default function DocumentsTab({
                         <p className="text-xs text-gray-500 dark:text-gray-400">{reqDoc.description}</p>
                         {isUploaded && uploadedDoc && (
                           <div className="mt-2 p-2 bg-green-50 dark:bg-green-900/20 rounded-md border border-green-200 dark:border-green-700">
-                            <div className="flex items-center gap-2">
-                              <CheckCircle className="h-3 w-3 text-green-500 flex-shrink-0" />
-                              <div className="flex-1 min-w-0">
-                                <div className="text-xs font-medium text-green-700 dark:text-green-300 truncate">
-                                  {uploadedDoc.name}
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2 flex-1 min-w-0">
+                                <CheckCircle className="h-3 w-3 text-green-500 flex-shrink-0" />
+                                <div className="flex-1 min-w-0">
+                                  <div className="text-xs font-medium text-green-700 dark:text-green-300 truncate">
+                                    {uploadedDoc.name}
+                                  </div>
                                 </div>
-                                <div className="text-xs text-green-600 dark:text-green-400 mt-0.5">
-                                  파일 크기: {formatFileSize(uploadedDoc.size)}
-                                </div>
+                              </div>
+                              <div className="flex items-center gap-1 ml-2">
+                                <span className="text-xs text-green-600 dark:text-green-400 whitespace-nowrap">
+                                  {formatFileSize(uploadedDoc.size)}
+                                </span>
                               </div>
                             </div>
                           </div>

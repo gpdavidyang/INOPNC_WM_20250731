@@ -753,6 +753,52 @@ export default function AttendanceTab({ profile }: AttendanceTabProps) {
             <div className="space-y-3">
               {/* Calendar */}
               <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+                {/* Year/Month Selectors */}
+                <div className="flex items-center justify-center gap-2 mb-3">
+                  <CustomSelect 
+                    value={currentMonth.getFullYear().toString()} 
+                    onValueChange={(value) => {
+                      const newDate = new Date(currentMonth)
+                      newDate.setFullYear(parseInt(value))
+                      setCurrentMonth(newDate)
+                    }}
+                  >
+                    <CustomSelectTrigger className="w-20 h-7 text-xs">
+                      <CustomSelectValue />
+                    </CustomSelectTrigger>
+                    <CustomSelectContent>
+                      {Array.from({ length: 6 }, (_, i) => {
+                        const year = new Date().getFullYear() - 2 + i
+                        return (
+                          <CustomSelectItem key={year} value={year.toString()}>
+                            {year}년
+                          </CustomSelectItem>
+                        )
+                      })}
+                    </CustomSelectContent>
+                  </CustomSelect>
+                  
+                  <CustomSelect 
+                    value={(currentMonth.getMonth() + 1).toString()} 
+                    onValueChange={(value) => {
+                      const newDate = new Date(currentMonth)
+                      newDate.setMonth(parseInt(value) - 1)
+                      setCurrentMonth(newDate)
+                    }}
+                  >
+                    <CustomSelectTrigger className="w-16 h-7 text-xs">
+                      <CustomSelectValue />
+                    </CustomSelectTrigger>
+                    <CustomSelectContent>
+                      {Array.from({ length: 12 }, (_, i) => (
+                        <CustomSelectItem key={i + 1} value={(i + 1).toString()}>
+                          {i + 1}월
+                        </CustomSelectItem>
+                      ))}
+                    </CustomSelectContent>
+                  </CustomSelect>
+                </div>
+
                 <div className="flex items-center justify-between mb-3">
                   <button
                     onClick={() => navigateMonth('prev')}

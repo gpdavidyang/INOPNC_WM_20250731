@@ -300,3 +300,205 @@ export async function updatePasswordWithToken(newPassword: string) {
     return { error: '비밀번호 업데이트 중 오류가 발생했습니다.' }
   }
 }
+
+export async function requestSignupApproval(formData: {
+  fullName: string
+  company: string
+  jobTitle: string
+  phone: string
+  email: string
+}) {
+  const supabase = createClient()
+
+  try {
+    // Check if email already exists in signup requests
+    const { data: existingRequest } = await supabase
+      .from('signup_requests')
+      .select('id')
+      .eq('email', formData.email)
+      .single()
+
+    if (existingRequest) {
+      return { error: '이미 승인 요청이 제출된 이메일입니다.' }
+    }
+
+    // Create signup request
+    const { error } = await supabase
+      .from('signup_requests')
+      .insert({
+        full_name: formData.fullName,
+        company: formData.company,
+        job_title: formData.jobTitle,
+        phone: formData.phone,
+        email: formData.email,
+        job_type: 'construction', // Default to construction
+        status: 'pending',
+        requested_at: new Date().toISOString()
+      })
+
+    if (error) {
+      console.error('Signup request error:', error)
+      return { error: '승인 요청 제출에 실패했습니다.' }
+    }
+
+    return { success: true }
+  } catch (error) {
+    console.error('Signup request error:', error)
+    return { error: '승인 요청 중 오류가 발생했습니다.' }
+  }
+}
+
+export async function approveSignupRequest(requestId: string, adminUserId: string) {
+  const supabase = createClient()
+
+  try {
+    // Get signup request details
+    const { data: request, error: fetchError } = await supabase
+      .from('signup_requests')
+      .select('*')
+      .eq('id', requestId)
+      .eq('status', 'pending')
+      .single()
+
+    if (fetchError || !request) {
+      return { error: '승인 요청을 찾을 수 없습니다.' }
+    }
+
+    // Generate temporary password
+    const tempPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8)
+
+    // Determine role based on job type
+    let role: UserRole = 'worker'
+    if (request.job_type === 'office') {
+      role = 'customer_manager'
+    }
+
+    // Create user in Supabase Auth
+    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+      email: request.email,
+      password: tempPassword,
+      email_confirm: true,
+      user_metadata: {
+        full_name: request.full_name,
+        phone: request.phone,
+        role: role,
+        company: request.company,
+        job_title: request.job_title
+      }
+    })
+
+    if (authError || !authData.user) {
+      console.error('Auth user creation error:', authError)
+      return { error: '사용자 계정 생성에 실패했습니다.' }
+    }
+
+    // Determine organization and site assignment
+    let organizationId = null
+    let siteId = null
+    
+    if (request.job_type === 'construction') {
+      organizationId = '11111111-1111-1111-1111-111111111111' // INOPNC
+      siteId = '33333333-3333-3333-3333-333333333333' // Default site
+    } else {
+      organizationId = '22222222-2222-2222-2222-222222222222' // Customer
+    }
+
+    // Create profile
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .insert({
+        id: authData.user.id,
+        email: request.email,
+        full_name: request.full_name,
+        phone: request.phone,
+        role: role,
+        organization_id: organizationId,
+        site_id: siteId,
+        status: 'active',
+        company: request.company,
+        job_title: request.job_title,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+
+    if (profileError) {
+      console.error('Profile creation error:', profileError)
+      return { error: '사용자 프로필 생성에 실패했습니다.' }
+    }
+
+    // Create user_organizations entry
+    if (organizationId) {
+      await supabase
+        .from('user_organizations')
+        .insert({
+          user_id: authData.user.id,
+          organization_id: organizationId,
+          is_primary: true
+        })
+    }
+
+    // Create site_assignments entry
+    if (siteId) {
+      await supabase
+        .from('site_assignments')
+        .insert({
+          user_id: authData.user.id,
+          site_id: siteId,
+          assigned_date: new Date().toISOString().split('T')[0],
+          is_active: true
+        })
+    }
+
+    // Update signup request status
+    const { error: updateError } = await supabase
+      .from('signup_requests')
+      .update({
+        status: 'approved',
+        approved_by: adminUserId,
+        approved_at: new Date().toISOString(),
+        temporary_password: tempPassword
+      })
+      .eq('id', requestId)
+
+    if (updateError) {
+      console.error('Signup request update error:', updateError)
+      return { error: '승인 처리 업데이트에 실패했습니다.' }
+    }
+
+    return { 
+      success: true, 
+      temporaryPassword: tempPassword,
+      userEmail: request.email 
+    }
+  } catch (error) {
+    console.error('Approve signup request error:', error)
+    return { error: '승인 처리 중 오류가 발생했습니다.' }
+  }
+}
+
+export async function rejectSignupRequest(requestId: string, adminUserId: string, reason?: string) {
+  const supabase = createClient()
+
+  try {
+    const { error } = await supabase
+      .from('signup_requests')
+      .update({
+        status: 'rejected',
+        rejected_by: adminUserId,
+        rejected_at: new Date().toISOString(),
+        rejection_reason: reason
+      })
+      .eq('id', requestId)
+      .eq('status', 'pending')
+
+    if (error) {
+      console.error('Reject signup request error:', error)
+      return { error: '거절 처리에 실패했습니다.' }
+    }
+
+    return { success: true }
+  } catch (error) {
+    console.error('Reject signup request error:', error)
+    return { error: '거절 처리 중 오류가 발생했습니다.' }
+  }
+}

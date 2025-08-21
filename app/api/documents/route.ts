@@ -112,3 +112,125 @@ export async function GET(request: NextRequest) {
     )
   }
 }
+
+export async function POST(request: NextRequest) {
+  try {
+    const supabase = createClient()
+
+    // 현재 사용자 확인
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const formData = await request.formData()
+    const file = formData.get('file') as File
+    const category = formData.get('category') as string
+    const uploadedBy = formData.get('uploadedBy') as string
+    const documentType = formData.get('documentType') as string
+    const isRequired = formData.get('isRequired') === 'true'
+
+    if (!file) {
+      return NextResponse.json({ error: 'No file provided' }, { status: 400 })
+    }
+
+    // 파일 크기 검증 (10MB)
+    const maxSize = 10 * 1024 * 1024 // 10MB
+    if (file.size > maxSize) {
+      return NextResponse.json({ error: 'File size too large (max 10MB)' }, { status: 400 })
+    }
+
+    // 파일 타입 검증
+    const allowedTypes = [
+      'application/pdf',
+      'image/jpeg',
+      'image/png',
+      'image/gif',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    ]
+
+    if (!allowedTypes.includes(file.type)) {
+      return NextResponse.json({ error: 'Invalid file type' }, { status: 400 })
+    }
+
+    // 파일을 Buffer로 변환
+    const bytes = await file.arrayBuffer()
+    const buffer = Buffer.from(bytes)
+
+    // Supabase Storage에 파일 업로드
+    const fileName = `${Date.now()}-${file.name}`
+    const filePath = `documents/${user.id}/${fileName}`
+
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('documents')
+      .upload(filePath, buffer, {
+        contentType: file.type,
+        upsert: false
+      })
+
+    if (uploadError) {
+      console.error('Upload error:', uploadError)
+      return NextResponse.json({ error: 'Failed to upload file' }, { status: 500 })
+    }
+
+    // 파일 URL 생성
+    const { data: urlData } = supabase.storage
+      .from('documents')
+      .getPublicUrl(filePath)
+
+    // 데이터베이스에 문서 정보 저장
+    const { data: documentData, error: dbError } = await supabase
+      .from('documents')
+      .insert([
+        {
+          title: file.name,
+          filename: fileName,
+          file_path: filePath,
+          file_url: urlData.publicUrl,
+          file_size: file.size,
+          mime_type: file.type,
+          category: category || 'personal',
+          document_type: documentType,
+          is_required: isRequired,
+          owner_id: user.id,
+          is_public: false,
+          status: 'active'
+        }
+      ])
+      .select()
+      .single()
+
+    if (dbError) {
+      console.error('Database error:', dbError)
+      // 업로드된 파일 삭제
+      await supabase.storage.from('documents').remove([filePath])
+      return NextResponse.json({ error: 'Failed to save document info' }, { status: 500 })
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        id: documentData.id,
+        name: documentData.title,
+        type: documentData.mime_type,
+        size: documentData.file_size,
+        category: documentData.category,
+        uploadedAt: documentData.created_at,
+        uploadedBy: uploadedBy,
+        url: documentData.file_url,
+        documentType: documentData.document_type,
+        isRequired: documentData.is_required
+      }
+    })
+
+  } catch (error) {
+    console.error('Upload API error:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}

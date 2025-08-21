@@ -161,10 +161,10 @@ export default function ResetPasswordForm() {
             계정이 없으신가요?
           </p>
           <Link
-            href="/auth/signup"
-            className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
+            href="/auth/signup-request"
+            className="text-sm text-green-600 hover:text-green-700 font-medium transition-colors"
           >
-            회원가입
+            회원가입 승인요청
           </Link>
         </div>
       </div>

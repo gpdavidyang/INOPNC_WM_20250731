@@ -208,19 +208,6 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* 데모 계정 정보 */}
-          <div className="mt-3 sm:mt-8 p-2.5 sm:p-5 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
-            <div className="flex items-center space-x-1.5 sm:space-x-2 mb-1.5 sm:mb-4">
-              <svg className="h-3.5 w-3.5 sm:h-5 sm:w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <p className="text-xs sm:text-sm font-medium text-blue-900">데모 계정</p>
-            </div>
-            <div className="flex flex-col sm:flex-row sm:justify-between gap-0.5 sm:gap-0">
-              <span className="text-xs font-medium text-blue-900 whitespace-nowrap">현장관리자:</span>
-              <span className="text-xs font-mono text-blue-800 break-all sm:break-normal">manager@inopnc.com / password123</span>
-            </div>
-          </div>
         </div>
       </div>
     </div>

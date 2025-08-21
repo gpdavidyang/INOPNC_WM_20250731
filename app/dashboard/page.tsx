@@ -94,9 +94,13 @@ export default async function DashboardPage() {
     }
   }
 
-  // Redirect admin users to admin dashboard
-  if (profile && (profile.role === 'admin' || profile.role === 'system_admin')) {
-    redirect('/dashboard/admin')
+  // Redirect based on role
+  if (profile) {
+    if (profile.role === 'admin' || profile.role === 'system_admin') {
+      redirect('/dashboard/admin')
+    } else if (profile.role === 'customer_manager') {
+      redirect('/partner/dashboard')
+    }
   }
 
   // Pre-fetch site data on server side to avoid client authentication issues

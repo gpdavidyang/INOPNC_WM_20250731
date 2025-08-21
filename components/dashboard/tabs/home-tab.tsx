@@ -101,7 +101,7 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
       id: 'documents',
       name: '문서함',
       icon: <FolderOpen className="h-5 w-5" />,
-      path: '/dashboard/documents',
+      path: '#documents-unified',
       color: 'text-amber-600 dark:text-amber-400',
       backgroundColor: 'bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/30 border-amber-200 dark:border-amber-800',
       description: '개인 문서 관리'
@@ -789,16 +789,17 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
                 <li key={item.id} role="none">
                   <button 
                     onClick={() => {
-                      // All quick menu items should use router.push for navigation
                       console.log('[QuickMenu] Navigating to:', item.path)
                       
-                      // Temporary fix for documents navigation issue
-                      if (item.path === '/dashboard/documents') {
-                        console.log('[QuickMenu] Using window.location for documents')
-                        window.location.href = item.path
+                      // Handle hash-based navigation for documents tab
+                      if (item.path.startsWith('#')) {
+                        const tabId = item.path.replace('#', '')
+                        console.log('[QuickMenu] Setting active tab to:', tabId)
+                        onTabChange(tabId)
                         return
                       }
                       
+                      // Regular navigation for other items
                       router.push(item.path)
                     }}
                     className={`w-full flex flex-col items-center py-4 px-3 ${item.backgroundColor} rounded-xl transition-all duration-200 active:scale-[0.98] touch-manipulation focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 min-h-[72px] shadow-sm hover:shadow-md group`}

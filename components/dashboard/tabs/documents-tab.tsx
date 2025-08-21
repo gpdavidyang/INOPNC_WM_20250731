@@ -89,6 +89,7 @@ export default function DocumentsTab({
   const [isRequiredDocsExpanded, setIsRequiredDocsExpanded] = useState(showOnlyRequiredDocs ? true : true)
   const [shareDialogOpen, setShareDialogOpen] = useState(false)
   const [documentToShare, setDocumentToShare] = useState<Document | null>(null)
+  const [uploadingDocuments, setUploadingDocuments] = useState<Set<string>>(new Set())
 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const supabase = createClient()
@@ -340,18 +341,35 @@ export default function DocumentsTab({
   }
 
   const validateFile = (file: File): string | null => {
+    console.log('🔍 Validating file:', file.name, 'type:', file.type, 'size:', file.size)
+    
     if (!ALLOWED_FILE_TYPES.includes(file.type)) {
-      return '지원하지 않는 파일 형식입니다.'
+      console.log('❌ File type not allowed:', file.type)
+      return `지원하지 않는 파일 형식입니다. (${file.type})`
     }
-    if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
-      return `파일 크기가 ${MAX_FILE_SIZE_MB}MB를 초과합니다.`
+    
+    const maxSize = MAX_FILE_SIZE_MB * 1024 * 1024
+    if (file.size > maxSize) {
+      console.log('❌ File too large:', file.size, 'max:', maxSize)
+      return `파일 크기가 ${MAX_FILE_SIZE_MB}MB를 초과합니다. (${Math.round(file.size / 1024 / 1024 * 100) / 100}MB)`
     }
+    
+    console.log('✅ File validation passed')
     return null
   }
 
   const uploadFile = async (file: File, category: string = 'misc', documentType?: string) => {
+    console.log('🚀 uploadFile called with:', {
+      fileName: file.name,
+      fileSize: file.size,
+      fileType: file.type,
+      category,
+      documentType
+    })
+    
     const validation = validateFile(file)
     if (validation) {
+      console.log('❌ File validation failed:', validation)
       setUploadProgress(prev => [...prev, {
         fileName: file.name,
         progress: 0,
@@ -384,6 +402,7 @@ export default function DocumentsTab({
       }
 
       // Upload file to server
+      console.log('📤 Starting API upload to /api/documents')
       setUploadProgress(prev => 
         prev.map(item => 
           item.fileName === file.name 
@@ -395,6 +414,12 @@ export default function DocumentsTab({
       const response = await fetch('/api/documents', {
         method: 'POST',
         body: formData
+      })
+
+      console.log('📡 API response received:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok
       })
 
       setUploadProgress(prev => 
@@ -470,24 +495,73 @@ export default function DocumentsTab({
   }
 
   const handleFileSelect = async (files: FileList | null) => {
+    console.log('🔄 handleFileSelect called with files:', files?.length || 0)
+    
     if (!files || files.length === 0) {
+      console.log('❌ No files selected or files is null')
+      // Reset any pending upload states
+      const documentType = fileInputRef.current?.getAttribute('data-document-type')
+      if (documentType) {
+        console.log('🧹 Cleaning up upload state for:', documentType)
+        setUploadingDocuments(prev => {
+          const newSet = new Set(prev)
+          newSet.delete(documentType)
+          return newSet
+        })
+        fileInputRef.current?.removeAttribute('data-document-type')
+      }
       return
     }
     
     const documentType = fileInputRef.current?.getAttribute('data-document-type')
+    console.log('📋 Processing file selection for document type:', documentType)
     
-    setUploading(true)
-    try {
-      // Process files sequentially to avoid overwhelming the API
-      for (const file of Array.from(files)) {
-        await uploadFile(file, selectedCategory === 'all' ? 'misc' : selectedCategory, documentType || undefined)
+    if (documentType) {
+      // 개별 문서 업로드
+      console.log('🚀 Starting upload for document type:', documentType)
+      setUploadingDocuments(prev => {
+        const newSet = new Set(prev)
+        newSet.add(documentType)
+        console.log('📊 Current uploading documents:', Array.from(newSet))
+        return newSet
+      })
+      
+      try {
+        for (const file of Array.from(files)) {
+          console.log('📄 Uploading file for required document:', file.name, 'size:', file.size)
+          await uploadFile(file, selectedCategory === 'all' ? 'misc' : selectedCategory, documentType)
+        }
+        console.log('✅ All files uploaded successfully for:', documentType)
+      } catch (error) {
+        console.error('❌ Required document upload error:', error)
+        alert('업로드 중 오류가 발생했습니다: ' + (error instanceof Error ? error.message : '알 수 없는 오류'))
+      } finally {
+        console.log('🧹 Cleaning up upload state for:', documentType)
+        setUploadingDocuments(prev => {
+          const newSet = new Set(prev)
+          newSet.delete(documentType)
+          console.log('📊 Remaining uploading documents:', Array.from(newSet))
+          return newSet
+        })
+        fileInputRef.current?.removeAttribute('data-document-type')
       }
-    } catch (error) {
-      console.error('Batch upload error:', error)
-    } finally {
-      setUploading(false)
-      // Reset the document type attribute
-      fileInputRef.current?.removeAttribute('data-document-type')
+    } else {
+      // 일반 파일 업로드
+      console.log('🚀 Starting general file upload')
+      setUploading(true)
+      try {
+        for (const file of Array.from(files)) {
+          console.log('📄 Uploading general file:', file.name)
+          await uploadFile(file, selectedCategory === 'all' ? 'misc' : selectedCategory, undefined)
+        }
+        console.log('✅ All general files uploaded successfully')
+      } catch (error) {
+        console.error('❌ General upload error:', error)
+        alert('업로드 중 오류가 발생했습니다: ' + (error instanceof Error ? error.message : '알 수 없는 오류'))
+      } finally {
+        console.log('🧹 Cleaning up general upload state')
+        setUploading(false)
+      }
     }
   }
 
@@ -897,24 +971,45 @@ export default function DocumentsTab({
                       ) : (
                         <button
                           onClick={() => {
+                            console.log('🖱️ Upload button clicked for:', reqDoc.id)
+                            
                             if (!fileInputRef.current) {
-                              console.error('File input ref is not available')
+                              console.error('❌ File input ref is not available')
+                              alert('파일 입력 요소에 접근할 수 없습니다. 페이지를 새로고침해주세요.')
                               return
                             }
-                            if (uploading) {
-                              return // Prevent multiple uploads
+                            
+                            if (uploadingDocuments.has(reqDoc.id)) {
+                              console.log('⏳ Already uploading for document:', reqDoc.id)
+                              return // Prevent multiple uploads for this specific document
                             }
+                            
+                            console.log('📤 Starting upload process for document:', reqDoc.id)
+                            
+                            // Set the document type before triggering file selection
                             fileInputRef.current.setAttribute('data-document-type', reqDoc.id)
-                            fileInputRef.current.click()
+                            console.log('🏷️ Set data-document-type to:', reqDoc.id)
+                            
+                            // Reset the file input to ensure change event fires
+                            fileInputRef.current.value = ''
+                            
+                            // Trigger file selection
+                            try {
+                              fileInputRef.current.click()
+                              console.log('🎯 File input clicked successfully')
+                            } catch (error) {
+                              console.error('❌ Error clicking file input:', error)
+                              alert('파일 선택을 시작할 수 없습니다.')
+                            }
                           }}
-                          disabled={uploading}
-                          className={`px-3 py-1.5 text-white text-xs font-medium rounded-md transition-colors ${
-                            uploading 
+                          disabled={uploadingDocuments.has(reqDoc.id)}
+                          className={`px-3 py-1.5 text-white text-xs font-medium rounded-md transition-colors touch-manipulation ${
+                            uploadingDocuments.has(reqDoc.id) 
                               ? 'bg-gray-400 cursor-not-allowed' 
-                              : 'bg-blue-600 hover:bg-blue-700'
+                              : 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800'
                           }`}
                         >
-                          {uploading ? '업로드 중...' : '업로드하기'}
+                          {uploadingDocuments.has(reqDoc.id) ? '업로드 중...' : '업로드하기'}
                         </button>
                       )}
                     </div>
@@ -1215,8 +1310,19 @@ export default function DocumentsTab({
         type="file"
         multiple
         accept={ALLOWED_FILE_TYPES.join(',')}
-        onChange={(e) => handleFileSelect(e.target.files)}
+        onChange={(e) => {
+          console.log('📁 File input change event triggered')
+          console.log('📄 Selected files:', e.target.files?.length || 0)
+          if (e.target.files?.length) {
+            for (let i = 0; i < e.target.files.length; i++) {
+              const file = e.target.files[i]
+              console.log(`  📄 File ${i + 1}: ${file.name} (${file.size} bytes, ${file.type})`)
+            }
+          }
+          handleFileSelect(e.target.files)
+        }}
         className="hidden"
+        style={{ display: 'none' }}
       />
 
       {/* Share Modal */}

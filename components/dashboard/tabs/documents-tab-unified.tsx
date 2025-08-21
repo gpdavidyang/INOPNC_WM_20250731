@@ -11,9 +11,10 @@ interface DocumentsTabUnifiedProps {
   profile: Profile
   initialTab?: 'personal' | 'shared' | 'markup' | 'required'
   initialSearch?: string
+  onTabChange?: (tabId: string) => void
 }
 
-export default function DocumentsTabUnified({ profile, initialTab = 'personal', initialSearch }: DocumentsTabUnifiedProps) {
+export default function DocumentsTabUnified({ profile, initialTab = 'personal', initialSearch, onTabChange }: DocumentsTabUnifiedProps) {
   // If initialSearch is for blueprints, default to shared tab
   const defaultTab = initialSearch === '공도면' ? 'shared' : initialTab
   const [activeTab, setActiveTab] = useState<'personal' | 'shared' | 'markup' | 'required'>(defaultTab)

@@ -240,7 +240,7 @@ export default function DashboardLayout({ user, profile, children, initialActive
         // 지연 로딩으로 성능 개선
         return <LazyAttendanceTab profile={profile} />
       case 'documents-unified':
-        return <LazyDocumentsTabUnified profile={profile} initialSearch={documentsInitialSearch} />
+        return <LazyDocumentsTabUnified profile={profile} initialSearch={documentsInitialSearch} onTabChange={setActiveTab} />
       case 'documents':
         // Show fallback content while navigation happens
         return <HomeTab 

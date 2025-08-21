@@ -41,8 +41,7 @@ import {
   CameraIcon,
   Eye
 } from 'lucide-react'
-import { Site, Profile, Material, PhotoGroup } from '@/types'
-import ConstructionPhotoMatrix from './construction-photo-matrix'
+import { Site, Profile, Material, PhotoGroup, ComponentType, ConstructionProcessType } from '@/types'
 import PhotoGridPreview from './photo-grid-preview'
 import PDFReportGenerator from './pdf-report-generator'
 import { cn } from '@/lib/utils'
@@ -63,6 +62,11 @@ interface WorkContentEntry {
   processType: string
   processTypeOther?: string
   workSection: string
+  // 통합된 사진 관리
+  beforePhotos: File[]
+  afterPhotos: File[]
+  beforePhotoPreviews: string[]
+  afterPhotoPreviews: string[]
 }
 
 interface WorkerEntry {
@@ -204,8 +208,9 @@ export default function DailyReportFormEnhanced({
   const [showPhotoModal, setShowPhotoModal] = useState(false)
   const [currentPhotoType, setCurrentPhotoType] = useState<'before' | 'after'>('before')
   
-  // Section 5: Construction Photo Groups (New)
-  const [photoGroups, setPhotoGroups] = useState<PhotoGroup[]>([])
+  // PDF 생성 관련 state
+  const [showPDFModal, setShowPDFModal] = useState(false)
+  const [pdfPhotoGroups, setPDFPhotoGroups] = useState<PhotoGroup[]>([])
   const [showDrawingModal, setShowDrawingModal] = useState(false)
   
   // Section 5: Receipts
@@ -225,12 +230,6 @@ export default function DailyReportFormEnhanced({
     remaining: ''
   })
 
-  // 작업 내용 변경 시 사진 그룹 자동 동기화
-  useEffect(() => {
-    if (workContents.length > 0) {
-      syncWorkContentToPhotoGroups()
-    }
-  }, []) // 컴포넌트 마운트 시 초기 동기화
 
   // Auto-calculate remaining quantity when incoming or used changes
   const updateMaterialData = (field: keyof MaterialEntry, value: string) => {
@@ -355,99 +354,90 @@ export default function DailyReportFormEnhanced({
       id: `wc-${Date.now()}`,
       memberName: '',
       processType: '',
-      workSection: ''
+      workSection: '',
+      beforePhotos: [],
+      afterPhotos: [],
+      beforePhotoPreviews: [],
+      afterPhotoPreviews: []
     }
     const updatedWorkContents = [...workContents, newWorkContent]
     setWorkContents(updatedWorkContents)
-    
-    // 새 작업 내용 추가 시 사진 그룹도 동기화
-    syncWorkContentToPhotoGroups(updatedWorkContents)
   }
 
   const updateWorkContent = (id: string, field: keyof WorkContentEntry, value: string) => {
-    const updatedWorkContents = workContents.map(wc => 
+    setWorkContents(workContents.map(wc => 
       wc.id === id ? { ...wc, [field]: value } : wc
-    )
-    setWorkContents(updatedWorkContents)
-    
-    // 작업 내용 업데이트 시 사진 그룹도 동기화
-    syncWorkContentToPhotoGroups(updatedWorkContents)
+    ))
   }
 
   const removeWorkContent = (id: string) => {
     setWorkContents(workContents.filter(wc => wc.id !== id))
-    // 작업 내용 삭제 시 해당 사진 그룹도 업데이트
-    syncWorkContentToPhotoGroups(workContents.filter(wc => wc.id !== id))
   }
 
-  // 작업 내용 데이터를 사진 그룹으로 동기화
-  const syncWorkContentToPhotoGroups = (updatedWorkContents?: WorkContentEntry[]) => {
-    const workData = updatedWorkContents || workContents
-    
-    // 사용자 요구사항에 맞는 매핑 사전
-    const componentTypeMapping: Record<string, ComponentType> = {
-      '슬라브': 'slab',
-      '거더': 'girder', 
-      '기둥': 'column',
-      '기타': 'other'
-    }
-    
-    const processTypeMapping: Record<string, ConstructionProcessType> = {
-      '균열': 'crack',
-      '면': 'surface',
-      '마감': 'finishing',
-      '기타': 'other'
-    }
-    
-    // 기존 사진 그룹에서 사진 데이터는 유지하고 구조만 업데이트
-    const existingPhotosByKey: Record<string, PhotoGroup> = {}
-    photoGroups.forEach(group => {
-      const key = `${group.component_name}_${group.process_type}`
-      existingPhotosByKey[key] = group
-    })
-    
-    const newPhotoGroups: PhotoGroup[] = []
-    
-    workData.forEach((content) => {
-      // 부재명 결정 (기타인 경우 직접입력값 사용)
-      const componentName = content.memberName === '기타' 
-        ? (content.memberNameOther || '기타')
-        : content.memberName
-      
-      // 공정 결정 (기타인 경우 직접입력값 사용)
-      const processName = content.processType === '기타'
-        ? (content.processTypeOther || '기타')
-        : content.processType
-      
-      // 매핑된 타입 값 가져오기
-      const componentType = componentTypeMapping[content.memberName] || 'other'
-      const processType = processTypeMapping[content.processType] || 'other'
-      
-      // 고유 키 생성
-      const groupKey = `${componentName}_${processType}`
-      
-      // 기존 사진 그룹이 있으면 사진 데이터를 유지, 없으면 새로 생성
-      const existingGroup = existingPhotosByKey[groupKey]
-      
-      const photoGroup: PhotoGroup = {
-        id: existingGroup?.id || `pg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        component_name: `${componentName}${content.workSection ? ` (${content.workSection})` : ''}`,
-        component_type: componentType,
-        process_type: processType,
-        before_photos: existingGroup?.before_photos || [],
-        after_photos: existingGroup?.after_photos || [],
-        progress_status: existingGroup?.progress_status || 'not_started' as const,
-        notes: existingGroup?.notes || '',
-        daily_report_id: formData.id || 'temp',
-        created_at: existingGroup?.created_at || new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      }
-      
-      newPhotoGroups.push(photoGroup)
-    })
-    
-    setPhotoGroups(newPhotoGroups)
+  // 작업 내용별 사진 업로드 함수
+  const handleWorkContentPhotoUpload = (workId: string, type: 'before' | 'after', files: File[]) => {
+    setWorkContents(prevContents => 
+      prevContents.map(content => {
+        if (content.id !== workId) return content
+        
+        const newContent = { ...content }
+        const photosField = type === 'before' ? 'beforePhotos' : 'afterPhotos'
+        const previewsField = type === 'before' ? 'beforePhotoPreviews' : 'afterPhotoPreviews'
+        
+        // 최대 10장 제한
+        const currentPhotos = content[photosField] as File[]
+        const remaining = 10 - currentPhotos.length
+        const filesToAdd = files.slice(0, remaining)
+        
+        newContent[photosField] = [...currentPhotos, ...filesToAdd]
+        
+        // 미리보기 생성
+        filesToAdd.forEach(file => {
+          const reader = new FileReader()
+          reader.onloadend = () => {
+            setWorkContents(prev => 
+              prev.map(c => 
+                c.id === workId 
+                  ? {
+                      ...c,
+                      [previewsField]: [...(c[previewsField] as string[]), reader.result as string]
+                    }
+                  : c
+              )
+            )
+          }
+          reader.readAsDataURL(file)
+        })
+        
+        return newContent
+      })
+    )
   }
+
+  // 작업 내용별 사진 삭제 함수
+  const removeWorkContentPhoto = (workId: string, type: 'before' | 'after', index: number) => {
+    setWorkContents(prevContents =>
+      prevContents.map(content => {
+        if (content.id !== workId) return content
+        
+        const photosField = type === 'before' ? 'beforePhotos' : 'afterPhotos'
+        const previewsField = type === 'before' ? 'beforePhotoPreviews' : 'afterPhotoPreviews'
+        
+        const newPhotos = [...(content[photosField] as File[])]
+        const newPreviews = [...(content[previewsField] as string[])]
+        
+        newPhotos.splice(index, 1)
+        newPreviews.splice(index, 1)
+        
+        return {
+          ...content,
+          [photosField]: newPhotos,
+          [previewsField]: newPreviews
+        }
+      })
+    )
+  }
+
 
   // Worker handlers
   const addWorker = () => {
@@ -885,9 +875,9 @@ export default function DailyReportFormEnhanced({
             </div>
           </div>
 
-          {/* Section 2: Work Content */}
+          {/* Section 2: 통합된 작업 내용 및 사진 관리 */}
           <CollapsibleSection
-            title="작업 내용 입력"
+            title="작업 내용 및 사진 관리"
             icon={FileText}
             isExpanded={expandedSections.workContent}
             onToggle={() => toggleSection('workContent')}
@@ -983,6 +973,125 @@ export default function DailyReportFormEnhanced({
                         className="w-full h-8 px-2 text-sm bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                       />
                     </div>
+
+                    {/* 사진 업로드 영역 */}
+                    <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-gray-200 dark:border-gray-600">
+                      {/* 작업 전 사진 */}
+                      <div>
+                        <label className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5 flex items-center gap-1">
+                          <Camera className="h-3.5 w-3.5" />
+                          작업 전 사진
+                          <span className="text-gray-400">({content.beforePhotos?.length || 0}/10)</span>
+                        </label>
+                        
+                        <div className="space-y-2">
+                          {/* 업로드 버튼 */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const input = document.createElement('input')
+                              input.type = 'file'
+                              input.accept = 'image/*'
+                              input.multiple = true
+                              input.onchange = (e) => {
+                                const files = Array.from((e.target as HTMLInputElement).files || [])
+                                handleWorkContentPhotoUpload(content.id, 'before', files)
+                              }
+                              input.click()
+                            }}
+                            className="w-full h-8 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded flex items-center justify-center gap-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 transition-colors"
+                          >
+                            <Upload className="h-3.5 w-3.5" />
+                            사진 업로드
+                          </button>
+                          
+                          {/* 미리보기 */}
+                          {content.beforePhotoPreviews && content.beforePhotoPreviews.length > 0 && (
+                            <div className="grid grid-cols-3 gap-1">
+                              {content.beforePhotoPreviews.slice(0, 9).map((preview, idx) => (
+                                <div key={idx} className="relative group">
+                                  <img
+                                    src={preview}
+                                    alt={`작업 전 ${idx + 1}`}
+                                    className="w-full h-12 object-cover rounded border border-gray-200 dark:border-gray-600"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => removeWorkContentPhoto(content.id, 'before', idx)}
+                                    className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                                  >
+                                    <X className="h-2.5 w-2.5" />
+                                  </button>
+                                </div>
+                              ))}
+                              {content.beforePhotoPreviews.length > 9 && (
+                                <div className="flex items-center justify-center h-12 bg-gray-100 dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600 text-xs text-gray-500">
+                                  +{content.beforePhotoPreviews.length - 9}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* 작업 후 사진 */}
+                      <div>
+                        <label className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5 flex items-center gap-1">
+                          <Check className="h-3.5 w-3.5 text-green-500" />
+                          작업 후 사진
+                          <span className="text-gray-400">({content.afterPhotos?.length || 0}/10)</span>
+                        </label>
+                        
+                        <div className="space-y-2">
+                          {/* 업로드 버튼 */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const input = document.createElement('input')
+                              input.type = 'file'
+                              input.accept = 'image/*'
+                              input.multiple = true
+                              input.onchange = (e) => {
+                                const files = Array.from((e.target as HTMLInputElement).files || [])
+                                handleWorkContentPhotoUpload(content.id, 'after', files)
+                              }
+                              input.click()
+                            }}
+                            className="w-full h-8 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 border border-green-200 dark:border-green-700 rounded flex items-center justify-center gap-1.5 text-xs font-medium text-green-600 dark:text-green-400 transition-colors"
+                          >
+                            <Upload className="h-3.5 w-3.5" />
+                            사진 업로드
+                          </button>
+                          
+                          {/* 미리보기 */}
+                          {content.afterPhotoPreviews && content.afterPhotoPreviews.length > 0 && (
+                            <div className="grid grid-cols-3 gap-1">
+                              {content.afterPhotoPreviews.slice(0, 9).map((preview, idx) => (
+                                <div key={idx} className="relative group">
+                                  <img
+                                    src={preview}
+                                    alt={`작업 후 ${idx + 1}`}
+                                    className="w-full h-12 object-cover rounded border border-gray-200 dark:border-gray-600"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => removeWorkContentPhoto(content.id, 'after', idx)}
+                                    className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                                  >
+                                    <X className="h-2.5 w-2.5" />
+                                  </button>
+                                </div>
+                              ))}
+                              {content.afterPhotoPreviews.length > 9 && (
+                                <div className="flex items-center justify-center h-12 bg-gray-100 dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600 text-xs text-gray-500">
+                                  +{content.afterPhotoPreviews.length - 9}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -991,6 +1100,60 @@ export default function DailyReportFormEnhanced({
                 <p className="text-center text-gray-500 py-6 text-xs">
                   작업 내용을 추가하려면 &quot;작업 추가&quot; 버튼을 클릭하세요
                 </p>
+              )}
+              
+              {/* PDF 생성 버튼 */}
+              {workContents.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      // PDF 생성 로직
+                      const photoGroupsFromWorkContents = workContents.map(content => ({
+                        id: content.id,
+                        component_name: content.memberName === '기타' 
+                          ? `${content.memberNameOther || '기타'}${content.workSection ? ` (${content.workSection})` : ''}` 
+                          : `${content.memberName}${content.workSection ? ` (${content.workSection})` : ''}`,
+                        component_type: (
+                          content.memberName === '슬라브' ? 'slab' :
+                          content.memberName === '거더' ? 'girder' :
+                          content.memberName === '기둥' ? 'column' : 'other'
+                        ) as ComponentType,
+                        process_type: (
+                          content.processType === '균열' ? 'crack' :
+                          content.processType === '면' ? 'surface' :
+                          content.processType === '마감' ? 'finishing' : 'other'
+                        ) as ConstructionProcessType,
+                        before_photos: content.beforePhotos.map((file, idx) => ({
+                          id: `before-${content.id}-${idx}`,
+                          file_url: content.beforePhotoPreviews[idx] || '',
+                          stage: 'before' as const
+                        })),
+                        after_photos: content.afterPhotos.map((file, idx) => ({
+                          id: `after-${content.id}-${idx}`,
+                          file_url: content.afterPhotoPreviews[idx] || '',
+                          stage: 'after' as const
+                        })),
+                        progress_status: (
+                          content.beforePhotos.length > 0 && content.afterPhotos.length > 0 ? 'completed' :
+                          content.beforePhotos.length > 0 || content.afterPhotos.length > 0 ? 'in_progress' : 'not_started'
+                        ) as PhotoGroup['progress_status'],
+                        notes: '',
+                        daily_report_id: formData.id || 'temp',
+                        created_at: new Date().toISOString(),
+                        updated_at: new Date().toISOString()
+                      }))
+                      
+                      // PDF 생성 모달 열기
+                      setShowPDFModal(true)
+                      setPDFPhotoGroups(photoGroupsFromWorkContents)
+                    }}
+                    className="w-full h-10 bg-purple-500 hover:bg-purple-600 text-white rounded-lg flex items-center justify-center gap-2 text-sm font-medium transition-colors"
+                  >
+                    <FileText className="h-4 w-4" />
+                    사진대지 PDF 생성
+                  </button>
+                </div>
               )}
             </div>
           </CollapsibleSection>
@@ -1115,79 +1278,7 @@ export default function DailyReportFormEnhanced({
             </div>
           </CollapsibleSection>
 
-          {/* Section 5: Construction Photo Matrix */}
-          <CollapsibleSection
-            title="부재별 공정 사진 관리"
-            icon={Camera}
-            isExpanded={expandedSections.photos}
-            onToggle={() => toggleSection('photos')}
-            badge={photoGroups.length > 0 && (
-              <span className="px-2 py-0.5 bg-purple-500/20 text-purple-400 rounded-full text-xs font-medium">
-                {photoGroups.length}개 그룹
-              </span>
-            )}
-          >
-            <div className="pt-2">
-              <p className="text-xs text-gray-500 mb-4">
-                위에서 입력한 '작업 내용'의 부재명/공정을 기반으로 사진 그룹이 자동 생성됩니다. 작업 전/후 사진을 업로드하여 PDF 보고서를 생성하세요.
-              </p>
-              
-              {workContents.length === 0 && (
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
-                  <div className="flex items-center gap-2 text-amber-800 text-xs">
-                    <AlertCircle className="h-4 w-4" />
-                    <p><strong>안내:</strong> 먼저 '작업 내용 입력' 섹션에서 부재명과 공정을 선택하세요.</p>
-                  </div>
-                </div>
-              )}
-              
-              {workContents.length > 0 ? (
-                <ConstructionPhotoMatrix
-                  dailyReportId={formData.id || 'temp'}
-                  initialPhotoGroups={photoGroups}
-                  onPhotoGroupsChange={setPhotoGroups}
-                  onGeneratePDF={() => {
-                    // PDF 생성 로직
-                    console.log('PDF 생성 요청')
-                  }}
-                />
-              ) : (
-                <div className="text-center py-8 text-gray-400">
-                  <Camera className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">작업 내용을 먼저 입력하세요</p>
-                </div>
-              )}
-              
-              {/* 미리보기 및 PDF 생성 */}
-              {photoGroups.length > 0 && (
-                <div className="mt-6 space-y-4">
-                  <div className="border-t border-gray-200 pt-4">
-                    <PhotoGridPreview
-                      photoGroups={photoGroups}
-                      siteName={sites.find(s => s.id === formData.site_id)?.name}
-                      reportDate={formData.report_date}
-                      reporterName={currentUser.full_name}
-                      onGeneratePDF={() => {
-                        // PDF 생성 로직
-                        console.log('PDF 보고서 생성')
-                      }}
-                    />
-                  </div>
-                  
-                  <div className="border-t border-gray-200 pt-4">
-                    <PDFReportGenerator
-                      photoGroups={photoGroups}
-                      siteName={sites.find(s => s.id === formData.site_id)?.name}
-                      reportDate={formData.report_date}
-                      reporterName={currentUser.full_name}
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-          </CollapsibleSection>
-
-          {/* Section 5: Receipts */}
+          {/* Section 4: Receipts */}
           <CollapsibleSection
             title="영수증 첨부"
             icon={Receipt}
@@ -1697,6 +1788,43 @@ export default function DailyReportFormEnhanced({
             >
               취소
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* PDF 생성 모달 */}
+      {showPDFModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowPDFModal(false)}>
+          <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-5xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">사진대지 PDF 미리보기</h2>
+                <button
+                  onClick={() => setShowPDFModal(false)}
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                >
+                  <X className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-4">
+              <PhotoGridPreview
+                photoGroups={pdfPhotoGroups}
+                siteName={sites.find(s => s.id === formData.site_id)?.name}
+                reportDate={formData.work_date}
+                reporterName={currentUser.full_name}
+              />
+              
+              <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                <PDFReportGenerator
+                  photoGroups={pdfPhotoGroups}
+                  siteName={sites.find(s => s.id === formData.site_id)?.name}
+                  reportDate={formData.work_date}
+                  reporterName={currentUser.full_name}
+                />
+              </div>
+            </div>
           </div>
         </div>
       )}

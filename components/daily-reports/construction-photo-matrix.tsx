@@ -33,25 +33,19 @@ interface ConstructionPhotoMatrixProps {
   onGeneratePDF?: () => void
 }
 
-// 공정 타입 옵션
+// 공정 타입 옵션 (사용자 요구사항에 맞춤)
 const PROCESS_OPTIONS: { value: ConstructionProcessType; label: string; color: string }[] = [
-  { value: 'formwork', label: '거푸집', color: 'bg-blue-100 text-blue-800' },
-  { value: 'rebar', label: '철근', color: 'bg-yellow-100 text-yellow-800' },
-  { value: 'concrete', label: '콘크리트', color: 'bg-gray-100 text-gray-800' },
-  { value: 'curing', label: '양생', color: 'bg-green-100 text-green-800' },
+  { value: 'crack', label: '균열', color: 'bg-red-100 text-red-800' },
+  { value: 'surface', label: '면', color: 'bg-blue-100 text-blue-800' },
   { value: 'finishing', label: '마감', color: 'bg-purple-100 text-purple-800' },
-  { value: 'inspection', label: '검사', color: 'bg-red-100 text-red-800' },
   { value: 'other', label: '기타', color: 'bg-orange-100 text-orange-800' }
 ]
 
-// 부재 타입 옵션
+// 부재 타입 옵션 (사용자 요구사항에 맞춤)
 const COMPONENT_OPTIONS: { value: ComponentType; label: string }[] = [
-  { value: 'column', label: '기둥' },
-  { value: 'beam', label: '보' },
   { value: 'slab', label: '슬라브' },
-  { value: 'wall', label: '벽체' },
-  { value: 'foundation', label: '기초' },
-  { value: 'stair', label: '계단' },
+  { value: 'girder', label: '거더' },
+  { value: 'column', label: '기둥' },
   { value: 'other', label: '기타' }
 ]
 
@@ -64,9 +58,14 @@ export default function ConstructionPhotoMatrix({
   const [photoGroups, setPhotoGroups] = useState<PhotoGroup[]>(initialPhotoGroups)
   const [isAddingGroup, setIsAddingGroup] = useState(false)
   const [newComponentName, setNewComponentName] = useState('')
-  const [newComponentType, setNewComponentType] = useState<ComponentType>('column')
-  const [newProcessType, setNewProcessType] = useState<ConstructionProcessType>('formwork')
+  const [newComponentType, setNewComponentType] = useState<ComponentType>('slab')
+  const [newProcessType, setNewProcessType] = useState<ConstructionProcessType>('crack')
   const [componentSuggestions, setComponentSuggestions] = useState<string[]>([])
+
+  // initialPhotoGroups 변경 감지 및 내부 state 동기화
+  useEffect(() => {
+    setPhotoGroups(initialPhotoGroups)
+  }, [initialPhotoGroups])
 
   // 부재명 자동완성 로딩
   useEffect(() => {

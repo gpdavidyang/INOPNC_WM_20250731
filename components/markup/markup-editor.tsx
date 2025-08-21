@@ -225,14 +225,19 @@ export function MarkupEditor({
 
   const handleOpenDocument = async (document: MarkupDocument) => {
     try {
+      // 로딩 상태 즉시 설정
+      setEditorState(prev => ({ ...prev, isLoading: true }))
+      
       const result = await fileManager.openDocument(document as any)
       if (result) {
         setBlueprintUrl(result.blueprintUrl)
         setBlueprintFileName(result.blueprintFileName)
         setCurrentView('editor')
+        // 이미지 로딩은 캔버스에서 완료 처리됨
       }
     } catch (error) {
       alert(error instanceof Error ? error.message : '문서를 열 수 없습니다.')
+      setEditorState(prev => ({ ...prev, isLoading: false }))
     }
   }
 
@@ -310,7 +315,32 @@ export function MarkupEditor({
 
   // 에디터 보기
   return (
-    <div className="h-full flex flex-col bg-gray-50 dark:bg-gray-900">
+    <div className="h-full flex flex-col bg-gray-50 dark:bg-gray-900 relative">
+      {/* 전체 화면 로딩 오버레이 */}
+      {editorState.isLoading && (
+        <div className="absolute inset-0 bg-white/90 dark:bg-gray-900/90 z-50 flex items-center justify-center backdrop-blur-sm">
+          <div className="text-center max-w-sm mx-auto p-6">
+            <div className="relative w-16 h-16 mx-auto mb-6">
+              <div className="absolute inset-0 border-4 border-blue-200 dark:border-blue-800 rounded-full"></div>
+              <div className="absolute inset-0 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+            <p className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">도면을 불러오는 중</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              고해상도 도면을 로딩하고 있습니다
+            </p>
+            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+              <div 
+                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                style={{ width: '75%' }}
+              ></div>
+            </div>
+            <p className="text-xs text-gray-500 dark:text-gray-500 mt-2">
+              네트워크 상태에 따라 시간이 소요될 수 있습니다
+            </p>
+          </div>
+        </div>
+      )}
+      
       {/* 상단 툴바 */}
       <TopToolbar
         fileName={blueprintFileName || (editorState.currentFile as any)?.title || '새 마킹'}

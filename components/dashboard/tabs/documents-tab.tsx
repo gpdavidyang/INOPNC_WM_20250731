@@ -78,7 +78,7 @@ export default function DocumentsTab({ profile }: DocumentsTabProps) {
   const [selectedDocuments, setSelectedDocuments] = useState<string[]>([])
   const [showShareModal, setShowShareModal] = useState(false)
   const [isSelectionMode, setIsSelectionMode] = useState(false)
-  const [isRequiredDocsExpanded, setIsRequiredDocsExpanded] = useState(false)
+  const [isRequiredDocsExpanded, setIsRequiredDocsExpanded] = useState(true)
   const [shareDialogOpen, setShareDialogOpen] = useState(false)
   const [documentToShare, setDocumentToShare] = useState<Document | null>(null)
 
@@ -420,6 +420,7 @@ export default function DocumentsTab({ profile }: DocumentsTabProps) {
     setDocuments(prev => prev.filter(d => d.id !== documentId))
   }
 
+
   const handleShareDocument = (document: Document) => {
     setDocumentToShare(document)
     setShareDialogOpen(true)
@@ -537,129 +538,156 @@ export default function DocumentsTab({ profile }: DocumentsTabProps) {
     )
   }
 
+  // 선택된 문서들 삭제
+  const handleDeleteSelected = async () => {
+    if (selectedDocuments.length === 0) return
+    
+    const confirmMessage = `선택한 ${selectedDocuments.length}개의 문서를 삭제하시겠습니까?`
+    if (!confirm(confirmMessage)) return
+    
+    try {
+      // Delete selected documents
+      setDocuments(prev => prev.filter(doc => !selectedDocuments.includes(doc.id)))
+      setSelectedDocuments([])
+      setIsSelectionMode(false)
+    } catch (error) {
+      console.error('Error deleting documents:', error)
+      alert('문서 삭제 중 오류가 발생했습니다.')
+    }
+  }
+
   return (
     <div className="space-y-4">
-      {/* Header with Selection Mode */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-        {/* 헤더와 통합된 액션 버튼들 */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-          <div className="flex items-center gap-3">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">내문서함</h2>
-            {isSelectionMode && (
-              <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-sm font-medium rounded-md">
-                {selectedDocuments.length}개 선택됨
-              </span>
-            )}
-          </div>
-          
-          {/* 액션 버튼 그룹 */}
-          <div className="flex items-center gap-2">
-            {isSelectionMode ? (
-              <>
-                <button
-                  onClick={() => {
-                    setIsSelectionMode(false)
-                    setSelectedDocuments([])
-                  }}
-                  className="px-3 py-2 text-sm text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                >
-                  취소
-                </button>
-                <button
-                  onClick={() => setShowShareModal(true)}
-                  disabled={selectedDocuments.length === 0}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
-                >
-                  <Share2 className="h-4 w-4" />
-                  선택 공유
-                </button>
-              </>
-            ) : (
-              <>
-                <button
-                  onClick={() => setIsSelectionMode(true)}
-                  className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                >
-                  <CheckCircle className="h-4 w-4" />
-                  선택
-                </button>
+      {/* Compact Document Management Header */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+        {/* Primary Actions - Compact Layout */}
+        <div className="p-3">
+          <div className="flex items-center justify-between gap-3">
+            {/* Left: Primary Action or Selection Info */}
+            <div className="flex items-center gap-2">
+              {isSelectionMode ? (
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      setIsSelectionMode(false)
+                      setSelectedDocuments([])
+                    }}
+                    className="p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                    aria-label="선택 모드 종료"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                  <span className="text-xs font-medium text-gray-900 dark:text-gray-100">
+                    {selectedDocuments.length === 0 ? '항목 선택' : `${selectedDocuments.length}개 선택`}
+                  </span>
+                  {selectedDocuments.length > 0 && (
+                    <>
+                      <button
+                        onClick={() => setSelectedDocuments([])}
+                        className="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                      >
+                        해제
+                      </button>
+                      <div className="flex items-center gap-1 ml-2">
+                        <button
+                          onClick={() => setShowShareModal(true)}
+                          className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
+                        >
+                          <Share2 className="h-3 w-3" />
+                          공유
+                        </button>
+                        <button
+                          onClick={handleDeleteSelected}
+                          className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                          삭제
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              ) : (
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors touch-manipulation"
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs font-medium rounded transition-colors touch-manipulation"
                 >
-                  <Upload className="h-4 w-4" />
-                  파일 업로드
+                  <Upload className="h-3.5 w-3.5" />
+                  <span>파일 업로드</span>
                 </button>
-              </>
+              )}
+            </div>
+
+            {/* Right: Secondary Actions */}
+            {!isSelectionMode && (
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => setIsSelectionMode(true)}
+                  className="flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                >
+                  <CheckCircle className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">선택</span>
+                </button>
+                
+                <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded overflow-hidden">
+                  <button
+                    onClick={() => setViewMode('list')}
+                    className={`p-1.5 transition-colors ${
+                      viewMode === 'list' 
+                        ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400' 
+                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
+                    }`}
+                    title="리스트 보기"
+                  >
+                    <List className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    onClick={() => setViewMode('grid')}
+                    className={`p-1.5 transition-colors ${
+                      viewMode === 'grid' 
+                        ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400' 
+                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
+                    }`}
+                    title="그리드 보기"
+                  >
+                    <Grid className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              </div>
             )}
           </div>
         </div>
 
-        {/* Search and Filters */}
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="파일명으로 검색..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <div className="flex border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
-              <button
-                onClick={() => setSortBy('date')}
-                className={`px-4 py-2.5 text-sm font-medium transition-colors ${
-                  sortBy === 'date' 
-                    ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400' 
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
-                }`}
-              >
-                날짜순
-              </button>
-              <button
-                onClick={() => setSortBy('name')}
-                className={`px-4 py-2.5 text-sm font-medium transition-colors ${
-                  sortBy === 'name' 
-                    ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400' 
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
-                }`}
-              >
-                이름순
-              </button>
+        {/* Search and Filter Bar - Compact */}
+        <div className="border-t border-gray-200 dark:border-gray-700 px-3 py-2">
+          <div className="flex gap-2">
+            <div className="flex-1 relative">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400 pointer-events-none" />
+              <input
+                type="text"
+                placeholder="파일명으로 검색..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-8 pr-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-900/50 text-gray-900 dark:text-gray-100 text-xs placeholder-gray-500 dark:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 focus:bg-white dark:focus:bg-gray-900 transition-colors"
+              />
             </div>
-            <button
-              onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
-              className="p-2.5 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
-              title={sortOrder === 'asc' ? '오름차순' : '내림차순'}
-            >
-              <ChevronUp className={`h-4 w-4 transition-transform text-gray-700 dark:text-gray-300 ${sortOrder === 'desc' ? 'rotate-180' : ''}`} />
-            </button>
-            <div className="flex border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
-              <button
-                onClick={() => setViewMode('list')}
-                className={`p-2.5 transition-colors ${
-                  viewMode === 'list' 
-                    ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400' 
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
-                }`}
-                title="리스트 보기"
+            
+            <div className="relative">
+              <select
+                value={`${sortBy}-${sortOrder}`}
+                onChange={(e) => {
+                  const [newSortBy, newSortOrder] = e.target.value.split('-')
+                  setSortBy(newSortBy as 'date' | 'name')
+                  setSortOrder(newSortOrder as 'asc' | 'desc')
+                }}
+                className="appearance-none pl-2.5 pr-6 py-1.5 text-xs font-medium border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 cursor-pointer transition-colors min-w-[90px]"
               >
-                <List className="h-4 w-4" />
-              </button>
-              <button
-                onClick={() => setViewMode('grid')}
-                className={`p-2.5 transition-colors ${
-                  viewMode === 'grid' 
-                    ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400' 
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
-                }`}
-                title="그리드 보기"
-              >
-                <Grid className="h-4 w-4" />
-              </button>
+                <option value="date-desc">최신순</option>
+                <option value="date-asc">오래된순</option>
+                <option value="name-asc">이름순 (가-하)</option>
+                <option value="name-desc">이름순 (하-가)</option>
+              </select>
+              <ChevronDown className="absolute right-1.5 top-1/2 -translate-y-1/2 h-3 w-3 text-gray-500 pointer-events-none" />
             </div>
           </div>
         </div>
@@ -669,12 +697,26 @@ export default function DocumentsTab({ profile }: DocumentsTabProps) {
       {/* 필수 서류 체크리스트 */}
       <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl border border-blue-200 dark:border-blue-700 p-4">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">
-            필수 제출 서류 ({uploadedRequiredDocs}/{totalRequiredDocs}개 완료)
-          </h3>
+          <div className="flex-1">
+            <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+              필수 제출 서류 ({uploadedRequiredDocs}/{totalRequiredDocs}개 완료)
+            </h3>
+            {/* Progress Bar */}
+            <div className="mt-2 flex items-center gap-3">
+              <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full transition-all duration-500"
+                  style={{ width: `${(uploadedRequiredDocs / totalRequiredDocs) * 100}%` }}
+                />
+              </div>
+              <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                {Math.round((uploadedRequiredDocs / totalRequiredDocs) * 100)}%
+              </span>
+            </div>
+          </div>
           <button
             onClick={() => setIsRequiredDocsExpanded(!isRequiredDocsExpanded)}
-            className="p-1.5 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-all"
+            className="ml-3 p-1.5 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-all"
             title={isRequiredDocsExpanded ? "접기" : "펼치기"}
           >
             {isRequiredDocsExpanded ? (
@@ -718,24 +760,67 @@ export default function DocumentsTab({ profile }: DocumentsTabProps) {
                           )}
                         </h4>
                         <p className="text-xs text-gray-500 dark:text-gray-400">{reqDoc.description}</p>
+                        {isUploaded && uploadedDoc && (
+                          <div className="mt-2 p-2 bg-green-50 dark:bg-green-900/20 rounded-md border border-green-200 dark:border-green-700">
+                            <div className="flex items-center gap-2">
+                              <CheckCircle className="h-3 w-3 text-green-500 flex-shrink-0" />
+                              <div className="flex-1 min-w-0">
+                                <div className="text-xs font-medium text-green-700 dark:text-green-300 truncate">
+                                  {uploadedDoc.name}
+                                </div>
+                                <div className="text-xs text-green-600 dark:text-green-400 mt-0.5">
+                                  파일 크기: {formatFileSize(uploadedDoc.size)}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                     <div className="flex items-center gap-2 ml-3">
                       {isUploaded ? (
-                        <>
+                        <div className="flex items-center gap-1">
                           <button
-                            onClick={() => handleViewDocument(uploadedDoc)}
-                            className="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleViewDocument(uploadedDoc)
+                            }}
+                            className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                            title="미리보기"
                           >
-                            미리보기
+                            <Eye className="h-4 w-4" />
                           </button>
                           <button
-                            onClick={() => deleteDocument(uploadedDoc.id)}
-                            className="text-gray-400 hover:text-red-600 dark:hover:text-red-400"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleDownloadDocument(uploadedDoc)
+                            }}
+                            className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors"
+                            title="다운로드"
                           >
-                            <X className="h-3.5 w-3.5" />
+                            <Download className="h-4 w-4" />
                           </button>
-                        </>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleShareDocument(uploadedDoc)
+                            }}
+                            className="p-1.5 text-gray-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg transition-colors"
+                            title="공유하기"
+                          >
+                            <Share2 className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              deleteDocument(uploadedDoc.id)
+                            }}
+                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                            title="삭제"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
                       ) : (
                         <button
                           onClick={() => {
@@ -907,7 +992,7 @@ export default function DocumentsTab({ profile }: DocumentsTabProps) {
                 })}
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-1">
                 {filteredAndSortedDocuments.map((document: any) => {
                   const FileIcon = getFileIcon(document.type)
                   const getFileTypeDisplay = (type: string) => {
@@ -931,7 +1016,7 @@ export default function DocumentsTab({ profile }: DocumentsTabProps) {
                   return (
                     <div
                       key={document.id}
-                      className={`bg-white dark:bg-gray-800 border rounded-lg p-3 hover:shadow-md transition-all duration-200 cursor-pointer ${
+                      className={`bg-white dark:bg-gray-800 border rounded p-2 hover:shadow-sm transition-all duration-200 cursor-pointer ${
                         isSelectionMode && selectedDocuments.includes(document.id)
                           ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
                           : 'border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600'
@@ -954,7 +1039,7 @@ export default function DocumentsTab({ profile }: DocumentsTabProps) {
                         
                         {/* Badge Only */}
                         <div className="flex-shrink-0">
-                          <span className={`inline-block px-1.5 py-0.5 text-xs font-medium rounded-md ${getFileTypeColor(document.type)}`}>
+                          <span className={`inline-block px-1 py-0.5 text-xs font-medium rounded ${getFileTypeColor(document.type)}`}>
                             {getFileTypeDisplay(document.type)}
                           </span>
                         </div>
@@ -963,10 +1048,10 @@ export default function DocumentsTab({ profile }: DocumentsTabProps) {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between">
                             <div className="flex-1 min-w-0">
-                              <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate mb-1">
+                              <h4 className="text-xs font-medium text-gray-900 dark:text-gray-100 truncate mb-0.5">
                                 {document.name}
                               </h4>
-                              <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mb-1">
+                              <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 mb-0.5">
                                 <span>
                                   {new Date(document.uploadedAt).toLocaleDateString('ko-KR', {
                                     month: 'short',
@@ -976,46 +1061,46 @@ export default function DocumentsTab({ profile }: DocumentsTabProps) {
                                 {document.site && (
                                   <>
                                     <span>•</span>
-                                    <span className="truncate max-w-24" title={document.siteAddress}>
+                                    <span className="truncate max-w-20 text-xs" title={document.siteAddress}>
                                       {document.site}
                                     </span>
                                   </>
                                 )}
                               </div>
                               <div className="text-xs text-gray-400 dark:text-gray-500 truncate">
-                                작성자: {document.uploadedBy}
+                                {document.uploadedBy}
                               </div>
                             </div>
                             
                             {/* Action Buttons - Compact */}
-                            <div className="flex items-center gap-1 ml-3">
+                            <div className="flex items-center gap-0.5 ml-2">
                               <button
                                 onClick={() => handleViewDocument(document)}
-                                className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                                className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors"
                                 title="보기"
                               >
-                                <Eye className="h-4 w-4" />
+                                <Eye className="h-3.5 w-3.5" />
                               </button>
                               <button
                                 onClick={() => handleDownloadDocument(document)}
-                                className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors"
+                                className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-colors"
                                 title="다운로드"
                               >
-                                <Download className="h-4 w-4" />
+                                <Download className="h-3.5 w-3.5" />
                               </button>
                               <button
                                 onClick={() => handleShareDocument(document)}
-                                className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg transition-colors"
+                                className="p-1.5 text-gray-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded transition-colors"
                                 title="공유하기"
                               >
-                                <Share2 className="h-4 w-4" />
+                                <Share2 className="h-3.5 w-3.5" />
                               </button>
                               <button
                                 onClick={() => deleteDocument(document.id)}
-                                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
                                 title="삭제"
                               >
-                                <Trash2 className="h-4 w-4" />
+                                <Trash2 className="h-3.5 w-3.5" />
                               </button>
                             </div>
                           </div>

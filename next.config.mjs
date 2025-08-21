@@ -85,14 +85,17 @@ const nextConfig = {
     // Fast Refresh 최적화
     optimisticClientCache: true,
     
-    // Instrumentation hook 비활성화 (개발 모드에서)
-    instrumentationHook: process.env.NODE_ENV === 'production',
+    // Instrumentation hook 완전 비활성화 (성능 향상)
+    instrumentationHook: false,
     
     // CSS 최적화 활성화 (프로덕션 성능 향상)
     optimizeCss: true,
     
-    // 추가 최적화 비활성화 (개발환경과 동일)
-    serverMinification: false,
+    // 서버 최적화 활성화
+    serverMinification: true,
+    
+    // 프리페치 최적화
+    adjustFontFallbacks: true,
   },
   
   // 개발 서버 최적화

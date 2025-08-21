@@ -9,9 +9,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import Sidebar from './sidebar'
 import Header from './header'
 import HomeTab from './tabs/home-tab'
-import DailyReportTab from './tabs/daily-report-tab'
-import AttendanceTab from './tabs/attendance-tab'
-import DocumentsTabUnified from './tabs/documents-tab-unified'
+import {
+  LazyWorkLogsTab,
+  LazyDocumentsTabUnified,
+  LazyAttendanceTab,
+  preloadForRole
+} from './tabs/lazy-components'
 // import SiteInfoTab from './tabs/site-info-tab' // Moved to dedicated page: /dashboard/site-info
 import { BottomNavigation, BottomNavItem } from '@/components/ui/bottom-navigation'
 import { NavigationController } from '@/components/navigation/navigation-controller'
@@ -55,6 +58,18 @@ export default function DashboardLayout({ user, profile, children, initialActive
       setActiveTab(newTab)
     }
   }, [pathname]) // ✅ Removed children and activeTab dependency to prevent loops
+
+  // 컴포넌트 프리로드 - 사용자 역할에 따라
+  useEffect(() => {
+    if (profile?.role) {
+      // 역할별로 필요한 컴포넌트 미리 로딩
+      const timer = setTimeout(() => {
+        preloadForRole(profile.role)
+      }, 1000) // 1초 후 프리로드
+      
+      return () => clearTimeout(timer)
+    }
+  }, [profile?.role])
 
   // REMOVED: This effect was causing redirect loops
   // The dedicated pages (attendance, documents) handle their own routing
@@ -185,16 +200,12 @@ export default function DashboardLayout({ user, profile, children, initialActive
           onDocumentsSearch={setDocumentsInitialSearch}
         />
       case 'daily-reports':
-        return <DailyReportTab profile={profile} />
+        return <LazyWorkLogsTab profile={profile} />
       case 'attendance':
-        // Show fallback content while navigation happens
-        return <HomeTab 
-          profile={profile} 
-          onTabChange={setActiveTab}
-          onDocumentsSearch={setDocumentsInitialSearch}
-        />
+        // 지연 로딩으로 성능 개선
+        return <LazyAttendanceTab profile={profile} />
       case 'documents-unified':
-        return <DocumentsTabUnified profile={profile} initialSearch={documentsInitialSearch} />
+        return <LazyDocumentsTabUnified profile={profile} initialSearch={documentsInitialSearch} />
       case 'documents':
         // Show fallback content while navigation happens
         return <HomeTab 

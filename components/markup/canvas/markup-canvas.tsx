@@ -20,6 +20,8 @@ export const MarkupCanvas = forwardRef<HTMLCanvasElement, MarkupCanvasProps>(
     const [currentDrawing, setCurrentDrawing] = useState<Partial<MarkupObject> | null>(null)
     const [textInputOpen, setTextInputOpen] = useState(false)
     const [textInputPosition, setTextInputPosition] = useState({ x: 0, y: 0 })
+    const [imageLoadProgress, setImageLoadProgress] = useState(0)
+    const [imageLoadError, setImageLoadError] = useState<string | null>(null)
     
     // 팬 기능을 위한 상태
     const [isPanning, setIsPanning] = useState(false)
@@ -51,9 +53,18 @@ export const MarkupCanvas = forwardRef<HTMLCanvasElement, MarkupCanvasProps>(
     // 도면 이미지 로드 및 크기 조정
     useEffect(() => {
       if (blueprintUrl) {
+        // 로딩 상태 초기화
+        setImageLoadProgress(0)
+        setImageLoadError(null)
+        
         const img = new Image()
+        
+        // 크로스오리진 설정으로 이미지 캐싱 활용
+        img.crossOrigin = 'anonymous'
+        
         img.onload = () => {
           blueprintImageRef.current = img
+          setImageLoadProgress(100)
           
           // 이미지가 로드되면 화면에 맞게 초기 크기 조정
           if (canvas && containerRef.current) {
@@ -86,21 +97,55 @@ export const MarkupCanvas = forwardRef<HTMLCanvasElement, MarkupCanvasProps>(
             const offsetX = (containerWidth - fitWidth) / 2
             const offsetY = (containerHeight - fitHeight) / 2
             
-            // 초기 viewer state 설정
-            onStateChange(prev => ({
-              ...prev,
-              viewerState: {
-                ...prev.viewerState,
-                zoom: scale,
-                panX: offsetX,
-                panY: offsetY,
-                imageWidth: img.width,
-                imageHeight: img.height
-              }
-            }))
+            // 초기 viewer state 설정 및 로딩 완료
+            setTimeout(() => {
+              onStateChange(prev => ({
+                ...prev,
+                viewerState: {
+                  ...prev.viewerState,
+                  zoom: scale,
+                  panX: offsetX,
+                  panY: offsetY,
+                  imageWidth: img.width,
+                  imageHeight: img.height
+                },
+                isLoading: false // 이미지 로딩 완료
+              }))
+            }, 100) // 약간의 지연으로 부드러운 전환
           }
         }
+        
+        img.onerror = (e) => {
+          console.error('Failed to load blueprint image:', blueprintUrl, e)
+          setImageLoadError('이미지를 불러올 수 없습니다.')
+          onStateChange(prev => ({
+            ...prev,
+            isLoading: false
+          }))
+        }
+        
+        // Progress 시뮬레이션 (실제 progress 이벤트는 브라우저에서 지원하지 않음)
+        let progressInterval: NodeJS.Timeout
+        const startProgress = () => {
+          let progress = 0
+          progressInterval = setInterval(() => {
+            progress += Math.random() * 30
+            if (progress < 80) {
+              setImageLoadProgress(progress)
+            } else {
+              clearInterval(progressInterval)
+            }
+          }, 200)
+        }
+        
+        startProgress()
         img.src = blueprintUrl
+        
+        return () => {
+          if (progressInterval) {
+            clearInterval(progressInterval)
+          }
+        }
       }
     }, [blueprintUrl, canvas, containerRef, onStateChange])
 
@@ -571,7 +616,7 @@ export const MarkupCanvas = forwardRef<HTMLCanvasElement, MarkupCanvasProps>(
 
     // 터치 이벤트 핸들러들
     const handleTouchStart = useCallback((e: React.TouchEvent) => {
-      e.preventDefault()
+      // preventDefault 제거 - passive event listener에서 작동하지 않음
       
       const rect = canvas?.getBoundingClientRect()
       if (!rect) return
@@ -600,7 +645,7 @@ export const MarkupCanvas = forwardRef<HTMLCanvasElement, MarkupCanvasProps>(
           clientY: e.touches[0].clientY,
           target: e.target,
           currentTarget: e.currentTarget,
-          preventDefault: () => e.preventDefault(),
+          preventDefault: () => {}, // passive event listener이므로 빈 함수
           stopPropagation: () => e.stopPropagation()
         } as any
         handleMouseDown(mouseEvent)
@@ -608,7 +653,7 @@ export const MarkupCanvas = forwardRef<HTMLCanvasElement, MarkupCanvasProps>(
     }, [canvas])
 
     const handleTouchMove = useCallback((e: React.TouchEvent) => {
-      e.preventDefault()
+      // preventDefault 제거 - passive event listener에서 작동하지 않음
       
       const rect = canvas?.getBoundingClientRect()
       if (!rect) return
@@ -672,7 +717,7 @@ export const MarkupCanvas = forwardRef<HTMLCanvasElement, MarkupCanvasProps>(
           clientY: e.touches[0].clientY,
           target: e.target,
           currentTarget: e.currentTarget,
-          preventDefault: () => e.preventDefault(),
+          preventDefault: () => {}, // passive event listener이므로 빈 함수
           stopPropagation: () => e.stopPropagation()
         } as any
         handleMouseMove(mouseEvent)
@@ -742,23 +787,21 @@ export const MarkupCanvas = forwardRef<HTMLCanvasElement, MarkupCanvasProps>(
           }`}
           onPointerDown={(e) => {
             console.log('🔥 Pointer down:', e.clientX, e.clientY, 'pointerType:', e.pointerType)
-            // 터치 이벤트가 아닌 경우에만 처리 (마우스, 펜 등)
-            if (e.pointerType !== 'touch') {
-              const mouseEvent = {
-                clientX: e.clientX,
-                clientY: e.clientY,
-                target: e.target,
-                currentTarget: e.currentTarget,
-                preventDefault: () => e.preventDefault(),
-                stopPropagation: () => e.stopPropagation()
-              } as any
-              handleMouseDown(mouseEvent)
-            }
+            // 모든 포인터 타입 처리 (마우스, 터치, 펜 등)
+            const mouseEvent = {
+              clientX: e.clientX,
+              clientY: e.clientY,
+              target: e.target,
+              currentTarget: e.currentTarget,
+              preventDefault: () => e.preventDefault(),
+              stopPropagation: () => e.stopPropagation()
+            } as any
+            handleMouseDown(mouseEvent)
           }}
           onPointerMove={(e) => {
             console.log('🔥 Pointer move:', e.clientX, e.clientY, 'pointerType:', e.pointerType)
-            // 터치 이벤트가 아닌 경우에만 처리
-            if (e.pointerType !== 'touch' && (isMouseDown || isPanning)) {
+            // 모든 포인터 타입 처리, 드래그 중일 때만
+            if (isMouseDown || isPanning) {
               const mouseEvent = {
                 clientX: e.clientX,
                 clientY: e.clientY,
@@ -772,23 +815,26 @@ export const MarkupCanvas = forwardRef<HTMLCanvasElement, MarkupCanvasProps>(
           }}
           onPointerUp={(e) => {
             console.log('🔥 Pointer up:', e.clientX, e.clientY, 'pointerType:', e.pointerType)
-            // 터치 이벤트가 아닌 경우에만 처리
-            if (e.pointerType !== 'touch') {
-              handleMouseUp()
-            }
+            // 모든 포인터 타입 처리
+            handleMouseUp()
           }}
           onPointerLeave={(e) => {
             console.log('🔥 Pointer leave')
-            // 터치 이벤트가 아닌 경우에만 처리
-            if (e.pointerType !== 'touch') {
-              handleMouseUp()
-            }
+            // 모든 포인터 타입 처리
+            handleMouseUp()
           }}
           onDoubleClick={handleDoubleClick}
           onWheel={handleWheel}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
+          onTouchStart={(e) => {
+            // 터치 이벤트는 Pointer Events가 처리하도록 함
+            console.log('🔥 Touch event fired, but handled by pointer events')
+          }}
+          onTouchMove={(e) => {
+            // 터치 이벤트는 Pointer Events가 처리하도록 함
+          }}
+          onTouchEnd={(e) => {
+            // 터치 이벤트는 Pointer Events가 처리하도록 함
+          }}
           onClick={(e) => {
             console.log('🔥 Canvas clicked:', e.clientX, e.clientY)
           }}

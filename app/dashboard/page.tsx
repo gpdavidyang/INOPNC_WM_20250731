@@ -16,11 +16,12 @@ export default async function DashboardPage() {
     redirect('/auth/login')
   }
 
-  // Get user profile with role
+  // Get user profile with role - 성능 최적화: 필요한 필드만 선택
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
-    .select('*')
+    .select('id, email, full_name, role, status, organization_id, site_id, created_at, updated_at')
     .eq('id', user.id)
+    .limit(1)
     .single()
 
   if (profileError) {
@@ -99,42 +100,37 @@ export default async function DashboardPage() {
   }
 
   // Pre-fetch site data on server side to avoid client authentication issues
+  // 성능 최적화: 병렬로 사이트 정보 가져오기
   let currentSite = null
   let siteHistory = []
   
   try {
     console.log('🔍 [DASHBOARD-SERVER] Pre-fetching site data for user:', user.email, 'ID:', user.id)
     
-    // Test if we can access the user in site-info actions
-    console.log('🔍 [DASHBOARD-SERVER] Testing server-side authentication...')
+    // 병렬로 사이트 정보 가져오기 (성능 개선)
+    const [currentSiteResult, historyResult] = await Promise.allSettled([
+      getCurrentUserSite(),
+      getUserSiteHistory()
+    ])
     
-    const currentSiteResult = await getCurrentUserSite()
-    console.log('🔍 [DASHBOARD-SERVER] getCurrentUserSite result:', {
-      success: currentSiteResult.success,
-      hasData: !!currentSiteResult.data,
-      error: currentSiteResult.error,
-      siteName: currentSiteResult.data?.site_name
-    })
-    
-    if (currentSiteResult.success && currentSiteResult.data) {
-      currentSite = currentSiteResult.data
+    // 현재 사이트 결과 처리
+    if (currentSiteResult.status === 'fulfilled' && currentSiteResult.value.success && currentSiteResult.value.data) {
+      currentSite = currentSiteResult.value.data
       console.log('✅ [DASHBOARD-SERVER] Current site found:', currentSite.site_name)
+    } else if (currentSiteResult.status === 'rejected') {
+      console.log('⚠️ [DASHBOARD-SERVER] Current site fetch failed:', currentSiteResult.reason)
     } else {
-      console.log('⚠️ [DASHBOARD-SERVER] No current site:', currentSiteResult.error)
+      console.log('⚠️ [DASHBOARD-SERVER] No current site:', currentSiteResult.value?.error)
     }
     
-    const historyResult = await getUserSiteHistory()
-    console.log('🔍 [DASHBOARD-SERVER] getUserSiteHistory result:', {
-      success: historyResult.success,
-      count: historyResult.data?.length || 0,
-      error: historyResult.error
-    })
-    
-    if (historyResult.success && historyResult.data) {
-      siteHistory = historyResult.data
+    // 사이트 히스토리 결과 처리
+    if (historyResult.status === 'fulfilled' && historyResult.value.success && historyResult.value.data) {
+      siteHistory = historyResult.value.data
       console.log('✅ [DASHBOARD-SERVER] Site history found:', siteHistory.length, 'records')
+    } else if (historyResult.status === 'rejected') {
+      console.log('⚠️ [DASHBOARD-SERVER] Site history fetch failed:', historyResult.reason)
     } else {
-      console.log('⚠️ [DASHBOARD-SERVER] No site history:', historyResult.error)
+      console.log('⚠️ [DASHBOARD-SERVER] No site history:', historyResult.value?.error)
     }
   } catch (error) {
     console.error('❌ [DASHBOARD-SERVER] Error pre-fetching site data:', error)

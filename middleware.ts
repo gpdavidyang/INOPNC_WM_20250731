@@ -12,12 +12,18 @@ export async function middleware(request: NextRequest) {
     })
 
     // Skip middleware for static assets, API routes, and auth callback
+    // 성능 최적화: 더 많은 정적 자원에 대해 미들웨어 건너뛰기
     const pathname = request.nextUrl.pathname
     if (
       pathname.startsWith('/_next') ||
       pathname.startsWith('/api/') ||
       pathname.startsWith('/auth/callback') ||
-      pathname.includes('.') // static files
+      pathname.startsWith('/favicon') ||
+      pathname.startsWith('/icons/') ||
+      pathname.startsWith('/manifest') ||
+      pathname.includes('.') || // static files
+      pathname === '/robots.txt' ||
+      pathname === '/sitemap.xml'
     ) {
       return response
     }

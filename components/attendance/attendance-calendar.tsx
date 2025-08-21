@@ -626,7 +626,7 @@ export function AttendanceCalendar({ profile, isPartnerView }: AttendanceCalenda
             
             return (
               <div className="space-y-4">
-                {/* 현장명 */}
+                {/* 현장명 - 약어 정보 제거 */}
                 {attendance.site_name && (
                   <div className="flex items-center gap-2">
                     <Building2 className="h-4 w-4 text-gray-500" />
@@ -637,7 +637,7 @@ export function AttendanceCalendar({ profile, isPartnerView }: AttendanceCalenda
                   </div>
                 )}
                 
-                {/* 공수 */}
+                {/* 공수 - 출근 정보 제거 */}
                 {attendance.labor_hours !== null && attendance.labor_hours !== undefined && (
                   <div className="flex items-center gap-2">
                     <Clock className="h-4 w-4 text-gray-500" />
@@ -651,17 +651,6 @@ export function AttendanceCalendar({ profile, isPartnerView }: AttendanceCalenda
                       }>
                         {attendance.labor_hours} 공수
                       </Badge>
-                    </div>
-                  </div>
-                )}
-                
-                {/* 작업자명 */}
-                {profile?.full_name && (
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-gray-500" />
-                    <div>
-                      <p className="text-sm text-gray-600">작업자</p>
-                      <p className="font-medium">{profile.full_name}</p>
                     </div>
                   </div>
                 )}

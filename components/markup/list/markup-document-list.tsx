@@ -71,6 +71,7 @@ export function MarkupDocumentList({
   const [shareDialogOpen, setShareDialogOpen] = useState(false)
   const [documentToShare, setDocumentToShare] = useState<MarkupDocument | null>(null)
   const [isSelectionMode, setIsSelectionMode] = useState(false)
+  const [loadingDocId, setLoadingDocId] = useState<string | null>(null)
 
   // 현장 목록 (실제로는 Supabase에서 가져와야 함)
   const sites = [
@@ -548,11 +549,20 @@ export function MarkupDocumentList({
                     
                     <div className="flex gap-1">
                       <button
-                        onClick={() => onOpenDocument(doc)}
-                        className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                        title="보기"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setLoadingDocId(doc.id)
+                          onOpenDocument(doc)
+                        }}
+                        disabled={loadingDocId === doc.id}
+                        className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="미리보기"
                       >
-                        <Eye className="h-4 w-4" />
+                        {loadingDocId === doc.id ? (
+                          <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
                       </button>
                       <button
                         onClick={() => onEditDocument(doc)}
@@ -639,11 +649,20 @@ export function MarkupDocumentList({
                             {/* Action Buttons - Compact */}
                             <div className="flex items-center gap-1 ml-3">
                               <button
-                                onClick={() => onOpenDocument(doc)}
-                                className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                                title="보기"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  setLoadingDocId(doc.id)
+                                  onOpenDocument(doc)
+                                }}
+                                disabled={loadingDocId === doc.id}
+                                className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                title="미리보기"
                               >
-                                <Eye className="h-4 w-4" />
+                                {loadingDocId === doc.id ? (
+                                  <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                                ) : (
+                                  <Eye className="h-4 w-4" />
+                                )}
                               </button>
                               <button
                                 onClick={() => onEditDocument(doc)}

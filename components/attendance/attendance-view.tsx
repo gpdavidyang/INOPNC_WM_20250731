@@ -614,9 +614,6 @@ export function AttendanceView({ profile }: AttendanceViewProps) {
                 <p className="text-xs font-medium text-gray-900 dark:text-gray-100">
                   {getSelectedDateDetails()?.siteName}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  약어: {getSelectedDateDetails()?.siteAbbrev}
-                </p>
               </div>
 
               {/* Work Information - Compact */}

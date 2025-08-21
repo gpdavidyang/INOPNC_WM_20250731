@@ -5,7 +5,7 @@ interface DocumentsPageProps {
 }
 
 export default function DocumentsPage({ searchParams }: DocumentsPageProps) {
-  // Server-side redirect to avoid client-side redirect loops
+  // Server-side redirect to documents tab
   const search = searchParams?.search || ''
   const params = new URLSearchParams()
   if (search) params.set('search', search as string)

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documents Navigation Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .warning {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .code {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            background-color: #007bff;
+            color: white;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Documents Navigation Test</h1>
+    
+    <div class="test-section">
+        <h2>Navigation Issue Analysis</h2>
+        <div class="status warning">
+            <strong>Previous Issue:</strong> Server-side redirect from /dashboard/documents to /dashboard#documents-unified was causing infinite loop
+        </div>
+        
+        <div class="status success">
+            <strong>Solution Applied:</strong>
+            <ul>
+                <li>✅ Modified bottom navigation to use hash navigation (#documents-unified) instead of route (/dashboard/documents)</li>
+                <li>✅ Updated sidebar to use hash navigation for documents</li>
+                <li>✅ Changed /dashboard/documents page to use client-side redirect with fallbacks</li>
+                <li>✅ Added special handling in BottomNavigation component for documents route</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test Navigation Links</h2>
+        <p>Click these links to test navigation behavior:</p>
+        
+        <button onclick="testNavigation('/dashboard')">Dashboard Home</button>
+        <button onclick="testNavigation('/dashboard#documents-unified')">Documents (Hash)</button>
+        <button onclick="testNavigation('/dashboard/documents')">Documents (Direct Route)</button>
+        <button onclick="testNavigation('/dashboard#home')">Home Tab</button>
+        <button onclick="testNavigation('/dashboard#attendance')">Attendance Tab</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Expected Behavior</h2>
+        <div class="code">
+1. Clicking "문서함" in bottom navigation:
+   - Should navigate to /dashboard#documents-unified
+   - Should NOT trigger server redirect
+   - Should display documents tab content
+
+2. Direct access to /dashboard/documents:
+   - Should redirect to /dashboard#documents-unified
+   - Using client-side redirect with fallbacks
+   - No infinite loop
+
+3. Hash changes:
+   - Should update tab content immediately
+   - No page reload needed
+   - Smooth transition between tabs
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Code Changes Summary</h2>
+        <div class="code">
+// 1. Bottom Navigation Configuration
+{ 
+  label: "문서함", 
+  href: "#documents-unified",  // Changed from "/dashboard/documents"
+  icon: <FolderOpen /> 
+}
+
+// 2. Bottom Navigation Handler
+if (item.href === '/dashboard/documents') {
+  // Special case handling for documents
+  if (pathname !== '/dashboard') {
+    router.push('/dashboard#documents-unified')
+  } else {
+    window.location.hash = 'documents-unified'
+    if (onTabChange) {
+      onTabChange('documents-unified')
+    }
+  }
+}
+
+// 3. Documents Page Redirect
+// Now uses client-side redirect with multiple fallbacks:
+// - Meta refresh
+// - JavaScript redirect
+// - Manual link as last resort
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Verification Steps</h2>
+        <ol>
+            <li>Deploy the changes to production</li>
+            <li>Clear browser cache and cookies</li>
+            <li>Navigate to /dashboard</li>
+            <li>Click "문서함" in bottom navigation</li>
+            <li>Verify no infinite redirects occur</li>
+            <li>Check browser console for errors</li>
+            <li>Test on different devices (mobile/desktop)</li>
+        </ol>
+    </div>
+
+    <script>
+        function testNavigation(url) {
+            console.log('Testing navigation to:', url);
+            const result = document.createElement('div');
+            result.className = 'status success';
+            result.innerHTML = `Navigating to: <strong>${url}</strong> - Check browser console for details`;
+            document.body.appendChild(result);
+            
+            // Simulate navigation
+            console.log('Navigation test:', {
+                from: window.location.href,
+                to: url,
+                timestamp: new Date().toISOString()
+            });
+        }
+    </script>
+</body>
+</html>

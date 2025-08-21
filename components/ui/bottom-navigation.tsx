@@ -87,29 +87,6 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
         // 직접 경로는 통합 네비게이션 컨트롤러 사용
         console.log('[BottomNav] Navigating to:', item.href)
         if (pathname !== item.href) {
-          // Special handling for documents page - use hash navigation to avoid nested DashboardLayout
-          if (item.href === '/dashboard/documents') {
-            console.log('[BottomNav] Using hash navigation for documents')
-            
-            // Check if we're already on the documents tab
-            const currentHash = window.location.hash.replace('#', '')
-            if (pathname === '/dashboard' && currentHash === 'documents-unified') {
-              console.log('[BottomNav] Already on documents tab, skipping navigation')
-              return
-            }
-            
-            // Navigate to documents tab
-            if (pathname !== '/dashboard') {
-              router.push('/dashboard#documents-unified')
-            } else {
-              window.location.hash = 'documents-unified'
-              if (onTabChange) {
-                onTabChange('documents-unified')
-              }
-            }
-            return
-          }
-          
           // Use navigation controller if available, otherwise fallback to router
           if (navigate) {
             navigate(item.href)
@@ -167,10 +144,8 @@ const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
                   "active:scale-95 touch-manipulation",
                   // 포커스 표시 - UI Guidelines 색상
                   "focus-visible:outline-2 focus-visible:outline-toss-blue-500 focus-visible:outline-offset-1",
-                  // UI Guidelines 색상 시스템 적용
-                  isActive
-                    ? "text-toss-blue-600 dark:text-toss-blue-400" // Toss Primary Color
-                    : "text-toss-gray-600 dark:text-toss-gray-400 hover:text-toss-gray-700 dark:hover:text-toss-gray-300"
+                  // UI Guidelines 색상 시스템 적용 - 모든 항목을 회색으로 통일
+                  "text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
                 )}
                 aria-label={`${item.label}으로 이동`}
                 aria-current={isActive ? "page" : undefined}

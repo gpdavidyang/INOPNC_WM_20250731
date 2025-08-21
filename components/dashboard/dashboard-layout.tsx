@@ -149,7 +149,7 @@ export default function DashboardLayout({ user, profile, children, initialActive
     },
     { 
       label: "문서함", 
-      href: "/dashboard/documents", 
+      href: "#documents-unified", 
       icon: <FolderOpen /> 
     }
   ]
@@ -189,7 +189,7 @@ export default function DashboardLayout({ user, profile, children, initialActive
     { 
       id: "documents",
       label: "문서함", 
-      href: "/dashboard/documents", 
+      href: "#documents-unified", 
       icon: <FolderOpen />,
       priority: 'normal'
     }
@@ -205,13 +205,6 @@ export default function DashboardLayout({ user, profile, children, initialActive
     if (tabId.startsWith('/')) {
       console.log('[DashboardLayout] Direct navigation to:', tabId)
       
-      // Special handling for documents page - use hash navigation instead
-      if (tabId === '/dashboard/documents') {
-        console.log('[DashboardLayout] Converting documents page to hash navigation')
-        window.location.hash = 'documents-unified'
-        setActiveTab('documents-unified')
-        return
-      }
       
       router.push(tabId)
       return

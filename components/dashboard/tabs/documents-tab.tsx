@@ -915,7 +915,7 @@ export default function DocumentsTab({
 
       {/* 필수 서류 체크리스트 - Show based on props */}
       {!hideRequiredDocs && (
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl border border-blue-200 dark:border-blue-700 p-4">
+      <div className="bg-gradient-to-r from-gray-50 to-gray-50 dark:from-gray-900/20 dark:to-gray-900/20 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
         <div className="flex items-center justify-between mb-4">
           <div className="flex-1">
             <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">

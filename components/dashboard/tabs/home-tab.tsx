@@ -743,7 +743,7 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
                 <h2 id="work-log-section" className="text-white font-semibold text-sm whitespace-nowrap">
                   작업일지 작성
                 </h2>
-                <p className="text-white/90 text-sm mt-0.5">오늘의 작업 내용을 기록하세요</p>
+                <p className="text-white/90 text-sm mt-0.5 whitespace-nowrap">오늘의 작업 내용을 기록하세요</p>
               </div>
               <button
                 onClick={() => router.push('/dashboard/daily-reports/new')}

@@ -219,18 +219,18 @@ export function MarkupDocumentList({
 
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">도면마킹</h2>
+      {/* Header - Compact Design */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <h2 className="text-xs font-medium text-gray-700 dark:text-gray-300">도면마킹</h2>
             {isSelectionMode && (
-              <span className="text-sm text-blue-600 dark:text-blue-400">
+              <span className="text-xs text-blue-600 dark:text-blue-400">
                 {selectedDocuments.length}개 선택됨
               </span>
             )}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             {isSelectionMode ? (
               <>
                 <button
@@ -238,57 +238,57 @@ export function MarkupDocumentList({
                     setIsSelectionMode(false)
                     setSelectedDocuments([])
                   }}
-                  className="px-3 py-2 text-sm text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+                  className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
                 >
                   취소
                 </button>
                 <button
                   onClick={() => setShowShareModal(true)}
                   disabled={selectedDocuments.length === 0}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
+                  className="flex items-center gap-1 px-2 py-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white text-xs font-medium rounded-md transition-colors"
                 >
-                  <Share2 className="h-4 w-4" />
-                  공유하기
+                  <Share2 className="h-3 w-3" />
+                  공유
                 </button>
               </>
             ) : (
               <>
                 <button
                   onClick={() => setIsSelectionMode(true)}
-                  className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-lg"
+                  className="flex items-center gap-1 px-2 py-1 text-xs text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md"
                 >
-                  <CheckCircle className="h-4 w-4" />
+                  <CheckCircle className="h-3 w-3" />
                   선택
                 </button>
                 <button
                   onClick={onCreateNew}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors touch-manipulation"
+                  className="flex items-center gap-1 px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-md transition-colors touch-manipulation"
                 >
-                  <Plus className="h-4 w-4" />
-                  새 마킹 도구
+                  <Plus className="h-3 w-3" />
+                  새 마킹
                 </button>
               </>
             )}
           </div>
         </div>
 
-        {/* Search and Filters */}
-        <div className="flex flex-col sm:flex-row gap-3">
+        {/* Search and Filters - Compact Design */}
+        <div className="flex flex-col sm:flex-row gap-2">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-2 top-1.5 h-3 w-3 text-gray-400" />
             <input
               type="text"
-              placeholder="도면 제목으로 검색..."
+              placeholder="도면 제목 검색..."
               value={searchQuery}
               onChange={(e) => handleSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full pl-7 pr-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-xs focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1">
             {/* Site Filter */}
             <Select value={selectedSite} onValueChange={handleSiteChange}>
-              <SelectTrigger className="w-[140px] h-10 px-4 py-2.5 text-sm font-medium bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
-                <SelectValue placeholder="현장 선택" />
+              <SelectTrigger className="w-[100px] h-7 px-2 py-1 text-xs font-medium bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                <SelectValue placeholder="현장" />
               </SelectTrigger>
               <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
                 {sites.map((site) => (
@@ -302,10 +302,10 @@ export function MarkupDocumentList({
                 ))}
               </SelectContent>
             </Select>
-            <div className="flex border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
+            <div className="flex border border-gray-300 dark:border-gray-600 rounded-md overflow-hidden">
               <button
                 onClick={() => setLocation('personal')}
-                className={`px-4 py-2.5 text-sm font-medium transition-colors ${
+                className={`px-2 py-1 text-xs font-medium transition-colors ${
                   location === 'personal' 
                     ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400' 
                     : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
@@ -315,7 +315,7 @@ export function MarkupDocumentList({
               </button>
               <button
                 onClick={() => setLocation('shared')}
-                className={`px-4 py-2.5 text-sm font-medium transition-colors ${
+                className={`px-2 py-1 text-xs font-medium transition-colors ${
                   location === 'shared' 
                     ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400' 
                     : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
@@ -324,28 +324,28 @@ export function MarkupDocumentList({
                 공유문서함
               </button>
             </div>
-            <div className="flex border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
+            <div className="flex border border-gray-300 dark:border-gray-600 rounded-md overflow-hidden">
               <button
                 onClick={() => setViewMode('list')}
-                className={`p-2.5 transition-colors ${
+                className={`p-1 transition-colors ${
                   viewMode === 'list' 
                     ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400' 
                     : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
                 }`}
                 title="리스트 보기"
               >
-                <List className="h-4 w-4" />
+                <List className="h-3 w-3" />
               </button>
               <button
                 onClick={() => setViewMode('grid')}
-                className={`p-2.5 transition-colors ${
+                className={`p-1 transition-colors ${
                   viewMode === 'grid' 
                     ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400' 
                     : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
                 }`}
                 title="그리드 보기"
               >
-                <Grid className="h-4 w-4" />
+                <Grid className="h-3 w-3" />
               </button>
             </div>
           </div>
@@ -412,7 +412,7 @@ export function MarkupDocumentList({
         )}
 
         {loading ? (
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
             {/* 데스크톱 로딩 테이블 */}
             <div className="hidden md:block">
               <table className="w-full">
@@ -475,7 +475,7 @@ export function MarkupDocumentList({
             </div>
           </div>
         ) : documents.length === 0 ? (
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
             <div className="text-center py-12">
               <FileText className="mx-auto h-12 w-12 text-gray-400" />
               <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">
@@ -499,7 +499,7 @@ export function MarkupDocumentList({
             </div>
           </div>
         ) : viewMode === 'grid' ? (
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
               {documents.map((doc: any) => (
                 <div
@@ -594,7 +594,7 @@ export function MarkupDocumentList({
         ) : (
           <>
             {/* 리스트 뷰 - 모든 화면 크기에서 카드 스타일 */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
               <div className="space-y-2 p-4">
                 {documents.map((doc: any) => {
                   const getFileTypeDisplay = () => '도면'

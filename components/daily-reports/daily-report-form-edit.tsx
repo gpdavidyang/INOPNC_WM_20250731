@@ -8,33 +8,142 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, Save, Send } from 'lucide-react'
-import { DailyReport, Profile } from '@/types'
+import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/custom-select'
+import { 
+  ArrowLeft, 
+  Save, 
+  Send,
+  Calendar, 
+  Plus, 
+  Trash2,
+  Upload
+} from 'lucide-react'
+import { DailyReport, Profile, Site, Material } from '@/types'
 import { showErrorNotification } from '@/lib/error-handling'
 import { toast } from 'sonner'
 
 interface DailyReportFormEditProps {
   report: DailyReport & {
     site?: any
+    work_logs?: WorkLogEntry[]
+    weather_conditions?: any
   }
   currentUser: Profile
+  sites?: Site[]
+  materials?: Material[]
+  workers?: Profile[]
 }
 
-export default function DailyReportFormEdit({ report, currentUser }: DailyReportFormEditProps) {
+interface WorkLogEntry {
+  id: string
+  work_type: string
+  location: string
+  description: string
+  worker_count: number
+  materials: Array<{
+    material_id: string
+    quantity: number
+  }>
+}
+
+
+export default function DailyReportFormEdit({ 
+  report, 
+  currentUser, 
+  sites = [], 
+  materials = [], 
+  workers = [] 
+}: DailyReportFormEditProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   
   // Form state - Initialize with existing report data
   const [formData, setFormData] = useState({
+    site_id: report.site_id || '',
+    work_date: report.work_date || '',
     member_name: report.member_name || '',
     process_type: report.process_type || '',
     total_workers: report.total_workers || 0,
     npc1000_incoming: report.npc1000_incoming || 0,
     npc1000_used: report.npc1000_used || 0,
     npc1000_remaining: report.npc1000_remaining || 0,
-    issues: report.issues || ''
+    issues: report.issues || '',
+    notes: report.notes || ''
   })
+
+  // Work logs state - Initialize with existing data
+  const [workLogs, setWorkLogs] = useState<WorkLogEntry[]>(
+    report.work_logs || []
+  )
+  
+  // File attachments
+  const [attachments, setAttachments] = useState<File[]>([])
+
+  // Work log handlers
+  const handleAddWorkLog = () => {
+    const newWorkLog: WorkLogEntry = {
+      id: `temp-${Date.now()}`,
+      work_type: '',
+      location: '',
+      description: '',
+      worker_count: 0,
+      materials: []
+    }
+    setWorkLogs([...workLogs, newWorkLog])
+  }
+
+  const handleUpdateWorkLog = (id: string, field: keyof WorkLogEntry, value: any) => {
+    setWorkLogs(workLogs.map(log => 
+      log.id === id ? { ...log, [field]: value } : log
+    ))
+  }
+
+  const handleRemoveWorkLog = (id: string) => {
+    setWorkLogs(workLogs.filter(log => log.id !== id))
+  }
+
+  const handleAddMaterial = (workLogId: string) => {
+    setWorkLogs(workLogs.map(log => 
+      log.id === workLogId 
+        ? { ...log, materials: [...log.materials, { material_id: '', quantity: 0 }] }
+        : log
+    ))
+  }
+
+  const handleUpdateMaterial = (workLogId: string, index: number, field: string, value: any) => {
+    setWorkLogs(workLogs.map(log => 
+      log.id === workLogId 
+        ? {
+            ...log,
+            materials: log.materials.map((mat, i) => 
+              i === index ? { ...mat, [field]: value } : mat
+            )
+          }
+        : log
+    ))
+  }
+
+  const handleRemoveMaterial = (workLogId: string, index: number) => {
+    setWorkLogs(workLogs.map(log => 
+      log.id === workLogId 
+        ? { ...log, materials: log.materials.filter((_, i) => i !== index) }
+        : log
+    ))
+  }
+
+
+  // File handlers
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setAttachments([...attachments, ...Array.from(e.target.files)])
+    }
+  }
+
+  const handleRemoveFile = (index: number) => {
+    setAttachments(attachments.filter((_, i) => i !== index))
+  }
 
   const handleSubmit = async (submitForApproval: boolean = false) => {
     setLoading(true)
@@ -125,9 +234,44 @@ export default function DailyReportFormEdit({ report, currentUser }: DailyReport
         </div>
       )}
 
-      {/* Form */}
-      <Card className="p-6 space-y-6">
+      {/* Basic Information */}
+      <Card className="p-6">
+        <h2 className="text-lg font-semibold mb-4">기본 정보</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="site">현장</Label>
+            <Select
+              value={formData.site_id}
+              onValueChange={(value) => setFormData({ ...formData, site_id: value })}
+              disabled={true} // Site should not be editable
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="현장 선택" />
+              </SelectTrigger>
+              <SelectContent>
+                {sites.map(site => (
+                  <SelectItem key={site.id} value={site.id}>{site.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div>
+            <Label htmlFor="date">작업일자</Label>
+            <div className="relative">
+              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+              <Input
+                id="date"
+                type="date"
+                value={formData.work_date}
+                onChange={(e) => setFormData({ ...formData, work_date: e.target.value })}
+                className="pl-10"
+                disabled={true} // Date should not be editable
+                required
+              />
+            </div>
+          </div>
+
           <div>
             <label className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2 block">
               부재명 <span className="text-red-400">*</span>
@@ -151,23 +295,23 @@ export default function DailyReportFormEdit({ report, currentUser }: DailyReport
               className="w-full"
             />
           </div>
+
+          <div>
+            <label className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2 block">
+              작업자 수 <span className="text-red-400">*</span>
+            </label>
+            <Input
+              type="number"
+              min="0"
+              value={formData.total_workers}
+              onChange={(e) => setFormData({ ...formData, total_workers: parseInt(e.target.value) || 0 })}
+              placeholder="작업자 수를 입력하세요"
+              className="w-full"
+            />
+          </div>
         </div>
 
-        <div>
-          <label className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2 block">
-            작업자 수 <span className="text-red-400">*</span>
-          </label>
-          <Input
-            type="number"
-            min="0"
-            value={formData.total_workers}
-            onChange={(e) => setFormData({ ...formData, total_workers: parseInt(e.target.value) || 0 })}
-            placeholder="작업자 수를 입력하세요"
-            className="w-full"
-          />
-        </div>
-
-        <div className="space-y-4">
+        <div className="mt-6 space-y-4">
           <h3 className="text-lg font-medium">NPC-1000 자재 관리</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -214,18 +358,188 @@ export default function DailyReportFormEdit({ report, currentUser }: DailyReport
             </div>
           </div>
         </div>
+      </Card>
 
-        <div>
-          <label className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2 block">
-            문제 및 조치사항
-          </label>
-          <Textarea
-            value={formData.issues}
-            onChange={(e) => setFormData({ ...formData, issues: e.target.value })}
-            placeholder="발생한 문제나 특이사항을 입력하세요"
-            rows={4}
-            className="w-full"
-          />
+      {/* Work Logs */}
+      <Card className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold">작업 내역</h2>
+          <Button onClick={handleAddWorkLog} variant="outline" size="compact">
+            <Plus className="h-4 w-4 mr-1" />
+            작업 추가
+          </Button>
+        </div>
+
+        <div className="space-y-4">
+          {workLogs.map((workLog, index) => (
+            <div key={workLog.id} className="border dark:border-gray-700 rounded-lg p-4">
+              <div className="flex items-start justify-between mb-3">
+                <h3 className="font-medium">작업 {index + 1}</h3>
+                <Button
+                  onClick={() => handleRemoveWorkLog(workLog.id)}
+                  variant="ghost"
+                  size="compact"
+                  className="text-red-600"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                <div>
+                  <Label>작업 종류</Label>
+                  <Input
+                    value={workLog.work_type}
+                    onChange={(e) => handleUpdateWorkLog(workLog.id, 'work_type', e.target.value)}
+                    placeholder="예: 철근 작업"
+                  />
+                </div>
+                <div>
+                  <Label>작업 위치</Label>
+                  <Input
+                    value={workLog.location}
+                    onChange={(e) => handleUpdateWorkLog(workLog.id, 'location', e.target.value)}
+                    placeholder="예: 3층 A구역"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <Label>작업 내용</Label>
+                  <Textarea
+                    value={workLog.description}
+                    onChange={(e) => handleUpdateWorkLog(workLog.id, 'description', e.target.value)}
+                    placeholder="상세 작업 내용을 입력하세요"
+                    rows={2}
+                  />
+                </div>
+                <div>
+                  <Label>투입 인원</Label>
+                  <Input
+                    type="number"
+                    value={workLog.worker_count}
+                    onChange={(e) => handleUpdateWorkLog(workLog.id, 'worker_count', parseInt(e.target.value) || 0)}
+                    min="0"
+                  />
+                </div>
+              </div>
+
+              {/* Materials */}
+              <div className="mt-3">
+                <div className="flex items-center justify-between mb-2">
+                  <Label className="text-sm">사용 자재</Label>
+                  <Button
+                    onClick={() => handleAddMaterial(workLog.id)}
+                    variant="ghost"
+                    size="compact"
+                  >
+                    <Plus className="h-3 w-3 mr-1" />
+                    자재 추가
+                  </Button>
+                </div>
+                
+                {workLog.materials.map((material, matIndex) => (
+                  <div key={matIndex} className="flex items-center gap-2 mb-2">
+                    <Select
+                      value={material.material_id}
+                      onValueChange={(value) => handleUpdateMaterial(workLog.id, matIndex, 'material_id', value)}
+                    >
+                      <SelectTrigger className="flex-1">
+                        <SelectValue placeholder="자재 선택" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {materials.map(mat => (
+                          <SelectItem key={mat.id} value={mat.id}>
+                            {mat.name} ({mat.unit})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Input
+                      type="number"
+                      value={material.quantity}
+                      onChange={(e) => handleUpdateMaterial(workLog.id, matIndex, 'quantity', parseFloat(e.target.value) || 0)}
+                      placeholder="수량"
+                      className="w-24"
+                      step="0.01"
+                    />
+                    <Button
+                      onClick={() => handleRemoveMaterial(workLog.id, matIndex)}
+                      variant="ghost"
+                      size="compact"
+                      className="text-red-600"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+
+          {workLogs.length === 0 && (
+            <p className="text-center text-gray-500 py-8">
+              작업 내역을 추가하려면 &quot;작업 추가&quot; 버튼을 클릭하세요
+            </p>
+          )}
+        </div>
+      </Card>
+
+
+      {/* Notes & Attachments */}
+      <Card className="p-6">
+        <h2 className="text-lg font-semibold mb-4">비고 및 첨부파일</h2>
+        
+        <div className="space-y-4">
+          <div>
+            <Label htmlFor="notes">특이사항</Label>
+            <Textarea
+              id="notes"
+              value={formData.notes}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              placeholder="특이사항이나 전달사항을 입력하세요"
+              rows={3}
+            />
+          </div>
+
+          <div>
+            <Label>첨부파일</Label>
+            <div className="mt-2">
+              <label className="cursor-pointer">
+                <div className="flex items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                  <div className="text-center">
+                    <Upload className="mx-auto h-8 w-8 text-gray-400" />
+                    <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                      클릭하여 파일 선택 (사진, 문서 등)
+                    </p>
+                  </div>
+                </div>
+                <input
+                  type="file"
+                  multiple
+                  onChange={handleFileChange}
+                  className="hidden"
+                  accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
+                />
+              </label>
+
+              {attachments.length > 0 && (
+                <div className="mt-3 space-y-2">
+                  {attachments.map((file, index) => (
+                    <div key={index} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded">
+                      <span className="text-sm truncate">{file.name}</span>
+                      <Button
+                        onClick={() => handleRemoveFile(index)}
+                        variant="ghost"
+                        size="compact"
+                        className="text-red-600"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </Card>
 

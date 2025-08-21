@@ -15,6 +15,9 @@ import ShareDialog from '@/components/documents/share-dialog'
 
 interface DocumentsTabProps {
   profile: Profile
+  hideRequiredDocs?: boolean
+  showOnlyRequiredDocs?: boolean
+  onRequiredDocsUpdate?: (completed: number, total: number) => void
 }
 
 interface Document {
@@ -65,7 +68,12 @@ const ALLOWED_FILE_TYPES = [
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
 ]
 
-export default function DocumentsTab({ profile }: DocumentsTabProps) {
+export default function DocumentsTab({ 
+  profile, 
+  hideRequiredDocs = false,
+  showOnlyRequiredDocs = false,
+  onRequiredDocsUpdate 
+}: DocumentsTabProps) {
   const [documents, setDocuments] = useState<Document[]>([])
   const [selectedCategory] = useState<string>('all')
   const [searchTerm, setSearchTerm] = useState('')
@@ -78,7 +86,7 @@ export default function DocumentsTab({ profile }: DocumentsTabProps) {
   const [selectedDocuments, setSelectedDocuments] = useState<string[]>([])
   const [showShareModal, setShowShareModal] = useState(false)
   const [isSelectionMode, setIsSelectionMode] = useState(false)
-  const [isRequiredDocsExpanded, setIsRequiredDocsExpanded] = useState(true)
+  const [isRequiredDocsExpanded, setIsRequiredDocsExpanded] = useState(showOnlyRequiredDocs ? true : true)
   const [shareDialogOpen, setShareDialogOpen] = useState(false)
   const [documentToShare, setDocumentToShare] = useState<Document | null>(null)
 
@@ -156,6 +164,18 @@ export default function DocumentsTab({ profile }: DocumentsTabProps) {
   useEffect(() => {
     loadDocuments()
   }, [])
+
+  // Calculate and report required docs progress
+  useEffect(() => {
+    const uploadedCount = requiredDocuments.filter(reqDoc => 
+      documents.some(doc => doc.documentType === reqDoc.id && doc.status === 'completed')
+    ).length
+    const totalCount = requiredDocuments.filter(doc => doc.isRequired).length
+    
+    if (onRequiredDocsUpdate) {
+      onRequiredDocsUpdate(uploadedCount, totalCount)
+    }
+  }, [documents, onRequiredDocsUpdate])
 
   const loadDocuments = async () => {
     setLoading(true)
@@ -266,7 +286,12 @@ export default function DocumentsTab({ profile }: DocumentsTabProps) {
     }
   }
 
-  const filteredAndSortedDocuments = documents
+  // Filter documents based on showOnlyRequiredDocs prop
+  const displayDocuments = showOnlyRequiredDocs 
+    ? documents.filter(doc => doc.documentType && requiredDocuments.some(reqDoc => reqDoc.id === doc.documentType))
+    : documents
+
+  const filteredAndSortedDocuments = displayDocuments
     .filter(doc => {
       const matchesCategory = selectedCategory === 'all' || doc.category === selectedCategory
       const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -558,7 +583,8 @@ export default function DocumentsTab({ profile }: DocumentsTabProps) {
 
   return (
     <div className="space-y-4">
-      {/* Compact Document Management Header */}
+      {/* Compact Document Management Header - Hide if showing only required docs */}
+      {!showOnlyRequiredDocs && (
       <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
         {/* Primary Actions - Compact Layout */}
         <div className="p-3">
@@ -692,15 +718,24 @@ export default function DocumentsTab({ profile }: DocumentsTabProps) {
           </div>
         </div>
       </div>
+      )}
 
-
-      {/* 필수 서류 체크리스트 */}
+      {/* 필수 서류 체크리스트 - Show based on props */}
+      {!hideRequiredDocs && (
       <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl border border-blue-200 dark:border-blue-700 p-4">
         <div className="flex items-center justify-between mb-4">
           <div className="flex-1">
             <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">
-              필수 제출 서류 ({uploadedRequiredDocs}/{totalRequiredDocs}개 완료)
+              {showOnlyRequiredDocs ? '현장 입장을 위한 필수 서류 업로드' : '필수 제출 서류'} ({uploadedRequiredDocs}/{totalRequiredDocs}개 완료)
             </h3>
+            {showOnlyRequiredDocs && (
+              <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                {uploadedRequiredDocs === totalRequiredDocs 
+                  ? '🎉 모든 필수 서류 업로드가 완료되었습니다!' 
+                  : '안전한 현장 근무를 위해 다음 서류들을 모두 업로드해주세요.'
+                }
+              </p>
+            )}
             {/* Progress Bar */}
             <div className="mt-2 flex items-center gap-3">
               <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
@@ -714,22 +749,24 @@ export default function DocumentsTab({ profile }: DocumentsTabProps) {
               </span>
             </div>
           </div>
-          <button
-            onClick={() => setIsRequiredDocsExpanded(!isRequiredDocsExpanded)}
-            className="ml-3 p-1.5 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-all"
-            title={isRequiredDocsExpanded ? "접기" : "펼치기"}
-          >
-            {isRequiredDocsExpanded ? (
-              <ChevronUp className="h-5 w-5" />
-            ) : (
-              <ChevronDown className="h-5 w-5" />
-            )}
-          </button>
+          {!showOnlyRequiredDocs && (
+            <button
+              onClick={() => setIsRequiredDocsExpanded(!isRequiredDocsExpanded)}
+              className="ml-3 p-1.5 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-all"
+              title={isRequiredDocsExpanded ? "접기" : "펼치기"}
+            >
+              {isRequiredDocsExpanded ? (
+                <ChevronUp className="h-5 w-5" />
+              ) : (
+                <ChevronDown className="h-5 w-5" />
+              )}
+            </button>
+          )}
         </div>
         
 
-        {/* 필수 서류 목록 - 펼쳐진 경우에만 표시 */}
-        {isRequiredDocsExpanded && (
+        {/* 필수 서류 목록 - 펼쳐진 경우에만 표시 (필수 서류 탭에서는 항상 표시) */}
+        {(isRequiredDocsExpanded || showOnlyRequiredDocs) && (
           <div className="grid gap-3">
             {requiredDocuments.map((reqDoc) => {
               const uploadedDoc = documents.find(doc => doc.documentType === reqDoc.id)
@@ -840,10 +877,11 @@ export default function DocumentsTab({ profile }: DocumentsTabProps) {
             </div>
           )}
       </div>
+      )}
 
-
+      {/* Main Content - Always show unless both required and personal docs are hidden */}
+      {(!showOnlyRequiredDocs || displayDocuments.length > 0) && (
       <div>
-        {/* Main Content */}
         <div>
           {/* Upload Progress */}
           {uploadProgress.length > 0 && (
@@ -889,9 +927,16 @@ export default function DocumentsTab({ profile }: DocumentsTabProps) {
             {filteredAndSortedDocuments.length === 0 ? (
               <div className="text-center py-12">
                 <Folder className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">문서가 없습니다</h3>
+                <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">
+                  {showOnlyRequiredDocs ? '제출된 필수 서류가 없습니다' : '문서가 없습니다'}
+                </h3>
                 <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                  {searchTerm ? '검색 조건에 맞는 문서가 없습니다.' : '새로운 문서를 업로드해보세요.'}
+                  {showOnlyRequiredDocs 
+                    ? '필수 서류를 업로드해주세요.' 
+                    : searchTerm 
+                      ? '검색 조간에 맞는 문서가 없습니다.' 
+                      : '새로운 문서를 업로드해보세요.'
+                  }
                 </p>
               </div>
             ) : viewMode === 'grid' ? (
@@ -1114,6 +1159,7 @@ export default function DocumentsTab({ profile }: DocumentsTabProps) {
           </div>
         </div>
       </div>
+      )}
 
       {/* Hidden File Input */}
       <input

@@ -150,7 +150,7 @@ export function DailyReportListMobile({ currentUser, sites = [] }: DailyReportLi
                 <h2 id="work-log-section" className="text-white font-semibold text-sm whitespace-nowrap">
                   작업일지 작성
                 </h2>
-                <p className="text-white/90 text-xs mt-0.5">오늘의 작업 내용을 기록하세요</p>
+                <p className="text-white/90 text-xs mt-0.5 whitespace-nowrap">오늘의 작업 내용을 기록하세요</p>
               </div>
               <Link href="/dashboard/daily-reports/new">
                 <button

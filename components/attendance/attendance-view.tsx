@@ -628,14 +628,6 @@ export function AttendanceView({ profile }: AttendanceViewProps) {
                   </span>
                   <span className="text-xs text-gray-500 dark:text-gray-400">공수</span>
                 </div>
-                <div className="flex gap-3 text-xs">
-                  <span className="text-gray-600 dark:text-gray-400">
-                    근무: {getSelectedDateDetails()?.attendance.work_hours || 0}h
-                  </span>
-                  <span className="text-gray-600 dark:text-gray-400">
-                    연장: {getSelectedDateDetails()?.attendance.overtime_hours || 0}h
-                  </span>
-                </div>
               </div>
             </div>
 
@@ -653,10 +645,6 @@ export function AttendanceView({ profile }: AttendanceViewProps) {
                 </span>
               </div>
               
-              <span className="text-xs px-2 py-1 rounded bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
-                {(getSelectedDateDetails()?.attendance.labor_hours || 0) >= 1.0 ? '완전근무' :
-                 (getSelectedDateDetails()?.attendance.labor_hours || 0) >= 0.5 ? '반일근무' : '단시간근무'}
-              </span>
             </div>
 
             {/* Work Notes if available - Compact */}

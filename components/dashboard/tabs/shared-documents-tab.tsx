@@ -726,18 +726,18 @@ export default function SharedDocumentsTab({ profile, initialSearch }: SharedDoc
 
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">공유문서함</h2>
+      {/* Header - Compact Design */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <h2 className="text-xs font-medium text-gray-700 dark:text-gray-300">공유문서함</h2>
             {isSelectionMode && (
-              <span className="text-sm text-blue-600 dark:text-blue-400">
+              <span className="text-xs text-blue-600 dark:text-blue-400">
                 {selectedDocuments.length}개 선택됨
               </span>
             )}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             {isSelectionMode ? (
               <>
                 <button
@@ -745,57 +745,57 @@ export default function SharedDocumentsTab({ profile, initialSearch }: SharedDoc
                     setIsSelectionMode(false)
                     setSelectedDocuments([])
                   }}
-                  className="px-3 py-2 text-sm text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+                  className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
                 >
                   취소
                 </button>
                 <button
                   onClick={() => setShowShareModal(true)}
                   disabled={selectedDocuments.length === 0}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
+                  className="flex items-center gap-1 px-2 py-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white text-xs font-medium rounded-md transition-colors"
                 >
-                  <Share2 className="h-4 w-4" />
-                  공유하기
+                  <Share2 className="h-3 w-3" />
+                  공유
                 </button>
               </>
             ) : (
               <>
                 <button
                   onClick={() => setIsSelectionMode(true)}
-                  className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-lg"
+                  className="flex items-center gap-1 px-2 py-1 text-xs text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md"
                 >
-                  <CheckCircle className="h-4 w-4" />
+                  <CheckCircle className="h-3 w-3" />
                   선택
                 </button>
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors touch-manipulation"
+                  className="flex items-center gap-1 px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-md transition-colors touch-manipulation"
                 >
-                  <Upload className="h-4 w-4" />
-                  파일 업로드
+                  <Upload className="h-3 w-3" />
+                  업로드
                 </button>
               </>
             )}
           </div>
         </div>
 
-        {/* Search and Filters */}
-        <div className="flex flex-col sm:flex-row gap-3">
+        {/* Search and Filters - Compact Design */}
+        <div className="flex flex-col sm:flex-row gap-2">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-2 top-1.5 h-3 w-3 text-gray-400" />
             <input
               type="text"
-              placeholder="파일명으로 검색..."
+              placeholder="파일명 검색..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full pl-7 pr-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-xs focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1">
             {/* 현장 필터 */}
             <Select value={selectedSite} onValueChange={setSelectedSite}>
-              <SelectTrigger className="w-[140px] h-10 px-4 py-2.5 text-sm font-medium bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
-                <SelectValue placeholder="현장 선택" />
+              <SelectTrigger className="w-[100px] h-7 px-2 py-1 text-xs font-medium bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                <SelectValue placeholder="현장" />
               </SelectTrigger>
               <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
                 {sites.map(site => (
@@ -809,57 +809,57 @@ export default function SharedDocumentsTab({ profile, initialSearch }: SharedDoc
                 ))}
               </SelectContent>
             </Select>
-            <div className="flex border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
+            <div className="flex border border-gray-300 dark:border-gray-600 rounded-md overflow-hidden">
               <button
                 onClick={() => setSortBy('date')}
-                className={`px-4 py-2.5 text-sm font-medium transition-colors ${
+                className={`px-2 py-1 text-xs font-medium transition-colors ${
                   sortBy === 'date' 
                     ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400' 
                     : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
                 }`}
               >
-                날짜순
+                날짜
               </button>
               <button
                 onClick={() => setSortBy('name')}
-                className={`px-4 py-2.5 text-sm font-medium transition-colors ${
+                className={`px-2 py-1 text-xs font-medium transition-colors ${
                   sortBy === 'name' 
                     ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400' 
                     : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
                 }`}
               >
-                이름순
+                이름
               </button>
             </div>
             <button
               onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
-              className="p-2.5 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+              className="p-1 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
               title={sortOrder === 'asc' ? '오름차순' : '내림차순'}
             >
-              <ChevronUp className={`h-4 w-4 transition-transform text-gray-700 dark:text-gray-300 ${sortOrder === 'desc' ? 'rotate-180' : ''}`} />
+              <ChevronUp className={`h-3 w-3 transition-transform text-gray-700 dark:text-gray-300 ${sortOrder === 'desc' ? 'rotate-180' : ''}`} />
             </button>
-            <div className="flex border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
+            <div className="flex border border-gray-300 dark:border-gray-600 rounded-md overflow-hidden">
               <button
                 onClick={() => setViewMode('list')}
-                className={`p-2.5 transition-colors ${
+                className={`p-1 transition-colors ${
                   viewMode === 'list' 
                     ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400' 
                     : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
                 }`}
                 title="리스트 보기"
               >
-                <List className="h-4 w-4" />
+                <List className="h-3 w-3" />
               </button>
               <button
                 onClick={() => setViewMode('grid')}
-                className={`p-2.5 transition-colors ${
+                className={`p-1 transition-colors ${
                   viewMode === 'grid' 
                     ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400' 
                     : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
                 }`}
                 title="그리드 보기"
               >
-                <Grid className="h-4 w-4" />
+                <Grid className="h-3 w-3" />
               </button>
             </div>
           </div>
@@ -867,16 +867,16 @@ export default function SharedDocumentsTab({ profile, initialSearch }: SharedDoc
       </div>
 
       <div>
-        {/* Upload Progress */}
+        {/* Upload Progress - Compact */}
         {uploadProgress.length > 0 && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 mb-4">
-            <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">업로드 진행상황</h4>
-            <div className="space-y-2">
+          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3 mb-3">
+            <h4 className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">업로드 진행</h4>
+            <div className="space-y-1">
               {uploadProgress.map((item, index) => (
                 <div key={index} className="flex items-center justify-between">
-                  <div className="flex-1 mr-3">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm text-gray-600 dark:text-gray-400 truncate">
+                  <div className="flex-1 mr-2">
+                    <div className="flex items-center justify-between mb-0.5">
+                      <span className="text-xs text-gray-600 dark:text-gray-400 truncate">
                         {item.fileName}
                       </span>
                       <span className="text-xs text-gray-500">
@@ -886,27 +886,27 @@ export default function SharedDocumentsTab({ profile, initialSearch }: SharedDoc
                       </span>
                     </div>
                     {item.status === 'uploading' && (
-                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1">
+                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-0.5">
                         <div
-                          className="bg-blue-500 h-1 rounded-full transition-all duration-300"
+                          className="bg-blue-500 h-0.5 rounded-full transition-all duration-300"
                           style={{ width: `${item.progress}%` }}
                         />
                       </div>
                     )}
                     {item.error && (
-                      <p className="text-xs text-red-600 dark:text-red-400 mt-1">{item.error}</p>
+                      <p className="text-xs text-red-600 dark:text-red-400 mt-0.5">{item.error}</p>
                     )}
                   </div>
-                  {item.status === 'completed' && <CheckCircle className="h-4 w-4 text-green-500" />}
-                  {item.status === 'error' && <X className="h-4 w-4 text-red-500" />}
+                  {item.status === 'completed' && <CheckCircle className="h-3 w-3 text-green-500" />}
+                  {item.status === 'error' && <X className="h-3 w-3 text-red-500" />}
                 </div>
               ))}
             </div>
           </div>
         )}
 
-          {/* Documents Grid/List - Mobile Optimized */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+          {/* Documents Grid/List - Compact */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
             {filteredAndSortedDocuments.length === 0 ? (
               <div className="text-center py-12 px-4">
                 <Folder className="mx-auto h-12 w-12 text-gray-400" />

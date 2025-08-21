@@ -84,7 +84,7 @@ export default function DocumentsPage({ searchParams }: DocumentsPageProps) {
     >
       <DocumentsTabUnified 
         profile={profile} 
-        initialTab={(searchParams?.tab as 'personal' | 'shared' | 'markup') || 'personal'}
+        initialTab={(searchParams?.tab as 'personal' | 'shared' | 'markup' | 'required') || 'personal'}
         initialSearch={searchParams?.search as string}
       />
     </DashboardLayout>

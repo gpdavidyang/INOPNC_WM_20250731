@@ -49,11 +49,19 @@ export default function PartnerWorkLogsTab({ profile, sites }: PartnerWorkLogsTa
     try {
       setLoading(true)
       
-      // Mock data for demonstration - only showing submitted logs
+      // Generate recent dates for mock data
+      const today = new Date()
+      const getRecentDate = (daysAgo: number) => {
+        const date = new Date(today)
+        date.setDate(date.getDate() - daysAgo)
+        return date.toISOString().split('T')[0]
+      }
+      
+      // Mock data for demonstration - only showing submitted logs with recent dates
       const mockLogs: WorkLog[] = [
         {
           id: '1',
-          date: '2024-03-18',
+          date: getRecentDate(2), // 2 days ago
           site_name: '강남 A현장',
           site_id: '1',
           title: '기초 콘크리트 타설 작업',
@@ -64,7 +72,7 @@ export default function PartnerWorkLogsTab({ profile, sites }: PartnerWorkLogsTa
         },
         {
           id: '2',
-          date: '2024-03-17',
+          date: getRecentDate(3), // 3 days ago
           site_name: '송파 B현장',
           site_id: '2',
           title: '철골 조립 작업',
@@ -75,7 +83,7 @@ export default function PartnerWorkLogsTab({ profile, sites }: PartnerWorkLogsTa
         },
         {
           id: '3',
-          date: '2024-03-16',
+          date: getRecentDate(5), // 5 days ago
           site_name: '강남 A현장',
           site_id: '1',
           title: '방수 작업 진행',
@@ -86,7 +94,7 @@ export default function PartnerWorkLogsTab({ profile, sites }: PartnerWorkLogsTa
         },
         {
           id: '4',
-          date: '2024-03-15',
+          date: getRecentDate(7), // 1 week ago
           site_name: '서초 C현장',
           site_id: '3',
           title: '내부 마감 작업',
@@ -97,7 +105,7 @@ export default function PartnerWorkLogsTab({ profile, sites }: PartnerWorkLogsTa
         },
         {
           id: '5',
-          date: '2024-03-14',
+          date: getRecentDate(10), // 10 days ago
           site_name: '송파 B현장',
           site_id: '2',
           title: '전기 배선 작업',
@@ -105,6 +113,61 @@ export default function PartnerWorkLogsTab({ profile, sites }: PartnerWorkLogsTa
           author: '정전기',
           weather: '흐림',
           worker_count: 6
+        },
+        {
+          id: '6',
+          date: getRecentDate(12), // 12 days ago
+          site_name: '강남 A현장',
+          site_id: '1',
+          title: '슬라브 타설 작업',
+          status: 'submitted',
+          author: '김현장',
+          weather: '맑음',
+          worker_count: 18
+        },
+        {
+          id: '7',
+          date: getRecentDate(15), // 15 days ago
+          site_name: '강남 A현장',
+          site_id: '1',
+          title: '지하층 골조 작업',
+          status: 'submitted',
+          author: '이작업',
+          weather: '흐림',
+          worker_count: 20
+        },
+        {
+          id: '8',
+          date: getRecentDate(18), // 18 days ago
+          site_name: '송파 B현장',
+          site_id: '2',
+          title: '외벽 미장 작업',
+          status: 'submitted',
+          author: '박미장',
+          weather: '맑음',
+          worker_count: 10
+        },
+        {
+          id: '9',
+          date: getRecentDate(20), // 20 days ago
+          site_name: '강남 A현장',
+          site_id: '1',
+          title: '배관 설치 작업',
+          status: 'submitted',
+          author: '최배관',
+          weather: '비',
+          worker_count: 8
+        },
+        {
+          id: '10',
+          date: getRecentDate(25), // 25 days ago
+          site_name: '서초 C현장',
+          site_id: '3',
+          title: '천장 마감 작업',
+          status: 'submitted',
+          author: '정마감',
+          weather: '맑음',
+          worker_count: 12
         }
       ]
       

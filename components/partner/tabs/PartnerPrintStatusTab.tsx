@@ -53,16 +53,22 @@ export default function PartnerPrintStatusTab({ profile, sites }: PartnerPrintSt
       const daysInMonth = new Date(year, month + 1, 0).getDate()
       
       // Generate mock attendance records
+      const defaultSites = sites.length > 0 ? sites : [
+        { id: '1', name: '강남 A현장' },
+        { id: '2', name: '송파 B현장' },
+        { id: '3', name: '서초 C현장' }
+      ]
+      
       for (let day = 1; day <= daysInMonth; day++) {
         if (Math.random() > 0.3) { // 70% chance of work day
-          const siteIndex = Math.floor(Math.random() * sites.length)
-          const site = sites[siteIndex] || { id: '1', name: '강남 A현장' }
+          const siteIndex = Math.floor(Math.random() * defaultSites.length)
+          const site = defaultSites[siteIndex]
           
           mockData.push({
             id: `${year}-${month}-${day}`,
             work_date: `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
-            site_name: site.name || '강남 A현장',
-            site_id: site.id || '1',
+            site_name: site.name,
+            site_id: site.id,
             labor_hours: Math.random() > 0.2 ? 1.0 : 0.5,
             worker_count: Math.floor(Math.random() * 10) + 5
           })
@@ -204,14 +210,14 @@ export default function PartnerPrintStatusTab({ profile, sites }: PartnerPrintSt
           {/* 공수 정보 */}
           {totalLaborHours > 0 && (
             <div className="text-xs font-bold text-gray-900 dark:text-gray-100">
-              {totalLaborHours.toFixed(2).replace('.00', '')}
+              {totalLaborHours.toFixed(1).replace('.0', '')}
             </div>
           )}
           
           {/* 현장명 약어 */}
           {totalLaborHours > 0 && siteName && (
-            <div className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-full">
-              {siteName.replace(/\s*[A-Z]?현장$/g, '').slice(0, 4)}
+            <div className="text-xs text-gray-600 dark:text-gray-400 truncate max-w-full px-1">
+              {siteName.replace(/\s*현장$/g, '').replace(/\s+/g, '')}
             </div>
           )}
         </button>
@@ -221,6 +227,13 @@ export default function PartnerPrintStatusTab({ profile, sites }: PartnerPrintSt
     return days
   }
 
+
+  // Use default sites if none provided
+  const displaySites = sites.length > 0 ? sites : [
+    { id: '1', name: '강남 A현장' },
+    { id: '2', name: '송파 B현장' },
+    { id: '3', name: '서초 C현장' }
+  ]
 
   return (
     <div className="space-y-4">
@@ -233,7 +246,7 @@ export default function PartnerPrintStatusTab({ profile, sites }: PartnerPrintSt
             bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         >
           <option value="all">전체 현장</option>
-          {sites.map(site => (
+          {displaySites.map(site => (
             <option key={site.id} value={site.id}>
               {site.name}
             </option>

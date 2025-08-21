@@ -84,15 +84,12 @@ export default function PDFReportGenerator({
       groupedByComponent[group.component_name].push(group)
     })
 
-    // 공정 순서
-    const processOrder = ['formwork', 'rebar', 'concrete', 'curing', 'finishing', 'inspection', 'other']
+    // 공정 순서 (사용자 요구사항에 맞춤)
+    const processOrder = ['crack', 'surface', 'finishing', 'other']
     const processLabels: Record<string, string> = {
-      formwork: '거푸집',
-      rebar: '철근',
-      concrete: '콘크리트',
-      curing: '양생',
+      crack: '균열',
+      surface: '면',
       finishing: '마감',
-      inspection: '검사',
       other: '기타'
     }
 

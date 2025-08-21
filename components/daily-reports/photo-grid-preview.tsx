@@ -26,25 +26,19 @@ interface PhotoGridPreviewProps {
   onGeneratePDF?: () => void
 }
 
-// 공정 타입별 한글 라벨
+// 공정 타입별 한글 라벨 (사용자 요구사항에 맞춤)
 const PROCESS_LABELS: Record<ConstructionProcessType, string> = {
-  formwork: '거푸집',
-  rebar: '철근',
-  concrete: '콘크리트',
-  curing: '양생',
+  crack: '균열',
+  surface: '면',
   finishing: '마감',
-  inspection: '검사',
   other: '기타'
 }
 
-// 부재 타입별 한글 라벨  
+// 부재 타입별 한글 라벨 (사용자 요구사항에 맞춤)
 const COMPONENT_LABELS: Record<ComponentType, string> = {
-  column: '기둥',
-  beam: '보',
   slab: '슬라브',
-  wall: '벽체',
-  foundation: '기초',
-  stair: '계단',
+  girder: '거더',
+  column: '기둥',
   other: '기타'
 }
 
@@ -75,7 +69,7 @@ export default function PhotoGridPreview({
     Object.keys(grouped).forEach(componentName => {
       grouped[componentName].sort((a, b) => {
         const processOrder: ConstructionProcessType[] = [
-          'formwork', 'rebar', 'concrete', 'curing', 'finishing', 'inspection', 'other'
+          'crack', 'surface', 'finishing', 'other'
         ]
         return processOrder.indexOf(a.process_type) - processOrder.indexOf(b.process_type)
       })

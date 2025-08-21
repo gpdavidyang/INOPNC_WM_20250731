@@ -225,6 +225,13 @@ export default function DailyReportFormEnhanced({
     remaining: ''
   })
 
+  // 작업 내용 변경 시 사진 그룹 자동 동기화
+  useEffect(() => {
+    if (workContents.length > 0) {
+      syncWorkContentToPhotoGroups()
+    }
+  }, []) // 컴포넌트 마운트 시 초기 동기화
+
   // Auto-calculate remaining quantity when incoming or used changes
   const updateMaterialData = (field: keyof MaterialEntry, value: string) => {
     const newData = { ...materialData, [field]: value }
@@ -344,22 +351,102 @@ export default function DailyReportFormEnhanced({
 
   // Work content handlers
   const addWorkContent = () => {
-    setWorkContents([...workContents, {
+    const newWorkContent = {
       id: `wc-${Date.now()}`,
       memberName: '',
       processType: '',
       workSection: ''
-    }])
+    }
+    const updatedWorkContents = [...workContents, newWorkContent]
+    setWorkContents(updatedWorkContents)
+    
+    // 새 작업 내용 추가 시 사진 그룹도 동기화
+    syncWorkContentToPhotoGroups(updatedWorkContents)
   }
 
   const updateWorkContent = (id: string, field: keyof WorkContentEntry, value: string) => {
-    setWorkContents(workContents.map(wc => 
+    const updatedWorkContents = workContents.map(wc => 
       wc.id === id ? { ...wc, [field]: value } : wc
-    ))
+    )
+    setWorkContents(updatedWorkContents)
+    
+    // 작업 내용 업데이트 시 사진 그룹도 동기화
+    syncWorkContentToPhotoGroups(updatedWorkContents)
   }
 
   const removeWorkContent = (id: string) => {
     setWorkContents(workContents.filter(wc => wc.id !== id))
+    // 작업 내용 삭제 시 해당 사진 그룹도 업데이트
+    syncWorkContentToPhotoGroups(workContents.filter(wc => wc.id !== id))
+  }
+
+  // 작업 내용 데이터를 사진 그룹으로 동기화
+  const syncWorkContentToPhotoGroups = (updatedWorkContents?: WorkContentEntry[]) => {
+    const workData = updatedWorkContents || workContents
+    
+    // 사용자 요구사항에 맞는 매핑 사전
+    const componentTypeMapping: Record<string, ComponentType> = {
+      '슬라브': 'slab',
+      '거더': 'girder', 
+      '기둥': 'column',
+      '기타': 'other'
+    }
+    
+    const processTypeMapping: Record<string, ConstructionProcessType> = {
+      '균열': 'crack',
+      '면': 'surface',
+      '마감': 'finishing',
+      '기타': 'other'
+    }
+    
+    // 기존 사진 그룹에서 사진 데이터는 유지하고 구조만 업데이트
+    const existingPhotosByKey: Record<string, PhotoGroup> = {}
+    photoGroups.forEach(group => {
+      const key = `${group.component_name}_${group.process_type}`
+      existingPhotosByKey[key] = group
+    })
+    
+    const newPhotoGroups: PhotoGroup[] = []
+    
+    workData.forEach((content) => {
+      // 부재명 결정 (기타인 경우 직접입력값 사용)
+      const componentName = content.memberName === '기타' 
+        ? (content.memberNameOther || '기타')
+        : content.memberName
+      
+      // 공정 결정 (기타인 경우 직접입력값 사용)
+      const processName = content.processType === '기타'
+        ? (content.processTypeOther || '기타')
+        : content.processType
+      
+      // 매핑된 타입 값 가져오기
+      const componentType = componentTypeMapping[content.memberName] || 'other'
+      const processType = processTypeMapping[content.processType] || 'other'
+      
+      // 고유 키 생성
+      const groupKey = `${componentName}_${processType}`
+      
+      // 기존 사진 그룹이 있으면 사진 데이터를 유지, 없으면 새로 생성
+      const existingGroup = existingPhotosByKey[groupKey]
+      
+      const photoGroup: PhotoGroup = {
+        id: existingGroup?.id || `pg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        component_name: `${componentName}${content.workSection ? ` (${content.workSection})` : ''}`,
+        component_type: componentType,
+        process_type: processType,
+        before_photos: existingGroup?.before_photos || [],
+        after_photos: existingGroup?.after_photos || [],
+        progress_status: existingGroup?.progress_status || 'not_started' as const,
+        notes: existingGroup?.notes || '',
+        daily_report_id: formData.id || 'temp',
+        created_at: existingGroup?.created_at || new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }
+      
+      newPhotoGroups.push(photoGroup)
+    })
+    
+    setPhotoGroups(newPhotoGroups)
   }
 
   // Worker handlers
@@ -1042,18 +1129,34 @@ export default function DailyReportFormEnhanced({
           >
             <div className="pt-2">
               <p className="text-xs text-gray-500 mb-4">
-                부재명과 공정별로 작업 전/후 사진을 체계적으로 관리하여 자동 PDF 보고서를 생성하세요
+                위에서 입력한 '작업 내용'의 부재명/공정을 기반으로 사진 그룹이 자동 생성됩니다. 작업 전/후 사진을 업로드하여 PDF 보고서를 생성하세요.
               </p>
               
-              <ConstructionPhotoMatrix
-                dailyReportId={formData.id || 'temp'}
-                initialPhotoGroups={photoGroups}
-                onPhotoGroupsChange={setPhotoGroups}
-                onGeneratePDF={() => {
-                  // PDF 생성 로직
-                  console.log('PDF 생성 요청')
-                }}
-              />
+              {workContents.length === 0 && (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
+                  <div className="flex items-center gap-2 text-amber-800 text-xs">
+                    <AlertCircle className="h-4 w-4" />
+                    <p><strong>안내:</strong> 먼저 '작업 내용 입력' 섹션에서 부재명과 공정을 선택하세요.</p>
+                  </div>
+                </div>
+              )}
+              
+              {workContents.length > 0 ? (
+                <ConstructionPhotoMatrix
+                  dailyReportId={formData.id || 'temp'}
+                  initialPhotoGroups={photoGroups}
+                  onPhotoGroupsChange={setPhotoGroups}
+                  onGeneratePDF={() => {
+                    // PDF 생성 로직
+                    console.log('PDF 생성 요청')
+                  }}
+                />
+              ) : (
+                <div className="text-center py-8 text-gray-400">
+                  <Camera className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">작업 내용을 먼저 입력하세요</p>
+                </div>
+              )}
               
               {/* 미리보기 및 PDF 생성 */}
               {photoGroups.length > 0 && (

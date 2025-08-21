@@ -1,25 +1,19 @@
 -- 건설 사진 관리 시스템 고도화
 -- 부재명/공정별 체계적 사진 관리 및 PDF 보고서 생성 지원
 
--- 건설 공정 enum 타입
+-- 건설 공정 enum 타입 (사용자 요구사항에 맞춤)
 CREATE TYPE construction_process_type AS ENUM (
-  'formwork',    -- 거푸집
-  'rebar',       -- 철근  
-  'concrete',    -- 콘크리트
-  'curing',      -- 양생
+  'crack',       -- 균열
+  'surface',     -- 면
   'finishing',   -- 마감
-  'inspection',  -- 검사
   'other'        -- 기타
 );
 
--- 부재 타입 enum
+-- 부재 타입 enum (사용자 요구사항에 맞춤)
 CREATE TYPE component_type AS ENUM (
-  'column',      -- 기둥
-  'beam',        -- 보
   'slab',        -- 슬라브
-  'wall',        -- 벽체
-  'foundation',  -- 기초
-  'stair',       -- 계단
+  'girder',      -- 거더
+  'column',      -- 기둥
   'other'        -- 기타
 );
 

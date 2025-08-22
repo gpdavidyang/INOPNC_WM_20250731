@@ -200,15 +200,16 @@ export default function Sidebar({ profile, activeTab, onTabChange, isOpen, onClo
   // 사용자 역할에 따른 메뉴 구성
   const getMenuItemsForRole = () => {
     if (profile.role === 'admin' || profile.role === 'system_admin') {
-      // 본사 관리자는 관리자 전용 메뉴를 사용
+      // 본사 관리자는 관리자 전용 메뉴를 사용 (admin = 본사관리자/시스템관리자)
       return {
         mainMenuItems: adminMenuItems.filter(item => 
           item.roles.includes(profile.role as UserRole)
         ),
-        systemMenuItems: profile.role === 'system_admin' ? systemAdminMenuItems : []
+        // admin도 시스템 관리 메뉴 접근 가능 (admin과 system_admin 통합)
+        systemMenuItems: systemAdminMenuItems
       }
     } else {
-      // 일반 사용자 (작업자, 현장관리자, 파트너사)는 일반 메뉴를 사용
+      // 일반 사용자 (작업자, 현장관리자, 고객사)는 일반 메뉴를 사용
       return {
         mainMenuItems: generalUserMenuItems.filter(item => 
           item.roles.includes(profile.role as UserRole)

@@ -259,7 +259,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Check if this is a performance metric submission (Web Vitals, custom metrics, etc.)
-    if (body.type && ['web_vitals', 'custom_metric', 'api_performance'].includes(body.type)) {
+    if (body.type && ['web_vitals', 'custom_metric', 'api_performance', 'performance_summary'].includes(body.type)) {
       // Handle performance metric storage with graceful fallbacks
       const {
         type,
@@ -301,6 +301,21 @@ export async function POST(request: NextRequest) {
       // Graceful metric storage with better error handling
       try {
         let insertData = null
+
+        // Handle performance summary (from performance-metrics.ts)
+        if (type === 'performance_summary') {
+          // Log the summary but don't store it - just acknowledge receipt
+          console.debug('Performance summary received:', {
+            timestamp: timestamp || new Date().toISOString(),
+            dataKeys: body.data ? Object.keys(body.data) : []
+          })
+          
+          // Return success immediately - no database storage needed
+          return NextResponse.json({ 
+            success: true,
+            message: 'Performance summary logged'
+          })
+        }
 
         // Store Web Vitals metrics
         if (type === 'web_vitals' && metric && value !== undefined) {

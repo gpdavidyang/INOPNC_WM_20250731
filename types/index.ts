@@ -1,4 +1,9 @@
 // 사용자 역할
+// - worker: 작업자 (모바일 UI)
+// - site_manager: 현장관리자 (모바일 UI)  
+// - customer_manager: 고객사 관리자 (모바일 UI)
+// - admin: 본사관리자/시스템관리자 (데스크탑 UI) - 전체 시스템 접근 권한
+// - system_admin: (deprecated - admin으로 통합)
 export type UserRole = 'worker' | 'site_manager' | 'customer_manager' | 'admin' | 'system_admin'
 
 // 사용자 상태

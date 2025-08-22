@@ -83,10 +83,13 @@ export function AdminDashboardContent() {
     <div className={`${
       touchMode === 'glove' ? 'px-5 sm:px-7 lg:px-9 py-10' : touchMode === 'precision' ? 'px-3 sm:px-5 lg:px-7 py-6' : 'px-4 sm:px-6 lg:px-8 py-8'
     }`}>
-      {/* Page Header */}
+      {/* Page Header - 시스템관리자 화면임을 명확히 표시 */}
       <div className="mb-8">
-        <h1 className={`${getFullTypographyClass('heading', '2xl', isLargeFont)} font-bold text-gray-900 dark:text-gray-100`}>관리자 대시보드</h1>
-        <p className={`mt-2 ${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-700 dark:text-gray-300`}>시스템 현황과 주요 지표를 확인하세요</p>
+        <div className="flex items-center gap-3 mb-2">
+          <Shield className="h-8 w-8 text-red-600" />
+          <h1 className={`${getFullTypographyClass('heading', '2xl', isLargeFont)} font-bold text-gray-900 dark:text-gray-100`}>시스템 관리자 대시보드</h1>
+        </div>
+        <p className={`mt-2 ${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-700 dark:text-gray-300`}>전체 시스템 현황과 관리 기능에 접근할 수 있습니다</p>
       </div>
       
       <div className="space-y-6">
@@ -141,28 +144,28 @@ export function AdminDashboardContent() {
         </Card>
       </div>
 
-      {/* Quick Actions */}
+      {/* Quick Actions - Compact Version */}
       <Card className={`${
-        touchMode === 'glove' ? 'p-8' : touchMode === 'precision' ? 'p-4' : 'p-6'
+        touchMode === 'glove' ? 'p-5' : touchMode === 'precision' ? 'p-3' : 'p-4'
       }`}>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className={`${getFullTypographyClass('heading', 'lg', isLargeFont)} font-semibold`}>빠른 작업</h2>
+        <div className="flex items-center justify-between mb-2">
+          <h2 className={`${getFullTypographyClass('heading', 'base', isLargeFont)} font-semibold`}>빠른 작업</h2>
           <QuickActionsSettings onUpdate={fetchQuickActions} />
         </div>
         
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
             {[...Array(6)].map((_, index) => (
               <div
                 key={index}
                 className={`${
-                  touchMode === 'glove' ? 'h-24' : touchMode === 'precision' ? 'h-16' : 'h-20'
+                  touchMode === 'glove' ? 'h-14' : touchMode === 'precision' ? 'h-10' : 'h-12'
                 } bg-gray-100 rounded-md animate-pulse`}
               />
             ))}
           </div>
         ) : quickActions.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
             {quickActions.map((action) => {
               const IconComponent = ICON_MAP[action.icon_name as keyof typeof ICON_MAP] || Home
               
@@ -171,12 +174,12 @@ export function AdminDashboardContent() {
                   <Button 
                     variant="outline" 
                     className={`${
-                      touchMode === 'glove' ? 'h-24' : touchMode === 'precision' ? 'h-16' : 'h-20'
-                    } flex flex-col items-center justify-center space-y-2 w-full hover:bg-gray-50`}
+                      touchMode === 'glove' ? 'h-14' : touchMode === 'precision' ? 'h-10' : 'h-12'
+                    } flex items-center justify-center gap-2 w-full hover:bg-gray-50 dark:hover:bg-gray-700 px-2`}
                     title={action.description}
                   >
-                    <IconComponent className="h-6 w-6" />
-                    <span className={getFullTypographyClass('button', 'base', isLargeFont)}>
+                    <IconComponent className="h-4 w-4 flex-shrink-0" />
+                    <span className={`${getFullTypographyClass('caption', 'xs', isLargeFont)} truncate`}>
                       {action.title}
                     </span>
                   </Button>
@@ -185,8 +188,8 @@ export function AdminDashboardContent() {
             })}
           </div>
         ) : (
-          <div className="text-center py-8">
-            <p className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-500 mb-4`}>
+          <div className="text-center py-4">
+            <p className={`${getFullTypographyClass('caption', 'xs', isLargeFont)} text-gray-500 mb-2`}>
               등록된 빠른 작업이 없습니다.
             </p>
             <QuickActionsSettings onUpdate={fetchQuickActions} />

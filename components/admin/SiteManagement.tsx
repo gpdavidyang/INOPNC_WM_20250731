@@ -259,11 +259,11 @@ export default function SiteManagement({ profile }: SiteManagementProps) {
               </div>
             </div>
             
-            <div className="flex gap-2">
+            <div className="flex flex-row gap-2 flex-shrink-0">
               <select
                 value={statusFilter}
                 onChange={(e) => handleStatusFilter(e.target.value as SiteStatus | '')}
-                className="w-full px-3 py-1.5 text-sm font-medium border border-gray-200 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                className="min-w-[100px] px-3 py-1.5 text-sm font-medium border border-gray-200 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
               >
                 <option value="">모든 상태</option>
                 <option value="active">활성</option>
@@ -273,7 +273,7 @@ export default function SiteManagement({ profile }: SiteManagementProps) {
               
               <button
                 onClick={handleCreateSite}
-                className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors"
+                className="inline-flex items-center whitespace-nowrap px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 새 현장

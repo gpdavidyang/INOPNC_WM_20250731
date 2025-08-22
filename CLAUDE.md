@@ -242,35 +242,46 @@ Key tables with RLS (Row Level Security) enabled:
   - Orange (0.1-0.4 공수): Less than half day
   - Gray: No work/holiday
 
-### User Roles & Permissions (2025-08-07 Update)
+### User Roles & Permissions (2025-08-22 Update)
 
-#### Role Definitions
-- `worker` - Basic worker, can view/create own reports
-- `site_manager` - Manages specific construction sites
-- `customer_manager` - External customer access
-- `admin` - Organization admin
-- `system_admin` - Full system access
+#### Role Definitions & UI Access
+**모바일 UI 사용자:**
+- `worker` - 작업자: 본인 작업일지 작성, 같은 현장 데이터 조회
+- `site_manager` - 현장관리자: 특정 현장 전체 관리
+- `customer_manager` - 고객사 관리자: 외부 고객사 읽기 전용 접근
+
+**데스크탑 UI 사용자:**
+- `admin` - 본사관리자/시스템관리자: 전체 시스템 무제한 접근
+  - 모든 현장 데이터 관리
+  - 사용자 계정 관리
+  - 작업일지 수정/삭제
+  - 문서함 전체 관리
+  - 알림 시스템 관리
+  - RLS 정책 우회
+  - 시스템 설정 변경
+- `system_admin` - (deprecated - admin으로 통합됨)
 
 #### Hierarchical Permission System
 Our Row Level Security (RLS) implementation follows a strict hierarchical model:
 
-##### 🔧 System Administrator (system_admin)
-- Complete unrestricted access to all data across the system
-- Can manage all user profiles and system settings
-- Bypass all RLS restrictions for maintenance and troubleshooting
-- Special assignment: davidswyang@gmail.com
+##### 🔧 본사관리자 (admin)
+- 전체 시스템 무제한 접근 권한
+- 모든 데이터 읽기/쓰기/삭제 가능
+- 모든 사용자 프로필 및 시스템 설정 관리
+- RLS 정책 우회로 유지보수 및 문제해결
+- 데스크탑 UI 전용 접근
 
-##### 👔 Administrator/Site Manager (admin, site_manager)
-- Access to all data within assigned construction sites
-- Can view and manage team member profiles within their sites
-- Site-specific data management permissions
-- Cross-site data isolation enforced
+##### 👔 현장관리자 (site_manager)
+- 배정된 현장의 모든 데이터 접근
+- 해당 현장 팀원 관리
+- 작업일지 승인 및 수정
+- 모바일 UI 접근
 
-##### 👷 General Worker (worker)
-- Access limited to personal data (attendance, daily reports)
-- Can view team data within the same construction site
-- Cannot access data from other sites
-- Basic profile management for own account
+##### 👷 작업자 (worker)
+- 본인 데이터 생성/수정
+- 같은 현장 팀원 데이터 조회
+- 기본 프로필 관리
+- 모바일 UI 접근
 
 #### RLS Implementation Details
 
@@ -501,11 +512,14 @@ export interface MarkupDocument {
 ## Test Accounts
 
 For development/testing:
-- worker@inopnc.com / password123
-- manager@inopnc.com / password123  
-- customer@inopnc.com / password123
-- admin@inopnc.com / password123
-- production@inopnc.com / password123 (site_manager role)
+
+**모바일 UI 계정:**
+- worker@inopnc.com / password123 (작업자)
+- manager@inopnc.com / password123 (현장관리자)
+- customer@inopnc.com / password123 (고객사 관리자)
+
+**데스크탑 UI 계정:**
+- admin@inopnc.com / password123 (본사관리자/시스템관리자)
 
 ## 🚫 INFINITE LOOP PREVENTION - CRITICAL
 

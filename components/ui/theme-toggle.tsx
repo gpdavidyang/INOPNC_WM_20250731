@@ -23,6 +23,8 @@ export function ThemeToggle() {
     const newTheme = theme === 'light' ? 'dark' : 'light'
     setTheme(newTheme)
     localStorage.setItem('theme', newTheme)
+    // Mark that user has manually set preference
+    localStorage.setItem('theme-user-preference', 'manual')
     
     if (newTheme === 'dark') {
       document.documentElement.classList.add('dark')

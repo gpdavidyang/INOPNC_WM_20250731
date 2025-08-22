@@ -637,13 +637,13 @@ export default function SalaryManagement({ profile }: SalaryManagementProps) {
             </div>
           </div>
           
-          <div className="flex gap-2">
+          <div className="flex flex-row gap-2 flex-shrink-0 flex-wrap lg:flex-nowrap">
             {activeTab === 'rules' && (
               <>
                 <select
                   value={ruleTypeFilter}
                   onChange={(e) => setRuleTypeFilter(e.target.value)}
-                  className="w-full px-3 py-1.5 text-sm font-medium border border-gray-200 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  className="min-w-[140px] px-3 py-1.5 text-sm font-medium border border-gray-200 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                 >
                   <option value="">모든 규칙 타입</option>
                   <option value="hourly_rate">시급</option>
@@ -666,7 +666,7 @@ export default function SalaryManagement({ profile }: SalaryManagementProps) {
                     })
                     setShowRuleModal(true)
                   }}
-                  className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                  className="flex items-center whitespace-nowrap px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   규칙 추가
@@ -679,7 +679,7 @@ export default function SalaryManagement({ profile }: SalaryManagementProps) {
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full px-3 py-1.5 text-sm font-medium border border-gray-200 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  className="min-w-[100px] px-3 py-1.5 text-sm font-medium border border-gray-200 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                 >
                   <option value="">모든 상태</option>
                   <option value="calculated">계산됨</option>
@@ -691,7 +691,7 @@ export default function SalaryManagement({ profile }: SalaryManagementProps) {
                   type="date"
                   value={dateFrom}
                   onChange={(e) => setDateFrom(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                  className="min-w-[130px] px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   placeholder="시작일"
                 />
                 
@@ -699,7 +699,7 @@ export default function SalaryManagement({ profile }: SalaryManagementProps) {
                   type="date"
                   value={dateTo}
                   onChange={(e) => setDateTo(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                  className="min-w-[130px] px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   placeholder="종료일"
                 />
               </>
@@ -708,7 +708,7 @@ export default function SalaryManagement({ profile }: SalaryManagementProps) {
             <select
               value={siteFilter}
               onChange={(e) => setSiteFilter(e.target.value)}
-              className="w-full px-3 py-1.5 text-sm font-medium border border-gray-200 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+              className="min-w-[100px] px-3 py-1.5 text-sm font-medium border border-gray-200 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
             >
               <option value="">모든 현장</option>
               {availableSites.map((site) => (

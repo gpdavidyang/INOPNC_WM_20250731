@@ -3,10 +3,11 @@
 import { Profile } from '@/types'
 import { 
   Shield, Menu, X, Home, Users, Building2, FolderCheck, 
-  DollarSign, Package, Layers, Settings, LogOut, BarChart3, Bell
+  DollarSign, Package, Layers, Settings, LogOut, BarChart3, Bell, Sun, Moon,
+  ChevronDown, User, Key
 } from 'lucide-react'
 import { useRouter, usePathname } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { signOut } from '@/app/auth/actions'
 import Link from 'next/link'
 import { useFontSize, getFullTypographyClass } from '@/contexts/FontSizeContext'
@@ -88,8 +89,51 @@ export default function AdminDashboardLayout({ profile, children }: AdminDashboa
   const router = useRouter()
   const pathname = usePathname()
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const [isDarkMode, setIsDarkMode] = useState(false)
+  const [showUserMenu, setShowUserMenu] = useState(false)
+  const userMenuRef = useRef<HTMLDivElement>(null)
   const { isLargeFont } = useFontSize()
   const { touchMode } = useTouchMode()
+
+  // Initialize theme from localStorage or system preference
+  useEffect(() => {
+    const storedTheme = localStorage.getItem('theme')
+    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+    
+    if (storedTheme === 'dark' || (!storedTheme && systemPrefersDark)) {
+      setIsDarkMode(true)
+      document.documentElement.classList.add('dark')
+    } else {
+      setIsDarkMode(false)
+      document.documentElement.classList.remove('dark')
+    }
+  }, [])
+
+  // Toggle theme function
+  const toggleTheme = () => {
+    const newTheme = !isDarkMode
+    setIsDarkMode(newTheme)
+    
+    if (newTheme) {
+      document.documentElement.classList.add('dark')
+      localStorage.setItem('theme', 'dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+      localStorage.setItem('theme', 'light')
+    }
+  }
+
+  // Handle click outside for user menu
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setShowUserMenu(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   const handleLogout = async () => {
     try {
@@ -105,7 +149,8 @@ export default function AdminDashboardLayout({ profile, children }: AdminDashboa
     }
   }
 
-  const menuItems = profile.role === 'system_admin' 
+  // admin과 system_admin 모두 시스템 관리 메뉴 접근 가능
+  const menuItems = (profile.role === 'admin' || profile.role === 'system_admin')
     ? [...adminMenuItems, ...systemAdminItems]
     : adminMenuItems
 
@@ -121,7 +166,7 @@ export default function AdminDashboardLayout({ profile, children }: AdminDashboa
           } border-b border-gray-200 dark:border-gray-700`}>
             <div className="flex items-center">
               <Shield className="h-8 w-8 text-red-600 mr-3" />
-              <span className={`${getFullTypographyClass('heading', 'lg', isLargeFont)} font-semibold text-gray-900 dark:text-gray-100`}>관리자</span>
+              <span className={`${getFullTypographyClass('heading', 'lg', isLargeFont)} font-semibold text-gray-900 dark:text-gray-100`}>시스템 관리자</span>
             </div>
             <button 
               onClick={() => setIsSidebarOpen(false)} 
@@ -151,7 +196,7 @@ export default function AdminDashboardLayout({ profile, children }: AdminDashboa
             touchMode === 'glove' ? 'px-5 py-5' : touchMode === 'precision' ? 'px-3 py-3' : 'px-4 py-4'
           } border-b border-gray-200 dark:border-gray-700`}>
             <Shield className="h-8 w-8 text-red-600 mr-3" />
-            <span className={`${getFullTypographyClass('heading', 'lg', isLargeFont)} font-semibold text-gray-900 dark:text-gray-100`}>관리자 대시보드</span>
+            <span className={`${getFullTypographyClass('heading', 'lg', isLargeFont)} font-semibold text-gray-900 dark:text-gray-100`}>시스템 관리자</span>
           </div>
           <SidebarContent 
             profile={profile}
@@ -188,13 +233,83 @@ export default function AdminDashboardLayout({ profile, children }: AdminDashboa
               
               <div className="flex items-center gap-4">
                 <GlobalSearch />
-                <div className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-700 dark:text-gray-300`}>
-                  {profile.full_name}
-                </div>
-                <div className={`bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-300 ${
-                  touchMode === 'glove' ? 'px-4 py-2' : touchMode === 'precision' ? 'px-2.5 py-0.5' : 'px-3 py-1'
-                } rounded-full ${getFullTypographyClass('body', 'sm', isLargeFont)} font-medium`}>
-                  {profile.role === 'system_admin' ? '시스템 관리자' : '관리자'}
+                
+                {/* Theme Toggle Button */}
+                <button
+                  onClick={toggleTheme}
+                  className={`${
+                    touchMode === 'glove' ? 'p-3' : touchMode === 'precision' ? 'p-1.5' : 'p-2'
+                  } rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300`}
+                  aria-label={isDarkMode ? '라이트 모드로 전환' : '다크 모드로 전환'}
+                  title={isDarkMode ? '라이트 모드로 전환' : '다크 모드로 전환'}
+                >
+                  {isDarkMode ? (
+                    <Sun className="h-5 w-5" />
+                  ) : (
+                    <Moon className="h-5 w-5" />
+                  )}
+                </button>
+                
+                {/* User Menu Dropdown */}
+                <div className="relative" ref={userMenuRef}>
+                  <button
+                    onClick={() => setShowUserMenu(!showUserMenu)}
+                    className={`flex items-center gap-2 ${
+                      touchMode === 'glove' ? 'px-4 py-2' : touchMode === 'precision' ? 'px-2.5 py-1' : 'px-3 py-1.5'
+                    } rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors`}
+                  >
+                    <div className="text-right">
+                      <div className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-700 dark:text-gray-300`}>
+                        {profile.full_name}
+                      </div>
+                      <div className={`${getFullTypographyClass('caption', 'xs', isLargeFont)} text-gray-500 dark:text-gray-400`}>
+                        {profile.role === 'system_admin' ? '시스템 관리자' : '관리자'}
+                      </div>
+                    </div>
+                    <ChevronDown className={`h-4 w-4 text-gray-500 transition-transform ${showUserMenu ? 'rotate-180' : ''}`} />
+                  </button>
+                  
+                  {/* Dropdown Menu */}
+                  {showUserMenu && (
+                    <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
+                      <Link
+                        href="/dashboard/admin/account"
+                        onClick={() => setShowUserMenu(false)}
+                        className={`flex items-center gap-3 ${
+                          touchMode === 'glove' ? 'px-5 py-3' : touchMode === 'precision' ? 'px-3 py-2' : 'px-4 py-2.5'
+                        } hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors`}
+                      >
+                        <User className="h-4 w-4 text-gray-500" />
+                        <span className={getFullTypographyClass('body', 'sm', isLargeFont)}>계정 설정</span>
+                      </Link>
+                      
+                      <Link
+                        href="/dashboard/admin/account"
+                        onClick={() => setShowUserMenu(false)}
+                        className={`flex items-center gap-3 ${
+                          touchMode === 'glove' ? 'px-5 py-3' : touchMode === 'precision' ? 'px-3 py-2' : 'px-4 py-2.5'
+                        } hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors`}
+                      >
+                        <Key className="h-4 w-4 text-gray-500" />
+                        <span className={getFullTypographyClass('body', 'sm', isLargeFont)}>비밀번호 변경</span>
+                      </Link>
+                      
+                      <div className="border-t border-gray-200 dark:border-gray-700 my-1"></div>
+                      
+                      <button
+                        onClick={() => {
+                          setShowUserMenu(false)
+                          handleLogout()
+                        }}
+                        className={`flex items-center gap-3 w-full ${
+                          touchMode === 'glove' ? 'px-5 py-3' : touchMode === 'precision' ? 'px-3 py-2' : 'px-4 py-2.5'
+                        } hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-red-600 dark:text-red-400`}
+                      >
+                        <LogOut className="h-4 w-4" />
+                        <span className={getFullTypographyClass('body', 'sm', isLargeFont)}>로그아웃</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

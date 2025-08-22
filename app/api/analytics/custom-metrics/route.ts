@@ -13,7 +13,7 @@ interface CustomMetric {
 export const GET = withApiMonitoring(
   async (request: NextRequest) => {
     try {
-      const supabase = createClient()
+      const supabase = await createClient()
       const { searchParams } = new URL(request.url)
       const timeRange = searchParams.get('timeRange') || '24h'
       

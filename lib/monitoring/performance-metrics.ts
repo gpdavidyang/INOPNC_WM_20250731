@@ -231,9 +231,12 @@ class PerformanceTracker {
       data: summary,
     })
     
-    // Send to analytics API
+    // Send to analytics API - with better error handling
     try {
-      await fetch('/api/analytics/metrics', {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
+      
+      const response = await fetch('/api/analytics/metrics', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -241,9 +244,22 @@ class PerformanceTracker {
           data: summary,
           timestamp: new Date().toISOString(),
         }),
+        signal: controller.signal,
       })
+      
+      clearTimeout(timeoutId)
+      
+      // If we get a 503, don't retry immediately
+      if (response.status === 503) {
+        console.debug('Analytics service unavailable, metrics will be sent later')
+        return
+      }
     } catch (error) {
-      // Ignore errors - this is best effort
+      // Silently ignore errors - this is best effort
+      // Don't log to console to avoid cluttering
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.debug('Metrics request timed out')
+      }
     }
   }
   
@@ -323,13 +339,43 @@ export async function measureAsync<T>(
 
 // Schedule periodic metric reporting
 if (typeof window !== 'undefined') {
+  let metricsEnabled = true
+  let failureCount = 0
+  
   // Send metrics every 5 minutes
-  setInterval(() => {
-    performanceTracker.sendMetrics()
+  const metricsInterval = setInterval(async () => {
+    // Skip if metrics are disabled due to repeated failures
+    if (!metricsEnabled) return
+    
+    try {
+      await performanceTracker.sendMetrics()
+      failureCount = 0 // Reset on success
+    } catch (error) {
+      failureCount++
+      // Disable metrics after 3 consecutive failures
+      if (failureCount >= 3) {
+        metricsEnabled = false
+        console.debug('Performance metrics disabled due to repeated failures')
+        clearInterval(metricsInterval)
+      }
+    }
   }, 5 * 60 * 1000)
   
-  // Send metrics on page unload
+  // Send metrics on page unload (best effort, don't wait)
   window.addEventListener('beforeunload', () => {
-    performanceTracker.sendMetrics()
+    if (metricsEnabled) {
+      // Use sendBeacon if available for better reliability
+      const summary = performanceTracker.getPerformanceSummary()
+      if (navigator.sendBeacon) {
+        const data = JSON.stringify({
+          type: 'performance_summary',
+          data: summary,
+          timestamp: new Date().toISOString(),
+        })
+        navigator.sendBeacon('/api/analytics/metrics', data)
+      } else {
+        performanceTracker.sendMetrics()
+      }
+    }
   })
 }

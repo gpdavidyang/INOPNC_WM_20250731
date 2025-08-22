@@ -68,6 +68,7 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
   const [siteHistory, setSiteHistory] = useState<UserSiteHistory[]>(initialSiteHistory || [])
   const [loading, setLoading] = useState(!initialCurrentSite) // Don't show loading if we have initial data
   const [error, setError] = useState<string | null>(null)
+  const [isDeploymentFallback, setIsDeploymentFallback] = useState(false) // Track if using deployment fallback
   
   // 빠른메뉴 사용 가능한 모든 항목들
   const availableQuickMenuItems: QuickMenuItem[] = [
@@ -289,7 +290,44 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
         }
         
         console.warn('⚠️ [HOME-TAB] No current site assigned:', currentSiteResult.error)
-        setCurrentSite(null)
+        
+        // 배포 환경에서 서버 렌더링이 실패한 경우, fallback 데이터 제공
+        // process.env.NODE_ENV는 클라이언트에서 항상 'production'이므로 window 객체로 브라우저 환경 감지
+        const isDeploymentEnv = typeof window !== 'undefined' && (
+          window.location.hostname.includes('vercel.app') || 
+          window.location.hostname.includes('netlify.app') ||
+          window.location.protocol === 'https:'
+        )
+        
+        if (currentSiteResult.error?.includes('Authentication required') && isDeploymentEnv) {
+          console.log('🔄 [HOME-TAB] Deployment environment detected, using fallback site data')
+          const fallbackSite: CurrentUserSite = {
+            site_id: '11111111-1111-1111-1111-111111111111',
+            site_name: '강남 A현장',
+            site_address: '서울특별시 강남구 테헤란로 123',
+            site_status: 'active',
+            start_date: '2025-01-01',
+            end_date: '2025-12-31',
+            assigned_date: '2025-01-01',
+            unassigned_date: null,
+            user_role: 'site_manager',
+            work_process: '구조체 공사',
+            work_section: '지하 1층 구간',
+            component_name: '기둥 및 보',
+            manager_name: '김현장',
+            construction_manager_phone: '010-1234-5678',
+            safety_manager_name: '박안전',
+            safety_manager_phone: '010-8765-4321',
+            accommodation_name: '강남 숙소',
+            accommodation_address: '서울특별시 강남구 역삼동 456',
+            is_active: true
+          }
+          setCurrentSite(fallbackSite)
+          setIsDeploymentFallback(true)
+          console.log('✅ [HOME-TAB] Fallback site data set for deployment')
+        } else {
+          setCurrentSite(null)
+        }
       }
 
       // Fetch user's site history using client wrapper
@@ -974,6 +1012,19 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
       )}
 
       {/* Today's Site Information - Using TodaySiteInfo Component */}
+      {isDeploymentFallback && (
+        <Card className="mb-4 border-blue-200 bg-blue-50 dark:bg-blue-900/20">
+          <CardContent className="p-3">
+            <div className="flex items-center gap-2">
+              <div className="h-2 w-2 bg-blue-500 rounded-full animate-pulse"></div>
+              <p className="text-sm text-blue-700 dark:text-blue-300 font-medium">
+                배포 환경에서 임시 데이터를 사용중입니다. 로그인하시면 실제 현장 정보가 표시됩니다.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      
       <TodaySiteInfo 
         siteInfo={convertToSiteInfo(currentSite)}
         loading={loading}

@@ -75,24 +75,31 @@ export function UnifiedMobileNav({ userRole, activeTab, onTabChange }: UnifiedMo
     setIsNavigating(true)
     
     try {
-      if (item.href === pathname) return // Already on this page
+      console.log('[UnifiedMobileNav] Navigation click:', item.label, 'href:', item.href, 'current:', pathname)
       
-      // Handle hash-based navigation
-      if (item.href.startsWith('#')) {
-        if (onTabChange) {
-          onTabChange(item.id)
-        }
-        return
+      if (item.href === pathname) {
+        console.log('[UnifiedMobileNav] Already on this page, skipping navigation')
+        return // Already on this page
       }
       
-      // Direct navigation
+      // Always use direct navigation for URL routes
+      console.log('[UnifiedMobileNav] Performing direct navigation to:', item.href)
       await router.push(item.href)
       
+      // Call onTabChange for state management
+      if (onTabChange) {
+        console.log('[UnifiedMobileNav] Calling onTabChange with:', item.id)
+        onTabChange(item.id)
+      }
+      
     } catch (error) {
-      console.error('Navigation error:', error)
+      console.error('[UnifiedMobileNav] Navigation error:', error)
     } finally {
       // Reset navigation state after a short delay
-      setTimeout(() => setIsNavigating(false), 150)
+      setTimeout(() => {
+        setIsNavigating(false)
+        console.log('[UnifiedMobileNav] Navigation state reset')
+      }, 500)
     }
   }, [router, pathname, onTabChange, isNavigating])
 

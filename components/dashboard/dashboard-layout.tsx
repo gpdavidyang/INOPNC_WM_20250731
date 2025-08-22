@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { User } from '@supabase/supabase-js'
 import { Profile } from '@/types'
@@ -127,23 +127,34 @@ export default function DashboardLayout({ user, profile, children, initialActive
 
 
   // 하단 네비게이션 클릭 처리
-  const handleBottomNavClick = (tabId: string) => {
+  const handleBottomNavClick = React.useCallback(async (tabId: string) => {
     console.log('[DashboardLayout] handleBottomNavClick called with:', tabId)
     
-    // Check if it's a direct link (starts with /)
-    if (tabId.startsWith('/')) {
-      console.log('[DashboardLayout] Direct navigation to:', tabId)
+    try {
+      // Check if it's a direct link (starts with /)
+      if (tabId.startsWith('/')) {
+        console.log('[DashboardLayout] Direct navigation to:', tabId)
+        await router.push(tabId)
+        
+        // Update active tab state based on the route
+        if (tabId === '/dashboard') setActiveTab('home')
+        else if (tabId === '/dashboard/attendance') setActiveTab('attendance')
+        else if (tabId === '/dashboard/daily-reports') setActiveTab('daily-reports')
+        else if (tabId === '/dashboard/site-info') setActiveTab('site-info')
+        else if (tabId === '/dashboard/documents') setActiveTab('documents')
+        
+        return
+      }
       
+      // Handle hash-based or direct tab navigation
+      const cleanTabId = tabId.replace('#', '')
+      console.log('[DashboardLayout] Setting active tab to:', cleanTabId)
+      setActiveTab(cleanTabId)
       
-      router.push(tabId)
-      return
+    } catch (error) {
+      console.error('[DashboardLayout] Navigation error:', error)
     }
-    
-    // Handle hash-based navigation
-    const cleanTabId = tabId.replace('#', '')
-    console.log('[DashboardLayout] Setting active tab to:', cleanTabId)
-    setActiveTab(cleanTabId)
-  }
+  }, [router])
 
   const renderContent = () => {
     // If children are provided (e.g., from dedicated pages), render them instead
@@ -377,7 +388,10 @@ export default function DashboardLayout({ user, profile, children, initialActive
       <UnifiedMobileNav 
         userRole={profile.role}
         activeTab={activeTab}
-        onTabChange={handleBottomNavClick}
+        onTabChange={(tabId) => {
+          console.log('[DashboardLayout] onTabChange called with:', tabId)
+          handleBottomNavClick(tabId)
+        }}
       />
     </div>
   )

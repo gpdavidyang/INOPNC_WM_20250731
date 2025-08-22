@@ -3,10 +3,8 @@
 import { createClient } from '@/lib/supabase/server'
 
 const log = (...args: any[]) => {
-  // Always log in development for debugging
-  if (process.env.NODE_ENV === 'development') {
-    console.log('[SITE-INFO DEBUG]', ...args)
-  }
+  // Always log for debugging in both dev and production (for deployment troubleshooting)
+  console.log('[SITE-INFO DEBUG]', ...args)
 }
 
 // 현재 사용자가 배정된 현장 정보 조회
@@ -14,14 +12,31 @@ export async function getCurrentUserSite() {
   const supabase = createClient()
   
   try {
-    log('getCurrentUserSite: Starting...')
+    log('getCurrentUserSite: Starting... (env:', process.env.NODE_ENV, ')')
+    
+    // 배포 환경에서 쿠키 상태 확인
+    try {
+      const { data: session } = await supabase.auth.getSession()
+      log('getCurrentUserSite: Session check result:', { 
+        hasSession: !!session,
+        hasAccessToken: !!session?.access_token,
+        env: process.env.NODE_ENV
+      })
+    } catch (sessionError) {
+      log('getCurrentUserSite: Session check error:', sessionError)
+    }
     
     // 현재 사용자 확인
     const { data: { user }, error: authError } = await supabase.auth.getUser()
-    log('getCurrentUserSite: User check result:', { user: user?.id, authError })
+    log('getCurrentUserSite: User check result:', { 
+      user: user?.id, 
+      email: user?.email,
+      authError: authError?.message,
+      timestamp: new Date().toISOString()
+    })
     
     if (authError || !user) {
-      log('getCurrentUserSite: Authentication failed')
+      log('getCurrentUserSite: Authentication failed - this is expected in deployment without session')
       return { success: false, error: 'Authentication required' }
     }
 

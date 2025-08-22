@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { 
   X, FileText, Users, Wrench, Package, Clock, 
   CheckCircle, Calendar, Building2, User, 
-  CloudRain, MapPin, Camera, Download
+  CloudRain, MapPin, Camera, ChevronRight
 } from 'lucide-react'
 import { formatDate, formatDateTime } from '@/lib/utils'
 
@@ -30,7 +30,7 @@ export default function WorkLogDetailModal({ isOpen, onClose, workLog }: WorkLog
     const statusInfo = statusMap[status as keyof typeof statusMap] || statusMap.submitted
     
     return (
-      <span className={`px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-md ${statusInfo.className}`}>
+      <span className={`px-2 py-0.5 inline-flex text-xs font-medium rounded-full ${statusInfo.className}`}>
         {statusInfo.label}
       </span>
     )
@@ -72,383 +72,328 @@ export default function WorkLogDetailModal({ isOpen, onClose, workLog }: WorkLog
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
       
-      {/* Modal */}
-      <div className="absolute inset-y-0 right-0 max-w-full flex">
-        <div className="w-screen max-w-4xl">
-          <div className="h-full flex flex-col bg-white dark:bg-gray-900 shadow-xl">
-            {/* Header */}
-            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                    작업일지 상세
+      {/* Modal - Full screen on mobile, slide-in on desktop */}
+      <div className="absolute inset-0 md:inset-y-0 md:right-0 md:left-auto md:max-w-lg lg:max-w-2xl">
+        <div className="h-full flex flex-col bg-white dark:bg-gray-900 shadow-xl">
+          {/* Compact Header */}
+          <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+            <div className="flex items-center justify-between">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 truncate">
+                    {workLog.date} 작업일지
                   </h2>
-                  <div className="mt-1 flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
-                    <span>{workLog.date}</span>
-                    <span>•</span>
-                    <span>{workLog.site_name}</span>
-                    {getStatusBadge(workLog.status)}
-                  </div>
+                  {getStatusBadge(workLog.status)}
                 </div>
-                <button
-                  onClick={onClose}
-                  className="rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <X className="h-6 w-6" />
-                </button>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                  {workLog.siteName || workLog.site_name} • {workLog.author}
+                </p>
               </div>
+              <button
+                onClick={onClose}
+                className="ml-2 p-1.5 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700"
+              >
+                <X className="h-5 w-5" />
+              </button>
             </div>
+          </div>
 
-            {/* Basic Info Cards */}
-            <div className="px-6 py-4 grid grid-cols-2 md:grid-cols-4 gap-4 border-b border-gray-200 dark:border-gray-700">
-              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
-                <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 mb-1">
-                  <Building2 className="h-4 w-4" />
-                  <span className="text-xs">현장</span>
-                </div>
-                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                  {workLog.site_name}
-                </p>
-              </div>
-              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
-                <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 mb-1">
-                  <User className="h-4 w-4" />
-                  <span className="text-xs">작성자</span>
-                </div>
-                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                  {workLog.author}
-                </p>
-              </div>
-              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
-                <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 mb-1">
-                  <CloudRain className="h-4 w-4" />
-                  <span className="text-xs">날씨</span>
-                </div>
-                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+          {/* Compact Info Strip */}
+          <div className="px-4 py-2 bg-blue-50 dark:bg-blue-900/20 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between text-xs">
+              <div className="flex items-center gap-3">
+                <span className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
+                  <CloudRain className="h-3 w-3" />
                   {workLog.weather}
-                </p>
+                </span>
+                <span className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
+                  <Users className="h-3 w-3" />
+                  {workLog.totalWorkers || workLog.worker_count}명
+                </span>
+                {workLog.npc1000Used && (
+                  <span className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
+                    <Package className="h-3 w-3" />
+                    {Math.round(workLog.npc1000Used)}kg
+                  </span>
+                )}
               </div>
-              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
-                <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 mb-1">
-                  <Users className="h-4 w-4" />
-                  <span className="text-xs">작업인원</span>
+            </div>
+          </div>
+
+          {/* Compact Tabs - Horizontal scroll on mobile */}
+          <div className="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+            <div className="flex overflow-x-auto scrollbar-hide">
+              <button
+                onClick={() => setActiveTab('content')}
+                className={`flex-shrink-0 px-4 py-2.5 text-xs font-medium border-b-2 transition-colors ${
+                  activeTab === 'content'
+                    ? 'border-blue-500 text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10'
+                    : 'border-transparent text-gray-500 dark:text-gray-400'
+                }`}
+              >
+                작업내용
+              </button>
+              <button
+                onClick={() => setActiveTab('workers')}
+                className={`flex-shrink-0 px-4 py-2.5 text-xs font-medium border-b-2 transition-colors ${
+                  activeTab === 'workers'
+                    ? 'border-blue-500 text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10'
+                    : 'border-transparent text-gray-500 dark:text-gray-400'
+                }`}
+              >
+                인원({mockWorkers.length})
+              </button>
+              <button
+                onClick={() => setActiveTab('equipment')}
+                className={`flex-shrink-0 px-4 py-2.5 text-xs font-medium border-b-2 transition-colors ${
+                  activeTab === 'equipment'
+                    ? 'border-blue-500 text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10'
+                    : 'border-transparent text-gray-500 dark:text-gray-400'
+                }`}
+              >
+                장비({mockEquipment.length})
+              </button>
+              <button
+                onClick={() => setActiveTab('materials')}
+                className={`flex-shrink-0 px-4 py-2.5 text-xs font-medium border-b-2 transition-colors ${
+                  activeTab === 'materials'
+                    ? 'border-blue-500 text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10'
+                    : 'border-transparent text-gray-500 dark:text-gray-400'
+                }`}
+              >
+                자재({mockMaterials.length})
+              </button>
+              <button
+                onClick={() => setActiveTab('photos')}
+                className={`flex-shrink-0 px-4 py-2.5 text-xs font-medium border-b-2 transition-colors ${
+                  activeTab === 'photos'
+                    ? 'border-blue-500 text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10'
+                    : 'border-transparent text-gray-500 dark:text-gray-400'
+                }`}
+              >
+                사진({mockPhotos.length})
+              </button>
+            </div>
+          </div>
+
+          {/* Content - Compact padding */}
+          <div className="flex-1 overflow-y-auto">
+            {/* Work Content Tab */}
+            {activeTab === 'content' && (
+              <div className="p-4 space-y-3">
+                {/* Main Work */}
+                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+                  <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">
+                    주요 작업
+                  </h3>
+                  <p className="text-sm text-gray-900 dark:text-gray-100">
+                    {workLog.mainWork || workLog.title}
+                  </p>
                 </div>
-                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                  {workLog.worker_count}명
-                </p>
+
+                {/* Work Details */}
+                <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+                  <h3 className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    상세 내용
+                  </h3>
+                  <div className="space-y-1.5 text-xs text-gray-600 dark:text-gray-400">
+                    <div className="flex items-start">
+                      <ChevronRight className="h-3 w-3 mt-0.5 mr-1 flex-shrink-0" />
+                      <span>오전: 자재 반입 및 작업 준비</span>
+                    </div>
+                    <div className="flex items-start">
+                      <ChevronRight className="h-3 w-3 mt-0.5 mr-1 flex-shrink-0" />
+                      <span>작업장 안전 점검 및 TBM 실시</span>
+                    </div>
+                    <div className="flex items-start">
+                      <ChevronRight className="h-3 w-3 mt-0.5 mr-1 flex-shrink-0" />
+                      <span>본 작업 진행 ({workLog.mainWork || workLog.title})</span>
+                    </div>
+                    <div className="flex items-start">
+                      <ChevronRight className="h-3 w-3 mt-0.5 mr-1 flex-shrink-0" />
+                      <span>작업 완료 후 정리 및 청소</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Issues if any */}
+                {workLog.issues && (
+                  <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-3">
+                    <h3 className="text-xs font-medium text-orange-700 dark:text-orange-400 mb-1">
+                      특이사항
+                    </h3>
+                    <p className="text-xs text-orange-600 dark:text-orange-300">
+                      {workLog.issues}
+                    </p>
+                  </div>
+                )}
+
+                {/* Status Timeline - Compact */}
+                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+                  <h3 className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+                    <Clock className="h-3 w-3 mr-1" />
+                    진행 상태
+                  </h3>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-gray-400"></div>
+                      <span className="text-xs text-gray-600 dark:text-gray-400">
+                        작성 - {workLog.date} 08:00
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
+                      <span className="text-xs text-gray-600 dark:text-gray-400">
+                        제출 - {workLog.date} 17:30
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
 
-            {/* Tabs */}
-            <div className="px-6 border-b border-gray-200 dark:border-gray-700">
-              <nav className="flex space-x-8" aria-label="Tabs">
-                <button
-                  onClick={() => setActiveTab('content')}
-                  className={`py-3 px-1 border-b-2 font-medium text-sm transition-colors ${
-                    activeTab === 'content'
-                      ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
-                  }`}
-                >
-                  <FileText className="inline-block h-4 w-4 mr-2" />
-                  작업내용
-                </button>
-                <button
-                  onClick={() => setActiveTab('workers')}
-                  className={`py-3 px-1 border-b-2 font-medium text-sm transition-colors ${
-                    activeTab === 'workers'
-                      ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
-                  }`}
-                >
-                  <Users className="inline-block h-4 w-4 mr-2" />
-                  작업인원
-                </button>
-                <button
-                  onClick={() => setActiveTab('equipment')}
-                  className={`py-3 px-1 border-b-2 font-medium text-sm transition-colors ${
-                    activeTab === 'equipment'
-                      ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
-                  }`}
-                >
-                  <Wrench className="inline-block h-4 w-4 mr-2" />
-                  장비
-                </button>
-                <button
-                  onClick={() => setActiveTab('materials')}
-                  className={`py-3 px-1 border-b-2 font-medium text-sm transition-colors ${
-                    activeTab === 'materials'
-                      ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
-                  }`}
-                >
-                  <Package className="inline-block h-4 w-4 mr-2" />
-                  자재
-                </button>
-                <button
-                  onClick={() => setActiveTab('photos')}
-                  className={`py-3 px-1 border-b-2 font-medium text-sm transition-colors ${
-                    activeTab === 'photos'
-                      ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
-                  }`}
-                >
-                  <Camera className="inline-block h-4 w-4 mr-2" />
-                  사진
-                </button>
-              </nav>
-            </div>
-
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto">
-              <div className="p-6">
-                {/* Work Content Tab */}
-                {activeTab === 'content' && (
-                  <div className="space-y-6">
-                    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-                      <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
-                        작업 내용
-                      </h3>
-                      <div className="whitespace-pre-wrap text-gray-700 dark:text-gray-300">
-                        {workLog.title}
-                        {'\n\n'}
-                        오늘은 {workLog.site_name}에서 {workLog.title} 작업을 진행했습니다.
-                        {'\n\n'}
-                        주요 작업 내용:
-                        {'\n'}• 오전: 자재 반입 및 작업 준비
-                        {'\n'}• 작업장 안전 점검 및 TBM 실시
-                        {'\n'}• 본 작업 진행 ({workLog.title})
-                        {'\n'}• 작업 완료 후 정리 및 청소
-                        {'\n'}• 익일 작업 준비
-                        {'\n\n'}
-                        특이사항: 날씨가 {workLog.weather === '맑음' ? '좋아' : workLog.weather === '흐림' ? '흐려' : '비가 와서'} 작업 진행에 {workLog.weather === '비' ? '다소 어려움이 있었습니다' : '문제가 없었습니다'}.
-                      </div>
-                    </div>
-
-                    {/* Status Timeline */}
-                    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-                      <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
-                        <Clock className="inline-block mr-2 h-5 w-5 text-gray-400" />
-                        상태 이력
-                      </h3>
-                      <div className="flow-root">
-                        <ul className="-mb-8">
-                          <li>
-                            <div className="relative pb-8">
-                              <span className="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200 dark:bg-gray-700" aria-hidden="true"></span>
-                              <div className="relative flex space-x-3">
-                                <div>
-                                  <span className="h-8 w-8 rounded-full bg-gray-400 flex items-center justify-center">
-                                    <FileText className="h-4 w-4 text-white" />
-                                  </span>
-                                </div>
-                                <div className="min-w-0 flex-1">
-                                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                                    작성됨
-                                  </p>
-                                  <p className="text-xs text-gray-400 dark:text-gray-500">
-                                    {workLog.date} 08:00
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-                          </li>
-                          <li>
-                            <div className="relative">
-                              <div className="relative flex space-x-3">
-                                <div>
-                                  <span className="h-8 w-8 rounded-full bg-blue-500 flex items-center justify-center">
-                                    <CheckCircle className="h-4 w-4 text-white" />
-                                  </span>
-                                </div>
-                                <div className="min-w-0 flex-1">
-                                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                                    제출됨
-                                  </p>
-                                  <p className="text-xs text-gray-400 dark:text-gray-500">
-                                    {workLog.date} 17:30
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Workers Tab */}
-                {activeTab === 'workers' && (
-                  <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-                    <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                      <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
-                        작업 인원 ({mockWorkers.length}명)
-                      </h3>
-                    </div>
-                    <ul className="divide-y divide-gray-200 dark:divide-gray-700">
-                      {mockWorkers.map((worker) => (
-                        <li key={worker.id} className="px-6 py-4">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                {worker.name}
-                              </p>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">
-                                {worker.role}
-                              </p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-sm text-gray-500 dark:text-gray-400">
-                                {worker.start_time} - {worker.end_time}
-                              </p>
-                              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                {worker.labor_hours}공수
-                              </p>
-                            </div>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                    <div className="px-6 py-4 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-200 dark:border-gray-700">
-                      <div className="flex justify-between">
-                        <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                          총 공수
-                        </span>
-                        <span className="text-sm font-bold text-blue-600 dark:text-blue-400">
-                          {mockWorkers.reduce((sum, w) => sum + w.labor_hours, 0).toFixed(1)}공수
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Equipment Tab */}
-                {activeTab === 'equipment' && (
-                  <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-                    <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                      <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
-                        장비 사용 내역
-                      </h3>
-                    </div>
-                    <ul className="divide-y divide-gray-200 dark:divide-gray-700">
-                      {mockEquipment.map((item) => (
-                        <li key={item.id} className="px-6 py-4">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                {item.name}
-                              </p>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">
-                                {item.type} • {item.model}
-                              </p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-sm text-gray-500 dark:text-gray-400">
-                                수량: {item.quantity}대
-                              </p>
-                              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                {item.hours}시간
-                              </p>
-                            </div>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {/* Materials Tab */}
-                {activeTab === 'materials' && (
-                  <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-                    <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                      <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
-                        자재 사용 내역
-                      </h3>
-                    </div>
-                    <ul className="divide-y divide-gray-200 dark:divide-gray-700">
-                      {mockMaterials.map((item) => (
-                        <li key={item.id} className="px-6 py-4">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                {item.name}
-                              </p>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">
-                                {item.specification}
-                              </p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-sm text-gray-500 dark:text-gray-400">
-                                사용: {item.used} {item.unit}
-                              </p>
-                              {item.delivered > 0 && (
-                                <p className="text-sm text-gray-500 dark:text-gray-400">
-                                  입고: {item.delivered} {item.unit}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {/* Photos Tab */}
-                {activeTab === 'photos' && (
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
-                        작업 사진 ({mockPhotos.length}장)
-                      </h3>
-                      <button className="inline-flex items-center px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700">
-                        <Download className="h-4 w-4 mr-2" />
-                        전체 다운로드
-                      </button>
-                    </div>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                      {mockPhotos.map((photo) => (
-                        <div key={photo.id} className="relative group">
-                          <div className="aspect-w-4 aspect-h-3 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden">
-                            <div className="w-full h-48 bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
-                              <Camera className="h-12 w-12 text-gray-400 dark:text-gray-500" />
-                            </div>
-                          </div>
-                          <div className="mt-2">
+            {/* Workers Tab - Compact */}
+            {activeTab === 'workers' && (
+              <div className="p-4">
+                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                  <div className="divide-y divide-gray-100 dark:divide-gray-700">
+                    {mockWorkers.map((worker) => (
+                      <div key={worker.id} className="px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                        <div className="flex items-center justify-between">
+                          <div>
                             <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                              {photo.caption}
+                              {worker.name}
                             </p>
                             <p className="text-xs text-gray-500 dark:text-gray-400">
-                              {photo.time}
+                              {worker.role}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              {worker.start_time}-{worker.end_time}
+                            </p>
+                            <p className="text-xs font-medium text-blue-600 dark:text-blue-400">
+                              {worker.labor_hours}공수
                             </p>
                           </div>
                         </div>
-                      ))}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="px-3 py-2 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                        총 공수
+                      </span>
+                      <span className="text-sm font-bold text-blue-600 dark:text-blue-400">
+                        {mockWorkers.reduce((sum, w) => sum + w.labor_hours, 0).toFixed(1)}공수
+                      </span>
                     </div>
                   </div>
-                )}
-              </div>
-            </div>
-
-            {/* Footer Actions */}
-            <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
-              <div className="flex justify-between">
-                <button
-                  onClick={onClose}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600"
-                >
-                  닫기
-                </button>
-                <div className="flex gap-2">
-                  <button className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md">
-                    <Download className="inline-block h-4 w-4 mr-2" />
-                    PDF 다운로드
-                  </button>
                 </div>
               </div>
-            </div>
+            )}
+
+            {/* Equipment Tab - Compact */}
+            {activeTab === 'equipment' && (
+              <div className="p-4">
+                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                  <div className="divide-y divide-gray-100 dark:divide-gray-700">
+                    {mockEquipment.map((item) => (
+                      <div key={item.id} className="px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                        <div className="flex items-center justify-between">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                              {item.name}
+                            </p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              {item.type} • {item.model}
+                            </p>
+                          </div>
+                          <div className="text-right ml-2">
+                            <p className="text-xs font-medium text-gray-900 dark:text-gray-100">
+                              {item.quantity}대
+                            </p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              {item.hours}시간
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Materials Tab - Compact */}
+            {activeTab === 'materials' && (
+              <div className="p-4">
+                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                  <div className="divide-y divide-gray-100 dark:divide-gray-700">
+                    {mockMaterials.map((item) => (
+                      <div key={item.id} className="px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                        <div className="flex items-center justify-between">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                              {item.name}
+                            </p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              {item.specification}
+                            </p>
+                          </div>
+                          <div className="text-right ml-2">
+                            <p className="text-xs font-medium text-blue-600 dark:text-blue-400">
+                              사용: {item.used}{item.unit}
+                            </p>
+                            {item.delivered > 0 && (
+                              <p className="text-xs text-gray-500 dark:text-gray-400">
+                                입고: {item.delivered}{item.unit}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Photos Tab - Compact Grid */}
+            {activeTab === 'photos' && (
+              <div className="p-4">
+                <div className="grid grid-cols-3 gap-2">
+                  {mockPhotos.map((photo) => (
+                    <div key={photo.id} className="relative">
+                      <div className="aspect-square bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden">
+                        <div className="w-full h-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
+                          <Camera className="h-6 w-6 text-gray-400 dark:text-gray-500" />
+                        </div>
+                      </div>
+                      <div className="mt-1">
+                        <p className="text-xs text-gray-600 dark:text-gray-400 truncate">
+                          {photo.caption}
+                        </p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500">
+                          {photo.time}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Compact Footer - Only close button */}
+          <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+            <button
+              onClick={onClose}
+              className="w-full px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600"
+            >
+              닫기
+            </button>
           </div>
         </div>
       </div>

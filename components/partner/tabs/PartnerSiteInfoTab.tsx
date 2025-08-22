@@ -174,7 +174,7 @@ export default function PartnerSiteInfoTab({ profile, sites }: PartnerSiteInfoTa
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {/* Site Selector Dropdown - Enhanced Size */}
       <div className="relative">
         <CustomSelect value={selectedSite} onValueChange={setSelectedSite}>
@@ -445,7 +445,7 @@ export default function PartnerSiteInfoTab({ profile, sites }: PartnerSiteInfoTa
             </div>
 
             <div className="p-4 bg-white dark:bg-gray-800">
-              <div className="space-y-3">
+              <div className="space-y-2.5">
               {/* Location */}
               <div className="flex items-center gap-3">
                 <MapPin className="h-4 w-4 text-blue-500 flex-shrink-0" />
@@ -551,9 +551,9 @@ export default function PartnerSiteInfoTab({ profile, sites }: PartnerSiteInfoTa
             </div>
           </Card>
 
-          {/* Billing Documents Section - Enhanced with Actions */}
-          <Card>
-            <CardHeader>
+          {/* Billing Documents Section - Optimized for Mobile */}
+          <Card className="mt-3">
+            <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <FolderOpen className="h-4 w-4 text-blue-600" />
@@ -564,91 +564,63 @@ export default function PartnerSiteInfoTab({ profile, sites }: PartnerSiteInfoTa
                 </span>
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <CardContent className="pt-0">
+              <div className="space-y-2">
                 {billingDocuments.map(doc => (
                   <div
                     key={doc.id}
-                    className="group relative p-4 border border-gray-200 dark:border-gray-700 rounded-lg
-                      hover:bg-gray-50 dark:hover:bg-gray-800 hover:shadow-md transition-all"
+                    className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg
+                      hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors"
                   >
-                    {/* Document Content */}
-                    <div className="flex items-start gap-3">
-                      <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                    {/* Document Info */}
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg flex-shrink-0">
                         {doc.icon}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs font-medium text-gray-900 dark:text-white truncate">
+                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
                           {getDocumentTypeName(doc.type)}
                         </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate" title={doc.name}>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                           {doc.name}
                         </p>
-                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
                           {doc.uploadDate}
                         </p>
                       </div>
                     </div>
 
-                    {/* Action Buttons */}
-                    <div className="absolute top-2 right-2">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <MoreVertical className="h-4 w-4" />
-                            <span className="sr-only">문서 메뉴</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-40">
-                          <DropdownMenuItem onClick={() => handlePreview(doc)}>
-                            <Eye className="h-3.5 w-3.5 mr-2" />
-                            미리보기
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleDownload(doc)}>
-                            <Download className="h-3.5 w-3.5 mr-2" />
-                            다운로드
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={() => handleShare(doc)}>
-                            <Share2 className="h-3.5 w-3.5 mr-2" />
-                            공유하기
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-
-                    {/* Quick Actions Bar */}
-                    <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity">
+                    {/* Action Icons */}
+                    <div className="flex items-center gap-1 flex-shrink-0">
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-7 px-2 text-xs"
+                        className="h-8 w-8 p-0"
                         onClick={() => handlePreview(doc)}
+                        title="미리보기"
                       >
-                        <Eye className="h-3 w-3 mr-1" />
-                        보기
+                        <Eye className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                        <span className="sr-only">미리보기</span>
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-7 px-2 text-xs"
+                        className="h-8 w-8 p-0"
                         onClick={() => handleDownload(doc)}
+                        title="다운로드"
                       >
-                        <Download className="h-3 w-3 mr-1" />
-                        받기
+                        <Download className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                        <span className="sr-only">다운로드</span>
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-7 px-2 text-xs"
+                        className="h-8 w-8 p-0"
                         onClick={() => handleShare(doc)}
+                        title="공유"
                       >
-                        <Share2 className="h-3 w-3 mr-1" />
-                        공유
+                        <Share2 className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                        <span className="sr-only">공유</span>
                       </Button>
                     </div>
                   </div>

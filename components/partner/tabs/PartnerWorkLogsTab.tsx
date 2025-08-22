@@ -3,10 +3,17 @@
 import { useState, useEffect } from 'react'
 import { Profile } from '@/types'
 import { createClient } from '@/lib/supabase/client'
-import { Search, Calendar, Download, FileText, Eye, RefreshCw, Building2, Users, Package, Filter, X } from 'lucide-react'
+import { Search, Calendar, FileText, Eye, RefreshCw, Building2, Users, Package, Filter, X } from 'lucide-react'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import WorkLogDetailModal from '../WorkLogDetailModal'
+import { 
+  CustomSelect, 
+  CustomSelectContent, 
+  CustomSelectItem, 
+  CustomSelectTrigger, 
+  CustomSelectValue 
+} from '@/components/ui/custom-select'
 
 interface PartnerWorkLogsTabProps {
   profile: Profile
@@ -19,7 +26,7 @@ interface WorkLog {
   siteId: string
   siteName?: string
   mainWork: string
-  status: 'draft' | 'submitted' | 'approved' | 'rejected'
+  status: 'draft' | 'submitted'
   author: string
   weather?: string
   totalWorkers: number
@@ -92,7 +99,7 @@ export default function PartnerWorkLogsTab({ profile, sites }: PartnerWorkLogsTa
           siteId: '1',
           siteName: '강남 A현장',
           mainWork: '방수 작업 진행',
-          status: 'approved',
+          status: 'submitted',
           author: '박작업',
           weather: '비',
           totalWorkers: 5,
@@ -142,7 +149,7 @@ export default function PartnerWorkLogsTab({ profile, sites }: PartnerWorkLogsTa
           siteId: '1',
           siteName: '강남 A현장',
           mainWork: '지하층 골조 작업',
-          status: 'approved',
+          status: 'submitted',
           author: '이작업',
           weather: '흐림',
           totalWorkers: 20,
@@ -166,7 +173,7 @@ export default function PartnerWorkLogsTab({ profile, sites }: PartnerWorkLogsTa
           siteId: '1',
           siteName: '강남 A현장',
           mainWork: '배관 설치 작업',
-          status: 'rejected',
+          status: 'draft',
           author: '최배관',
           weather: '비',
           totalWorkers: 8,
@@ -232,10 +239,6 @@ export default function PartnerWorkLogsTab({ profile, sites }: PartnerWorkLogsTa
     setDetailModalOpen(true)
   }
 
-  const handleDownload = (log: WorkLog) => {
-    // Mock download functionality
-    console.log('Downloading report:', log.id)
-  }
 
   // Filter work logs based on search term and selected filters
   const filteredWorkLogs = workLogs
@@ -256,9 +259,7 @@ export default function PartnerWorkLogsTab({ profile, sites }: PartnerWorkLogsTa
     if (selectedStatus !== 'all') {
       const statusNames = {
         draft: '임시저장',
-        submitted: '제출됨',
-        approved: '승인됨',
-        rejected: '반려됨'
+        submitted: '제출됨'
       }
       filters.push({ 
         label: `상태: ${statusNames[selectedStatus as keyof typeof statusNames]}`, 
@@ -357,29 +358,31 @@ export default function PartnerWorkLogsTab({ profile, sites }: PartnerWorkLogsTa
         {showFilters && (
           <div className="p-3 space-y-2">
             {/* 현장선택 - 첫번째 */}
-            <select
-              value={selectedSite}
-              onChange={(e) => setSelectedSite(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-            >
-              <option value="all">전체 현장</option>
-              {sites.map(site => (
-                <option key={site.id} value={site.id}>{site.name}</option>
-              ))}
-            </select>
+            <CustomSelect value={selectedSite} onValueChange={setSelectedSite}>
+              <CustomSelectTrigger className="w-full h-10">
+                <CustomSelectValue placeholder="현장 선택" />
+              </CustomSelectTrigger>
+              <CustomSelectContent>
+                <CustomSelectItem value="all">전체 현장</CustomSelectItem>
+                {sites.map(site => (
+                  <CustomSelectItem key={site.id} value={site.id}>
+                    {site.name}
+                  </CustomSelectItem>
+                ))}
+              </CustomSelectContent>
+            </CustomSelect>
             
             {/* 상태선택 - 두번째 */}
-            <select
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-            >
-              <option value="all">전체 상태</option>
-              <option value="draft">임시저장</option>
-              <option value="submitted">제출됨</option>
-              <option value="approved">승인됨</option>
-              <option value="rejected">반려됨</option>
-            </select>
+            <CustomSelect value={selectedStatus} onValueChange={setSelectedStatus}>
+              <CustomSelectTrigger className="w-full h-10">
+                <CustomSelectValue placeholder="상태 선택" />
+              </CustomSelectTrigger>
+              <CustomSelectContent>
+                <CustomSelectItem value="all">전체 상태</CustomSelectItem>
+                <CustomSelectItem value="draft">임시저장</CustomSelectItem>
+                <CustomSelectItem value="submitted">제출됨</CustomSelectItem>
+              </CustomSelectContent>
+            </CustomSelect>
 
             {/* 기간 선택 - 세번째 */}
             <div className="space-y-2">
@@ -500,9 +503,7 @@ export default function PartnerWorkLogsTab({ profile, sites }: PartnerWorkLogsTa
             {filteredWorkLogs.map((log) => {
               const statusConfig = {
                 draft: { label: '임시저장', color: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300' },
-                submitted: { label: '제출됨', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300' },
-                approved: { label: '승인됨', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' },
-                rejected: { label: '반려됨', color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300' }
+                submitted: { label: '제출됨', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300' }
               }
               const status = statusConfig[log.status as keyof typeof statusConfig] || statusConfig.draft
               const siteName = sites.find(s => s.id === log.siteId)?.name || log.siteName || '미지정'
@@ -553,13 +554,6 @@ export default function PartnerWorkLogsTab({ profile, sites }: PartnerWorkLogsTa
                         title="상세보기"
                       >
                         <Eye className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDownload(log)}
-                        className="p-1.5 text-gray-400 hover:text-blue-600 dark:text-gray-500 dark:hover:text-blue-400 transition-colors"
-                        title="다운로드"
-                      >
-                        <Download className="w-4 h-4" />
                       </button>
                     </div>
                   </div>

@@ -5,6 +5,7 @@ import { Profile, CurrentUserSite, UserSiteHistory, SiteInfo } from '@/types'
 import { NotificationExtended } from '@/types/notifications'
 import { createClient } from '@/lib/supabase/client'
 import { getCurrentUserSiteWithAuth, getUserSiteHistoryWithAuth } from '@/app/actions/site-info-client'
+import { getCurrentUserSiteDeploymentSafe, getUserSiteHistoryDeploymentSafe } from '@/app/actions/site-info-deployment'
 import TodaySiteInfo from '@/components/site-info/TodaySiteInfo'
 import SiteDebugHelper from '@/components/debug/SiteDebugHelper'
 import { useFontSize,  getTypographyClass, getFullTypographyClass } from '@/contexts/FontSizeContext'
@@ -261,14 +262,27 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
         await new Promise(resolve => setTimeout(resolve, 500))
       }
       
-      // Fetch current user's assigned site using client wrapper
-      console.log('🔍 [HOME-TAB] Calling getCurrentUserSiteWithAuth...')
-      const currentSiteResult = await getCurrentUserSiteWithAuth()
-      console.log('🔍 [HOME-TAB] getCurrentUserSiteWithAuth result:', {
+      // Fetch current user's assigned site
+      // Check if we're in deployment environment
+      const isDeployment = typeof window !== 'undefined' && (
+        window.location.hostname.includes('vercel.app') || 
+        window.location.hostname.includes('netlify.app') ||
+        (window.location.protocol === 'https:' && !window.location.hostname.includes('localhost'))
+      )
+      
+      console.log('🔍 [HOME-TAB] Fetching site data...', { isDeployment })
+      
+      // Use deployment-safe version in production
+      const currentSiteResult = isDeployment 
+        ? await getCurrentUserSiteDeploymentSafe()
+        : await getCurrentUserSiteWithAuth()
+        
+      console.log('🔍 [HOME-TAB] Site data result:', {
         success: currentSiteResult.success,
         hasData: !!currentSiteResult.data,
         error: currentSiteResult.error,
-        siteName: currentSiteResult.data?.site_name
+        siteName: currentSiteResult.data?.site_name,
+        isDeploymentFallback: (currentSiteResult as any).isDeploymentFallback
       })
       
       if (currentSiteResult.success) {
@@ -299,41 +313,23 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
           window.location.protocol === 'https:'
         )
         
-        if (currentSiteResult.error?.includes('Authentication required') && isDeploymentEnv) {
-          console.log('🔄 [HOME-TAB] Deployment environment detected, using fallback site data')
-          const fallbackSite: CurrentUserSite = {
-            site_id: '11111111-1111-1111-1111-111111111111',
-            site_name: '강남 A현장',
-            site_address: '서울특별시 강남구 테헤란로 123',
-            site_status: 'active',
-            start_date: '2025-01-01',
-            end_date: '2025-12-31',
-            assigned_date: '2025-01-01',
-            unassigned_date: null,
-            user_role: 'site_manager',
-            work_process: '구조체 공사',
-            work_section: '지하 1층 구간',
-            component_name: '기둥 및 보',
-            manager_name: '김현장',
-            construction_manager_phone: '010-1234-5678',
-            safety_manager_name: '박안전',
-            safety_manager_phone: '010-8765-4321',
-            accommodation_name: '강남 숙소',
-            accommodation_address: '서울특별시 강남구 역삼동 456',
-            is_active: true
-          }
-          setCurrentSite(fallbackSite)
+        // Deployment-safe version already handles fallback internally
+        if ((currentSiteResult as any).isDeploymentFallback) {
           setIsDeploymentFallback(true)
-          console.log('✅ [HOME-TAB] Fallback site data set for deployment')
-        } else {
-          setCurrentSite(null)
+          console.log('✅ [HOME-TAB] Using deployment fallback data')
         }
+        setCurrentSite(null)
       }
 
-      // Fetch user's site history using client wrapper
-      console.log('🔍 [HOME-TAB] Calling getUserSiteHistoryWithAuth...')
-      const historyResult = await getUserSiteHistoryWithAuth()
-      console.log('🔍 [HOME-TAB] getUserSiteHistoryWithAuth result:', {
+      // Fetch user's site history
+      console.log('🔍 [HOME-TAB] Fetching site history...')
+      
+      // Use deployment-safe version in production
+      const historyResult = isDeployment
+        ? await getUserSiteHistoryDeploymentSafe()
+        : await getUserSiteHistoryWithAuth()
+        
+      console.log('🔍 [HOME-TAB] Site history result:', {
         success: historyResult.success,
         count: historyResult.data?.length || 0,
         error: historyResult.error

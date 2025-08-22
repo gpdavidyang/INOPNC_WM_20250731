@@ -2,9 +2,8 @@
 
 import { useState } from 'react'
 import { 
-  X, FileText, Users, Wrench, Package, Clock, 
-  CheckCircle, Calendar, Building2, User, 
-  CloudRain, MapPin, Camera, ChevronRight
+  X, Users, Clock, 
+  CheckCircle, Camera, ChevronRight
 } from 'lucide-react'
 import { formatDate, formatDateTime } from '@/lib/utils'
 
@@ -15,7 +14,7 @@ interface WorkLogDetailModalProps {
 }
 
 export default function WorkLogDetailModal({ isOpen, onClose, workLog }: WorkLogDetailModalProps) {
-  const [activeTab, setActiveTab] = useState<'content' | 'workers' | 'equipment' | 'materials' | 'photos'>('content')
+  const [activeTab, setActiveTab] = useState<'content' | 'workers' | 'photos'>('content')
 
   if (!isOpen || !workLog) return null
 
@@ -45,27 +44,18 @@ export default function WorkLogDetailModal({ isOpen, onClose, workLog }: WorkLog
     { id: '5', name: '정작업', role: '용접공', start_time: '08:00', end_time: '17:00', labor_hours: 1.0 }
   ]
 
-  const mockEquipment = [
-    { id: '1', name: '타워크레인', type: '양중장비', model: 'TC-5013', quantity: 1, hours: 8 },
-    { id: '2', name: '백호', type: '굴착장비', model: 'EX200-5', quantity: 2, hours: 6 },
-    { id: '3', name: '덤프트럭', type: '운반장비', model: '15톤', quantity: 3, hours: 4 }
-  ]
-
-  const mockMaterials = [
-    { id: '1', name: '레미콘', specification: '25-24-150', unit: 'm³', used: 120, delivered: 150 },
-    { id: '2', name: '철근', specification: 'HD10', unit: 'ton', used: 5.5, delivered: 8 },
-    { id: '3', name: '거푸집', specification: '유로폼', unit: 'm²', used: 450, delivered: 0 },
-    { id: '4', name: '시멘트', specification: '포틀랜드', unit: 'ton', used: 20, delivered: 30 }
-  ]
-
-  const mockPhotos = [
-    { id: '1', url: '/placeholder1.jpg', caption: '기초 콘크리트 타설 전경', time: '09:30' },
-    { id: '2', url: '/placeholder2.jpg', caption: '철근 배근 상세', time: '10:15' },
-    { id: '3', url: '/placeholder3.jpg', caption: '거푸집 설치 완료', time: '11:00' },
-    { id: '4', url: '/placeholder4.jpg', caption: '콘크리트 타설 진행중', time: '14:00' },
-    { id: '5', url: '/placeholder5.jpg', caption: '마감 작업', time: '16:30' },
-    { id: '6', url: '/placeholder6.jpg', caption: '작업 완료 전경', time: '17:00' }
-  ]
+  const mockPhotos = {
+    before: [
+      { id: '1', url: '/placeholder1.jpg', caption: '작업 전 현장 전경', time: '07:30' },
+      { id: '2', url: '/placeholder2.jpg', caption: '작업 구역 상태', time: '07:45' },
+      { id: '3', url: '/placeholder3.jpg', caption: '자재 반입 전', time: '08:00' }
+    ],
+    after: [
+      { id: '4', url: '/placeholder4.jpg', caption: '작업 완료 전경', time: '17:00' },
+      { id: '5', url: '/placeholder5.jpg', caption: '마감 상태 확인', time: '17:15' },
+      { id: '6', url: '/placeholder6.jpg', caption: '청소 완료', time: '17:30' }
+    ]
+  }
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">
@@ -98,28 +88,6 @@ export default function WorkLogDetailModal({ isOpen, onClose, workLog }: WorkLog
             </div>
           </div>
 
-          {/* Compact Info Strip */}
-          <div className="px-4 py-2 bg-blue-50 dark:bg-blue-900/20 border-b border-gray-200 dark:border-gray-700">
-            <div className="flex items-center justify-between text-xs">
-              <div className="flex items-center gap-3">
-                <span className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
-                  <CloudRain className="h-3 w-3" />
-                  {workLog.weather}
-                </span>
-                <span className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
-                  <Users className="h-3 w-3" />
-                  {workLog.totalWorkers || workLog.worker_count}명
-                </span>
-                {workLog.npc1000Used && (
-                  <span className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
-                    <Package className="h-3 w-3" />
-                    {Math.round(workLog.npc1000Used)}kg
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-
           {/* Compact Tabs - Horizontal scroll on mobile */}
           <div className="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
             <div className="flex overflow-x-auto scrollbar-hide">
@@ -141,27 +109,7 @@ export default function WorkLogDetailModal({ isOpen, onClose, workLog }: WorkLog
                     : 'border-transparent text-gray-500 dark:text-gray-400'
                 }`}
               >
-                인원({mockWorkers.length})
-              </button>
-              <button
-                onClick={() => setActiveTab('equipment')}
-                className={`flex-shrink-0 px-4 py-2.5 text-xs font-medium border-b-2 transition-colors ${
-                  activeTab === 'equipment'
-                    ? 'border-blue-500 text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10'
-                    : 'border-transparent text-gray-500 dark:text-gray-400'
-                }`}
-              >
-                장비({mockEquipment.length})
-              </button>
-              <button
-                onClick={() => setActiveTab('materials')}
-                className={`flex-shrink-0 px-4 py-2.5 text-xs font-medium border-b-2 transition-colors ${
-                  activeTab === 'materials'
-                    ? 'border-blue-500 text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10'
-                    : 'border-transparent text-gray-500 dark:text-gray-400'
-                }`}
-              >
-                자재({mockMaterials.length})
+                작업인력({mockWorkers.length})
               </button>
               <button
                 onClick={() => setActiveTab('photos')}
@@ -171,7 +119,7 @@ export default function WorkLogDetailModal({ isOpen, onClose, workLog }: WorkLog
                     : 'border-transparent text-gray-500 dark:text-gray-400'
                 }`}
               >
-                사진({mockPhotos.length})
+                사진({mockPhotos.before.length + mockPhotos.after.length})
               </button>
             </div>
           </div>
@@ -294,93 +242,65 @@ export default function WorkLogDetailModal({ isOpen, onClose, workLog }: WorkLog
               </div>
             )}
 
-            {/* Equipment Tab - Compact */}
-            {activeTab === 'equipment' && (
-              <div className="p-4">
-                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-                  <div className="divide-y divide-gray-100 dark:divide-gray-700">
-                    {mockEquipment.map((item) => (
-                      <div key={item.id} className="px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                        <div className="flex items-center justify-between">
-                          <div className="min-w-0 flex-1">
-                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                              {item.name}
-                            </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
-                              {item.type} • {item.model}
-                            </p>
-                          </div>
-                          <div className="text-right ml-2">
-                            <p className="text-xs font-medium text-gray-900 dark:text-gray-100">
-                              {item.quantity}대
-                            </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
-                              {item.hours}시간
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
 
-            {/* Materials Tab - Compact */}
-            {activeTab === 'materials' && (
-              <div className="p-4">
-                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-                  <div className="divide-y divide-gray-100 dark:divide-gray-700">
-                    {mockMaterials.map((item) => (
-                      <div key={item.id} className="px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                        <div className="flex items-center justify-between">
-                          <div className="min-w-0 flex-1">
-                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                              {item.name}
-                            </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
-                              {item.specification}
-                            </p>
-                          </div>
-                          <div className="text-right ml-2">
-                            <p className="text-xs font-medium text-blue-600 dark:text-blue-400">
-                              사용: {item.used}{item.unit}
-                            </p>
-                            {item.delivered > 0 && (
-                              <p className="text-xs text-gray-500 dark:text-gray-400">
-                                입고: {item.delivered}{item.unit}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Photos Tab - Compact Grid */}
+            {/* Photos Tab - Before/After Grid */}
             {activeTab === 'photos' && (
-              <div className="p-4">
-                <div className="grid grid-cols-3 gap-2">
-                  {mockPhotos.map((photo) => (
-                    <div key={photo.id} className="relative">
-                      <div className="aspect-square bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden">
-                        <div className="w-full h-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
-                          <Camera className="h-6 w-6 text-gray-400 dark:text-gray-500" />
+              <div className="p-4 space-y-4">
+                {/* Before Photos */}
+                <div>
+                  <h3 className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+                    <Camera className="h-3 w-3 mr-1" />
+                    작업 전 사진 ({mockPhotos.before.length})
+                  </h3>
+                  <div className="grid grid-cols-3 gap-2">
+                    {mockPhotos.before.map((photo) => (
+                      <div key={photo.id} className="relative">
+                        <div className="aspect-square bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden">
+                          <div className="w-full h-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
+                            <Camera className="h-6 w-6 text-gray-400 dark:text-gray-500" />
+                          </div>
+                        </div>
+                        <div className="mt-1">
+                          <p className="text-xs text-gray-600 dark:text-gray-400 truncate">
+                            {photo.caption}
+                          </p>
+                          <p className="text-xs text-gray-400 dark:text-gray-500">
+                            {photo.time}
+                          </p>
                         </div>
                       </div>
-                      <div className="mt-1">
-                        <p className="text-xs text-gray-600 dark:text-gray-400 truncate">
-                          {photo.caption}
-                        </p>
-                        <p className="text-xs text-gray-400 dark:text-gray-500">
-                          {photo.time}
-                        </p>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Divider */}
+                <div className="border-t border-gray-200 dark:border-gray-700"></div>
+
+                {/* After Photos */}
+                <div>
+                  <h3 className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+                    <CheckCircle className="h-3 w-3 mr-1" />
+                    작업 후 사진 ({mockPhotos.after.length})
+                  </h3>
+                  <div className="grid grid-cols-3 gap-2">
+                    {mockPhotos.after.map((photo) => (
+                      <div key={photo.id} className="relative">
+                        <div className="aspect-square bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden">
+                          <div className="w-full h-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
+                            <Camera className="h-6 w-6 text-gray-400 dark:text-gray-500" />
+                          </div>
+                        </div>
+                        <div className="mt-1">
+                          <p className="text-xs text-gray-600 dark:text-gray-400 truncate">
+                            {photo.caption}
+                          </p>
+                          <p className="text-xs text-gray-400 dark:text-gray-500">
+                            {photo.time}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               </div>
             )}

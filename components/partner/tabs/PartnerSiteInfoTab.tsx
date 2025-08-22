@@ -10,7 +10,8 @@ import {
   Building2, Building, MapPin, Phone, Calendar, Users, 
   FileText, FolderOpen, DollarSign, Camera,
   CheckSquare, FileSignature, Map, X, Clock,
-  Copy, ExternalLink, ClipboardList, Eye, Download, Share2, MoreVertical
+  Copy, ExternalLink, ClipboardList, Eye, Download, Share2, MoreVertical,
+  ChevronDown, ChevronUp
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -45,6 +46,7 @@ export default function PartnerSiteInfoTab({ profile, sites }: PartnerSiteInfoTa
   const [selectedSite, setSelectedSite] = useState<string>('all')
   const [selectedPeriod, setSelectedPeriod] = useState<string>('current_month')
   const [previewDocument, setPreviewDocument] = useState<BillingDocument | null>(null)
+  const [showAllSites, setShowAllSites] = useState(false)
   
   // Mock site details
   const siteDetails = {
@@ -211,16 +213,24 @@ export default function PartnerSiteInfoTab({ profile, sites }: PartnerSiteInfoTa
         <Calendar className="absolute left-3 top-3 h-4 w-4 text-gray-500 dark:text-gray-400 pointer-events-none" />
       </div>
 
-      {/* Site Participation History - Enhanced UI matching Site Manager */}
+      {/* Site Participation History - Enhanced UI with collapsed view */}
       <Card elevation="sm" className="theme-transition overflow-hidden">
         <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
           <div className="flex items-center justify-between">
             <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">현장 참여 목록</h3>
-            <span className="text-sm text-gray-500 dark:text-gray-400">총 5개 현장</span>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-500 dark:text-gray-400">총 5개 현장</span>
+              {!showAllSites && (
+                <span className="text-xs text-blue-600 dark:text-blue-400">3개 표시 중</span>
+              )}
+            </div>
           </div>
         </div>
         
-        <div className="divide-y divide-gray-200 dark:divide-gray-700">
+        <div className={cn(
+          "divide-y divide-gray-200 dark:divide-gray-700 transition-all duration-300",
+          !showAllSites && "max-h-[300px] overflow-hidden relative"
+        )}>
           {/* First Site - Enhanced UI with proper font sizes */}
           <div 
             className={cn(
@@ -341,6 +351,9 @@ export default function PartnerSiteInfoTab({ profile, sites }: PartnerSiteInfoTa
             </div>
           </div>
 
+          {/* Show remaining sites only when expanded */}
+          {showAllSites && (
+            <>
           {/* Fourth Site */}
           <div 
             className={cn(
@@ -415,16 +428,57 @@ export default function PartnerSiteInfoTab({ profile, sites }: PartnerSiteInfoTa
               </div>
             </div>
           </div>
+            </>
+          )}
+        </div>
+
+        {/* Gradient overlay for collapsed state */}
+        {!showAllSites && (
+          <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white dark:from-gray-800 to-transparent pointer-events-none" />
+        )}
+
+        {/* Expand/Collapse Button */}
+        <div className="px-4 py-2 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowAllSites(!showAllSites)}
+            className="w-full flex items-center justify-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+          >
+            {showAllSites ? (
+              <>
+                <ChevronUp className="h-4 w-4" />
+                <span>접기</span>
+              </>
+            ) : (
+              <>
+                <ChevronDown className="h-4 w-4" />
+                <span>2개 더보기</span>
+              </>
+            )}
+          </Button>
         </div>
       </Card>
 
-      {/* Selected Site Details - Enhanced UI */}
+      {/* Selected Site Details - Enhanced UI with visual indicators */}
       {selectedSite && selectedSite !== 'all' && (
         <>
+          {/* Visual indicator for scrollable content */}
+          <div className="flex items-center justify-center py-1">
+            <div className="flex items-center gap-2 text-xs text-gray-400 dark:text-gray-500">
+              <div className="h-px w-12 bg-gray-300 dark:bg-gray-600" />
+              <ChevronDown className="h-3 w-3 animate-bounce" />
+              <span>아래 섹션 더보기</span>
+              <ChevronDown className="h-3 w-3 animate-bounce" />
+              <div className="h-px w-12 bg-gray-300 dark:bg-gray-600" />
+            </div>
+          </div>
+
           <Card elevation="sm" className="theme-transition overflow-hidden">
-            <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
+            <div className="px-4 py-3 bg-gradient-to-r from-blue-50 to-gray-50 dark:from-blue-900/20 dark:to-gray-700 border-b border-gray-200 dark:border-gray-600">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
+                  <Building className="h-4 w-4 text-blue-600" />
                   <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">현장 상세정보</h3>
                   <span className="text-xs text-blue-600 dark:text-blue-300 font-medium">
                     {selectedSite === 'site-2' ? '송파 C현장' : 
@@ -551,20 +605,23 @@ export default function PartnerSiteInfoTab({ profile, sites }: PartnerSiteInfoTa
             </div>
           </Card>
 
-          {/* Billing Documents Section - Optimized for Mobile */}
-          <Card className="mt-3">
-            <CardHeader className="pb-3">
+          {/* Billing Documents Section - Optimized for Mobile with enhanced header */}
+          <Card elevation="sm" className="theme-transition overflow-hidden">
+            <div className="px-4 py-3 bg-gradient-to-r from-green-50 to-gray-50 dark:from-green-900/20 dark:to-gray-700 border-b border-gray-200 dark:border-gray-600">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <FolderOpen className="h-4 w-4 text-blue-600" />
-                  <CardTitle className="text-sm">기성청구함</CardTitle>
+                  <FolderOpen className="h-4 w-4 text-green-600" />
+                  <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">기성청구함</h3>
+                  <span className="px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs rounded-full">
+                    NEW
+                  </span>
                 </div>
-                <span className="text-xs text-gray-500">
-                  총 {billingDocuments.length}개 문서
+                <span className="text-sm text-gray-500 dark:text-gray-400">
+                  총 {billingDocuments.length}개
                 </span>
               </div>
-            </CardHeader>
-            <CardContent className="pt-0">
+            </div>
+            <div className="p-4">
               <div className="space-y-2">
                 {billingDocuments.map(doc => (
                   <div
@@ -574,9 +631,6 @@ export default function PartnerSiteInfoTab({ profile, sites }: PartnerSiteInfoTa
                   >
                     {/* Document Info */}
                     <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <div className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg flex-shrink-0">
-                        {doc.icon}
-                      </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
                           {getDocumentTypeName(doc.type)}
@@ -626,7 +680,7 @@ export default function PartnerSiteInfoTab({ profile, sites }: PartnerSiteInfoTa
                   </div>
                 ))}
               </div>
-            </CardContent>
+            </div>
           </Card>
 
           {/* Document Preview Modal */}
@@ -647,22 +701,24 @@ export default function PartnerSiteInfoTab({ profile, sites }: PartnerSiteInfoTa
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
                     <Button
                       variant="ghost"
                       size="sm"
+                      className="h-9 w-9 p-0"
                       onClick={() => handleDownload(previewDocument)}
+                      title="다운로드"
                     >
-                      <Download className="h-4 w-4 mr-2" />
-                      다운로드
+                      <Download className="h-4 w-4" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
+                      className="h-9 w-9 p-0"
                       onClick={() => handleShare(previewDocument)}
+                      title="공유"
                     >
-                      <Share2 className="h-4 w-4 mr-2" />
-                      공유
+                      <Share2 className="h-4 w-4" />
                     </Button>
                     <Button
                       variant="ghost"

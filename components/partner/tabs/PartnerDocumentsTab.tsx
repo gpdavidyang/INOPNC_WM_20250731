@@ -198,7 +198,8 @@ export default function PartnerDocumentsTab({ profile, sites }: PartnerDocuments
     return 'bg-gray-100 text-gray-700 border-gray-200'
   }
 
-  const getDocuments = () => {
+  // Get filtered documents for display
+  const getFilteredDocuments = () => {
     let docs: Document[] = []
     
     // Use real documents from database and filter by tab type
@@ -243,11 +244,6 @@ export default function PartnerDocumentsTab({ profile, sites }: PartnerDocuments
 
     return docs
   }
-
-  // Initialize documents state
-  React.useEffect(() => {
-    setDocuments(getDocuments())
-  }, [activeTab, selectedSite, searchTerm, sortBy, sortOrder])
 
   const handleViewDocument = (document: Document) => {
     setPreviewDocument(document)
@@ -322,8 +318,7 @@ export default function PartnerDocumentsTab({ profile, sites }: PartnerDocuments
       return
     }
 
-    const allDocs = getDocumentsList()
-    const selectedDocs = allDocs.filter(doc => selectedDocuments.includes(doc.id))
+    const selectedDocs = displayDocuments.filter(doc => selectedDocuments.includes(doc.id))
     const shareText = `선택한 문서 ${selectedDocs.length}개:\n${selectedDocs.map(doc => doc.name).join('\n')}`
 
     try {
@@ -356,7 +351,8 @@ export default function PartnerDocumentsTab({ profile, sites }: PartnerDocuments
     setSelectedDocuments([])
   }
 
-  const getDocumentsList = () => documents.length > 0 ? documents : getDocuments()
+  // Get the filtered documents list for rendering
+  const displayDocuments = getFilteredDocuments()
 
   // File upload handler
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -672,7 +668,7 @@ export default function PartnerDocumentsTab({ profile, sites }: PartnerDocuments
             </div>
           )}
 
-          {getDocumentsList().length === 0 ? (
+          {displayDocuments.length === 0 ? (
             <div className="text-center py-12 px-4">
               <Upload className="mx-auto h-12 w-12 text-gray-400" />
               <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">문서가 없습니다</h3>
@@ -695,7 +691,7 @@ export default function PartnerDocumentsTab({ profile, sites }: PartnerDocuments
             </div>
           ) : viewMode === 'grid' ? (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
-              {getDocumentsList().map((document) => {
+              {displayDocuments.map((document) => {
                 return (
                   <div
                     key={document.id}
@@ -777,7 +773,7 @@ export default function PartnerDocumentsTab({ profile, sites }: PartnerDocuments
             </div>
           ) : (
             <div className="space-y-2">
-              {getDocumentsList().map((document) => {
+              {displayDocuments.map((document) => {
                 return (
                   <div
                     key={document.id}

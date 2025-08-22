@@ -1,21 +1,20 @@
 import { requireAdminAuth } from '@/lib/auth/admin'
 import AdminDashboardLayout from '@/components/admin/AdminDashboardLayout'
-import { UnifiedDocumentManagement } from './unified-document-management'
+import SignupApprovals from '@/components/admin/SignupApprovals'
 
-export default async function AdminDocumentsPage() {
+export default async function ApprovalsPage() {
   const { profile } = await requireAdminAuth()
 
   return (
     <AdminDashboardLayout profile={profile}>
       <div className="px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">통합 문서함 관리</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">가입 요청 관리</h1>
           <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">
-            모든 문서 유형을 한 곳에서 관리하고 검색할 수 있습니다
+            새로운 사용자 가입 요청을 검토하고 승인 또는 거절합니다
           </p>
         </div>
-        
-        <UnifiedDocumentManagement profile={profile} />
+        <SignupApprovals />
       </div>
     </AdminDashboardLayout>
   )

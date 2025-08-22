@@ -37,18 +37,10 @@ export async function getUsers(
 ): Promise<AdminActionResult<{ users: UserWithSites[]; total: number; pages: number }>> {
   return withAdminAuth(async (supabase) => {
     try {
+      // First get the profiles
       let query = supabase
         .from('profiles')
-        .select(`
-          *,
-          site_assignments:site_assignments(
-            site_id,
-            role,
-            assigned_date,
-            is_active,
-            site:sites(name)
-          )
-        `, { count: 'exact' })
+        .select('*', { count: 'exact' })
         .order('created_at', { ascending: false })
 
       // Apply search filter
@@ -80,17 +72,34 @@ export async function getUsers(
         }
       }
 
-      // Transform the data to include site names
-      const transformedUsers = users?.map((user: any) => ({
-        ...user,
-        site_assignments: user.site_assignments?.map((assignment: any) => ({
-          site_id: assignment.site_id,
-          site_name: assignment.site?.name || '',
-          role: assignment.role,
-          assigned_date: assignment.assigned_date,
-          is_active: assignment.is_active
-        }))
-      })) || []
+      // Fetch site assignments separately for each user
+      const transformedUsers = await Promise.all(
+        (users || []).map(async (user: any) => {
+          // Get site assignments for this user
+          const { data: assignments } = await supabase
+            .from('site_assignments')
+            .select(`
+              site_id,
+              role,
+              assigned_date,
+              is_active,
+              sites!inner(name)
+            `)
+            .eq('user_id', user.id)
+            .eq('is_active', true)
+
+          return {
+            ...user,
+            site_assignments: assignments?.map((assignment: any) => ({
+              site_id: assignment.site_id,
+              site_name: assignment.sites?.name || '',
+              role: assignment.role || user.role, // Fallback to user's global role
+              assigned_date: assignment.assigned_date,
+              is_active: assignment.is_active
+            })) || []
+          }
+        })
+      )
 
       const totalPages = Math.ceil((count || 0) / limit)
 

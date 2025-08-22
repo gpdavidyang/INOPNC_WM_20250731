@@ -4,7 +4,7 @@ import { Profile } from '@/types'
 import { 
   Shield, Menu, X, Home, Users, Building2, FolderCheck, 
   DollarSign, Package, Layers, Settings, LogOut, BarChart3, Bell, Sun, Moon,
-  ChevronDown, User, Key
+  ChevronDown, User, Key, UserPlus, FileText
 } from 'lucide-react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useState, useEffect, useRef } from 'react'
@@ -45,16 +45,34 @@ const adminMenuItems = [
     href: '/dashboard/admin/sites'
   },
   {
+    id: 'organizations',
+    label: '소속(거래처) 관리',
+    icon: Building2,
+    href: '/dashboard/admin/organizations'
+  },
+  {
+    id: 'partners',
+    label: '파트너사 관리',
+    icon: Layers,
+    href: '/dashboard/admin/partners'
+  },
+  {
     id: 'users',
     label: '사용자 관리',
     icon: Users,
     href: '/dashboard/admin/users'
   },
   {
-    id: 'shared-documents',
-    label: '공유 문서함 관리',
+    id: 'approvals',
+    label: '가입 요청 관리',
+    icon: UserPlus,
+    href: '/dashboard/admin/approvals'
+  },
+  {
+    id: 'documents',
+    label: '문서함 관리',
     icon: FolderCheck,
-    href: '/dashboard/admin/shared-documents'
+    href: '/dashboard/admin/documents'
   },
   {
     id: 'salary',
@@ -67,16 +85,16 @@ const adminMenuItems = [
     label: 'NPC-1000 자재 관리',
     icon: Package,
     href: '/dashboard/admin/materials'
-  },
-  {
-    id: 'markup',
-    label: '도면 마킹 관리',
-    icon: Layers,
-    href: '/dashboard/admin/markup'
   }
 ]
 
 const systemAdminItems = [
+  {
+    id: 'audit-logs',
+    label: '감사 로그',
+    icon: FileText,
+    href: '/dashboard/admin/audit-logs'
+  },
   {
     id: 'system',
     label: '시스템 관리',

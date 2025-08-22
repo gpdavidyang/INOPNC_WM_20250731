@@ -283,7 +283,7 @@ export interface AttendanceRecord {
 }
 
 // 문서 타입
-export type DocumentType = 'personal' | 'shared' | 'blueprint' | 'report' | 'certificate' | 'other'
+export type DocumentType = 'personal' | 'shared' | 'blueprint' | 'required' | 'progress_payment' | 'report' | 'certificate' | 'other'
 
 // 사이트 문서 타입 (새로운 site_documents 테이블용)
 export type SiteDocumentType = 'ptw' | 'blueprint' | 'other'
@@ -304,6 +304,81 @@ export interface Document {
   site_id?: string | null
   created_at: string
   updated_at: string
+  metadata?: any | null
+  is_deleted?: boolean | null
+  created_by?: string | null
+  folder_id?: string | null
+}
+
+// 문서 카테고리
+export interface DocumentCategory {
+  id: string
+  name: string
+  display_name: string
+  description?: string | null
+  icon?: string | null
+  color?: string | null
+  sort_order: number
+  is_active: boolean
+  created_at: string
+}
+
+// 문서 폴더
+export interface DocumentFolder {
+  id: string
+  name: string
+  parent_folder_id?: string | null
+  site_id?: string | null
+  document_category: string
+  owner_id: string
+  is_public: boolean
+  description?: string | null
+  metadata?: any | null
+  created_at: string
+  updated_at: string
+  created_by: string
+}
+
+// 문서 접근 권한
+export interface DocumentAccessControl {
+  id: string
+  document_id: string
+  user_id?: string | null
+  role?: string | null
+  site_id?: string | null
+  partner_company_id?: string | null
+  permission_level: 'view' | 'download' | 'edit' | 'admin'
+  conditions?: any | null
+  granted_by: string
+  granted_at: string
+  expires_at?: string | null
+  notes?: string | null
+  is_active: boolean
+}
+
+// 문서 공유 로그
+export interface DocumentSharingLog {
+  id: string
+  document_id: string
+  shared_with_user_id?: string | null
+  shared_by_user_id: string
+  action: string
+  permission_level?: string | null
+  previous_permission?: string | null
+  reason?: string | null
+  ip_address?: string | null
+  user_agent?: string | null
+  created_at: string
+}
+
+// 확장된 문서 인터페이스 (권한 정보 포함)
+export interface DocumentWithPermissions extends Document {
+  access_control?: DocumentAccessControl[]
+  folder?: DocumentFolder | null
+  category?: DocumentCategory | null
+  can_edit?: boolean
+  can_delete?: boolean
+  can_share?: boolean
 }
 
 // 알림 타입

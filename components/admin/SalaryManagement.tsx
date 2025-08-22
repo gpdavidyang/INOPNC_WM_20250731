@@ -17,14 +17,15 @@ import {
   SalaryRecord,
   SalaryStats
 } from '@/app/actions/admin/salary'
-import { Search, DollarSign, Calculator, CheckCircle, Clock, Users, TrendingUp, Settings, Plus, Play } from 'lucide-react'
+import { Search, DollarSign, Calculator, CheckCircle, Clock, Users, TrendingUp, Settings, Plus, Play, FileText } from 'lucide-react'
+import SalaryStatement from './salary/SalaryStatement'
 
 interface SalaryManagementProps {
   profile: Profile
 }
 
 export default function SalaryManagement({ profile }: SalaryManagementProps) {
-  const [activeTab, setActiveTab] = useState<'rules' | 'records' | 'calculate'>('rules')
+  const [activeTab, setActiveTab] = useState<'rules' | 'records' | 'calculate' | 'statements'>('rules')
   
   // Rules tab state
   const [rules, setRules] = useState<SalaryCalculationRule[]>([])
@@ -547,6 +548,16 @@ export default function SalaryManagement({ profile }: SalaryManagementProps) {
           >
             급여 계산
           </button>
+          <button
+            onClick={() => setActiveTab('statements')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'statements'
+                ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+            }`}
+          >
+            급여명세서
+          </button>
         </nav>
       </div>
 
@@ -619,8 +630,13 @@ export default function SalaryManagement({ profile }: SalaryManagementProps) {
         </div>
       )}
 
+      {/* Salary Statement Tab */}
+      {activeTab === 'statements' && (
+        <SalaryStatement profile={profile} />
+      )}
+
       {/* Header with search and filters */}
-      {activeTab !== 'calculate' && (
+      {activeTab !== 'calculate' && activeTab !== 'statements' && (
         <div className="flex flex-col lg:flex-row gap-4">
           <div className="flex-1">
             <div className="relative">
@@ -720,7 +736,7 @@ export default function SalaryManagement({ profile }: SalaryManagementProps) {
       )}
 
       {/* Data table */}
-      {activeTab !== 'calculate' && (
+      {activeTab !== 'calculate' && activeTab !== 'statements' && (
         <AdminDataTable
           data={getCurrentData() as any[]}
           columns={getCurrentColumns() as any[]}
@@ -747,7 +763,7 @@ export default function SalaryManagement({ profile }: SalaryManagementProps) {
       )}
 
       {/* Bulk action bar */}
-      {activeTab !== 'calculate' && (
+      {activeTab !== 'calculate' && activeTab !== 'statements' && (
         <BulkActionBar
           selectedIds={selectedIds}
           totalCount={totalCount}

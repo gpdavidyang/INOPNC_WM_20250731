@@ -14,6 +14,7 @@ import {
   UpdateSiteData 
 } from '@/app/actions/admin/sites'
 import { Plus, Search, Filter, Eye, Edit, MapPin, Calendar, Phone, Users, FileText } from 'lucide-react'
+import SiteDetail from './sites/SiteDetail'
 
 interface SiteManagementProps {
   profile: Profile
@@ -41,6 +42,8 @@ export default function SiteManagement({ profile }: SiteManagementProps) {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [editingSite, setEditingSite] = useState<Site | null>(null)
+  const [showDetailModal, setShowDetailModal] = useState(false)
+  const [viewingSite, setViewingSite] = useState<Site | null>(null)
 
   // Load sites data
   const loadSites = async () => {
@@ -131,8 +134,8 @@ export default function SiteManagement({ profile }: SiteManagementProps) {
 
   // Handle view site
   const handleViewSite = (site: Site) => {
-    // TODO: Implement site detail view
-    alert(`현장 상세 정보: ${site.name}`)
+    setViewingSite(site)
+    setShowDetailModal(true)
   }
 
   // Handle document management navigation
@@ -343,6 +346,22 @@ export default function SiteManagement({ profile }: SiteManagementProps) {
                 loadSites()
               }}
               site={editingSite}
+            />
+          )}
+
+          {showDetailModal && viewingSite && (
+            <SiteDetail
+              siteId={viewingSite.id}
+              onClose={() => {
+                setShowDetailModal(false)
+                setViewingSite(null)
+              }}
+              onEdit={() => {
+                setViewingSite(null)
+                setShowDetailModal(false)
+                setEditingSite(viewingSite)
+                setShowEditModal(true)
+              }}
             />
           )}
         </div>

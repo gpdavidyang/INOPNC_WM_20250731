@@ -30,6 +30,7 @@ interface Document {
   uploadedBy?: string
   site?: string
   site_id?: string
+  document_type?: string // Add document_type from database
 }
 
 export default function PartnerDocumentsTab({ profile, sites }: PartnerDocumentsTabProps) {
@@ -90,17 +91,26 @@ export default function PartnerDocumentsTab({ profile, sites }: PartnerDocuments
         return
       }
 
+      console.log('📄 Raw documents from DB:', data?.length || 0, 'documents')
+      if (data && data.length > 0) {
+        console.log('📄 Sample document:', data[0])
+      }
+
       // Transform database documents to component format
       const transformedDocs = data.map(doc => ({
         id: doc.id,
         name: doc.title,
-        type: getFileTypeFromMimeType(doc.mime_type || ''),
+        type: doc.document_type || getFileTypeFromMimeType(doc.mime_type || ''), // Use document_type from DB
         size: doc.file_size || 0,
         lastModified: new Date(doc.created_at).toLocaleDateString('ko-KR'),
         site: doc.sites?.name || '',
-        site_id: doc.site_id
+        site_id: doc.site_id,
+        document_type: doc.document_type // Add document_type field
       }))
 
+      console.log('📄 Transformed documents:', transformedDocs.length, 'documents')
+      console.log('📄 Document types found:', [...new Set(transformedDocs.map(d => d.document_type))])
+      
       setDocuments(transformedDocs)
     } catch (error) {
       console.error('Error:', error)
@@ -183,11 +193,23 @@ export default function PartnerDocumentsTab({ profile, sites }: PartnerDocuments
   const getDocuments = () => {
     let docs: Document[] = []
     
-    // Use real documents from database for all tabs
-    docs = documents
+    // Use real documents from database and filter by tab type
+    if (activeTab === 'personal') {
+      docs = documents.filter(doc => 
+        doc.document_type === 'personal'
+      )
+    } else if (activeTab === 'shared') {
+      docs = documents.filter(doc => 
+        doc.document_type === 'shared'
+      )
+    } else if (activeTab === 'billing') {
+      docs = documents.filter(doc => 
+        doc.document_type === 'certificate'
+      )
+    }
 
-    // Filter by site
-    if (selectedSite !== 'all') {
+    // Filter by site (for shared and billing tabs)
+    if (selectedSite !== 'all' && activeTab !== 'personal') {
       docs = docs.filter(doc => doc.site_id === selectedSite)
     }
 

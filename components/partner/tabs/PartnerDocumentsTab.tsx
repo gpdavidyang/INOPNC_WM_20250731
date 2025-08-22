@@ -77,20 +77,27 @@ export default function PartnerDocumentsTab({ profile, sites }: PartnerDocuments
   // Fetch documents from database
   const fetchDocuments = async () => {
     try {
-      const { data, error } = await supabase
+      // For customer_manager role, fetch documents from their sites
+      // For other roles, fetch their own documents
+      let query = supabase
         .from('documents')
         .select(`
           *,
-          sites(name)
+          sites!documents_site_id_fkey(name)
         `)
-        .eq('owner_id', profile.id)
-        .order('created_at', { ascending: false })
+      
+      // Customer managers and partners only see their own documents
+      // They don't need to see all documents from their sites
+      query = query.eq('owner_id', profile.id)
+      
+      const { data, error } = await query.order('created_at', { ascending: false })
 
       if (error) {
         console.error('Error fetching documents:', error)
         return
       }
 
+      console.log('📄 User role:', profile.role)
       console.log('📄 Raw documents from DB:', data?.length || 0, 'documents')
       if (data && data.length > 0) {
         console.log('📄 Sample document:', data[0])
@@ -99,13 +106,14 @@ export default function PartnerDocumentsTab({ profile, sites }: PartnerDocuments
       // Transform database documents to component format
       const transformedDocs = data.map(doc => ({
         id: doc.id,
-        name: doc.title,
+        name: doc.title || doc.file_name, // Use title or file_name
         type: doc.document_type || getFileTypeFromMimeType(doc.mime_type || ''), // Use document_type from DB
         size: doc.file_size || 0,
         lastModified: new Date(doc.created_at).toLocaleDateString('ko-KR'),
         site: doc.sites?.name || '',
         site_id: doc.site_id,
-        document_type: doc.document_type // Add document_type field
+        document_type: doc.document_type, // Add document_type field
+        uploadedBy: doc.owner_id === profile.id ? profile.full_name || profile.email : '타사용자'
       }))
 
       console.log('📄 Transformed documents:', transformedDocs.length, 'documents')

@@ -44,6 +44,8 @@ export default function PartnerDocumentsTab({ profile, sites }: PartnerDocuments
   const [showPreviewModal, setShowPreviewModal] = useState(false)
   const [previewDocument, setPreviewDocument] = useState<Document | null>(null)
   const [documents, setDocuments] = useState<Document[]>([])
+  const [isUploading, setIsUploading] = useState(false)
+  const [isDragActive, setIsDragActive] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Mock documents with updated structure to match Site Manager
@@ -263,6 +265,105 @@ export default function PartnerDocumentsTab({ profile, sites }: PartnerDocuments
 
   const getDocumentsList = () => documents.length > 0 ? documents : getDocuments()
 
+  // File upload handler
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files
+    if (!files || files.length === 0) return
+
+    setIsUploading(true)
+
+    try {
+      const uploadedFiles: Document[] = []
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i]
+        
+        // Validate file size (max 100MB)
+        if (file.size > 100 * 1024 * 1024) {
+          alert(`${file.name}: 파일 크기가 100MB를 초과합니다.`)
+          continue
+        }
+
+        // Create new document object
+        const newDocument: Document = {
+          id: `upload_${Date.now()}_${i}`,
+          name: file.name,
+          type: file.type || 'application/octet-stream',
+          size: file.size,
+          lastModified: new Date().toISOString(),
+          uploadedBy: profile?.name || '나',
+          site: activeTab === 'personal' ? undefined : sites.find(s => s.name === selectedSite)?.name || '내 현장'
+        }
+
+        uploadedFiles.push(newDocument)
+      }
+
+      if (uploadedFiles.length > 0) {
+        // Add uploaded files to the appropriate document list
+        switch (activeTab) {
+          case 'personal':
+            personalDocuments.unshift(...uploadedFiles)
+            break
+          case 'shared':
+            sharedDocuments.unshift(...uploadedFiles)
+            break
+          case 'billing':
+            billingDocuments.unshift(...uploadedFiles)
+            break
+        }
+
+        // Update current documents view
+        setDocuments(prev => [...uploadedFiles, ...prev])
+        
+        // Show success message
+        alert(`${uploadedFiles.length}개 파일이 성공적으로 업로드되었습니다.`)
+      }
+    } catch (error) {
+      console.error('Upload failed:', error)
+      alert('업로드 중 오류가 발생했습니다.')
+    } finally {
+      setIsUploading(false)
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    }
+  }
+
+  // Drag and drop handlers
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragActive(true)
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragActive(false)
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+  }
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragActive(false)
+
+    const files = Array.from(e.dataTransfer.files)
+    if (files.length === 0) return
+
+    // Create a synthetic event for handleFileUpload
+    const syntheticEvent = {
+      target: { files: files as any }
+    } as React.ChangeEvent<HTMLInputElement>
+
+    await handleFileUpload(syntheticEvent)
+  }
+
   return (
     <div className="space-y-4">
       {/* Tab Selection - Button style matching Site Manager */}
@@ -344,10 +445,11 @@ export default function PartnerDocumentsTab({ profile, sites }: PartnerDocuments
                 </button>
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="flex items-center gap-1 px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-md transition-colors touch-manipulation"
+                  disabled={isUploading}
+                  className="flex items-center gap-1 px-2 py-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white text-xs font-medium rounded-md transition-colors touch-manipulation"
                 >
-                  <Upload className="h-3 w-3" />
-                  업로드
+                  <Upload className={`h-3 w-3 ${isUploading ? 'animate-spin' : ''}`} />
+                  {isUploading ? '업로드중...' : '업로드'}
                 </button>
               </>
             )}
@@ -451,14 +553,52 @@ export default function PartnerDocumentsTab({ profile, sites }: PartnerDocuments
 
       <div>
         {/* Documents Grid/List - Compact matching Site Manager */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div 
+          className={`relative bg-white dark:bg-gray-800 rounded-lg border overflow-hidden transition-colors ${
+            isDragActive 
+              ? 'border-blue-400 border-2 border-dashed bg-blue-50 dark:bg-blue-900/20' 
+              : 'border-gray-200 dark:border-gray-700'
+          }`}
+          onDragEnter={handleDragEnter}
+          onDragLeave={handleDragLeave}
+          onDragOver={handleDragOver}
+          onDrop={handleDrop}
+        >
+          {/* Drag Active Overlay */}
+          {isDragActive && (
+            <div className="absolute inset-0 z-10 bg-blue-50 dark:bg-blue-900/30 border-2 border-dashed border-blue-400 flex items-center justify-center rounded-lg">
+              <div className="text-center">
+                <Upload className="mx-auto h-12 w-12 text-blue-500" />
+                <p className="mt-2 text-lg font-medium text-blue-700 dark:text-blue-300">
+                  파일을 여기에 놓으세요
+                </p>
+                <p className="text-sm text-blue-600 dark:text-blue-400">
+                  여러 파일을 동시에 업로드할 수 있습니다
+                </p>
+              </div>
+            </div>
+          )}
+
           {getDocumentsList().length === 0 ? (
             <div className="text-center py-12 px-4">
               <Upload className="mx-auto h-12 w-12 text-gray-400" />
               <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">문서가 없습니다</h3>
               <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                {searchTerm ? '검색 조건에 맞는 문서가 없습니다.' : '아직 공유된 문서가 없습니다.'}
+                {searchTerm ? '검색 조건에 맞는 문서가 없습니다.' : '아직 문서가 없습니다.'}
               </p>
+              <div className="mt-4">
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white text-sm font-medium rounded-md transition-colors"
+                >
+                  <Upload className={`h-4 w-4 ${isUploading ? 'animate-spin' : ''}`} />
+                  {isUploading ? '업로드중...' : '파일 업로드'}
+                </button>
+                <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                  파일을 드래그하여 놓거나 클릭하여 업로드하세요
+                </p>
+              </div>
             </div>
           ) : viewMode === 'grid' ? (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
@@ -641,10 +781,10 @@ export default function PartnerDocumentsTab({ profile, sites }: PartnerDocuments
         ref={fileInputRef}
         type="file"
         multiple
-        onChange={() => {
-          alert('파일 업로드 기능은 준비 중입니다.')
-        }}
+        accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.txt,.hwp"
+        onChange={handleFileUpload}
         className="hidden"
+        disabled={isUploading}
       />
 
       {/* Document Preview Modal */}

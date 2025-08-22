@@ -26,7 +26,7 @@ interface WorkLog {
   siteId: string
   siteName?: string
   mainWork: string
-  status: 'draft' | 'submitted'
+  status: 'submitted'
   author: string
   weather?: string
   totalWorkers: number
@@ -36,7 +36,6 @@ interface WorkLog {
 
 export default function PartnerWorkLogsTab({ profile, sites }: PartnerWorkLogsTabProps) {
   const [selectedSite, setSelectedSite] = useState<string>('all')
-  const [selectedStatus, setSelectedStatus] = useState<string>('all')
   const [dateRange, setDateRange] = useState({
     start: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split('T')[0],
     end: new Date().toISOString().split('T')[0]
@@ -52,7 +51,7 @@ export default function PartnerWorkLogsTab({ profile, sites }: PartnerWorkLogsTa
 
   useEffect(() => {
     loadWorkLogs()
-  }, [selectedSite, selectedStatus, dateRange])
+  }, [selectedSite, dateRange])
 
   const loadWorkLogs = async () => {
     try {
@@ -124,7 +123,7 @@ export default function PartnerWorkLogsTab({ profile, sites }: PartnerWorkLogsTa
           siteId: '2',
           siteName: '송파 B현장',
           mainWork: '전기 배선 작업',
-          status: 'draft',
+          status: 'submitted',
           author: '정전기',
           weather: '흐림',
           totalWorkers: 6,
@@ -173,7 +172,7 @@ export default function PartnerWorkLogsTab({ profile, sites }: PartnerWorkLogsTa
           siteId: '1',
           siteName: '강남 A현장',
           mainWork: '배관 설치 작업',
-          status: 'draft',
+          status: 'submitted',
           author: '최배관',
           weather: '비',
           totalWorkers: 8,
@@ -199,10 +198,8 @@ export default function PartnerWorkLogsTab({ profile, sites }: PartnerWorkLogsTa
         ? mockLogs 
         : mockLogs.filter(log => log.siteId === selectedSite)
       
-      // Filter by status
-      if (selectedStatus !== 'all') {
-        filtered = filtered.filter(log => log.status === selectedStatus)
-      }
+      // Only show submitted reports to partners (exclude draft)
+      filtered = filtered.filter(log => log.status === 'submitted')
       
       // Filter by date range
       filtered = filtered.filter(log => {
@@ -256,17 +253,6 @@ export default function PartnerWorkLogsTab({ profile, sites }: PartnerWorkLogsTa
       })
     }
     
-    if (selectedStatus !== 'all') {
-      const statusNames = {
-        draft: '임시저장',
-        submitted: '제출됨'
-      }
-      filters.push({ 
-        label: `상태: ${statusNames[selectedStatus as keyof typeof statusNames]}`, 
-        value: selectedStatus, 
-        key: 'status' 
-      })
-    }
     
     if (searchTerm) {
       filters.push({ 
@@ -299,9 +285,6 @@ export default function PartnerWorkLogsTab({ profile, sites }: PartnerWorkLogsTa
     switch (key) {
       case 'site':
         setSelectedSite('all')
-        break
-      case 'status':
-        setSelectedStatus('all')
         break
       case 'search':
         setSearchTerm('')
@@ -412,19 +395,7 @@ export default function PartnerWorkLogsTab({ profile, sites }: PartnerWorkLogsTa
               </CustomSelectContent>
             </CustomSelect>
             
-            {/* 상태선택 - 두번째 */}
-            <CustomSelect value={selectedStatus} onValueChange={setSelectedStatus}>
-              <CustomSelectTrigger className="w-full h-10">
-                <CustomSelectValue placeholder="상태 선택" />
-              </CustomSelectTrigger>
-              <CustomSelectContent>
-                <CustomSelectItem value="all">전체 상태</CustomSelectItem>
-                <CustomSelectItem value="draft">임시저장</CustomSelectItem>
-                <CustomSelectItem value="submitted">제출됨</CustomSelectItem>
-              </CustomSelectContent>
-            </CustomSelect>
-
-            {/* 기간 선택 - 세번째 */}
+            {/* 기간 선택 - 두번째 */}
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                 <Calendar className="h-4 w-4" />
@@ -499,7 +470,7 @@ export default function PartnerWorkLogsTab({ profile, sites }: PartnerWorkLogsTa
               </div>
             </div>
 
-            {/* 검색어 입력 - 네번째 */}
+            {/* 검색어 입력 - 세번째 */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-4 h-4" />
               <input
@@ -542,10 +513,9 @@ export default function PartnerWorkLogsTab({ profile, sites }: PartnerWorkLogsTa
           <div className="divide-y divide-gray-100 dark:divide-gray-700">
             {filteredWorkLogs.map((log) => {
               const statusConfig = {
-                draft: { label: '임시저장', color: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300' },
                 submitted: { label: '제출됨', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300' }
               }
-              const status = statusConfig[log.status as keyof typeof statusConfig] || statusConfig.draft
+              const status = statusConfig.submitted
               const siteName = sites.find(s => s.id === log.siteId)?.name || log.siteName || '미지정'
 
               return (

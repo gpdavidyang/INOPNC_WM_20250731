@@ -56,46 +56,91 @@ export default function PartnerPrintStatusTab({ profile, sites }: PartnerPrintSt
     try {
       setLoading(true)
       
-      // Mock data for demonstration
-      const mockData: AttendanceRecord[] = []
+      // Calculate date range for current month
       const year = currentMonth.getFullYear()
       const month = currentMonth.getMonth()
-      const daysInMonth = new Date(year, month + 1, 0).getDate()
+      const startDate = new Date(year, month, 1).toISOString().split('T')[0]
+      const endDate = new Date(year, month + 1, 0).toISOString().split('T')[0]
       
-      // Generate mock attendance records with guaranteed site names
-      const defaultSites = sites.length > 0 ? sites : [
-        { id: '1', name: '강남 A현장' },
-        { id: '2', name: '송파 B현장' },
-        { id: '3', name: '서초 C현장' }
-      ]
+      console.log('[PartnerPrintStatus] Loading attendance data:', {
+        userId: profile.id,
+        dateRange: `${startDate} ~ ${endDate}`,
+        selectedSite,
+        availableSites: sites
+      })
       
-      // For debugging
-      console.log('Using sites for mock data:', defaultSites)
+      // Build query for attendance records
+      let query = supabase
+        .from('attendance_records')
+        .select(`
+          id,
+          work_date,
+          labor_hours,
+          status,
+          notes,
+          site_id,
+          sites(id, name)
+        `)
+        .eq('user_id', profile.id)
+        .gte('work_date', startDate)
+        .lte('work_date', endDate)
+        .order('work_date', { ascending: false })
+
+      // Add site filter if specific site selected
+      if (selectedSite !== 'all') {
+        query = query.eq('site_id', selectedSite)
+      }
+
+      const { data: attendanceData, error } = await query
+
+      if (error) {
+        console.error('[PartnerPrintStatus] Query error:', error)
+        // Fall back to empty array if query fails
+        setAttendanceRecords([])
+        setMonthlyStats({ totalSites: 0, totalDays: 0, totalLaborHours: 0 })
+        return
+      }
+
+      console.log('[PartnerPrintStatus] Query success, records:', attendanceData?.length || 0)
+
+      // Transform data to match AttendanceRecord interface
+      const transformedData: AttendanceRecord[] = (attendanceData || []).map(record => ({
+        id: record.id,
+        work_date: record.work_date,
+        site_name: record.sites?.name || '',
+        site_id: record.site_id,
+        labor_hours: record.labor_hours || 0,
+        worker_count: 1 // For individual records, worker count is 1
+      }))
       
-      for (let day = 1; day <= daysInMonth; day++) {
-        if (Math.random() > 0.3) { // 70% chance of work day
-          const siteIndex = Math.floor(Math.random() * defaultSites.length)
-          const site = defaultSites[siteIndex]
-          
-          const record = {
-            id: `${year}-${month}-${day}`,
+      let finalData = transformedData
+      
+      // If no real data exists and we have sites, generate some demo data for testing
+      if (transformedData.length === 0 && sites.length > 0) {
+        console.log('[PartnerPrintStatus] No real data found, generating demo data for testing')
+        const demoData: AttendanceRecord[] = []
+        const daysInMonth = new Date(year, month + 1, 0).getDate()
+        
+        for (let day = 1; day <= Math.min(daysInMonth, 10); day += 2) { // Every other day for demo
+          const site = sites[Math.floor(Math.random() * sites.length)]
+          demoData.push({
+            id: `demo-${year}-${month}-${day}`,
             work_date: `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
             site_name: site.name,
             site_id: site.id,
-            labor_hours: Math.random() > 0.2 ? 1.0 : 0.5,
-            worker_count: Math.floor(Math.random() * 10) + 5
-          }
-          
-          mockData.push(record)
+            labor_hours: Math.random() > 0.5 ? 1.0 : 0.5,
+            worker_count: 1
+          })
         }
+        finalData = demoData
       }
       
-      setAttendanceRecords(mockData)
+      setAttendanceRecords(finalData)
       
-      // Calculate statistics
+      // Calculate statistics using the final data (either real or demo)
       const filteredData = selectedSite === 'all' 
-        ? mockData 
-        : mockData.filter(r => r.site_id === selectedSite)
+        ? finalData 
+        : finalData.filter(r => r.site_id === selectedSite)
       
       const uniqueSites = new Set(filteredData.map(r => r.site_id))
       const totalLaborHours = filteredData.reduce((sum, r) => sum + r.labor_hours, 0)
@@ -249,12 +294,8 @@ export default function PartnerPrintStatusTab({ profile, sites }: PartnerPrintSt
   }
 
 
-  // Use default sites if none provided
-  const displaySites = sites.length > 0 ? sites : [
-    { id: '1', name: '강남 A현장' },
-    { id: '2', name: '송파 B현장' },
-    { id: '3', name: '서초 C현장' }
-  ]
+  // Use the real sites data from database
+  const displaySites = sites || []
 
   // Get selected date details
   const getSelectedDateDetails = () => {
@@ -421,33 +462,6 @@ export default function PartnerPrintStatusTab({ profile, sites }: PartnerPrintSt
               </div>
             </div>
 
-            {/* Workers Count */}
-            <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-gray-600 dark:text-gray-400">작업자 수</span>
-                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                  {getSelectedDateDetails()?.totalWorkers}명
-                </span>
-              </div>
-            </div>
-
-            {/* Status Indicator */}
-            <div className="flex items-center gap-2">
-              <div className={`w-2 h-2 rounded-full ${
-                (getSelectedDateDetails()?.totalLaborHours || 0) >= 1.0 
-                  ? 'bg-green-500' 
-                  : (getSelectedDateDetails()?.totalLaborHours || 0) >= 0.5 
-                  ? 'bg-yellow-500' 
-                  : 'bg-orange-500'
-              }`}></div>
-              <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                {(getSelectedDateDetails()?.totalLaborHours || 0) >= 1.0 
-                  ? '정상 근무' 
-                  : (getSelectedDateDetails()?.totalLaborHours || 0) >= 0.5 
-                  ? '반일 근무' 
-                  : '단시간 근무'}
-              </span>
-            </div>
           </div>
         </div>
       )}

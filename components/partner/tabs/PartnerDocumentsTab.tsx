@@ -8,7 +8,7 @@ import {
   Upload, File, Download, Eye, Share2, Trash2,
   Search, Grid, List, ChevronUp, CheckCircle,
   Shield, FileText, Archive, Image, LayoutGrid, LayoutList,
-  FileImage, FilePdf, FileSpreadsheet, FileDoc
+  FileX2, FileSpreadsheet, FileType
 } from 'lucide-react'
 import {
   Select,
@@ -114,13 +114,13 @@ export default function PartnerDocumentsTab({ profile, sites }: PartnerDocuments
   const getFileIcon = (type: string) => {
     switch (type) {
       case 'pdf': 
-        return <FilePdf className="h-5 w-5 text-red-500" />
+        return <FileText className="h-5 w-5 text-red-500" />
       case 'excel': 
         return <FileSpreadsheet className="h-5 w-5 text-green-500" />
       case 'word': 
-        return <FileDoc className="h-5 w-5 text-blue-500" />
+        return <FileType className="h-5 w-5 text-blue-500" />
       case 'image': 
-        return <FileImage className="h-5 w-5 text-purple-500" />
+        return <Image className="h-5 w-5 text-purple-500" />
       default: 
         return <File className="h-5 w-5 text-gray-500" />
     }

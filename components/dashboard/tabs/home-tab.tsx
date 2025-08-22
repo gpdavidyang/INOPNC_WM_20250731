@@ -4,7 +4,8 @@ import React, { useState, useEffect, useCallback, memo, useMemo } from 'react'
 import { Profile, CurrentUserSite, UserSiteHistory, SiteInfo } from '@/types'
 import { NotificationExtended } from '@/types/notifications'
 import { createClient } from '@/lib/supabase/client'
-import { getCurrentUserSiteWithAuth, getUserSiteHistoryWithAuth } from '@/app/actions/site-info-client'
+// Import server actions directly - they need 'use server' directive
+import { getCurrentUserSite, getUserSiteHistory } from '@/app/actions/site-info'
 import { getCurrentUserSiteDeploymentSafe, getUserSiteHistoryDeploymentSafe } from '@/app/actions/site-info-deployment'
 import TodaySiteInfo from '@/components/site-info/TodaySiteInfo'
 import SiteDebugHelper from '@/components/debug/SiteDebugHelper'
@@ -279,10 +280,10 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
       
       console.log('🔍 [HOME-TAB] Fetching site data...', { isDeployment, isPWA })
       
-      // Use deployment-safe version in production
+      // Use deployment-safe version in production, or direct server action
       const currentSiteResult = isDeployment 
         ? await getCurrentUserSiteDeploymentSafe()
-        : await getCurrentUserSiteWithAuth()
+        : await getCurrentUserSite()  // Call server action directly
         
       console.log('🔍 [HOME-TAB] Site data result:', {
         success: currentSiteResult.success,
@@ -331,10 +332,10 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
       // Fetch user's site history
       console.log('🔍 [HOME-TAB] Fetching site history...')
       
-      // Use deployment-safe version in production
+      // Use deployment-safe version in production, or direct server action
       const historyResult = isDeployment
         ? await getUserSiteHistoryDeploymentSafe()
-        : await getUserSiteHistoryWithAuth()
+        : await getUserSiteHistory()  // Call server action directly
         
       console.log('🔍 [HOME-TAB] Site history result:', {
         success: historyResult.success,

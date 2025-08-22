@@ -1,4 +1,5 @@
-'use client'
+// Remove 'use client' - this file contains wrappers for server actions
+// Server actions must be imported directly, not through client components
 
 import { createClient } from '@/lib/supabase/client'
 import { getCurrentUserSite as serverGetCurrentUserSite, getUserSiteHistory as serverGetUserSiteHistory } from './site-info'

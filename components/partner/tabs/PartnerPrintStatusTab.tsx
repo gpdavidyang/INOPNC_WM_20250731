@@ -7,8 +7,18 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { 
   ChevronLeft, 
   ChevronRight, 
-  Building2
+  Building2,
+  Calendar,
+  BarChart3,
+  X
 } from 'lucide-react'
+import { 
+  CustomSelect, 
+  CustomSelectContent, 
+  CustomSelectItem, 
+  CustomSelectTrigger, 
+  CustomSelectValue 
+} from '@/components/ui/custom-select'
 
 interface PartnerPrintStatusTabProps {
   profile: Profile
@@ -52,26 +62,31 @@ export default function PartnerPrintStatusTab({ profile, sites }: PartnerPrintSt
       const month = currentMonth.getMonth()
       const daysInMonth = new Date(year, month + 1, 0).getDate()
       
-      // Generate mock attendance records
+      // Generate mock attendance records with guaranteed site names
       const defaultSites = sites.length > 0 ? sites : [
         { id: '1', name: '강남 A현장' },
         { id: '2', name: '송파 B현장' },
         { id: '3', name: '서초 C현장' }
       ]
       
+      // For debugging
+      console.log('Using sites for mock data:', defaultSites)
+      
       for (let day = 1; day <= daysInMonth; day++) {
         if (Math.random() > 0.3) { // 70% chance of work day
           const siteIndex = Math.floor(Math.random() * defaultSites.length)
           const site = defaultSites[siteIndex]
           
-          mockData.push({
+          const record = {
             id: `${year}-${month}-${day}`,
             work_date: `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
             site_name: site.name,
             site_id: site.id,
             labor_hours: Math.random() > 0.2 ? 1.0 : 0.5,
             worker_count: Math.floor(Math.random() * 10) + 5
-          })
+          }
+          
+          mockData.push(record)
         }
       }
       
@@ -157,7 +172,7 @@ export default function PartnerPrintStatusTab({ profile, sites }: PartnerPrintSt
     
     // Empty cells for days before the first day of the month
     for (let i = 0; i < firstDay; i++) {
-      days.push(<div key={`empty-${i}`} className="h-16"></div>)
+      days.push(<div key={`empty-${i}`} className="min-h-[72px]"></div>)
     }
     
     // Days of the month
@@ -174,7 +189,13 @@ export default function PartnerPrintStatusTab({ profile, sites }: PartnerPrintSt
         : attendanceRecords.filter(r => r.work_date === dateStr && r.site_id === selectedSite)
       
       const totalLaborHours = dayRecords.reduce((sum, r) => sum + r.labor_hours, 0)
-      const siteName = dayRecords.length > 0 ? dayRecords[0].site_name : null
+      // For 'all' sites, show the first site name; for specific site, show that site's name
+      const siteName = dayRecords.length > 0 && dayRecords[0].site_name ? dayRecords[0].site_name : null
+      
+      // Debug logging for troubleshooting
+      if (totalLaborHours > 0 && day === 15) {
+        console.log(`Day ${day}: Labor hours: ${totalLaborHours}, Site: ${siteName}, Records:`, dayRecords)
+      }
       
       // Simple background without color coding
       const getDayBackground = (laborHours: number) => {
@@ -186,7 +207,7 @@ export default function PartnerPrintStatusTab({ profile, sites }: PartnerPrintSt
         <button
           key={day}
           onClick={() => setSelectedDate(dayDate)}
-          className={`h-16 w-full rounded-lg border transition-all touch-manipulation relative flex flex-col items-center justify-start p-1 ${
+          className={`min-h-[72px] w-full rounded-lg border transition-all touch-manipulation relative flex flex-col items-center justify-start py-1 px-0.5 ${
             isSelected
               ? 'border-blue-500 ring-2 ring-blue-500 bg-white dark:bg-gray-800'
               : isToday
@@ -197,7 +218,7 @@ export default function PartnerPrintStatusTab({ profile, sites }: PartnerPrintSt
           }`}
         >
           {/* 날짜 숫자 - 일요일은 빨간색, 토요일은 파란색 */}
-          <div className={`text-sm font-semibold mb-1 ${
+          <div className={`text-sm font-semibold ${
             !isSelected && (
               dayOfWeek === 0 ? 'text-red-500' : 
               dayOfWeek === 6 ? 'text-blue-500' : 
@@ -209,16 +230,16 @@ export default function PartnerPrintStatusTab({ profile, sites }: PartnerPrintSt
           
           {/* 공수 및 현장 정보 */}
           {totalLaborHours > 0 && (
-            <>
-              <div className="text-xs font-bold text-gray-900 dark:text-gray-100">
+            <div className="flex flex-col items-center justify-center mt-1">
+              <div className="text-xs font-bold text-gray-700 dark:text-gray-300">
                 {totalLaborHours.toFixed(1).replace('.0', '')}
               </div>
               {siteName && (
-                <div className="text-[10px] text-gray-600 dark:text-gray-400 truncate w-full px-0.5 font-medium">
-                  {siteName.replace(/\s*현장$/g, '').replace(/\s+/g, '')}
+                <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                  {siteName.replace(/\s*[A-Z]?현장$/g, '').substring(0, 3)}
                 </div>
               )}
-            </>
+            </div>
           )}
         </button>
       )
@@ -235,25 +256,52 @@ export default function PartnerPrintStatusTab({ profile, sites }: PartnerPrintSt
     { id: '3', name: '서초 C현장' }
   ]
 
+  // Get selected date details
+  const getSelectedDateDetails = () => {
+    if (!selectedDate) return null
+    
+    const dateStr = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`
+    const dayRecords = selectedSite === 'all'
+      ? attendanceRecords.filter(r => r.work_date === dateStr)
+      : attendanceRecords.filter(r => r.work_date === dateStr && r.site_id === selectedSite)
+    
+    if (dayRecords.length === 0) return null
+    
+    const totalLaborHours = dayRecords.reduce((sum, r) => sum + r.labor_hours, 0)
+    const totalWorkers = dayRecords.reduce((sum, r) => sum + r.worker_count, 0)
+    const siteName = dayRecords[0].site_name
+    
+    // Format date in Korean
+    const formattedDate = `${selectedDate.getFullYear()}년 ${selectedDate.getMonth() + 1}월 ${selectedDate.getDate()}일`
+    const dayOfWeek = ['일', '월', '화', '수', '목', '금', '토'][selectedDate.getDay()]
+    
+    return {
+      formattedDate: `${formattedDate} (${dayOfWeek})`,
+      siteName,
+      totalLaborHours,
+      totalWorkers,
+      records: dayRecords
+    }
+  }
+
   return (
     <div className="space-y-4">
-      {/* Site Selector - Matching Manager's Style */}
-      <div className="relative">
-        <select
-          value={selectedSite}
-          onChange={(e) => setSelectedSite(e.target.value)}
-          className="w-full pl-10 pr-4 py-2 h-10 text-sm font-medium border border-gray-300 dark:border-gray-600 rounded-lg
-            bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
-            hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors"
-        >
-          <option value="all">전체 현장</option>
-          {displaySites.map(site => (
-            <option key={site.id} value={site.id}>
-              {site.name}
-            </option>
-          ))}
-        </select>
-        <Building2 className="absolute left-3 top-3 h-4 w-4 text-gray-500 dark:text-gray-400 pointer-events-none" />
+      {/* Site Selector - Using CustomSelect */}
+      <div className="flex items-center gap-3">
+        <Building2 className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+        <CustomSelect value={selectedSite} onValueChange={setSelectedSite}>
+          <CustomSelectTrigger className="w-full h-10">
+            <CustomSelectValue placeholder="현장 선택" />
+          </CustomSelectTrigger>
+          <CustomSelectContent>
+            <CustomSelectItem value="all">전체 현장</CustomSelectItem>
+            {displaySites.map(site => (
+              <CustomSelectItem key={site.id} value={site.id}>
+                {site.name}
+              </CustomSelectItem>
+            ))}
+          </CustomSelectContent>
+        </CustomSelect>
       </div>
 
       {/* Calendar - Exactly matching screenshot */}
@@ -323,6 +371,86 @@ export default function PartnerPrintStatusTab({ profile, sites }: PartnerPrintSt
           </div>
         </div>
       </div>
+
+      {/* Selected Date Details - Matching Manager's Dashboard */}
+      {selectedDate && getSelectedDateDetails() && (
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                {getSelectedDateDetails()?.formattedDate}
+              </h3>
+            </div>
+            <button
+              onClick={() => setSelectedDate(null)}
+              className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+            >
+              <X className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+            </button>
+          </div>
+          
+          {/* Content Grid */}
+          <div className="space-y-3">
+            {/* Site and Work Info Row */}
+            <div className="grid grid-cols-2 gap-4">
+              {/* Site Information */}
+              <div>
+                <div className="flex items-center gap-1.5 mb-1">
+                  <Building2 className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
+                  <span className="text-xs font-medium text-gray-600 dark:text-gray-400">현장</span>
+                </div>
+                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  {getSelectedDateDetails()?.siteName}
+                </p>
+              </div>
+
+              {/* Work Information */}
+              <div>
+                <div className="flex items-center gap-1.5 mb-1">
+                  <BarChart3 className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
+                  <span className="text-xs font-medium text-gray-600 dark:text-gray-400">작업</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                    {getSelectedDateDetails()?.totalLaborHours.toFixed(1)}
+                  </span>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">공수</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Workers Count */}
+            <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-gray-600 dark:text-gray-400">작업자 수</span>
+                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                  {getSelectedDateDetails()?.totalWorkers}명
+                </span>
+              </div>
+            </div>
+
+            {/* Status Indicator */}
+            <div className="flex items-center gap-2">
+              <div className={`w-2 h-2 rounded-full ${
+                (getSelectedDateDetails()?.totalLaborHours || 0) >= 1.0 
+                  ? 'bg-green-500' 
+                  : (getSelectedDateDetails()?.totalLaborHours || 0) >= 0.5 
+                  ? 'bg-yellow-500' 
+                  : 'bg-orange-500'
+              }`}></div>
+              <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                {(getSelectedDateDetails()?.totalLaborHours || 0) >= 1.0 
+                  ? '정상 근무' 
+                  : (getSelectedDateDetails()?.totalLaborHours || 0) >= 0.5 
+                  ? '반일 근무' 
+                  : '단시간 근무'}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   )

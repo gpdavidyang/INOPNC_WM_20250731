@@ -1,12 +1,13 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Profile } from '@/types'
+import { useRouter } from 'next/navigation'
+import { Profile, DailyReport } from '@/types'
 import { createClient } from '@/lib/supabase/client'
+import { getPartnerDailyReports } from '@/lib/supabase/daily-reports'
 import { Search, Calendar, FileText, Eye, RefreshCw, Building2, Users, Package, Filter, X, ChevronDown, ChevronUp } from 'lucide-react'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
-import WorkLogDetailModal from '../WorkLogDetailModal'
 import { 
   CustomSelect, 
   CustomSelectContent, 
@@ -34,7 +35,25 @@ interface WorkLog {
   issues?: string
 }
 
+// Transform DailyReport to WorkLog interface for compatibility
+const transformDailyReportToWorkLog = (report: DailyReport & { 
+  site?: { id: string; name: string; organization_id: string }; 
+  created_by_profile?: { id: string; full_name: string; email: string } 
+}): WorkLog => ({
+  id: report.id,
+  date: report.work_date,
+  siteId: report.site_id || '',
+  siteName: report.site?.name,
+  mainWork: `${report.member_name} - ${report.process_type}`,
+  status: 'submitted',
+  author: report.created_by_profile?.full_name || '미지정',
+  totalWorkers: report.total_workers || 0,
+  npc1000Used: report.npc1000_used || undefined,
+  issues: report.issues || undefined
+})
+
 export default function PartnerWorkLogsTab({ profile, sites }: PartnerWorkLogsTabProps) {
+  const router = useRouter()
   const [selectedSite, setSelectedSite] = useState<string>('all')
   const [dateRange, setDateRange] = useState({
     start: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split('T')[0],
@@ -43,185 +62,37 @@ export default function PartnerWorkLogsTab({ profile, sites }: PartnerWorkLogsTa
   const [searchTerm, setSearchTerm] = useState('')
   const [workLogs, setWorkLogs] = useState<WorkLog[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedLog, setSelectedLog] = useState<WorkLog | null>(null)
-  const [detailModalOpen, setDetailModalOpen] = useState(false)
   const [showFilters, setShowFilters] = useState(true)
 
   const supabase = createClient()
 
+  // Use the actual sites from props
+  const availableSites = sites || []
+
   useEffect(() => {
     loadWorkLogs()
-  }, [selectedSite, dateRange])
+  }, [selectedSite, dateRange, searchTerm])
 
   const loadWorkLogs = async () => {
     try {
       setLoading(true)
       
-      // Generate recent dates for mock data
-      const today = new Date()
-      const getRecentDate = (daysAgo: number) => {
-        const date = new Date(today)
-        date.setDate(date.getDate() - daysAgo)
-        return date.toISOString().split('T')[0]
-      }
+      // Fetch real data from database using the partner-specific function
+      const dailyReports = await getPartnerDailyReports(
+        selectedSite === 'all' ? undefined : selectedSite,
+        dateRange.start || undefined,
+        dateRange.end || undefined,
+        searchTerm || undefined
+      )
       
-      // Mock data for demonstration - matching site manager's data structure
-      const mockLogs: WorkLog[] = [
-        {
-          id: '1',
-          date: getRecentDate(2),
-          siteId: '1',
-          siteName: '강남 A현장',
-          mainWork: '기초 콘크리트 타설 작업',
-          status: 'submitted',
-          author: '김작업',
-          weather: '맑음',
-          totalWorkers: 12,
-          npc1000Used: 250,
-          issues: '콘크리트 타설 중 일부 균열 발생, 보수 완료'
-        },
-        {
-          id: '2',
-          date: getRecentDate(3),
-          siteId: '2',
-          siteName: '송파 B현장',
-          mainWork: '철골 조립 작업',
-          status: 'submitted',
-          author: '이작업',
-          weather: '흐림',
-          totalWorkers: 8,
-          npc1000Used: 180
-        },
-        {
-          id: '3',
-          date: getRecentDate(5),
-          siteId: '1',
-          siteName: '강남 A현장',
-          mainWork: '방수 작업 진행',
-          status: 'submitted',
-          author: '박작업',
-          weather: '비',
-          totalWorkers: 5,
-          npc1000Used: 120,
-          issues: '우천으로 인한 작업 일부 지연'
-        },
-        {
-          id: '4',
-          date: getRecentDate(7),
-          siteId: '3',
-          siteName: '서초 C현장',
-          mainWork: '내부 마감 작업',
-          status: 'submitted',
-          author: '최작업',
-          weather: '맑음',
-          totalWorkers: 15,
-          npc1000Used: 320
-        },
-        {
-          id: '5',
-          date: getRecentDate(10),
-          siteId: '2',
-          siteName: '송파 B현장',
-          mainWork: '전기 배선 작업',
-          status: 'submitted',
-          author: '정전기',
-          weather: '흐림',
-          totalWorkers: 6,
-          npc1000Used: 95
-        },
-        {
-          id: '6',
-          date: getRecentDate(12),
-          siteId: '1',
-          siteName: '강남 A현장',
-          mainWork: '슬라브 타설 작업',
-          status: 'submitted',
-          author: '김현장',
-          weather: '맑음',
-          totalWorkers: 18,
-          npc1000Used: 450,
-          issues: '타설 작업 완료, 양생 진행 중'
-        },
-        {
-          id: '7',
-          date: getRecentDate(15),
-          siteId: '1',
-          siteName: '강남 A현장',
-          mainWork: '지하층 골조 작업',
-          status: 'submitted',
-          author: '이작업',
-          weather: '흐림',
-          totalWorkers: 20,
-          npc1000Used: 380
-        },
-        {
-          id: '8',
-          date: getRecentDate(18),
-          siteId: '2',
-          siteName: '송파 B현장',
-          mainWork: '외벽 미장 작업',
-          status: 'submitted',
-          author: '박미장',
-          weather: '맑음',
-          totalWorkers: 10,
-          npc1000Used: 220
-        },
-        {
-          id: '9',
-          date: getRecentDate(20),
-          siteId: '1',
-          siteName: '강남 A현장',
-          mainWork: '배관 설치 작업',
-          status: 'submitted',
-          author: '최배관',
-          weather: '비',
-          totalWorkers: 8,
-          npc1000Used: 150,
-          issues: '배관 규격 불일치로 재작업 필요'
-        },
-        {
-          id: '10',
-          date: getRecentDate(25),
-          siteId: '3',
-          siteName: '서초 C현장',
-          mainWork: '천장 마감 작업',
-          status: 'submitted',
-          author: '정마감',
-          weather: '맑음',
-          totalWorkers: 12,
-          npc1000Used: 280
-        }
-      ]
+      // Transform daily reports to work logs
+      const workLogs = dailyReports.map(transformDailyReportToWorkLog)
       
-      // Filter by site
-      let filtered = selectedSite === 'all' 
-        ? mockLogs 
-        : mockLogs.filter(log => log.siteId === selectedSite)
-      
-      // Only show submitted reports to partners (exclude draft)
-      filtered = filtered.filter(log => log.status === 'submitted')
-      
-      // Filter by date range
-      filtered = filtered.filter(log => {
-        const logDate = new Date(log.date)
-        const startDate = new Date(dateRange.start)
-        const endDate = new Date(dateRange.end)
-        return logDate >= startDate && logDate <= endDate
-      })
-      
-      // Filter by search term
-      if (searchTerm) {
-        filtered = filtered.filter(log => 
-          log.mainWork.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          log.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (log.siteName?.toLowerCase().includes(searchTerm.toLowerCase()) || false) ||
-          (log.issues?.toLowerCase().includes(searchTerm.toLowerCase()) || false)
-        )
-      }
-      
-      setWorkLogs(filtered)
+      setWorkLogs(workLogs)
     } catch (error) {
       console.error('Error loading work logs:', error)
+      // Set empty array on error
+      setWorkLogs([])
     } finally {
       setLoading(false)
     }
@@ -232,12 +103,11 @@ export default function PartnerWorkLogsTab({ profile, sites }: PartnerWorkLogsTa
   }
 
   const handleViewDetail = (log: WorkLog) => {
-    setSelectedLog(log)
-    setDetailModalOpen(true)
+    router.push(`/partner/work-logs/${log.id}`)
   }
 
 
-  // Filter work logs based on search term and selected filters
+  // Work logs are already filtered by the database query
   const filteredWorkLogs = workLogs
 
   // Get active filters for display
@@ -245,7 +115,7 @@ export default function PartnerWorkLogsTab({ profile, sites }: PartnerWorkLogsTa
     const filters: { label: string; value: string; key: string }[] = []
     
     if (selectedSite !== 'all') {
-      const site = sites?.find(s => s.id === selectedSite)
+      const site = availableSites?.find(s => s.id === selectedSite)
       filters.push({ 
         label: `현장: ${site?.name || '미지정'}`, 
         value: selectedSite, 
@@ -387,7 +257,7 @@ export default function PartnerWorkLogsTab({ profile, sites }: PartnerWorkLogsTa
               </CustomSelectTrigger>
               <CustomSelectContent>
                 <CustomSelectItem value="all">전체 현장</CustomSelectItem>
-                {sites.map(site => (
+                {availableSites.map(site => (
                   <CustomSelectItem key={site.id} value={site.id}>
                     {site.name}
                   </CustomSelectItem>
@@ -516,7 +386,7 @@ export default function PartnerWorkLogsTab({ profile, sites }: PartnerWorkLogsTa
                 submitted: { label: '제출됨', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300' }
               }
               const status = statusConfig.submitted
-              const siteName = sites.find(s => s.id === log.siteId)?.name || log.siteName || '미지정'
+              const siteName = availableSites.find(s => s.id === log.siteId)?.name || log.siteName || '미지정'
 
               return (
                 <div key={log.id} className="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
@@ -574,15 +444,6 @@ export default function PartnerWorkLogsTab({ profile, sites }: PartnerWorkLogsTa
         </div>
       )}
 
-      {/* Work Log Detail Modal */}
-      <WorkLogDetailModal
-        isOpen={detailModalOpen}
-        onClose={() => {
-          setDetailModalOpen(false)
-          setSelectedLog(null)
-        }}
-        workLog={selectedLog}
-      />
     </div>
   )
 }

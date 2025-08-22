@@ -45,7 +45,7 @@ interface BillingDocument {
 
 export default function PartnerSiteInfoTab({ profile, sites }: PartnerSiteInfoTabProps) {
   const [selectedSite, setSelectedSite] = useState<string>('all')
-  const [selectedPeriod, setSelectedPeriod] = useState<string>('current_month')
+  const [selectedPeriod, setSelectedPeriod] = useState<string>('all')
   const [previewDocument, setPreviewDocument] = useState<BillingDocument | null>(null)
   const [showAllSites, setShowAllSites] = useState(false)
   const [realDocuments, setRealDocuments] = useState<any[]>([])
@@ -385,15 +385,15 @@ export default function PartnerSiteInfoTab({ profile, sites }: PartnerSiteInfoTa
       <div className="relative">
         <CustomSelect value={selectedPeriod} onValueChange={setSelectedPeriod}>
           <CustomSelectTrigger className="w-full pl-10 pr-4 py-2 h-10 text-sm font-medium bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors">
-            <CustomSelectValue placeholder="금월" />
+            <CustomSelectValue placeholder="전체 기간" />
           </CustomSelectTrigger>
           <CustomSelectContent>
+            <CustomSelectItem value="all">전체 기간</CustomSelectItem>
             <CustomSelectItem value="current_month">금월</CustomSelectItem>
             <CustomSelectItem value="recent_3">최근 3개월</CustomSelectItem>
             <CustomSelectItem value="recent_6">최근 6개월</CustomSelectItem>
             <CustomSelectItem value="recent_12">최근 12개월</CustomSelectItem>
             <CustomSelectItem value="recent_24">최근 24개월</CustomSelectItem>
-            <CustomSelectItem value="all">전체 기간</CustomSelectItem>
           </CustomSelectContent>
         </CustomSelect>
         <Calendar className="absolute left-3 top-3 h-4 w-4 text-gray-500 dark:text-gray-400 pointer-events-none" />

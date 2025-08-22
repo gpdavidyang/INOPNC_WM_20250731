@@ -225,3 +225,68 @@ export async function approveDailyReport(id: string, approvedBy: string) {
   
   return data
 }
+
+// Partner-specific function to get submitted daily reports only
+export async function getPartnerDailyReports(
+  siteId?: string, 
+  startDate?: string, 
+  endDate?: string,
+  searchTerm?: string
+) {
+  const supabase = createClient()
+  
+  let query = supabase
+    .from('daily_reports')
+    .select(`
+      *,
+      site:sites!inner (
+        id,
+        name,
+        organization_id
+      ),
+      created_by_profile:profiles!daily_reports_created_by_fkey (
+        id,
+        full_name,
+        email
+      )
+    `)
+    .eq('status', 'submitted') // Only show submitted reports to partners
+    .order('work_date', { ascending: false })
+  
+  // Filter by site if specified
+  if (siteId && siteId !== 'all') {
+    query = query.eq('site_id', siteId)
+  }
+  
+  // Filter by date range if specified
+  if (startDate) {
+    query = query.gte('work_date', startDate)
+  }
+  if (endDate) {
+    query = query.lte('work_date', endDate)
+  }
+  
+  const { data, error } = await query
+  
+  if (error) {
+    console.error('Error fetching partner daily reports:', error)
+    throw error
+  }
+  
+  // Apply search filter on the client side if needed
+  if (searchTerm && data) {
+    const filtered = data.filter(report => {
+      const searchLower = searchTerm.toLowerCase()
+      return (
+        report.member_name?.toLowerCase().includes(searchLower) ||
+        report.process_type?.toLowerCase().includes(searchLower) ||
+        report.issues?.toLowerCase().includes(searchLower) ||
+        report.created_by_profile?.full_name?.toLowerCase().includes(searchLower) ||
+        report.site?.name?.toLowerCase().includes(searchLower)
+      )
+    })
+    return filtered
+  }
+  
+  return data || []
+}

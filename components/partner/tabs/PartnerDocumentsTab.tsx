@@ -66,6 +66,43 @@ export default function PartnerDocumentsTab({ profile, sites }: PartnerDocuments
     { id: '13', name: '진행도면_v3.pdf', type: 'markup-document', size: 6815744, lastModified: '2024-03-12T11:00:00Z', site: '서초 C현장' }
   ]
 
+  // Helper functions matching Site Manager
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes'
+    const k = 1024
+    const sizes = ['Bytes', 'KB', 'MB', 'GB']
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+  }
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('ko-KR', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  }
+
+  const getFileTypeDisplay = (type: string) => {
+    if (type === 'markup-document') return '도면'
+    if (type.includes('pdf')) return 'PDF'
+    if (type.includes('word') || type.includes('presentation')) return 'DOC'
+    if (type.includes('excel')) return 'XLS'
+    if (type.startsWith('image/')) return 'IMG'
+    return 'FILE'
+  }
+  
+  const getFileTypeColor = (type: string) => {
+    if (type === 'markup-document') return 'bg-purple-100 text-purple-700 border-purple-200'
+    if (type.includes('pdf')) return 'bg-red-100 text-red-700 border-red-200'
+    if (type.includes('word') || type.includes('presentation')) return 'bg-blue-100 text-blue-700 border-blue-200'
+    if (type.includes('excel')) return 'bg-green-100 text-green-700 border-green-200'
+    if (type.startsWith('image/')) return 'bg-orange-100 text-orange-700 border-orange-200'
+    return 'bg-gray-100 text-gray-700 border-gray-200'
+  }
+
   const getDocuments = () => {
     let docs: Document[] = []
     
@@ -96,8 +133,8 @@ export default function PartnerDocumentsTab({ profile, sites }: PartnerDocuments
     // Sort documents
     docs.sort((a, b) => {
       if (sortBy === 'date') {
-        const dateA = new Date(a.uploadDate).getTime()
-        const dateB = new Date(b.uploadDate).getTime()
+        const dateA = new Date(a.lastModified).getTime()
+        const dateB = new Date(b.lastModified).getTime()
         return sortOrder === 'desc' ? dateB - dateA : dateA - dateB
       } else {
         return sortOrder === 'desc' 
@@ -109,19 +146,17 @@ export default function PartnerDocumentsTab({ profile, sites }: PartnerDocuments
     return docs
   }
 
-  const getFileIcon = (type: string) => {
-    switch (type) {
-      case 'pdf': 
-        return <FileText className="h-5 w-5 text-red-500" />
-      case 'excel': 
-        return <FileSpreadsheet className="h-5 w-5 text-green-500" />
-      case 'word': 
-        return <FileType className="h-5 w-5 text-blue-500" />
-      case 'image': 
-        return <Image className="h-5 w-5 text-purple-500" />
-      default: 
-        return <File className="h-5 w-5 text-gray-500" />
-    }
+  const handleViewDocument = (document: Document) => {
+    console.log('View document:', document)
+  }
+
+  const handleDownloadDocument = async (document: Document) => {
+    console.log('Download document:', document)
+  }
+
+  const deleteDocument = async (documentId: string) => {
+    if (!confirm('정말 삭제하시겠습니까?')) return
+    console.log('Delete document:', documentId)
   }
 
   const toggleDocumentSelection = (docId: string) => {

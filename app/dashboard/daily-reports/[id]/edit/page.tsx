@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import { getDailyReportById } from '@/app/actions/daily-reports'
-import DailyReportFormEditEnhanced from '@/components/daily-reports/daily-report-form-edit-enhanced'
 import DailyReportFormEditMobile from '@/components/daily-reports/daily-report-form-edit-mobile'
 import Sidebar from '@/components/dashboard/sidebar'
 import Header from '@/components/dashboard/header'
@@ -157,7 +156,7 @@ export default async function EditDailyReportPage({
           <Header />
           <main className="p-6">
             <div className="max-w-4xl mx-auto">
-              <DailyReportFormEditEnhanced
+              <DailyReportFormEditMobile
                 report={report as any}
                 currentUser={profile as any}
                 sites={sites || []}

@@ -1,7 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import { getDailyReportById } from '@/app/actions/daily-reports'
-import DailyReportFormEdit from '@/components/daily-reports/daily-report-form-edit'
+import DailyReportFormEditEnhanced from '@/components/daily-reports/daily-report-form-edit-enhanced'
+import DailyReportFormEditMobile from '@/components/daily-reports/daily-report-form-edit-mobile'
 import Sidebar from '@/components/dashboard/sidebar'
 import Header from '@/components/dashboard/header'
 import { BottomNavigation, BottomNavItem } from '@/components/ui/bottom-navigation'
@@ -50,6 +51,57 @@ export default async function EditDailyReportPage({
     redirect(`/dashboard/daily-reports/${params.id}`)
   }
 
+  // Get sites data for the form
+  let sites, sitesError
+  
+  try {
+    // First try with regular client
+    const regularResult = await supabase
+      .from('sites')
+      .select('*')
+      .eq('status', 'active')
+      .order('name')
+    
+    if (regularResult.data && regularResult.data.length > 0) {
+      sites = regularResult.data
+      sitesError = regularResult.error
+    } else {
+      // Fallback to service role
+      const serviceSupabase = require('@supabase/supabase-js').createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!,
+        {
+          auth: {
+            autoRefreshToken: false,
+            persistSession: false
+          }
+        }
+      )
+      
+      const serviceResult = await serviceSupabase
+        .from('sites')
+        .select('*')
+        .eq('status', 'active')
+        .order('name')
+      
+      sites = serviceResult.data
+      sitesError = serviceResult.error
+    }
+  } catch (error) {
+    console.error('Error fetching sites:', error)
+    sites = []
+    sitesError = error
+  }
+
+  // Get materials and workers (simplified for now)
+  const materials: any[] = []
+  const { data: workers } = await supabase
+    .from('profiles')
+    .select('*')
+    .in('role', ['worker', 'site_manager'])
+    .eq('status', 'active')
+    .order('full_name')
+
   // Bottom navigation items
   const bottomNavItems: BottomNavItem[] = [
     { 
@@ -86,10 +138,13 @@ export default async function EditDailyReportPage({
       {/* Mobile View */}
       <div className="lg:hidden">
         <Header />
-        <div className="p-4">
-          <DailyReportFormEdit
+        <div className="pb-16">
+          <DailyReportFormEditMobile
             report={report as any}
             currentUser={profile as any}
+            sites={sites || []}
+            materials={materials || []}
+            workers={workers as any || []}
           />
         </div>
         <BottomNavigation items={bottomNavItems} />
@@ -102,9 +157,12 @@ export default async function EditDailyReportPage({
           <Header />
           <main className="p-6">
             <div className="max-w-4xl mx-auto">
-              <DailyReportFormEdit
+              <DailyReportFormEditEnhanced
                 report={report as any}
                 currentUser={profile as any}
+                sites={sites || []}
+                materials={materials || []}
+                workers={workers as any || []}
               />
             </div>
           </main>

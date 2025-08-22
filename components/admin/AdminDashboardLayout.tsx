@@ -4,7 +4,7 @@ import { Profile } from '@/types'
 import { 
   Shield, Menu, X, Home, Users, Building2, FolderCheck, 
   DollarSign, Package, Layers, Settings, LogOut, BarChart3, Bell, Sun, Moon,
-  ChevronDown, User, Key, UserPlus, FileText
+  ChevronDown, User, Key, UserPlus, FileText, MessageSquare
 } from 'lucide-react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useState, useEffect, useRef } from 'react'
@@ -85,6 +85,12 @@ const adminMenuItems = [
     label: 'NPC-1000 자재 관리',
     icon: Package,
     href: '/dashboard/admin/materials'
+  },
+  {
+    id: 'communication',
+    label: '커뮤니케이션 관리',
+    icon: MessageSquare,
+    href: '/dashboard/admin/communication'
   }
 ]
 

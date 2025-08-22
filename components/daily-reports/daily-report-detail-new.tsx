@@ -6,7 +6,6 @@ import { approveDailyReport } from '@/app/actions/daily-reports'
 // import { getFileAttachments } from '@/app/actions/documents' // TODO: Implement when table exists
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { Textarea } from '@/components/ui/textarea'
 import { 
   Calendar,
@@ -90,26 +89,29 @@ export default function DailyReportDetail({ report, currentUser }: DailyReportDe
   const getStatusBadge = (status: string) => {
     const statusConfig: any = {
       draft: { label: '작성중', variant: 'secondary', icon: Clock },
-      submitted: { label: '제출됨', variant: 'primary', icon: FileText },
+      submitted: { label: '제출됨', variant: 'default', icon: FileText },
       approved: { label: '승인됨', variant: 'success', icon: CheckCircle },
-      rejected: { label: '반려됨', variant: 'danger', icon: XCircle }
+      rejected: { label: '반려됨', variant: 'error', icon: XCircle }
     }
 
     const config = statusConfig[status] || statusConfig.draft
     const Icon = config.icon
 
     return (
-      <Badge variant={config.variant} className="flex items-center gap-1">
+      <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
+        status === 'approved' ? 'bg-green-100 text-green-800' :
+        status === 'rejected' ? 'bg-red-100 text-red-800' :
+        status === 'submitted' ? 'bg-blue-100 text-blue-800' :
+        'bg-gray-100 text-gray-800'
+      }`}>
         <Icon className="h-3 w-3" />
         {config.label}
-      </Badge>
+      </span>
     )
   }
 
-  const totalWorkerCount = report.work_logs?.reduce((sum: any, log: any) => sum + (log.worker_count || 0), 0) || 0
-  const totalMaterialUsage = report.work_logs?.reduce((sum: any, log: any) => 
-    sum + (log.work_log_materials?.length || 0), 0
-  ) || 0
+  const totalWorkerCount = 0 // report.work_logs?.reduce((sum: any, log: any) => sum + (log.worker_count || 0), 0) || 0
+  const totalMaterialUsage = 0 // report.work_logs?.reduce((sum: any, log: any) => sum + (log.work_log_materials?.length || 0), 0) || 0
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -326,182 +328,179 @@ export default function DailyReportDetail({ report, currentUser }: DailyReportDe
             </div>
           </div>
 
-          {/* Detailed Work Logs - 접기/펼치기 기능 */}
-          {report.work_logs && report.work_logs.length > 0 && (
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-              <button
-                onClick={() => setShowDetailedWorkLogs(!showDetailedWorkLogs)}
-                className="w-full px-6 py-4 border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-              >
-                <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                    <Eye className="h-5 w-5" />
-                    상세 작업 내역 ({report.work_logs.length}건)
-                  </h2>
-                  {showDetailedWorkLogs ? (
-                    <ChevronUp className="h-5 w-5 text-gray-500" />
-                  ) : (
-                    <ChevronDown className="h-5 w-5 text-gray-500" />
-                  )}
-                </div>
-              </button>
-              
-              {showDetailedWorkLogs && (
-                <div className="px-6 py-4">
-                  <div className="space-y-4">
-                    {report.work_logs.map((workLog, index) => (
-                      <div key={workLog.id} className="border dark:border-gray-600 rounded-lg p-4 bg-gray-50 dark:bg-gray-700">
-                        <div className="mb-3">
-                          <h3 className="font-medium text-gray-900 dark:text-gray-100">작업 {index + 1}</h3>
+        {/* Detailed Work Logs - 컴팩트 접기/펼치기 */}
+        {report.work_logs && report.work_logs.length > 0 && (
+          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+            <button
+              onClick={() => setShowDetailedWorkLogs(!showDetailedWorkLogs)}
+              className="w-full p-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            >
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                  <Package className="h-4 w-4 text-blue-500 dark:text-blue-400" />
+                  상세 작업 내역 ({report.work_logs.length}건)
+                </h2>
+                {showDetailedWorkLogs ? (
+                  <ChevronUp className="h-4 w-4 text-gray-500" />
+                ) : (
+                  <ChevronDown className="h-4 w-4 text-gray-500" />
+                )}
+              </div>
+            </button>
+            
+            {showDetailedWorkLogs && (
+              <div className="p-3 border-t border-gray-200 dark:border-gray-700">
+                <div className="space-y-2">
+                  {report.work_logs.map((workLog, index) => (
+                    <div key={workLog.id} className="border dark:border-gray-600 rounded-lg p-2.5 bg-gray-50 dark:bg-gray-700/50">
+                      <div className="mb-1.5">
+                        <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">작업 {index + 1}</h3>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                          <p className="text-gray-500 dark:text-gray-400">작업 종류</p>
+                          <p className="font-medium text-gray-900 dark:text-gray-100">{workLog.work_type}</p>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          <div>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">작업 종류</p>
-                            <p className="font-medium text-gray-900 dark:text-gray-100">{workLog.work_type}</p>
-                          </div>
-                          <div>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">작업 위치</p>
-                            <p className="font-medium text-gray-900 dark:text-gray-100">{workLog.location}</p>
-                          </div>
-                          <div className="md:col-span-2">
-                            <p className="text-sm text-gray-500 dark:text-gray-400">작업 내용</p>
-                            <p className="font-medium text-gray-900 dark:text-gray-100">{workLog.description}</p>
-                          </div>
-                          <div>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">투입 인원</p>
-                            <p className="font-medium text-gray-900 dark:text-gray-100">{workLog.worker_count}명</p>
-                          </div>
+                        <div>
+                          <p className="text-gray-500 dark:text-gray-400">작업 위치</p>
+                          <p className="font-medium text-gray-900 dark:text-gray-100">{workLog.location}</p>
                         </div>
+                        <div className="col-span-2">
+                          <p className="text-gray-500 dark:text-gray-400">작업 내용</p>
+                          <p className="font-medium text-gray-900 dark:text-gray-100">{workLog.description}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-500 dark:text-gray-400">투입 인원</p>
+                          <p className="font-medium text-gray-900 dark:text-gray-100">{workLog.worker_count}명</p>
+                        </div>
+                      </div>
 
-                        {workLog.work_log_materials && workLog.work_log_materials.length > 0 && (
-                          <div className="mt-3 pt-3 border-t border-gray-300 dark:border-gray-600">
-                            <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">사용 자재</p>
-                            <div className="space-y-1">
-                              {workLog.work_log_materials.map((material: any) => (
-                                <div key={material.id} className="flex items-center justify-between text-sm">
-                                  <span className="text-gray-900 dark:text-gray-100">{material.material?.name}</span>
-                                  <span className="font-medium text-gray-900 dark:text-gray-100">
-                                    {material.quantity} {material.material?.unit}
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
+                      {workLog.work_log_materials && workLog.work_log_materials.length > 0 && (
+                        <div className="col-span-2 mt-1.5 pt-1.5 border-t border-gray-300 dark:border-gray-600">
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">사용 자재</p>
+                          <div className="space-y-0.5">
+                            {workLog.work_log_materials.map((material: any) => (
+                              <div key={material.id} className="flex items-center justify-between text-xs">
+                                <span className="text-gray-900 dark:text-gray-100">{material.material?.name}</span>
+                                <span className="font-medium text-gray-900 dark:text-gray-100">
+                                  {material.quantity} {material.material?.unit}
+                                </span>
+                              </div>
+                            ))}
                           </div>
-                        )}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Attendance Records - 컴팩트 접기/펼치기 */}
+        {report.attendance_records && report.attendance_records.length > 0 && (
+          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+            <button
+              onClick={() => setShowAttendanceDetails(!showAttendanceDetails)}
+              className="w-full p-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            >
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                  <Users className="h-4 w-4 text-blue-500 dark:text-blue-400" />
+                  출근 현황 ({report.attendance_records.length}명)
+                </h2>
+                {showAttendanceDetails ? (
+                  <ChevronUp className="h-4 w-4 text-gray-500" />
+                ) : (
+                  <ChevronDown className="h-4 w-4 text-gray-500" />
+                )}
+              </div>
+            </button>
+            
+            {showAttendanceDetails && (
+              <div className="p-3 border-t border-gray-200 dark:border-gray-700">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="border-b border-gray-200 dark:border-gray-600">
+                        <th className="text-left py-1.5 font-medium text-gray-500 dark:text-gray-400">작업자</th>
+                        <th className="text-left py-1.5 font-medium text-gray-500 dark:text-gray-400">출근</th>
+                        <th className="text-left py-1.5 font-medium text-gray-500 dark:text-gray-400">퇴근</th>
+                        <th className="text-left py-1.5 font-medium text-gray-500 dark:text-gray-400">시간</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {report.attendance_records.map((record: any) => (
+                        <tr key={record.id} className="border-b border-gray-100 dark:border-gray-600">
+                          <td className="py-1.5 text-gray-900 dark:text-gray-100">{record.worker?.full_name}</td>
+                          <td className="py-1.5 text-gray-900 dark:text-gray-100">{record.check_in_time || '-'}</td>
+                          <td className="py-1.5 text-gray-900 dark:text-gray-100">{record.check_out_time || '-'}</td>
+                          <td className="py-1.5 text-gray-900 dark:text-gray-100">
+                            {record.work_hours ? `${record.work_hours.toFixed(1)}h` : '-'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Notes & Issues - 컴팩트 카드 스타일 */}
+        {((report as any).notes || attachments.length > 0) && (
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+            <h2 className="text-sm font-semibold mb-2 text-gray-900 dark:text-gray-100 flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 text-orange-500 dark:text-orange-400" />
+              특이사항 및 첨부파일
+            </h2>
+            <div>
+              {(report as any).notes && (
+                <div className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                  <p className="whitespace-pre-wrap">
+                    {(report as any).notes}
+                  </p>
+                </div>
+              )}
+              
+              {attachments.length > 0 && (
+                <div className={`${(report as any).notes ? 'mt-2 pt-2 border-t border-gray-200 dark:border-gray-700' : ''}`}>
+                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">첨부파일</p>
+                  <div className="space-y-1">
+                    {attachments.map((attachment: any) => (
+                      <div 
+                        key={attachment.id} 
+                        className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700/50 rounded"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Paperclip className="h-3.5 w-3.5 text-gray-500" />
+                          <span className="text-xs text-gray-900 dark:text-gray-100">{attachment.file_name}</span>
+                          <span className="text-xs text-gray-500">
+                            ({Math.round(attachment.file_size / 1024)}KB)
+                          </span>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="compact"
+                          onClick={() => window.open(attachment.file_path, '_blank')}
+                          className="p-1"
+                        >
+                          <Download className="h-3.5 w-3.5" />
+                        </Button>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
-            </div>
-          )}
-
-          {/* Attendance Records - 접기/펼치기 기능 */}
-          {report.attendance_records && report.attendance_records.length > 0 && (
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-              <button
-                onClick={() => setShowAttendanceDetails(!showAttendanceDetails)}
-                className="w-full px-6 py-4 border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-              >
-                <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                    <Users className="h-5 w-5" />
-                    출근 현황 ({report.attendance_records.length}명)
-                  </h2>
-                  {showAttendanceDetails ? (
-                    <ChevronUp className="h-5 w-5 text-gray-500" />
-                  ) : (
-                    <ChevronDown className="h-5 w-5 text-gray-500" />
-                  )}
-                </div>
-              </button>
               
-              {showAttendanceDetails && (
-                <div className="px-6 py-4">
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="border-b border-gray-200 dark:border-gray-600">
-                          <th className="text-left py-2 text-sm font-medium text-gray-500 dark:text-gray-400">작업자</th>
-                          <th className="text-left py-2 text-sm font-medium text-gray-500 dark:text-gray-400">출근시간</th>
-                          <th className="text-left py-2 text-sm font-medium text-gray-500 dark:text-gray-400">퇴근시간</th>
-                          <th className="text-left py-2 text-sm font-medium text-gray-500 dark:text-gray-400">근무시간</th>
-                          <th className="text-left py-2 text-sm font-medium text-gray-500 dark:text-gray-400">작업내용</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {report.attendance_records.map((record: any) => (
-                          <tr key={record.id} className="border-b border-gray-100 dark:border-gray-600">
-                            <td className="py-2 text-gray-900 dark:text-gray-100">{record.worker?.full_name}</td>
-                            <td className="py-2 text-gray-900 dark:text-gray-100">{record.check_in_time || '-'}</td>
-                            <td className="py-2 text-gray-900 dark:text-gray-100">{record.check_out_time || '-'}</td>
-                            <td className="py-2 text-gray-900 dark:text-gray-100">
-                              {record.work_hours ? `${record.work_hours.toFixed(1)}시간` : '-'}
-                            </td>
-                            <td className="py-2 text-gray-900 dark:text-gray-100">{record.work_type || '-'}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
+              {!(report as any).notes && attachments.length === 0 && (
+                <p className="text-sm text-gray-500 dark:text-gray-400">특별한 사항이나 첨부파일이 없습니다.</p>
               )}
             </div>
-          )}
-
-          {/* Notes & Issues - 파트너사 스타일과 동일 */}
-          {((report as any).notes || attachments.length > 0) && (
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                  <AlertTriangle className="h-5 w-5" />
-                  특이사항 및 첨부파일
-                </h2>
-              </div>
-              <div className="px-6 py-4">
-                {(report as any).notes && (
-                  <div className="prose prose-sm max-w-none text-gray-700 dark:text-gray-300 mb-4">
-                    <p className="whitespace-pre-wrap leading-relaxed">
-                      {(report as any).notes}
-                    </p>
-                  </div>
-                )}
-                
-                {attachments.length > 0 && (
-                  <div className={`${(report as any).notes ? 'mt-4 pt-4 border-t border-gray-200 dark:border-gray-700' : ''}`}>
-                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">첨부파일</p>
-                    <div className="space-y-2">
-                      {attachments.map((attachment: any) => (
-                        <div 
-                          key={attachment.id} 
-                          className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
-                        >
-                          <div className="flex items-center gap-3">
-                            <Paperclip className="h-4 w-4 text-gray-500" />
-                            <span className="text-sm text-gray-900 dark:text-gray-100">{attachment.file_name}</span>
-                            <span className="text-xs text-gray-500">
-                              ({Math.round(attachment.file_size / 1024)}KB)
-                            </span>
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="compact"
-                            onClick={() => window.open(attachment.file_path, '_blank')}
-                          >
-                            <Download className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                
-                {!(report as any).notes && attachments.length === 0 && (
-                  <p className="text-gray-500 dark:text-gray-400">특별한 사항이나 첨부파일이 없습니다.</p>
-                )}
-              </div>
-            </div>
-          )}
+          </div>
+        )}
         </div>
       </div>
 

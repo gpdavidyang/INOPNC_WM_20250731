@@ -1334,12 +1334,12 @@ export default function DailyReportFormEnhanced({
                           <CustomSelectValue placeholder="0.0" />
                         </CustomSelectTrigger>
                         <CustomSelectContent className="bg-white dark:bg-gray-800 border dark:border-gray-700">
-                          <CustomSelectItem value="0">0.0</CustomSelectItem>
-                          <CustomSelectItem value="1">1.0</CustomSelectItem>
-                          <CustomSelectItem value="1.5">1.5</CustomSelectItem>
-                          <CustomSelectItem value="2">2.0</CustomSelectItem>
-                          <CustomSelectItem value="2.5">2.5</CustomSelectItem>
-                          <CustomSelectItem value="3">3.0</CustomSelectItem>
+                          <CustomSelectItem value="0.5">0.5 공수</CustomSelectItem>
+                          <CustomSelectItem value="1.0">1.0 공수</CustomSelectItem>
+                          <CustomSelectItem value="1.5">1.5 공수</CustomSelectItem>
+                          <CustomSelectItem value="2.0">2.0 공수</CustomSelectItem>
+                          <CustomSelectItem value="2.5">2.5 공수</CustomSelectItem>
+                          <CustomSelectItem value="3.0">3.0 공수</CustomSelectItem>
                         </CustomSelectContent>
                       </CustomSelect>
                     </div>

@@ -31,6 +31,15 @@ export abstract class BasePage {
     await this.page.waitForLoadState('networkidle')
   }
 
+  async waitForLoadComplete() {
+    await this.page.waitForLoadState('networkidle', { timeout: 10000 })
+  }
+
+  async isMobileViewport(): Promise<boolean> {
+    const viewport = this.page.viewportSize()
+    return viewport ? viewport.width < 768 : false
+  }
+
   protected getByRole(role: string, options?: { name?: string | RegExp }): Locator {
     return this.page.getByRole(role as any, options)
   }

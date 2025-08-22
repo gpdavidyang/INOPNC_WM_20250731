@@ -77,6 +77,33 @@ export class AuthPage extends BasePage {
     await this.waitForUrl('**/dashboard/**')
   }
 
+  async loginAs(userType: string, password: string = 'password123') {
+    const emailMap: Record<string, string> = {
+      'worker': 'worker@inopnc.com',
+      'manager': 'manager@inopnc.com',
+      'admin': 'admin@inopnc.com',
+      'customer': 'customer@inopnc.com',
+      'partner': 'partner@inopnc.com'
+    }
+
+    const email = emailMap[userType]
+    if (!email) {
+      throw new Error(`Unknown user type: ${userType}`)
+    }
+
+    await this.navigateToLogin()
+    await this.login(email, password)
+    
+    // Wait for appropriate redirect based on user type
+    if (userType === 'admin') {
+      await this.waitForUrl('**/admin/dashboard')
+    } else if (userType === 'partner') {
+      await this.waitForUrl('**/partner/dashboard')
+    } else {
+      await this.waitForUrl('**/dashboard/**')
+    }
+  }
+
   async expectLoginFormVisible() {
     await expect(this.getByRole('heading', { name: /sign in/i })).toBeVisible()
     await expect(this.emailInput).toBeVisible()

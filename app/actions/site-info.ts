@@ -75,7 +75,7 @@ export async function getCurrentUserSite() {
     // Direct query approach - get active site assignment with site details
     log('getCurrentUserSite: Querying active assignment with site details...')
     
-    const { data: assignment, error } = await supabase
+    const { data: assignments, error } = await supabase
       .from('site_assignments')
       .select(`
         *,
@@ -100,15 +100,14 @@ export async function getCurrentUserSite() {
       `)
       .eq('user_id', user.id)
       .eq('is_active', true)
-      .single()
+      .order('assigned_date', { ascending: false })
 
-    log('getCurrentUserSite: Direct query result:', { assignment, error })
+    // Get the most recent active assignment
+    const assignment = assignments?.[0] || null
+
+    log('getCurrentUserSite: Direct query result:', { assignments: assignments?.length, error })
 
     if (error) {
-      if (error.code === 'PGRST116') { // No rows returned
-        log('getCurrentUserSite: No active assignment found')
-        return { success: true, data: null }
-      }
       console.error('getCurrentUserSite: Query error:', error)
       throw error
     }

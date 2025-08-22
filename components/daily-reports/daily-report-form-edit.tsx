@@ -1,15 +1,17 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { updateDailyReport, submitDailyReport } from '@/app/actions/daily-reports'
+import { uploadPhotoToStorage } from '@/app/actions/simple-upload'
+import { addBulkAttendance } from '@/app/actions/attendance'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/custom-select'
+import { CustomSelect, CustomSelectContent, CustomSelectItem, CustomSelectTrigger, CustomSelectValue } from '@/components/ui/custom-select'
 import { 
   ArrowLeft, 
   Save, 
@@ -17,9 +19,25 @@ import {
   Calendar, 
   Plus, 
   Trash2,
-  Upload
+  Upload,
+  ChevronDown,
+  ChevronUp,
+  Users,
+  Package,
+  Camera,
+  Receipt,
+  FileText,
+  MessageSquare,
+  Image as ImageIcon,
+  Eye,
+  X
 } from 'lucide-react'
-import { DailyReport, Profile, Site, Material } from '@/types'
+import { DailyReport, Profile, Site, Material, PhotoGroup, ComponentType, ConstructionProcessType } from '@/types'
+import { AdditionalPhotoData } from '@/types/daily-reports'
+import PhotoGridPreview from './photo-grid-preview'
+import PDFReportGenerator from './pdf-report-generator'
+import AdditionalPhotoUploadSection from './additional-photo-upload-section'
+import { cn } from '@/lib/utils'
 import { showErrorNotification } from '@/lib/error-handling'
 import { toast } from 'sonner'
 
@@ -35,16 +53,95 @@ interface DailyReportFormEditProps {
   workers?: Profile[]
 }
 
-interface WorkLogEntry {
+interface WorkContentEntry {
   id: string
-  work_type: string
-  location: string
-  description: string
-  worker_count: number
-  materials: Array<{
-    material_id: string
-    quantity: number
-  }>
+  memberName: string
+  memberNameOther?: string
+  processType: string
+  processTypeOther?: string
+  workSection: string
+  // 통합된 사진 관리
+  beforePhotos: File[]
+  afterPhotos: File[]
+  beforePhotoPreviews: string[]
+  afterPhotoPreviews: string[]
+}
+
+interface WorkerEntry {
+  id: string // Unique identifier for React key
+  worker_id: string
+  labor_hours: number
+  worker_name?: string // For direct input
+  is_direct_input?: boolean // To track if this is direct input
+}
+
+interface PhotoEntry {
+  id: string
+  type: 'before' | 'after'
+  file: File | null
+  preview: string | null
+}
+
+interface ReceiptEntry {
+  id: string
+  category: string
+  amount: string
+  date: string
+  file: File | null
+  preview?: string | null
+}
+
+interface MaterialEntry {
+  incoming: string
+  used: string
+  remaining: string
+}
+
+// Collapsible section component for better organization
+const CollapsibleSection = ({ 
+  title, 
+  isExpanded, 
+  onToggle, 
+  children, 
+  badge,
+  icon: Icon 
+}: {
+  title: string
+  isExpanded: boolean
+  onToggle: () => void
+  children: React.ReactNode
+  badge?: number | string
+  icon?: React.ComponentType<{ className?: string }>
+}) => {
+  return (
+    <Card className="mb-4">
+      <div 
+        className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors border-b"
+        onClick={onToggle}
+      >
+        <div className="flex items-center gap-3">
+          {Icon && <Icon className="h-5 w-5 text-gray-600 dark:text-gray-400" />}
+          <h2 className="text-lg font-semibold">{title}</h2>
+          {badge && (
+            <Badge variant="secondary" className="ml-2">
+              {badge}
+            </Badge>
+          )}
+        </div>
+        {isExpanded ? (
+          <ChevronUp className="h-5 w-5 text-gray-500" />
+        ) : (
+          <ChevronDown className="h-5 w-5 text-gray-500" />
+        )}
+      </div>
+      
+      {isExpanded && (
+        <div className="p-4">
+          {children}
+        </div>
+      )}
+    </Card>
+  )
 }
 
 
@@ -59,6 +156,23 @@ export default function DailyReportFormEdit({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   
+  // Section expansion states
+  const [expandedSections, setExpandedSections] = useState({
+    siteInfo: true,
+    workContent: true,
+    workers: false,
+    photos: false,
+    additionalPhotos: false,
+    receipts: false,
+    drawings: false,
+    requests: false,
+    materials: false,
+    specialNotes: false
+  })
+
+  // Global toggle state
+  const [allExpanded, setAllExpanded] = useState(false)
+
   // Form state - Initialize with existing report data
   const [formData, setFormData] = useState({
     site_id: report.site_id || '',
@@ -70,69 +184,210 @@ export default function DailyReportFormEdit({
     npc1000_used: report.npc1000_used || 0,
     npc1000_remaining: report.npc1000_remaining || 0,
     issues: report.issues || '',
-    notes: report.notes || ''
+    notes: report.notes || '',
+    created_by: currentUser.full_name
   })
 
-  // Work logs state - Initialize with existing data
-  const [workLogs, setWorkLogs] = useState<WorkLogEntry[]>(
-    report.work_logs || []
-  )
+  // Enhanced state management
+  const [workContents, setWorkContents] = useState<WorkContentEntry[]>([])
+  const [workerEntries, setWorkerEntries] = useState<WorkerEntry[]>([])
+  const [photos, setPhotos] = useState<PhotoEntry[]>([])
+  const [receipts, setReceipts] = useState<ReceiptEntry[]>([])
+  const [additionalBeforePhotos, setAdditionalBeforePhotos] = useState<AdditionalPhotoData[]>([])
+  const [additionalAfterPhotos, setAdditionalAfterPhotos] = useState<AdditionalPhotoData[]>([])
+  const [requestText, setRequestText] = useState('')
+  const [materialData, setMaterialData] = useState<MaterialEntry>({
+    incoming: '',
+    used: '',
+    remaining: ''
+  })
+  const [specialNotes, setSpecialNotes] = useState('')
   
   // File attachments
   const [attachments, setAttachments] = useState<File[]>([])
 
-  // Work log handlers
-  const handleAddWorkLog = () => {
-    const newWorkLog: WorkLogEntry = {
-      id: `temp-${Date.now()}`,
-      work_type: '',
-      location: '',
-      description: '',
-      worker_count: 0,
-      materials: []
+  // Initialize data from existing report
+  useEffect(() => {
+    // Initialize work contents from existing data
+    if (report.work_logs && report.work_logs.length > 0) {
+      const convertedWorkContents = report.work_logs.map((log: any, index: number) => ({
+        id: log.id || `existing-${index}`,
+        memberName: log.work_type || '',
+        processType: log.location || '',
+        workSection: log.description || '',
+        beforePhotos: [],
+        afterPhotos: [],
+        beforePhotoPreviews: [],
+        afterPhotoPreviews: []
+      }))
+      setWorkContents(convertedWorkContents)
     }
-    setWorkLogs([...workLogs, newWorkLog])
+
+    // Initialize other data if available
+    if (report.notes) {
+      setSpecialNotes(report.notes)
+    }
+  }, [report])
+
+  // Section toggle handlers
+  const toggleSection = (section: keyof typeof expandedSections) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }))
   }
 
-  const handleUpdateWorkLog = (id: string, field: keyof WorkLogEntry, value: any) => {
-    setWorkLogs(workLogs.map(log => 
-      log.id === id ? { ...log, [field]: value } : log
+  const toggleAllSections = () => {
+    const newState = !allExpanded
+    setAllExpanded(newState)
+    setExpandedSections({
+      siteInfo: true, // Always keep site info expanded
+      workContent: newState,
+      workers: newState,
+      photos: newState,
+      additionalPhotos: newState,
+      receipts: newState,
+      drawings: newState,
+      requests: newState,
+      materials: newState,
+      specialNotes: newState
+    })
+  }
+
+  // Work content handlers
+  const handleAddWorkContent = () => {
+    const newWorkContent: WorkContentEntry = {
+      id: `work-${Date.now()}`,
+      memberName: '',
+      processType: '',
+      workSection: '',
+      beforePhotos: [],
+      afterPhotos: [],
+      beforePhotoPreviews: [],
+      afterPhotoPreviews: []
+    }
+    setWorkContents([...workContents, newWorkContent])
+  }
+
+  const handleUpdateWorkContent = (id: string, field: keyof WorkContentEntry, value: any) => {
+    setWorkContents(workContents.map(content => 
+      content.id === id ? { ...content, [field]: value } : content
     ))
   }
 
-  const handleRemoveWorkLog = (id: string) => {
-    setWorkLogs(workLogs.filter(log => log.id !== id))
+  const handleRemoveWorkContent = (id: string) => {
+    setWorkContents(workContents.filter(content => content.id !== id))
   }
 
-  const handleAddMaterial = (workLogId: string) => {
-    setWorkLogs(workLogs.map(log => 
-      log.id === workLogId 
-        ? { ...log, materials: [...log.materials, { material_id: '', quantity: 0 }] }
-        : log
-    ))
-  }
+  // Photo upload handlers
+  const handlePhotoUpload = useCallback(async (workContentId: string, type: 'before' | 'after', files: FileList | null) => {
+    if (!files || files.length === 0) return
 
-  const handleUpdateMaterial = (workLogId: string, index: number, field: string, value: any) => {
-    setWorkLogs(workLogs.map(log => 
-      log.id === workLogId 
+    try {
+      const filesToAdd = Array.from(files)
+      const workContent = workContents.find(w => w.id === workContentId)
+      if (!workContent) return
+
+      const previews: string[] = []
+      for (const file of filesToAdd) {
+        try {
+          const preview = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader()
+            reader.onload = () => resolve(reader.result as string)
+            reader.onerror = reject
+            reader.readAsDataURL(file)
+          })
+          previews.push(preview)
+        } catch (error) {
+          console.error('Error creating preview:', error)
+          previews.push('')
+        }
+      }
+
+      setWorkContents(workContents.map(content =>
+        content.id === workContentId
+          ? {
+              ...content,
+              [type === 'before' ? 'beforePhotos' : 'afterPhotos']: [
+                ...(type === 'before' ? content.beforePhotos : content.afterPhotos),
+                ...filesToAdd
+              ],
+              [type === 'before' ? 'beforePhotoPreviews' : 'afterPhotoPreviews']: [
+                ...(type === 'before' ? content.beforePhotoPreviews : content.afterPhotoPreviews),
+                ...previews
+              ]
+            }
+          : content
+      ))
+
+      if (previews.length > 0) {
+        toast.success(`${filesToAdd.length}개 사진이 추가되었습니다`)
+      } else {
+        toast.warning('사진이 추가되었지만 미리보기 생성에 실패했습니다')
+      }
+    } catch (error) {
+      console.error('Photo upload error:', error)
+      toast.error('사진 업로드 중 오류가 발생했습니다')
+    }
+  }, [workContents])
+
+  // Photo deletion handlers
+  const handlePhotoDelete = (workContentId: string, type: 'before' | 'after', index: number) => {
+    setWorkContents(workContents.map(content =>
+      content.id === workContentId
         ? {
-            ...log,
-            materials: log.materials.map((mat, i) => 
-              i === index ? { ...mat, [field]: value } : mat
-            )
+            ...content,
+            [type === 'before' ? 'beforePhotos' : 'afterPhotos']: 
+              (type === 'before' ? content.beforePhotos : content.afterPhotos).filter((_, i) => i !== index),
+            [type === 'before' ? 'beforePhotoPreviews' : 'afterPhotoPreviews']: 
+              (type === 'before' ? content.beforePhotoPreviews : content.afterPhotoPreviews).filter((_, i) => i !== index)
           }
-        : log
+        : content
     ))
   }
 
-  const handleRemoveMaterial = (workLogId: string, index: number) => {
-    setWorkLogs(workLogs.map(log => 
-      log.id === workLogId 
-        ? { ...log, materials: log.materials.filter((_, i) => i !== index) }
-        : log
+  // Worker entry handlers
+  const handleAddWorkerEntry = () => {
+    const newWorkerEntry: WorkerEntry = {
+      id: `worker-${Date.now()}`,
+      worker_id: '',
+      labor_hours: 1.0,
+      is_direct_input: true
+    }
+    setWorkerEntries([...workerEntries, newWorkerEntry])
+  }
+
+  const handleUpdateWorkerEntry = (id: string, field: keyof WorkerEntry, value: any) => {
+    setWorkerEntries(workerEntries.map(entry => 
+      entry.id === id ? { ...entry, [field]: value } : entry
     ))
   }
 
+  const handleRemoveWorkerEntry = (id: string) => {
+    setWorkerEntries(workerEntries.filter(entry => entry.id !== id))
+  }
+
+  // Receipt handlers
+  const handleAddReceipt = () => {
+    const newReceipt: ReceiptEntry = {
+      id: `receipt-${Date.now()}`,
+      category: '',
+      amount: '',
+      date: new Date().toISOString().split('T')[0],
+      file: null
+    }
+    setReceipts([...receipts, newReceipt])
+  }
+
+  const handleUpdateReceipt = (id: string, field: keyof ReceiptEntry, value: any) => {
+    setReceipts(receipts.map(receipt => 
+      receipt.id === id ? { ...receipt, [field]: value } : receipt
+    ))
+  }
+
+  const handleRemoveReceipt = (id: string) => {
+    setReceipts(receipts.filter(receipt => receipt.id !== id))
+  }
 
   // File handlers
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -150,7 +405,7 @@ export default function DailyReportFormEdit({
     setError(null)
     
     try {
-      // Validate required fields (strict validation for submission)
+      // Enhanced validation
       if (submitForApproval) {
         if (!formData.member_name.trim()) {
           throw new Error('부재명을 입력해주세요')
@@ -161,13 +416,25 @@ export default function DailyReportFormEdit({
         if (formData.total_workers <= 0) {
           throw new Error('작업자 수를 입력해주세요')
         }
+        if (workContents.length === 0) {
+          throw new Error('작업 내용을 입력해주세요')
+        }
+      }
+
+      // Prepare comprehensive data for update
+      const updateData = {
+        ...formData,
+        work_contents: workContents,
+        worker_entries: workerEntries,
+        receipts: receipts.map(r => ({ ...r, file: null })), // Don't save file objects
+        request_text: requestText,
+        material_data: materialData,
+        special_notes: specialNotes,
+        updated_at: new Date().toISOString()
       }
 
       // Update daily report
-      const updateResult = await updateDailyReport(report.id, {
-        ...formData,
-        updated_at: new Date().toISOString()
-      })
+      const updateResult = await updateDailyReport(report.id, updateData)
 
       if (!updateResult.success) {
         showErrorNotification(updateResult.error || '일일보고서 수정에 실패했습니다', 'handleSubmit')
@@ -200,10 +467,10 @@ export default function DailyReportFormEdit({
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
-      <div className="mb-6">
-        <div className="flex items-center gap-4 mb-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
           <Button
             variant="ghost"
             size="sm"
@@ -212,48 +479,74 @@ export default function DailyReportFormEdit({
             <ArrowLeft className="h-4 w-4 mr-2" />
             돌아가기
           </Button>
-        </div>
-        
-        <div className="flex items-center justify-between">
+          
           <div>
             <h1 className="text-2xl font-bold">작업일지 수정</h1>
             <p className="text-gray-600 dark:text-gray-400 mt-1">
               {report.site?.name} • {report.work_date}
             </p>
           </div>
+        </div>
+        
+        <div className="flex items-center gap-3">
           <Badge variant={report.status === 'draft' ? 'secondary' : 'default'}>
             임시저장
           </Badge>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={toggleAllSections}
+            title={allExpanded ? '모든 섹션 접기' : '모든 섹션 펼치기'}
+          >
+            {allExpanded ? (
+              <>
+                <ChevronUp className="h-4 w-4 mr-1" />
+                모두 접기
+              </>
+            ) : (
+              <>
+                <ChevronDown className="h-4 w-4 mr-1" />
+                모두 펼치기
+              </>
+            )}
+          </Button>
         </div>
       </div>
 
       {/* Error Message */}
       {error && (
-        <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg text-sm">
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg text-sm">
           {error}
         </div>
       )}
 
-      {/* Basic Information */}
-      <Card className="p-6">
-        <h2 className="text-lg font-semibold mb-4">기본 정보</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Section 1: 현장 정보 (Always expanded) */}
+      <Card className="mb-4">
+        <div className="p-4 border-b">
+          <div className="flex items-center gap-3">
+            <FileText className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+            <h2 className="text-lg font-semibold">현장 정보</h2>
+          </div>
+        </div>
+        
+        <div className="p-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           <div>
             <Label htmlFor="site">현장</Label>
-            <Select
+            <CustomSelect
               value={formData.site_id}
               onValueChange={(value) => setFormData({ ...formData, site_id: value })}
               disabled={true} // Site should not be editable
             >
-              <SelectTrigger>
-                <SelectValue placeholder="현장 선택" />
-              </SelectTrigger>
-              <SelectContent>
+              <CustomSelectTrigger>
+                <CustomSelectValue placeholder="현장 선택" />
+              </CustomSelectTrigger>
+              <CustomSelectContent>
                 {sites.map(site => (
-                  <SelectItem key={site.id} value={site.id}>{site.name}</SelectItem>
+                  <CustomSelectItem key={site.id} value={site.id}>{site.name}</CustomSelectItem>
                 ))}
-              </SelectContent>
-            </Select>
+              </CustomSelectContent>
+            </CustomSelect>
           </div>
           
           <div>

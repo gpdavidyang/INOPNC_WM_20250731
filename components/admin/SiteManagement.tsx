@@ -273,10 +273,10 @@ export default function SiteManagement({ profile }: SiteManagementProps) {
               
               <button
                 onClick={handleCreateSite}
-                className="inline-flex items-center whitespace-nowrap px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors"
+                className="inline-flex items-center whitespace-nowrap px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors flex-shrink-0"
               >
-                <Plus className="h-4 w-4 mr-2" />
-                새 현장
+                <Plus className="h-4 w-4 mr-1.5 flex-shrink-0" />
+                <span className="whitespace-nowrap">새 현장</span>
               </button>
             </div>
           </div>

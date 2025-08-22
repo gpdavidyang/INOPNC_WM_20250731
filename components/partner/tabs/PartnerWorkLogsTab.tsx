@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Profile } from '@/types'
 import { createClient } from '@/lib/supabase/client'
-import { Search, Calendar, FileText, Eye, RefreshCw, Building2, Users, Package, Filter, X } from 'lucide-react'
+import { Search, Calendar, FileText, Eye, RefreshCw, Building2, Users, Package, Filter, X, ChevronDown, ChevronUp } from 'lucide-react'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import WorkLogDetailModal from '../WorkLogDetailModal'
@@ -316,12 +316,12 @@ export default function PartnerWorkLogsTab({ profile, sites }: PartnerWorkLogsTa
     <div className="space-y-6">
       {/* Compact Filters - Mobile Optimized (Matching Site Manager's Design) */}
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-        {/* Filter Header with Active Filters */}
+        {/* Filter Header */}
         <div className="p-3 pb-2 border-b border-gray-100 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
+              className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
             >
               <Filter className="w-4 h-4" />
               필터
@@ -330,32 +330,72 @@ export default function PartnerWorkLogsTab({ profile, sites }: PartnerWorkLogsTa
                   {getActiveFilters().length}
                 </span>
               )}
+              {showFilters ? (
+                <ChevronUp className="w-4 h-4 text-gray-400" />
+              ) : (
+                <ChevronDown className="w-4 h-4 text-gray-400" />
+              )}
             </button>
             
             {/* Active Filters Display when collapsed */}
             {!showFilters && getActiveFilters().length > 0 && (
-              <div className="flex flex-wrap gap-1">
-                {getActiveFilters().map((filter, index) => (
+              <div className="flex flex-wrap gap-1 max-w-md">
+                {getActiveFilters().slice(0, 2).map((filter, index) => (
                   <div
                     key={`${filter.key}-${index}`}
                     className="flex items-center gap-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-full text-xs border border-blue-200 dark:border-blue-700"
                   >
-                    <span>{filter.label}</span>
+                    <span className="truncate max-w-20">{filter.label}</span>
                     <button
-                      onClick={() => clearFilter(filter.key)}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        clearFilter(filter.key)
+                      }}
                       className="hover:bg-blue-100 dark:hover:bg-blue-800 rounded-full p-0.5"
                     >
                       <X className="w-3 h-3" />
                     </button>
                   </div>
                 ))}
+                {getActiveFilters().length > 2 && (
+                  <span className="text-xs text-gray-500 dark:text-gray-400 px-2 py-1">
+                    +{getActiveFilters().length - 2}개 더
+                  </span>
+                )}
               </div>
             )}
           </div>
         </div>
+
+        {/* Active Filters Summary when collapsed */}
+        {!showFilters && getActiveFilters().length > 0 && (
+          <div className="px-3 py-2 bg-blue-50/50 dark:bg-blue-900/10 border-b border-gray-100 dark:border-gray-700">
+            <div className="flex flex-wrap gap-1">
+              {getActiveFilters().map((filter, index) => (
+                <div
+                  key={`summary-${filter.key}-${index}`}
+                  className="flex items-center gap-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-full text-xs border border-blue-200 dark:border-blue-700"
+                >
+                  <span>{filter.label}</span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      clearFilter(filter.key)
+                    }}
+                    className="hover:bg-blue-100 dark:hover:bg-blue-800 rounded-full p-0.5"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         
         {/* Filter Controls */}
-        {showFilters && (
+        <div className={`overflow-hidden transition-all duration-200 ease-in-out ${
+          showFilters ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'
+        }`}>
           <div className="p-3 space-y-2">
             {/* 현장선택 - 첫번째 */}
             <CustomSelect value={selectedSite} onValueChange={setSelectedSite}>
@@ -482,7 +522,7 @@ export default function PartnerWorkLogsTab({ profile, sites }: PartnerWorkLogsTa
               </button>
             </div>
           </div>
-        )}
+        </div>
       </div>
 
       {/* High-Density Report List (Matching Site Manager's Design) */}

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import React, { useState, useRef } from 'react'
 import { Profile } from '@/types'
 import { 
   Upload, Download, Eye, Share2, Trash2,
@@ -41,6 +41,9 @@ export default function PartnerDocumentsTab({ profile, sites }: PartnerDocuments
   const [selectedDocuments, setSelectedDocuments] = useState<string[]>([])
   const [isSelectionMode, setIsSelectionMode] = useState(false)
   const [showShareModal, setShowShareModal] = useState(false)
+  const [showPreviewModal, setShowPreviewModal] = useState(false)
+  const [previewDocument, setPreviewDocument] = useState<Document | null>(null)
+  const [documents, setDocuments] = useState<Document[]>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Mock documents with updated structure to match Site Manager
@@ -146,17 +149,60 @@ export default function PartnerDocumentsTab({ profile, sites }: PartnerDocuments
     return docs
   }
 
+  // Initialize documents state
+  React.useEffect(() => {
+    setDocuments(getDocuments())
+  }, [activeTab, selectedSite, searchTerm, sortBy, sortOrder])
+
   const handleViewDocument = (document: Document) => {
-    console.log('View document:', document)
+    setPreviewDocument(document)
+    setShowPreviewModal(true)
   }
 
   const handleDownloadDocument = async (document: Document) => {
-    console.log('Download document:', document)
+    try {
+      // Create a temporary URL for the file (mock implementation)
+      // In real implementation, this would be the actual file URL from your server
+      const mockFileContent = `Mock content for ${document.name}`
+      const blob = new Blob([mockFileContent], { type: 'application/pdf' })
+      const url = window.URL.createObjectURL(blob)
+      
+      // Create temporary download link
+      const link = document.createElement('a')
+      link.href = url
+      link.download = document.name
+      link.style.display = 'none'
+      document.body.appendChild(link)
+      link.click()
+      
+      // Cleanup
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+      
+      // Show success message
+      alert(`${document.name} 다운로드가 시작되었습니다.`)
+    } catch (error) {
+      console.error('Download failed:', error)
+      alert('다운로드 중 오류가 발생했습니다.')
+    }
   }
 
   const deleteDocument = async (documentId: string) => {
     if (!confirm('정말 삭제하시겠습니까?')) return
-    console.log('Delete document:', documentId)
+    
+    try {
+      // Remove from current documents list
+      setDocuments(prev => prev.filter(doc => doc.id !== documentId))
+      
+      // Remove from selected documents if it was selected
+      setSelectedDocuments(prev => prev.filter(id => id !== documentId))
+      
+      // Show success message
+      alert('문서가 성공적으로 삭제되었습니다.')
+    } catch (error) {
+      console.error('Delete failed:', error)
+      alert('삭제 중 오류가 발생했습니다.')
+    }
   }
 
   const toggleDocumentSelection = (docId: string) => {
@@ -181,30 +227,41 @@ export default function PartnerDocumentsTab({ profile, sites }: PartnerDocuments
       return
     }
 
-    const selectedDocs = documents.filter(doc => selectedDocuments.includes(doc.id))
+    const allDocs = getDocumentsList()
+    const selectedDocs = allDocs.filter(doc => selectedDocuments.includes(doc.id))
     const shareText = `선택한 문서 ${selectedDocs.length}개:\n${selectedDocs.map(doc => doc.name).join('\n')}`
 
-    switch (method) {
-      case 'sms':
-        window.location.href = `sms:?body=${encodeURIComponent(shareText)}`
-        break
-      case 'email':
-        window.location.href = `mailto:?subject=문서 공유&body=${encodeURIComponent(shareText)}`
-        break
-      case 'kakao':
-        alert('카카오톡 공유 기능은 준비 중입니다.')
-        break
-      case 'link':
-        navigator.clipboard.writeText(shareText)
-        alert('링크가 클립보드에 복사되었습니다.')
-        break
+    try {
+      switch (method) {
+        case 'sms':
+          window.location.href = `sms:?body=${encodeURIComponent(shareText)}`
+          break
+        case 'email':
+          window.location.href = `mailto:?subject=문서 공유&body=${encodeURIComponent(shareText)}`
+          break
+        case 'kakao':
+          alert('카카오톡 공유 기능은 준비 중입니다.')
+          break
+        case 'link':
+          navigator.clipboard.writeText(shareText)
+          alert('링크가 클립보드에 복사되었습니다.')
+          break
+      }
+      // Show success message for methods other than link (which has its own message)
+      if (method !== 'link' && method !== 'kakao') {
+        alert(`${selectedDocs.length}개 문서를 ${method === 'sms' ? '문자' : '이메일'}로 공유합니다.`)
+      }
+    } catch (error) {
+      console.error('Share failed:', error)
+      alert('공유 중 오류가 발생했습니다.')
     }
+    
     setShowShareModal(false)
     setIsSelectionMode(false)
     setSelectedDocuments([])
   }
 
-  const documents = getDocuments()
+  const getDocumentsList = () => documents.length > 0 ? documents : getDocuments()
 
   return (
     <div className="space-y-4">
@@ -395,7 +452,7 @@ export default function PartnerDocumentsTab({ profile, sites }: PartnerDocuments
       <div>
         {/* Documents Grid/List - Compact matching Site Manager */}
         <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-          {documents.length === 0 ? (
+          {getDocumentsList().length === 0 ? (
             <div className="text-center py-12 px-4">
               <Upload className="mx-auto h-12 w-12 text-gray-400" />
               <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">문서가 없습니다</h3>
@@ -405,7 +462,7 @@ export default function PartnerDocumentsTab({ profile, sites }: PartnerDocuments
             </div>
           ) : viewMode === 'grid' ? (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
-              {documents.map((document) => {
+              {getDocumentsList().map((document) => {
                 return (
                   <div
                     key={document.id}
@@ -463,7 +520,10 @@ export default function PartnerDocumentsTab({ profile, sites }: PartnerDocuments
                           <Download className="h-4 w-4" />
                         </button>
                         <button
-                          onClick={() => setShowShareModal(true)}
+                          onClick={() => {
+                            setSelectedDocuments([document.id])
+                            setShowShareModal(true)
+                          }}
                           className="p-1.5 text-gray-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg transition-colors"
                           title="공유하기"
                         >
@@ -484,7 +544,7 @@ export default function PartnerDocumentsTab({ profile, sites }: PartnerDocuments
             </div>
           ) : (
             <div className="space-y-2">
-              {documents.map((document) => {
+              {getDocumentsList().map((document) => {
                 return (
                   <div
                     key={document.id}
@@ -548,7 +608,10 @@ export default function PartnerDocumentsTab({ profile, sites }: PartnerDocuments
                               <Download className="h-4 w-4" />
                             </button>
                             <button
-                              onClick={() => setShowShareModal(true)}
+                              onClick={() => {
+                                setSelectedDocuments([document.id])
+                                setShowShareModal(true)
+                              }}
                               className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg transition-colors"
                               title="공유하기"
                             >
@@ -584,9 +647,83 @@ export default function PartnerDocumentsTab({ profile, sites }: PartnerDocuments
         className="hidden"
       />
 
-      {/* Share Modal - Matching Site Manager Design */}
+      {/* Document Preview Modal */}
+      {showPreviewModal && previewDocument && (
+        <div className="fixed inset-0 z-[9999] overflow-y-auto">
+          <div className="flex min-h-screen items-center justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            {/* Background overlay */}
+            <div 
+              className="fixed inset-0 bg-black bg-opacity-75 transition-opacity"
+              onClick={() => setShowPreviewModal(false)}
+            />
+
+            {/* Modal panel */}
+            <div className="inline-block align-middle bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:max-w-4xl sm:w-full max-h-[90vh]">
+              <div className="bg-white dark:bg-gray-800">
+                {/* Header */}
+                <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center gap-3">
+                    <span className={`inline-block px-2 py-1 text-xs font-medium rounded ${getFileTypeColor(previewDocument.type)}`}>
+                      {getFileTypeDisplay(previewDocument.type)}
+                    </span>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 truncate">
+                      {previewDocument.name}
+                    </h3>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleDownloadDocument(previewDocument)}
+                      className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                      title="다운로드"
+                    >
+                      <Download className="h-5 w-5" />
+                    </button>
+                    <button
+                      onClick={() => setShowPreviewModal(false)}
+                      className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                    >
+                      <X className="h-5 w-5" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="p-6 max-h-[calc(90vh-100px)] overflow-y-auto">
+                  <div className="bg-gray-100 dark:bg-gray-700 rounded-lg h-96 flex items-center justify-center">
+                    <div className="text-center">
+                      <div className="w-16 h-16 mx-auto mb-4 bg-white dark:bg-gray-600 rounded-lg flex items-center justify-center">
+                        {previewDocument.type.includes('pdf') ? (
+                          <Download className="h-8 w-8 text-red-500" />
+                        ) : previewDocument.type.includes('image') ? (
+                          <Eye className="h-8 w-8 text-blue-500" />
+                        ) : (
+                          <Download className="h-8 w-8 text-gray-500" />
+                        )}
+                      </div>
+                      <p className="text-gray-600 dark:text-gray-400 mb-2">문서 미리보기</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-500">
+                        파일 크기: {formatFileSize(previewDocument.size)}
+                      </p>
+                      <p className="text-sm text-gray-500 dark:text-gray-500">
+                        마지막 수정: {formatDate(previewDocument.lastModified)}
+                      </p>
+                      {previewDocument.site && (
+                        <p className="text-sm text-blue-600 dark:text-blue-400 mt-2">
+                          {previewDocument.site}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Share Modal - Fixed z-index issue */}
       {showShareModal && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
+        <div className="fixed inset-0 z-[9999] overflow-y-auto">
           <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
             {/* Background overlay */}
             <div 
@@ -594,8 +731,8 @@ export default function PartnerDocumentsTab({ profile, sites }: PartnerDocuments
               onClick={() => setShowShareModal(false)}
             />
 
-            {/* Modal panel */}
-            <div className="inline-block align-bottom bg-white dark:bg-gray-800 rounded-t-2xl sm:rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-sm sm:w-full">
+            {/* Modal panel - Positioned above bottom navigation */}
+            <div className="inline-block align-bottom bg-white dark:bg-gray-800 rounded-t-2xl sm:rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-sm sm:w-full mb-16 sm:mb-0">
               <div className="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">

@@ -286,23 +286,23 @@ export default function PartnerPrintStatusTab({ profile, sites }: PartnerPrintSt
 
   return (
     <div className="space-y-4">
-      {/* Site Selector - Using CustomSelect */}
-      <div className="flex items-center gap-3">
-        <Building2 className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-        <CustomSelect value={selectedSite} onValueChange={setSelectedSite}>
-          <CustomSelectTrigger className="w-full h-10">
+      {/* Site Selector - Using CustomSelect with icon inside */}
+      <CustomSelect value={selectedSite} onValueChange={setSelectedSite}>
+        <CustomSelectTrigger className="w-full h-10">
+          <div className="flex items-center gap-2">
+            <Building2 className="h-4 w-4 text-gray-500 dark:text-gray-400" />
             <CustomSelectValue placeholder="현장 선택" />
-          </CustomSelectTrigger>
-          <CustomSelectContent>
-            <CustomSelectItem value="all">전체 현장</CustomSelectItem>
-            {displaySites.map(site => (
-              <CustomSelectItem key={site.id} value={site.id}>
-                {site.name}
-              </CustomSelectItem>
-            ))}
-          </CustomSelectContent>
-        </CustomSelect>
-      </div>
+          </div>
+        </CustomSelectTrigger>
+        <CustomSelectContent>
+          <CustomSelectItem value="all">전체 현장</CustomSelectItem>
+          {displaySites.map(site => (
+            <CustomSelectItem key={site.id} value={site.id}>
+              {site.name}
+            </CustomSelectItem>
+          ))}
+        </CustomSelectContent>
+      </CustomSelect>
 
       {/* Calendar - Exactly matching screenshot */}
       <div className="bg-white dark:bg-gray-800 rounded-lg p-4">

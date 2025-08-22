@@ -47,6 +47,98 @@ export default function PartnerSiteInfoTab({ profile, sites }: PartnerSiteInfoTa
   const [selectedPeriod, setSelectedPeriod] = useState<string>('current_month')
   const [previewDocument, setPreviewDocument] = useState<BillingDocument | null>(null)
   const [showAllSites, setShowAllSites] = useState(false)
+
+  // Mock site participation data with different sites and periods
+  const allSiteParticipations = [
+    {
+      id: sites[0]?.id || '1',
+      name: '강남 A현장',
+      address: '서울시 강남구 테헤란로 456',
+      role: '현장관리자',
+      work: '슬라브 타설 • 지하 1층',
+      period: '2024-08-17',
+      status: '진행중',
+      startDate: '2024-08-17',
+      endDate: null
+    },
+    {
+      id: 'site-2',
+      name: '송파 C현장',
+      address: '서울시 송파구 올림픽로 300',
+      role: '작업자',
+      work: '철골 조립 • 지상 3층',
+      period: '2024-08-10 ~ 2024-08-17',
+      status: '진행중',
+      startDate: '2024-08-10',
+      endDate: '2024-08-17'
+    },
+    {
+      id: 'site-3',
+      name: '서초 B현장',
+      address: '서울시 서초구 서초대로 789',
+      role: '현장관리자',
+      work: '배관 설치 • 지하 2층',
+      period: '2024-08-07 ~ 2024-08-17',
+      status: '완료',
+      startDate: '2024-08-07',
+      endDate: '2024-08-17'
+    },
+    {
+      id: 'site-4',
+      name: '성남 D현장',
+      address: '경기도 성남시 분당구 판교로 234',
+      role: '감독관',
+      work: '전기 배선 • 지상 5층',
+      period: '2024-07-20 ~ 2024-08-05',
+      status: '중지',
+      startDate: '2024-07-20',
+      endDate: '2024-08-05'
+    },
+    {
+      id: 'site-5',
+      name: '용인 E현장',
+      address: '경기도 용인시 수지구 용구대로 567',
+      role: '작업자',
+      work: '마감 공사 • 지상 1층',
+      period: '2024-06-01 ~ 2024-07-15',
+      status: '완료',
+      startDate: '2024-06-01',
+      endDate: '2024-07-15'
+    }
+  ]
+
+  // Filter sites based on selected period
+  const getFilteredSites = () => {
+    const now = new Date()
+    const currentMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+    const recent3Months = new Date(now.getFullYear(), now.getMonth() - 3, 1)
+    const recent6Months = new Date(now.getFullYear(), now.getMonth() - 6, 1)
+    const recent12Months = new Date(now.getFullYear(), now.getMonth() - 12, 1)
+    const recent24Months = new Date(now.getFullYear(), now.getMonth() - 24, 1)
+
+    return allSiteParticipations.filter(site => {
+      const siteEndDate = site.endDate ? new Date(site.endDate) : now
+      const siteStartDate = new Date(site.startDate)
+
+      switch (selectedPeriod) {
+        case 'current_month':
+          return siteEndDate >= currentMonth
+        case 'recent_3':
+          return siteEndDate >= recent3Months
+        case 'recent_6':
+          return siteEndDate >= recent6Months
+        case 'recent_12':
+          return siteEndDate >= recent12Months
+        case 'recent_24':
+          return siteEndDate >= recent24Months
+        case 'all':
+        default:
+          return true
+      }
+    })
+  }
+
+  const filteredSites = getFilteredSites()
   
   // Mock site details
   const siteDetails = {
@@ -70,58 +162,108 @@ export default function PartnerSiteInfoTab({ profile, sites }: PartnerSiteInfoTa
     currentSpent: '3.4억'
   }
 
-  // Mock billing documents
-  const billingDocuments: BillingDocument[] = [
+  // Mock billing documents with site associations
+  const allBillingDocuments: (BillingDocument & { siteId: string, uploadDate: string })[] = [
     {
       id: '1',
+      siteId: sites[0]?.id || '1',
       type: 'estimate',
-      name: '견적서_2024년3월.pdf',
-      uploadDate: '2024-03-15',
+      name: '견적서_2024년8월.pdf',
+      uploadDate: '2024-08-15',
       icon: <DollarSign className="h-5 w-5 text-green-500" />
     },
     {
       id: '2', 
+      siteId: sites[0]?.id || '1',
       type: 'construction_plan',
       name: '시공계획서_강남A현장.pdf',
-      uploadDate: '2024-01-10',
+      uploadDate: '2024-08-10',
       icon: <FileText className="h-5 w-5 text-blue-500" />
     },
     {
       id: '3',
+      siteId: sites[0]?.id || '1',
       type: 'tax_invoice',
-      name: '전자세금계산서_202403.pdf',
-      uploadDate: '2024-03-18',
+      name: '전자세금계산서_202408.pdf',
+      uploadDate: '2024-08-18',
       icon: <FileSignature className="h-5 w-5 text-purple-500" />
     },
     {
       id: '4',
+      siteId: 'site-2',
       type: 'photo_document',
-      name: '사진대지문서_3월.pdf',
-      uploadDate: '2024-03-17',
+      name: '사진대지문서_송파C현장.pdf',
+      uploadDate: '2024-08-12',
       icon: <Camera className="h-5 w-5 text-orange-500" />
     },
     {
       id: '5',
+      siteId: 'site-3',
       type: 'contract',
-      name: '계약서_강남A현장.pdf',
-      uploadDate: '2024-01-05',
+      name: '계약서_서초B현장.pdf',
+      uploadDate: '2024-08-05',
       icon: <FileSignature className="h-5 w-5 text-red-500" />
     },
     {
       id: '6',
+      siteId: 'site-4',
       type: 'completion',
-      name: '작업완료확인서_3월2주차.pdf',
-      uploadDate: '2024-03-14',
+      name: '작업완료확인서_성남D현장.pdf',
+      uploadDate: '2024-07-25',
       icon: <CheckSquare className="h-5 w-5 text-green-500" />
     },
     {
       id: '7',
+      siteId: 'site-5',
       type: 'blueprint',
-      name: '진행도면_v2.pdf',
-      uploadDate: '2024-03-10',
+      name: '진행도면_용인E현장.pdf',
+      uploadDate: '2024-06-15',
       icon: <Map className="h-5 w-5 text-indigo-500" />
     }
   ]
+
+  // Filter documents based on selected site and period
+  const getFilteredDocuments = () => {
+    let filtered = allBillingDocuments
+
+    // Filter by site
+    if (selectedSite !== 'all') {
+      filtered = filtered.filter(doc => doc.siteId === selectedSite)
+    }
+
+    // Filter by period
+    const now = new Date()
+    const currentMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+    const recent3Months = new Date(now.getFullYear(), now.getMonth() - 3, 1)
+    const recent6Months = new Date(now.getFullYear(), now.getMonth() - 6, 1)
+    const recent12Months = new Date(now.getFullYear(), now.getMonth() - 12, 1)
+    const recent24Months = new Date(now.getFullYear(), now.getMonth() - 24, 1)
+
+    switch (selectedPeriod) {
+      case 'current_month':
+        filtered = filtered.filter(doc => new Date(doc.uploadDate) >= currentMonth)
+        break
+      case 'recent_3':
+        filtered = filtered.filter(doc => new Date(doc.uploadDate) >= recent3Months)
+        break
+      case 'recent_6':
+        filtered = filtered.filter(doc => new Date(doc.uploadDate) >= recent6Months)
+        break
+      case 'recent_12':
+        filtered = filtered.filter(doc => new Date(doc.uploadDate) >= recent12Months)
+        break
+      case 'recent_24':
+        filtered = filtered.filter(doc => new Date(doc.uploadDate) >= recent24Months)
+        break
+      case 'all':
+      default:
+        break
+    }
+
+    return filtered
+  }
+
+  const billingDocuments = getFilteredDocuments()
 
   const getDocumentTypeName = (type: string) => {
     const types: { [key: string]: string } = {
@@ -219,8 +361,8 @@ export default function PartnerSiteInfoTab({ profile, sites }: PartnerSiteInfoTa
           <div className="flex items-center justify-between">
             <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">현장 참여 목록</h3>
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-500 dark:text-gray-400">총 5개 현장</span>
-              {!showAllSites && (
+              <span className="text-sm text-gray-500 dark:text-gray-400">총 {filteredSites.length}개 현장</span>
+              {!showAllSites && filteredSites.length > 3 && (
                 <span className="text-xs text-blue-600 dark:text-blue-400">3개 표시 중</span>
               )}
             </div>
@@ -231,203 +373,79 @@ export default function PartnerSiteInfoTab({ profile, sites }: PartnerSiteInfoTa
           "divide-y divide-gray-200 dark:divide-gray-700 transition-all duration-300",
           !showAllSites && "max-h-[300px] overflow-hidden relative"
         )}>
-          {/* First Site - Enhanced UI with proper font sizes */}
-          <div 
-            className={cn(
-              "px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors",
-              selectedSite === (sites[0]?.id || '1') && "bg-blue-50 dark:bg-blue-900/10 border-l-4 border-blue-500"
-            )}
-            onClick={() => setSelectedSite(sites[0]?.id || '1')}
-          >
-            <div className="flex items-start justify-between">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1.5">
-                  <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                    강남 A현장
-                  </h4>
-                  <span className={cn(
-                    "px-2 py-0.5 text-[10px] rounded-full inline-flex items-center",
-                    "bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400"
-                  )}>
-                    현재
-                  </span>
-                  <span className={cn(
-                    "px-2 py-0.5 text-[10px] rounded-full inline-flex items-center",
-                    "bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400"
-                  )}>
-                    현장관리자
-                  </span>
-                </div>
-                <p className="text-xs text-gray-600 dark:text-gray-400 truncate">서울시 강남구 테헤란로 456</p>
-                <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">
-                  <span>슬라브 타설</span>
-                  <span className="mx-1">•</span>
-                  <span>지하 1층</span>
-                </div>
-              </div>
-              <div className="text-right flex-shrink-0 ml-3">
-                <div className="text-xs text-gray-500 dark:text-gray-400">
-                  25. 08. 17.
-                </div>
-                <div className="text-xs mt-1 text-green-600 dark:text-green-400">
-                  진행중
-                </div>
-              </div>
+          {filteredSites.length === 0 ? (
+            <div className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
+              선택한 기간에 해당하는 현장이 없습니다.
             </div>
-          </div>
-          
-          {/* Second Site */}
-          <div 
-            className={cn(
-              "px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors",
-              selectedSite === 'site-2' && "bg-blue-50 dark:bg-blue-900/10 border-l-4 border-blue-500"
-            )}
-            onClick={() => setSelectedSite('site-2')}
-          >
-            <div className="flex items-start justify-between">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1.5">
-                  <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                    송파 C현장
-                  </h4>
-                  <span className="text-xs text-gray-500">
-                    작업자
-                  </span>
-                </div>
-                <p className="text-xs text-gray-600 dark:text-gray-400 truncate">서울시 송파구 올림픽로 300</p>
-                <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">
-                  <span>철골 조립</span>
-                  <span className="mx-1">•</span>
-                  <span>지상 3층</span>
-                </div>
-              </div>
-              <div className="text-right flex-shrink-0 ml-3">
-                <div className="text-xs text-gray-500 dark:text-gray-400">
-                  25. 08. 10. ~ 25. 08. 17.
-                </div>
-                <div className="text-xs mt-1 text-green-600 dark:text-green-400">
-                  진행중
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          {/* Third Site */}
-          <div 
-            className={cn(
-              "px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors",
-              selectedSite === 'site-3' && "bg-blue-50 dark:bg-blue-900/10 border-l-4 border-blue-500"
-            )}
-            onClick={() => setSelectedSite('site-3')}
-          >
-            <div className="flex items-start justify-between">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1.5">
-                  <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                    서초 B현장
-                  </h4>
-                  <span className={cn(
-                    "px-2 py-0.5 text-[10px] rounded-full inline-flex items-center",
-                    "bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400"
-                  )}>
-                    현장관리자
-                  </span>
-                </div>
-                <p className="text-xs text-gray-600 dark:text-gray-400 truncate">서울시 서초구 서초대로 789</p>
-                <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">
-                  <span>배관 설치</span>
-                  <span className="mx-1">•</span>
-                  <span>지하 2층</span>
-                </div>
-              </div>
-              <div className="text-right flex-shrink-0 ml-3">
-                <div className="text-xs text-gray-500 dark:text-gray-400">
-                  25. 08. 07. ~ 25. 08. 17.
-                </div>
-                <div className="text-xs mt-1 text-blue-600 dark:text-blue-400">
-                  완료
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Show remaining sites only when expanded */}
-          {showAllSites && (
+          ) : (
             <>
-          {/* Fourth Site */}
-          <div 
-            className={cn(
-              "px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors",
-              selectedSite === 'site-4' && "bg-blue-50 dark:bg-blue-900/10 border-l-4 border-blue-500"
-            )}
-            onClick={() => setSelectedSite('site-4')}
-          >
-            <div className="flex items-start justify-between">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1.5">
-                  <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                    성남 D현장
-                  </h4>
-                  <span className={cn(
-                    "px-2 py-0.5 text-[10px] rounded-full inline-flex items-center",
-                    "bg-purple-100 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400"
-                  )}>
-                    감독관
-                  </span>
+              {/* Display first 3 sites or all if showAllSites is true */}
+              {(showAllSites ? filteredSites : filteredSites.slice(0, 3)).map((site, index) => (
+                <div 
+                  key={site.id}
+                  className={cn(
+                    "px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors",
+                    selectedSite === site.id && "bg-blue-50 dark:bg-blue-900/10 border-l-4 border-blue-500"
+                  )}
+                  onClick={() => setSelectedSite(site.id)}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                          {site.name}
+                        </h4>
+                        {site.status === '진행중' && !site.endDate && (
+                          <span className={cn(
+                            "px-2 py-0.5 text-[10px] rounded-full inline-flex items-center",
+                            "bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400"
+                          )}>
+                            현재
+                          </span>
+                        )}
+                        {site.role === '현장관리자' && (
+                          <span className={cn(
+                            "px-2 py-0.5 text-[10px] rounded-full inline-flex items-center",
+                            "bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400"
+                          )}>
+                            현장관리자
+                          </span>
+                        )}
+                        {site.role === '감독관' && (
+                          <span className={cn(
+                            "px-2 py-0.5 text-[10px] rounded-full inline-flex items-center",
+                            "bg-purple-100 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400"
+                          )}>
+                            감독관
+                          </span>
+                        )}
+                        {site.role === '작업자' && (
+                          <span className="text-xs text-gray-500">
+                            작업자
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 truncate">{site.address}</p>
+                      <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">
+                        <span>{site.work}</span>
+                      </div>
+                    </div>
+                    <div className="text-right flex-shrink-0 ml-3">
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                        {site.period.replace(/2024-/g, '24. ').replace(/-/g, '. ')}
+                      </div>
+                      <div className={cn(
+                        "text-xs mt-1",
+                        site.status === '진행중' ? "text-green-600 dark:text-green-400" :
+                        site.status === '완료' ? "text-blue-600 dark:text-blue-400" :
+                        "text-gray-500 dark:text-gray-400"
+                      )}>
+                        {site.status}
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <p className="text-xs text-gray-600 dark:text-gray-400 truncate">경기도 성남시 분당구 판교로 234</p>
-                <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">
-                  <span>전기 배선</span>
-                  <span className="mx-1">•</span>
-                  <span>지상 5층</span>
-                </div>
-              </div>
-              <div className="text-right flex-shrink-0 ml-3">
-                <div className="text-xs text-gray-500 dark:text-gray-400">
-                  25. 07. 20. ~ 25. 08. 05.
-                </div>
-                <div className="text-xs mt-1 text-gray-500 dark:text-gray-400">
-                  중지
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Fifth Site */}
-          <div 
-            className={cn(
-              "px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors",
-              selectedSite === 'site-5' && "bg-blue-50 dark:bg-blue-900/10 border-l-4 border-blue-500"
-            )}
-            onClick={() => setSelectedSite('site-5')}
-          >
-            <div className="flex items-start justify-between">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1.5">
-                  <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                    용인 E현장
-                  </h4>
-                  <span className="text-xs text-gray-500">
-                    작업자
-                  </span>
-                </div>
-                <p className="text-xs text-gray-600 dark:text-gray-400 truncate">경기도 용인시 수지구 용구대로 567</p>
-                <div className="mt-1 text-xs text-gray-500 dark:text-gray-500">
-                  <span>마감 공사</span>
-                  <span className="mx-1">•</span>
-                  <span>지상 1층</span>
-                </div>
-              </div>
-              <div className="text-right flex-shrink-0 ml-3">
-                <div className="text-xs text-gray-500 dark:text-gray-400">
-                  25. 06. 01. ~ 25. 07. 15.
-                </div>
-                <div className="text-xs mt-1 text-blue-600 dark:text-blue-400">
-                  완료
-                </div>
-              </div>
-            </div>
-          </div>
+              ))}
             </>
           )}
         </div>
@@ -437,27 +455,29 @@ export default function PartnerSiteInfoTab({ profile, sites }: PartnerSiteInfoTa
           <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white dark:from-gray-800 to-transparent pointer-events-none" />
         )}
 
-        {/* Expand/Collapse Button */}
-        <div className="px-4 py-2 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowAllSites(!showAllSites)}
-            className="w-full flex items-center justify-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20"
-          >
-            {showAllSites ? (
-              <>
-                <ChevronUp className="h-4 w-4" />
-                <span>접기</span>
-              </>
-            ) : (
-              <>
-                <ChevronDown className="h-4 w-4" />
-                <span>2개 더보기</span>
-              </>
-            )}
-          </Button>
-        </div>
+        {/* Expand/Collapse Button - Only show if there are more than 3 sites */}
+        {filteredSites.length > 3 && (
+          <div className="px-4 py-2 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowAllSites(!showAllSites)}
+              className="w-full flex items-center justify-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+            >
+              {showAllSites ? (
+                <>
+                  <ChevronUp className="h-4 w-4" />
+                  <span>접기</span>
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="h-4 w-4" />
+                  <span>{filteredSites.length - 3}개 더보기</span>
+                </>
+              )}
+            </Button>
+          </div>
+        )}
       </Card>
 
       {/* Selected Site Details - Enhanced UI with visual indicators */}
@@ -481,10 +501,7 @@ export default function PartnerSiteInfoTab({ profile, sites }: PartnerSiteInfoTa
                   <Building className="h-4 w-4 text-blue-600" />
                   <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">현장 상세정보</h3>
                   <span className="text-xs text-blue-600 dark:text-blue-300 font-medium">
-                    {selectedSite === 'site-2' ? '송파 C현장' : 
-                     selectedSite === 'site-3' ? '서초 B현장' :
-                     selectedSite === 'site-4' ? '성남 D현장' :
-                     selectedSite === 'site-5' ? '용인 E현장' : '강남 A현장'}
+                    {allSiteParticipations.find(s => s.id === selectedSite)?.name || '현장 정보'}
                   </span>
                 </div>
                 <Button
@@ -505,30 +522,18 @@ export default function PartnerSiteInfoTab({ profile, sites }: PartnerSiteInfoTa
                 <MapPin className="h-4 w-4 text-blue-500 flex-shrink-0" />
                 <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">현장 주소</span>
                 <p className="text-sm text-gray-900 dark:text-gray-100 break-words flex-1 min-w-0">
-                  {selectedSite === 'site-2' ? '서울시 송파구 올림픽로 300' : 
-                   selectedSite === 'site-3' ? '서울시 서초구 서초대로 789' :
-                   selectedSite === 'site-4' ? '경기도 성남시 분당구 판교로 234' :
-                   selectedSite === 'site-5' ? '경기도 용인시 수지구 용구대로 567' : 
-                   '서울시 강남구 테헤란로 456'}
+                  {allSiteParticipations.find(s => s.id === selectedSite)?.address || '주소 정보 없음'}
                 </p>
                 <Button variant="ghost" size="compact" className="h-6 w-6 p-0 min-h-0 flex-shrink-0" 
                   onClick={() => {
-                    const address = selectedSite === 'site-2' ? '서울시 송파구 올림픽로 300' : 
-                                   selectedSite === 'site-3' ? '서울시 서초구 서초대로 789' :
-                                   selectedSite === 'site-4' ? '경기도 성남시 분당구 판교로 234' :
-                                   selectedSite === 'site-5' ? '경기도 용인시 수지구 용구대로 567' : 
-                                   '서울시 강남구 테헤란로 456';
+                    const address = allSiteParticipations.find(s => s.id === selectedSite)?.address || '';
                     navigator.clipboard.writeText(address);
                   }}>
                   <Copy className="h-3 w-3" />
                 </Button>
                 <Button variant="ghost" size="compact" className="h-6 w-6 p-0 min-h-0 flex-shrink-0 text-blue-600" 
                   onClick={() => {
-                    const address = selectedSite === 'site-2' ? '서울시 송파구 올림픽로 300' : 
-                                   selectedSite === 'site-3' ? '서울시 서초구 서초대로 789' :
-                                   selectedSite === 'site-4' ? '경기도 성남시 분당구 판교로 234' :
-                                   selectedSite === 'site-5' ? '경기도 용인시 수지구 용구대로 567' : 
-                                   '서울시 강남구 테헤란로 456';
+                    const address = allSiteParticipations.find(s => s.id === selectedSite)?.address || '';
                     window.open(`https://tmapapi.sktelecom.com/main.html#weblink/search?query=${encodeURIComponent(address)}`);
                   }}>
                   <Navigation className="h-3 w-3" />
@@ -540,12 +545,8 @@ export default function PartnerSiteInfoTab({ profile, sites }: PartnerSiteInfoTa
                 <Clock className="h-4 w-4 text-blue-500 flex-shrink-0" />
                 <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">참여 기간</span>
                 <div className="text-sm text-gray-900 dark:text-gray-100">
-                  {selectedSite === 'site-2' ? '2025.08.10 ~ 2025.08.17' : 
-                   selectedSite === 'site-3' ? '2025.08.07 ~ 2025.08.17' :
-                   selectedSite === 'site-4' ? '2025.07.20 ~ 2025.08.05' :
-                   selectedSite === 'site-5' ? '2025.06.01 ~ 2025.07.15' : 
-                   '2025.08.17'}
-                  {(selectedSite === (sites[0]?.id || '1') || selectedSite === 'site-2') && (
+                  {allSiteParticipations.find(s => s.id === selectedSite)?.period.replace(/2024-/g, '2025.').replace(/-/g, '.') || '기간 정보 없음'}
+                  {allSiteParticipations.find(s => s.id === selectedSite)?.status === '진행중' && (
                     <span className="ml-2 px-2 py-0.5 bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 text-xs rounded-full">
                       현재 참여중
                     </span>
@@ -559,14 +560,13 @@ export default function PartnerSiteInfoTab({ profile, sites }: PartnerSiteInfoTa
                 <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">담당 역할</span>
                 <span className={cn(
                   "px-2 py-0.5 text-xs rounded-full",
-                  (selectedSite === (sites[0]?.id || '1') || selectedSite === 'site-3') 
+                  allSiteParticipations.find(s => s.id === selectedSite)?.role === '현장관리자'
                     ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400'
-                    : selectedSite === 'site-4'
+                    : allSiteParticipations.find(s => s.id === selectedSite)?.role === '감독관'
                     ? 'bg-purple-100 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400'
                     : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-400'
                 )}>
-                  {(selectedSite === (sites[0]?.id || '1') || selectedSite === 'site-3') ? '현장관리자' : 
-                   selectedSite === 'site-4' ? '감독관' : '작업자'}
+                  {allSiteParticipations.find(s => s.id === selectedSite)?.role || '역할 정보 없음'}
                 </span>
               </div>
 
@@ -576,11 +576,7 @@ export default function PartnerSiteInfoTab({ profile, sites }: PartnerSiteInfoTa
                 <div className="flex-1">
                   <span className="text-xs text-gray-500 dark:text-gray-400 block mb-1">작업 내용</span>
                   <p className="text-sm text-gray-900 dark:text-gray-100">
-                    {selectedSite === 'site-2' ? '철골 조립 • 지상 3층' : 
-                     selectedSite === 'site-3' ? '배관 설치 • 지하 2층' :
-                     selectedSite === 'site-4' ? '전기 배선 • 지상 5층' :
-                     selectedSite === 'site-5' ? '마감 공사 • 지상 1층' : 
-                     '슬라브 타설 • 지하 1층'}
+                    {allSiteParticipations.find(s => s.id === selectedSite)?.work || '작업 정보 없음'}
                   </p>
                 </div>
               </div>
@@ -591,14 +587,13 @@ export default function PartnerSiteInfoTab({ profile, sites }: PartnerSiteInfoTa
                 <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">현장 상태</span>
                 <span className={cn(
                   "px-2 py-0.5 text-xs rounded-full",
-                  (selectedSite === (sites[0]?.id || '1') || selectedSite === 'site-2') 
+                  allSiteParticipations.find(s => s.id === selectedSite)?.status === '진행중'
                     ? 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400'
-                    : (selectedSite === 'site-3' || selectedSite === 'site-5')
+                    : allSiteParticipations.find(s => s.id === selectedSite)?.status === '완료'
                     ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400'
                     : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-400'
                 )}>
-                  {(selectedSite === (sites[0]?.id || '1') || selectedSite === 'site-2') ? '진행중' :
-                   (selectedSite === 'site-3' || selectedSite === 'site-5') ? '완료' : '중지'}
+                  {allSiteParticipations.find(s => s.id === selectedSite)?.status || '상태 정보 없음'}
                 </span>
               </div>
               </div>

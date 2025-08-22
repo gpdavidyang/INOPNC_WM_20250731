@@ -21,7 +21,8 @@ interface TodaySiteInfoProps {
 
 export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInfoProps) {
   const [copiedField, setCopiedField] = useState<string | null>(null)
-  const [isExpanded, setIsExpanded] = useState(false)
+  // Auto-expand when there is site data to show - critical UX fix
+  const [isExpanded, setIsExpanded] = useState(!!siteInfo)
   const [showBlueprintModal, setShowBlueprintModal] = useState(false)
   const [showPTWModal, setShowPTWModal] = useState(false)
   const [pdfLoadError, setPdfLoadError] = useState(false)
@@ -34,6 +35,13 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
   } | null>(null)
   const [documentsLoading, setDocumentsLoading] = useState(false)
   const [documentsFetched, setDocumentsFetched] = useState(false) // 중복 fetch 방지
+
+  // Auto-expand when site info becomes available
+  useEffect(() => {
+    if (siteInfo && !isExpanded) {
+      setIsExpanded(true)
+    }
+  }, [siteInfo, isExpanded])
 
   // Fetch documents when siteInfo changes
   useEffect(() => {
@@ -184,6 +192,11 @@ export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInf
             <span className="text-sm text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-full font-medium">
               {siteInfo.name}
             </span>
+            {!isExpanded && (
+              <span className="text-xs text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 rounded-full font-medium animate-pulse">
+                정보 있음
+              </span>
+            )}
           </div>
           {isExpanded ? (
             <ChevronUp className="h-5 w-5 text-slate-500 dark:text-slate-400" />

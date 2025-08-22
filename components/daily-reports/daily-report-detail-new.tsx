@@ -117,7 +117,7 @@ export default function DailyReportDetail({ report, currentUser }: DailyReportDe
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header - 파트너사 스타일과 동일한 구조 */}
       <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-4">
               <button
@@ -182,19 +182,19 @@ export default function DailyReportDetail({ report, currentUser }: DailyReportDe
       </div>
 
       {/* Content */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="space-y-6">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="space-y-3">
 
           {/* Basic Information - 파트너사 스타일과 동일한 카드 기반 레이아웃 */}
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <div className="px-3 py-3 border-b border-gray-200 dark:border-gray-700">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
                 <FileText className="h-5 w-5" />
                 기본 정보
               </h2>
             </div>
-            <div className="px-6 py-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="px-3 py-3">
+              <div className="grid grid-cols-1 gap-3">
                 <div className="space-y-4">
                   <div>
                     <label className="text-sm font-medium text-gray-500 dark:text-gray-400 block mb-1">
@@ -294,13 +294,13 @@ export default function DailyReportDetail({ report, currentUser }: DailyReportDe
 
           {/* Work Summary - 작업 내용 요약 (파트너사 스타일) */}
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <div className="px-3 py-3 border-b border-gray-200 dark:border-gray-700">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
                 <FileText className="h-5 w-5" />
                 작업 내용 요약
               </h2>
             </div>
-            <div className="px-6 py-4">
+            <div className="px-3 py-3">
               {report.work_logs && report.work_logs.length > 0 ? (
                 <div className="prose prose-sm max-w-none text-gray-700 dark:text-gray-300">
                   <div className="space-y-3">

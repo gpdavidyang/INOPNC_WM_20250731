@@ -116,7 +116,7 @@ const CollapsibleSection = ({
   return (
     <Card className="mb-4">
       <div 
-        className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors border-b"
+        className="flex items-center justify-between p-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors border-b"
         onClick={onToggle}
       >
         <div className="flex items-center gap-3">
@@ -136,7 +136,7 @@ const CollapsibleSection = ({
       </div>
       
       {isExpanded && (
-        <div className="p-4">
+        <div className="p-3">
           {children}
         </div>
       )}
@@ -467,10 +467,10 @@ export default function DailyReportFormEdit({
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-2xl mx-auto space-y-3">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <Button
             variant="ghost"
             size="sm"
@@ -522,15 +522,15 @@ export default function DailyReportFormEdit({
 
       {/* Section 1: 현장 정보 (Always expanded) */}
       <Card className="mb-4">
-        <div className="p-4 border-b">
+        <div className="p-3 border-b">
           <div className="flex items-center gap-3">
             <FileText className="h-5 w-5 text-gray-600 dark:text-gray-400" />
             <h2 className="text-lg font-semibold">현장 정보</h2>
           </div>
         </div>
         
-        <div className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div className="p-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
           <div>
             <Label htmlFor="site">현장</Label>
             <CustomSelect
@@ -607,7 +607,7 @@ export default function DailyReportFormEdit({
         <div className="mt-6 space-y-4">
           <h3 className="text-lg font-medium">NPC-1000 자재 관리</h3>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div>
               <label className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2 block">
                 입고량 (L)
@@ -665,7 +665,7 @@ export default function DailyReportFormEdit({
 
         <div className="space-y-4">
           {workLogs.map((workLog, index) => (
-            <div key={workLog.id} className="border dark:border-gray-700 rounded-lg p-4">
+            <div key={workLog.id} className="border dark:border-gray-700 rounded-lg p-3">
               <div className="flex items-start justify-between mb-3">
                 <h3 className="font-medium">작업 {index + 1}</h3>
                 <Button

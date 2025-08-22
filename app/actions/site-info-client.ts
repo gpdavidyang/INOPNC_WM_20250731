@@ -1,8 +1,11 @@
-// Remove 'use client' - this file contains wrappers for server actions
-// Server actions must be imported directly, not through client components
+'use client'
+
+// This file provides client-side wrappers for server actions
+// It handles session verification before calling server actions
 
 import { createClient } from '@/lib/supabase/client'
-import { getCurrentUserSite as serverGetCurrentUserSite, getUserSiteHistory as serverGetUserSiteHistory } from './site-info'
+// Import server actions - they can be called from client components
+import { getCurrentUserSite, getUserSiteHistory } from './site-info'
 
 // Client-side wrapper for getCurrentUserSite that ensures session is valid before calling server action
 export async function getCurrentUserSiteWithAuth() {
@@ -27,7 +30,7 @@ export async function getCurrentUserSiteWithAuth() {
     if (userError || !user) {
       console.log('[SITE-INFO-CLIENT] Session verification failed, attempting refresh...')
       
-      // Try to refresh the session (no sync needed with singleton pattern fix)
+      // Try to refresh the session
       const { data: refreshResult, error: refreshError } = await supabase.auth.refreshSession()
       
       if (refreshError || !refreshResult.session) {
@@ -41,9 +44,9 @@ export async function getCurrentUserSiteWithAuth() {
       await new Promise(resolve => setTimeout(resolve, 200))
     }
     
-    // Now call the server action which should have access to the cookies
+    // Now call the server action - it will use cookies from the session
     console.log('[SITE-INFO-CLIENT] Calling server action...')
-    const result = await serverGetCurrentUserSite()
+    const result = await getCurrentUserSite()
     console.log('[SITE-INFO-CLIENT] Server action result:', result)
     
     // If server action failed due to auth, try refreshing and retry once
@@ -53,7 +56,7 @@ export async function getCurrentUserSiteWithAuth() {
       const { data: refreshResult, error: refreshError } = await supabase.auth.refreshSession()
       if (refreshResult.session && !refreshError) {
         await new Promise(resolve => setTimeout(resolve, 500))
-        const retryResult = await serverGetCurrentUserSite()
+        const retryResult = await getCurrentUserSite()
         console.log('[SITE-INFO-CLIENT] Retry result:', retryResult)
         return retryResult
       }
@@ -84,7 +87,7 @@ export async function getUserSiteHistoryWithAuth() {
     console.log('[SITE-INFO-CLIENT] Client session valid:', session.user?.email)
     
     // Now call the server action
-    const result = await serverGetUserSiteHistory()
+    const result = await getUserSiteHistory()
     console.log('[SITE-INFO-CLIENT] Server action result:', result)
     
     // If server action failed due to auth, try refreshing and retry once
@@ -94,7 +97,7 @@ export async function getUserSiteHistoryWithAuth() {
       const { data: refreshResult, error: refreshError } = await supabase.auth.refreshSession()
       if (refreshResult.session && !refreshError) {
         await new Promise(resolve => setTimeout(resolve, 500))
-        const retryResult = await serverGetUserSiteHistory()
+        const retryResult = await getUserSiteHistory()
         console.log('[SITE-INFO-CLIENT] Retry result:', retryResult)
         return retryResult
       }

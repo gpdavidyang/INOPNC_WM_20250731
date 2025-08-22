@@ -4,8 +4,8 @@ import React, { useState, useEffect, useCallback, memo, useMemo } from 'react'
 import { Profile, CurrentUserSite, UserSiteHistory, SiteInfo } from '@/types'
 import { NotificationExtended } from '@/types/notifications'
 import { createClient } from '@/lib/supabase/client'
-// Import server actions directly - they need 'use server' directive
-import { getCurrentUserSite, getUserSiteHistory } from '@/app/actions/site-info'
+// Import client wrappers for server actions
+import { getCurrentUserSiteWithAuth, getUserSiteHistoryWithAuth } from '@/app/actions/site-info-client'
 import { getCurrentUserSiteDeploymentSafe, getUserSiteHistoryDeploymentSafe } from '@/app/actions/site-info-deployment'
 import TodaySiteInfo from '@/components/site-info/TodaySiteInfo'
 import SiteDebugHelper from '@/components/debug/SiteDebugHelper'
@@ -280,10 +280,10 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
       
       console.log('🔍 [HOME-TAB] Fetching site data...', { isDeployment, isPWA })
       
-      // Use deployment-safe version in production, or direct server action
+      // Use deployment-safe version in production, or client wrapper for server action
       const currentSiteResult = isDeployment 
         ? await getCurrentUserSiteDeploymentSafe()
-        : await getCurrentUserSite()  // Call server action directly
+        : await getCurrentUserSiteWithAuth()  // Use client wrapper
         
       console.log('🔍 [HOME-TAB] Site data result:', {
         success: currentSiteResult.success,
@@ -335,7 +335,7 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
       // Use deployment-safe version in production, or direct server action
       const historyResult = isDeployment
         ? await getUserSiteHistoryDeploymentSafe()
-        : await getUserSiteHistory()  // Call server action directly
+        : await getUserSiteHistoryWithAuth()  // Use client wrapper
         
       console.log('🔍 [HOME-TAB] Site history result:', {
         success: historyResult.success,

@@ -22,7 +22,8 @@ interface TodaySiteInfoProps {
 export default function TodaySiteInfo({ siteInfo, loading, error }: TodaySiteInfoProps) {
   const [copiedField, setCopiedField] = useState<string | null>(null)
   // Auto-expand when there is site data to show - critical UX fix
-  const [isExpanded, setIsExpanded] = useState(!!siteInfo)
+  // In PWA, always start expanded to ensure visibility
+  const [isExpanded, setIsExpanded] = useState(true) // Changed to always expanded
   const [showBlueprintModal, setShowBlueprintModal] = useState(false)
   const [showPTWModal, setShowPTWModal] = useState(false)
   const [pdfLoadError, setPdfLoadError] = useState(false)

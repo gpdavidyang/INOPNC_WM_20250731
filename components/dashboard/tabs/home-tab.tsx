@@ -70,6 +70,8 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
   const [loading, setLoading] = useState(!initialCurrentSite) // Don't show loading if we have initial data
   const [error, setError] = useState<string | null>(null)
   const [isDeploymentFallback, setIsDeploymentFallback] = useState(false) // Track if using deployment fallback
+  const [isPWA, setIsPWA] = useState(false) // Track if running in PWA
+  const [dataRefreshCount, setDataRefreshCount] = useState(0) // Track refresh attempts
   
   // 빠른메뉴 사용 가능한 모든 항목들
   const availableQuickMenuItems: QuickMenuItem[] = [
@@ -270,7 +272,12 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
         (window.location.protocol === 'https:' && !window.location.hostname.includes('localhost'))
       )
       
-      console.log('🔍 [HOME-TAB] Fetching site data...', { isDeployment })
+      // In PWA, add cache-busting headers
+      if (isPWA) {
+        console.log('🔍 [HOME-TAB] PWA mode: Fetching fresh site data with cache bypass')
+      }
+      
+      console.log('🔍 [HOME-TAB] Fetching site data...', { isDeployment, isPWA })
       
       // Use deployment-safe version in production
       const currentSiteResult = isDeployment 
@@ -715,6 +722,44 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
     }
   }, [fetchSiteData, loadAnnouncements])
 
+  // Detect PWA environment
+  useEffect(() => {
+    const checkPWA = () => {
+      // Check if running in standalone mode (installed PWA)
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+                          (window.navigator as any).standalone === true ||
+                          document.referrer.includes('android-app://') ||
+                          window.location.search.includes('mode=standalone')
+      
+      // Check if service worker is controlling the page
+      const hasServiceWorker = 'serviceWorker' in navigator && navigator.serviceWorker.controller
+      
+      setIsPWA(isStandalone || hasServiceWorker)
+      
+      if (isStandalone || hasServiceWorker) {
+        console.log('🔄 [HOME-TAB] PWA environment detected, forcing data refresh')
+        // Force refresh data in PWA to bypass cache
+        setDataRefreshCount(prev => prev + 1)
+      }
+    }
+    
+    checkPWA()
+    
+    // Also check when app becomes visible (for PWA resume)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && isPWA) {
+        console.log('🔄 [HOME-TAB] PWA became visible, refreshing data')
+        setDataRefreshCount(prev => prev + 1)
+      }
+    }
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [isPWA])
+
   // Use the auto-login hook with proper session synchronization
   const { 
     isLoading: autoLoginLoading, 
@@ -723,17 +768,17 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
     error: autoLoginError 
   } = useAutoLogin(!currentSite && !loading) // Only enable when no site data
   
-  // When auto-login succeeds, fetch site data
+  // When auto-login succeeds or PWA refresh triggered, fetch site data
   useEffect(() => {
-    if (autoLoginAuthenticated && autoLoginUser && !currentSite && !loading) {
-      console.log('✅ [HOME-TAB] Auto-login successful, waiting for session stabilization...')
+    if (autoLoginAuthenticated && autoLoginUser && (!currentSite || dataRefreshCount > 0) && !loading) {
+      console.log('✅ [HOME-TAB] Auto-login successful or PWA refresh triggered, waiting for session stabilization...')
       // Add longer delay to ensure session cookies are fully propagated and client can read them
       const timer = setTimeout(async () => {
         // Double-check session is available before attempting fetch
         const supabase = createClient()
         const { data: { session } } = await supabase.auth.getSession()
         
-        if (session && !loading && !currentSite) { // 추가 체크
+        if (session && !loading) { // 추가 체크
           console.log('✅ [HOME-TAB] Session confirmed, fetching site data...')
           fetchSiteData()
         } else {
@@ -742,7 +787,7 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
       }, 2000) // Longer delay for proper session propagation
       return () => clearTimeout(timer)
     }
-  }, [autoLoginAuthenticated, autoLoginUser, currentSite, loading, fetchSiteData])
+  }, [autoLoginAuthenticated, autoLoginUser, currentSite, loading, fetchSiteData, dataRefreshCount])
 
   const copyToClipboard = async (text: string, type: string) => {
     try {
@@ -1016,6 +1061,35 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
               <p className="text-sm text-blue-700 dark:text-blue-300 font-medium">
                 배포 환경에서 임시 데이터를 사용중입니다. 로그인하시면 실제 현장 정보가 표시됩니다.
               </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      
+      {/* PWA Data Refresh Button */}
+      {isPWA && (
+        <Card className="mb-4 border-amber-200 bg-amber-50 dark:bg-amber-900/20">
+          <CardContent className="p-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="h-2 w-2 bg-amber-500 rounded-full animate-pulse"></div>
+                <p className="text-sm text-amber-700 dark:text-amber-300">
+                  PWA 모드에서 실행 중
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  console.log('🔄 [HOME-TAB] Manual refresh triggered in PWA')
+                  setDataRefreshCount(prev => prev + 1)
+                  fetchSiteData()
+                }}
+                className="px-3 py-1 text-sm font-medium text-amber-700 dark:text-amber-300 
+                          bg-amber-100 dark:bg-amber-800/30 rounded-lg
+                          hover:bg-amber-200 dark:hover:bg-amber-800/50 
+                          transition-colors duration-200"
+              >
+                데이터 새로고침
+              </button>
             </div>
           </CardContent>
         </Card>

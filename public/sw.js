@@ -1,9 +1,10 @@
 // INOPNC Work Management System Service Worker
 // Provides offline functionality and intelligent caching for construction sites
 
-const CACHE_NAME = 'inopnc-wm-v1.2.1755757894'
-const STATIC_CACHE = 'inopnc-static-v1.2.1755757894'
-const API_CACHE = 'inopnc-api-v1.2.1755757894'
+// Updated cache version to force refresh in PWA
+const CACHE_NAME = 'inopnc-wm-v1.3.0'
+const STATIC_CACHE = 'inopnc-static-v1.3.0'
+const API_CACHE = 'inopnc-api-v1.3.0'
 const IMAGES_CACHE = 'inopnc-images-v1.1.1'
 const OFFLINE_PAGE = '/offline'
 
@@ -32,12 +33,13 @@ const STATIC_ASSETS = [
 ]
 
 // API endpoints that should be cached
+// IMPORTANT: Removed /api/sites/ from cache to ensure fresh data in PWA
 const CACHEABLE_API_PATTERNS = [
-  /\/api\/sites\//,
   /\/api\/materials\//,
   /\/api\/daily-reports\//,
   /\/api\/attendance\//,
   /\/api\/notifications\//
+  // NOTE: /api/sites/ removed to prevent stale site info in PWA
 ]
 
 // Background sync tags
@@ -479,6 +481,25 @@ async function imagesCacheFirst(request) {
 
 async function networkFirstWithCache(request) {
   try {
+    // Always try network first with no-cache headers for critical API endpoints
+    const url = new URL(request.url)
+    
+    // For site-related APIs, always fetch fresh data
+    if (url.pathname.includes('/api/sites') || 
+        url.pathname.includes('/api/site-info') ||
+        url.pathname.includes('/api/auth')) {
+      console.log('[ServiceWorker] Fetching fresh data for:', url.pathname)
+      const networkRequest = new Request(request, {
+        cache: 'no-cache',
+        headers: {
+          ...Object.fromEntries(request.headers),
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      })
+      return await fetch(networkRequest)
+    }
+    
     const response = await fetch(request)
     
     if (response.status === 200) {
@@ -495,7 +516,17 @@ async function networkFirstWithCache(request) {
     const cached = await cache.match(request)
     
     if (cached) {
-      return cached
+      // Add header to indicate this is cached data
+      const cachedResponse = new Response(cached.body, {
+        status: cached.status,
+        statusText: cached.statusText,
+        headers: new Headers({
+          ...Object.fromEntries(cached.headers),
+          'X-From-Cache': 'true',
+          'X-Cache-Time': new Date().toISOString()
+        })
+      })
+      return cachedResponse
     }
     
     // Return offline indicator for API requests

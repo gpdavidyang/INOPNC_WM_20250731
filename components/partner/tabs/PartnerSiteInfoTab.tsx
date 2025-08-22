@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Profile } from '@/types'
+import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -47,6 +48,10 @@ export default function PartnerSiteInfoTab({ profile, sites }: PartnerSiteInfoTa
   const [selectedPeriod, setSelectedPeriod] = useState<string>('current_month')
   const [previewDocument, setPreviewDocument] = useState<BillingDocument | null>(null)
   const [showAllSites, setShowAllSites] = useState(false)
+  const [realDocuments, setRealDocuments] = useState<any[]>([])
+  const [loading, setLoading] = useState(false)
+  
+  const supabase = createClient()
 
   // Mock site participation data with different sites and periods
   const allSiteParticipations = [
@@ -139,6 +144,67 @@ export default function PartnerSiteInfoTab({ profile, sites }: PartnerSiteInfoTa
   }
 
   const filteredSites = getFilteredSites()
+
+  // Fetch real documents from database
+  const fetchDocuments = async () => {
+    if (!selectedSite || selectedSite === 'all') return
+    
+    setLoading(true)
+    try {
+      const { data, error } = await supabase
+        .from('documents')
+        .select(`
+          *,
+          sites(name)
+        `)
+        .eq('site_id', selectedSite)
+        .order('created_at', { ascending: false })
+
+      if (error) {
+        console.error('Error fetching documents:', error)
+        return
+      }
+
+      setRealDocuments(data || [])
+    } catch (error) {
+      console.error('Error:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchDocuments()
+  }, [selectedSite])
+
+  // Convert real documents to billing document format
+  const getRealBillingDocuments = () => {
+    return realDocuments.map(doc => ({
+      id: doc.id,
+      type: getDocumentTypeFromTitle(doc.title),
+      name: doc.file_name,
+      uploadDate: new Date(doc.created_at).toLocaleDateString('ko-KR').replace(/\./g, '. ').replace(/\s/g, ''),
+      icon: getDocumentIcon(doc.title)
+    }))
+  }
+
+  const getDocumentTypeFromTitle = (title: string) => {
+    if (title.includes('견적서')) return 'estimate'
+    if (title.includes('시공계획서')) return 'construction_plan'
+    if (title.includes('세금계산서')) return 'tax_invoice'
+    if (title.includes('계약서')) return 'contract'
+    if (title.includes('사진대지')) return 'photo_document'
+    return 'document'
+  }
+
+  const getDocumentIcon = (title: string) => {
+    if (title.includes('견적서')) return <DollarSign className="h-5 w-5 text-green-500" />
+    if (title.includes('시공계획서')) return <FileText className="h-5 w-5 text-blue-500" />
+    if (title.includes('세금계산서')) return <FileSignature className="h-5 w-5 text-purple-500" />
+    if (title.includes('계약서')) return <FileSignature className="h-5 w-5 text-red-500" />
+    if (title.includes('사진대지')) return <Camera className="h-5 w-5 text-orange-500" />
+    return <FileText className="h-5 w-5 text-gray-500" />
+  }
   
   // Mock site details
   const siteDetails = {
@@ -263,7 +329,8 @@ export default function PartnerSiteInfoTab({ profile, sites }: PartnerSiteInfoTa
     return filtered
   }
 
-  const billingDocuments = getFilteredDocuments()
+  // Use real documents when available, fallback to mock data
+  const billingDocuments = selectedSite && selectedSite !== 'all' ? getRealBillingDocuments() : []
 
   const getDocumentTypeName = (type: string) => {
     const types: { [key: string]: string } = {

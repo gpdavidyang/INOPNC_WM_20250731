@@ -1,7 +1,8 @@
 'use client'
 
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { Profile } from '@/types'
+import { createClient } from '@/lib/supabase/client'
 import { 
   Upload, Download, Eye, Share2, Trash2,
   Search, Grid, List, ChevronUp, CheckCircle,
@@ -47,6 +48,77 @@ export default function PartnerDocumentsTab({ profile, sites }: PartnerDocuments
   const [isUploading, setIsUploading] = useState(false)
   const [isDragActive, setIsDragActive] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  
+  const supabase = createClient()
+  
+  // State for sites
+  const [userSites, setUserSites] = useState<any[]>([])
+
+  // Fetch user's sites
+  const fetchUserSites = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('sites')
+        .select('*')
+        .order('name')
+
+      if (error) {
+        console.error('Error fetching sites:', error)
+        return
+      }
+
+      setUserSites(data || [])
+    } catch (error) {
+      console.error('Error:', error)
+    }
+  }
+
+  // Fetch documents from database
+  const fetchDocuments = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('documents')
+        .select(`
+          *,
+          sites(name)
+        `)
+        .eq('owner_id', profile.id)
+        .order('created_at', { ascending: false })
+
+      if (error) {
+        console.error('Error fetching documents:', error)
+        return
+      }
+
+      // Transform database documents to component format
+      const transformedDocs = data.map(doc => ({
+        id: doc.id,
+        name: doc.title,
+        type: getFileTypeFromMimeType(doc.mime_type || ''),
+        size: doc.file_size || 0,
+        lastModified: new Date(doc.created_at).toLocaleDateString('ko-KR'),
+        site: doc.sites?.name || '',
+        site_id: doc.site_id
+      }))
+
+      setDocuments(transformedDocs)
+    } catch (error) {
+      console.error('Error:', error)
+    }
+  }
+
+  const getFileTypeFromMimeType = (mimeType: string) => {
+    if (mimeType.includes('pdf')) return 'pdf'
+    if (mimeType.includes('word')) return 'word'
+    if (mimeType.includes('excel')) return 'excel'
+    if (mimeType.includes('image')) return 'image'
+    return 'file'
+  }
+
+  useEffect(() => {
+    fetchDocuments()
+    fetchUserSites()
+  }, [profile.id])
 
   // Mock documents with updated structure to match Site Manager
   const personalDocuments: Document[] = [
@@ -111,21 +183,12 @@ export default function PartnerDocumentsTab({ profile, sites }: PartnerDocuments
   const getDocuments = () => {
     let docs: Document[] = []
     
-    switch (activeTab) {
-      case 'personal':
-        docs = personalDocuments
-        break
-      case 'shared':
-        docs = sharedDocuments
-        break
-      case 'billing':
-        docs = billingDocuments
-        break
-    }
+    // Use real documents from database for all tabs
+    docs = documents
 
-    // Filter by site (for shared and billing tabs)
-    if (selectedSite !== 'all' && activeTab !== 'personal') {
-      docs = docs.filter(doc => doc.site === selectedSite)
+    // Filter by site
+    if (selectedSite !== 'all') {
+      docs = docs.filter(doc => doc.site_id === selectedSite)
     }
 
     // Filter by search term
@@ -482,10 +545,10 @@ export default function PartnerDocumentsTab({ profile, sites }: PartnerDocuments
                   >
                     전체 현장
                   </SelectItem>
-                  {sites.map(site => (
+                  {userSites.map(site => (
                     <SelectItem 
                       key={site.id} 
-                      value={site.name}
+                      value={site.id}
                       className="text-gray-900 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 focus:bg-blue-50 dark:focus:bg-blue-900/20 focus:text-blue-600 dark:focus:text-blue-400 cursor-pointer"
                     >
                       {site.name}

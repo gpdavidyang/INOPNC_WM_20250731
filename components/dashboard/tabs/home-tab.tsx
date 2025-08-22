@@ -4,9 +4,8 @@ import React, { useState, useEffect, useCallback, memo, useMemo } from 'react'
 import { Profile, CurrentUserSite, UserSiteHistory, SiteInfo } from '@/types'
 import { NotificationExtended } from '@/types/notifications'
 import { createClient } from '@/lib/supabase/client'
-// Import client wrappers for server actions
-import { getCurrentUserSiteWithAuth, getUserSiteHistoryWithAuth } from '@/app/actions/site-info-client'
-import { getCurrentUserSiteDeploymentSafe, getUserSiteHistoryDeploymentSafe } from '@/app/actions/site-info-deployment'
+// Import ultimate fallback that handles all environments
+import { getCurrentUserSiteUltimate, getUserSiteHistoryUltimate } from '@/app/actions/site-info-fallback'
 import TodaySiteInfo from '@/components/site-info/TodaySiteInfo'
 import SiteDebugHelper from '@/components/debug/SiteDebugHelper'
 import { useFontSize,  getTypographyClass, getFullTypographyClass } from '@/contexts/FontSizeContext'
@@ -280,10 +279,8 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
       
       console.log('🔍 [HOME-TAB] Fetching site data...', { isDeployment, isPWA })
       
-      // Use deployment-safe version in production, or client wrapper for server action
-      const currentSiteResult = isDeployment 
-        ? await getCurrentUserSiteDeploymentSafe()
-        : await getCurrentUserSiteWithAuth()  // Use client wrapper
+      // Use ultimate fallback that tries multiple methods
+      const currentSiteResult = await getCurrentUserSiteUltimate()
         
       console.log('🔍 [HOME-TAB] Site data result:', {
         success: currentSiteResult.success,
@@ -332,10 +329,8 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
       // Fetch user's site history
       console.log('🔍 [HOME-TAB] Fetching site history...')
       
-      // Use deployment-safe version in production, or direct server action
-      const historyResult = isDeployment
-        ? await getUserSiteHistoryDeploymentSafe()
-        : await getUserSiteHistoryWithAuth()  // Use client wrapper
+      // Use ultimate fallback that tries multiple methods
+      const historyResult = await getUserSiteHistoryUltimate()
         
       console.log('🔍 [HOME-TAB] Site history result:', {
         success: historyResult.success,

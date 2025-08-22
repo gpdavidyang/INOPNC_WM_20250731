@@ -1,8 +1,8 @@
-import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
+import { getCurrentUserSite, getUserSiteHistory } from '@/app/actions/site-info'
 import DashboardWithNotifications from '@/components/dashboard/dashboard-with-notifications'
 import { getAuthenticatedUser } from '@/lib/auth/session'
-import { getCurrentUserSite, getUserSiteHistory } from '@/app/actions/site-info'
+import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
 
 export default async function DashboardPage() {
   const supabase = createClient()

@@ -1,15 +1,15 @@
 'use client'
 
-import { useState } from 'react'
-import { Profile } from '@/types'
-import Sidebar from '@/components/dashboard/sidebar'
-import Header from '@/components/dashboard/header'
-import { BottomNavigation, BottomNavItem } from '@/components/ui/bottom-navigation'
-import { NavigationController } from '@/components/navigation/navigation-controller'
-import { DailyReportListMobile } from '@/components/daily-reports/DailyReportListMobile'
 import { DailyReportListEnhanced } from '@/components/daily-reports/DailyReportListEnhanced'
+import { DailyReportListMobile } from '@/components/daily-reports/DailyReportListMobile'
+import Header from '@/components/dashboard/header'
+import Sidebar from '@/components/dashboard/sidebar'
+import { NavigationController } from '@/components/navigation/navigation-controller'
+import { BottomNavigation, BottomNavItem } from '@/components/ui/bottom-navigation'
 import { ReportsPageHeader } from '@/components/ui/page-header'
-import { Home, Calendar, FileText, FolderOpen, MapPin } from 'lucide-react'
+import { Profile } from '@/types'
+import { Calendar, FileText, FolderOpen, Home, MapPin } from 'lucide-react'
+import { useState } from 'react'
 
 interface DailyReportsPageClientProps {
   profile: Profile
@@ -51,13 +51,14 @@ export function DailyReportsPageClient({ profile, sites }: DailyReportsPageClien
 
   return (
     <NavigationController>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen" style={{ backgroundColor: 'var(--bg)' }}>
         {/* Desktop Sidebar */}
         <Sidebar 
           profile={profile}
           isOpen={isSidebarOpen}
-          setIsOpen={setIsSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
           activeTab="daily-reports"
+          onTabChange={() => {}}
         />
         
         {/* Main Content */}
@@ -70,7 +71,7 @@ export function DailyReportsPageClient({ profile, sites }: DailyReportsPageClien
           
           {/* Page Content */}
           <main className="px-3 sm:px-4 lg:px-6 pb-16 lg:pb-0">
-            <div className="h-full bg-gray-50 dark:bg-gray-900">
+            <div className="h-full" style={{ backgroundColor: 'var(--bg)' }}>
               {/* Mobile View - UI Guidelines에 맞춘 모바일 최적화 */}
               <div className="lg:hidden pt-3">
                 <DailyReportListMobile 
@@ -80,7 +81,7 @@ export function DailyReportsPageClient({ profile, sites }: DailyReportsPageClien
               </div>
               
               {/* Desktop View - 기존 Enhanced 컴포넌트 유지 */}
-              <div className="hidden lg:block bg-white dark:bg-gray-900">
+              <div className="hidden lg:block" style={{ backgroundColor: 'var(--card-bg)' }}>
                 <ReportsPageHeader
                   title="작업일지"
                   subtitle="일일 작업 보고서 및 현장 상황을 관리합니다"

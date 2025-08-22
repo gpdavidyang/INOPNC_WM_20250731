@@ -31,7 +31,7 @@ export default async function ProjectsPage() {
   const projects: any[] = []
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--bg)' }}>
       <ProjectList 
         currentUser={user} 
         currentProfile={currentProfile}

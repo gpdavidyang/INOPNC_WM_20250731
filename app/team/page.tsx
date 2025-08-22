@@ -25,7 +25,7 @@ export default async function TeamPage() {
     .order('created_at', { ascending: false })
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--bg)' }}>
       <TeamList 
         currentUser={user} 
         currentProfile={currentProfile} 

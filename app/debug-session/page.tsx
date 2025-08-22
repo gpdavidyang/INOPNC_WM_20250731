@@ -1,8 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { createClient, resetClient, forceSessionRefresh } from '@/lib/supabase/client'
+import { ElevatedCard, getContainerClasses, getSectionClasses, PrimaryButton, SecondaryButton } from '@/components/ui'
+import { createClient, forceSessionRefresh, resetClient } from '@/lib/supabase/client'
 import { bridgeSession, ensureClientSession } from '@/lib/supabase/session-bridge'
+import { useEffect, useState } from 'react'
 
 export default function DebugSessionPage() {
   const [logs, setLogs] = useState<string[]>([])
@@ -188,103 +189,111 @@ export default function DebugSessionPage() {
   }, [])
 
   return (
-    <div className="p-8 max-w-6xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Session Debug Tool</h1>
-      
-      <div className="grid grid-cols-2 gap-4 mb-6">
-        <button
-          onClick={checkClientSession}
-          disabled={isLoading}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
-        >
-          Check Client Session
-        </button>
-        
-        <button
-          onClick={checkServerSession}
-          disabled={isLoading}
-          className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50"
-        >
-          Check Server Session
-        </button>
-        
-        <button
-          onClick={checkCookies}
-          disabled={isLoading}
-          className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 disabled:opacity-50"
-        >
-          Check Cookies
-        </button>
-        
-        <button
-          onClick={performBridgeSession}
-          disabled={isLoading}
-          className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 disabled:opacity-50"
-        >
-          Bridge Session
-        </button>
-        
-        <button
-          onClick={performEnsureSession}
-          disabled={isLoading}
-          className="px-4 py-2 bg-indigo-500 text-white rounded hover:bg-indigo-600 disabled:opacity-50"
-        >
-          Ensure Session
-        </button>
-        
-        <button
-          onClick={performResetClient}
-          disabled={isLoading}
-          className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-50"
-        >
-          Reset Client
-        </button>
-        
-        <button
-          onClick={performForceRefresh}
-          disabled={isLoading}
-          className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 disabled:opacity-50"
-        >
-          Force Refresh
-        </button>
-        
-        <button
-          onClick={performManualLogin}
-          disabled={isLoading}
-          className="px-4 py-2 bg-teal-500 text-white rounded hover:bg-teal-600 disabled:opacity-50"
-        >
-          Manual Login
-        </button>
-      </div>
-      
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold">Logs</h2>
-        <button
-          onClick={clearLogs}
-          className="px-3 py-1 bg-gray-500 text-white rounded hover:bg-gray-600"
-        >
-          Clear Logs
-        </button>
-      </div>
-      
-      <div className="bg-gray-900 text-gray-100 p-4 rounded-lg h-96 overflow-y-auto font-mono text-sm">
-        {logs.length === 0 ? (
-          <div className="text-gray-500">No logs yet...</div>
-        ) : (
-          logs.map((log, index) => (
-            <div key={index} className="mb-1">
-              {log}
-            </div>
-          ))
-        )}
-      </div>
-      
-      {isLoading && (
-        <div className="mt-4 text-center text-gray-600">
-          <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900"></div>
-          <span className="ml-2">Processing...</span>
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--bg)' }}>
+      <div className={getContainerClasses()}>
+        <div className="py-6">
+          <div className={getSectionClasses()}>
+            <ElevatedCard className="p-6">
+              <h1 className="text-2xl font-bold mb-6" style={{ color: 'var(--text)' }}>Session Debug Tool</h1>
+              
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <PrimaryButton
+                  onClick={checkClientSession}
+                  disabled={isLoading}
+                  className="bg-blue-500 hover:bg-blue-600"
+                >
+                  Check Client Session
+                </PrimaryButton>
+                
+                <PrimaryButton
+                  onClick={checkServerSession}
+                  disabled={isLoading}
+                  className="bg-green-500 hover:bg-green-600"
+                >
+                  Check Server Session
+                </PrimaryButton>
+                
+                <PrimaryButton
+                  onClick={checkCookies}
+                  disabled={isLoading}
+                  className="bg-purple-500 hover:bg-purple-600"
+                >
+                  Check Cookies
+                </PrimaryButton>
+                
+                <PrimaryButton
+                  onClick={performBridgeSession}
+                  disabled={isLoading}
+                  className="bg-orange-500 hover:bg-orange-600"
+                >
+                  Bridge Session
+                </PrimaryButton>
+                
+                <PrimaryButton
+                  onClick={performEnsureSession}
+                  disabled={isLoading}
+                  className="bg-indigo-500 hover:bg-indigo-600"
+                >
+                  Ensure Session
+                </PrimaryButton>
+                
+                <PrimaryButton
+                  onClick={performResetClient}
+                  disabled={isLoading}
+                  className="bg-red-500 hover:bg-red-600"
+                >
+                  Reset Client
+                </PrimaryButton>
+                
+                <PrimaryButton
+                  onClick={performForceRefresh}
+                  disabled={isLoading}
+                  className="bg-yellow-500 hover:bg-yellow-600"
+                >
+                  Force Refresh
+                </PrimaryButton>
+                
+                <PrimaryButton
+                  onClick={performManualLogin}
+                  disabled={isLoading}
+                  className="bg-teal-500 hover:bg-teal-600"
+                >
+                  Manual Login
+                </PrimaryButton>
+              </div>
+              
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-semibold" style={{ color: 'var(--text)' }}>Logs</h2>
+                <SecondaryButton
+                  onClick={clearLogs}
+                  className="bg-gray-500 hover:bg-gray-600 text-white"
+                >
+                  Clear Logs
+                </SecondaryButton>
+              </div>
+              
+              <div className="p-4 rounded-lg h-96 overflow-y-auto font-mono text-sm" style={{ backgroundColor: 'var(--muted-bg)', color: 'var(--text)' }}>
+                {logs.length === 0 ? (
+                  <div style={{ color: 'var(--muted)' }}>No logs yet...</div>
+                ) : (
+                  logs.map((log, index) => (
+                    <div key={index} className="mb-1">
+                      {log}
+                    </div>
+                  ))
+                )}
+              </div>
+              
+              {isLoading && (
+                <div className="mt-4 text-center" style={{ color: 'var(--muted)' }}>
+                  <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2" style={{ borderColor: 'var(--text)' }}></div>
+                  <span className="ml-2">Processing...</span>
+                </div>
+              )}
+            </ElevatedCard>
+          </div>
         </div>
-      )}
+      </div>
     </div>
   )
 }

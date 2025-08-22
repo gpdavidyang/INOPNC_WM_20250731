@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { ElevatedCard, getContainerClasses, getSectionClasses, PrimaryButton, SecondaryButton } from '@/components/ui'
 import { createClient } from '@/lib/supabase/client'
+import { useState } from 'react'
 
 export default function TestSessionFixPage() {
   const [logs, setLogs] = useState<string[]>([])
@@ -153,70 +154,74 @@ export default function TestSessionFixPage() {
   }
   
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-8">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6 text-gray-900 dark:text-white">
-          Session Synchronization Fix Test
-        </h1>
-        
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
-            Test Controls
-          </h2>
-          
-          <div className="flex gap-4">
-            <button
-              onClick={testSessionFix}
-              disabled={isRunning}
-              className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isRunning ? 'Running Test...' : 'Run Session Fix Test'}
-            </button>
-            
-            <button
-              onClick={clearLogs}
-              disabled={isRunning}
-              className="px-6 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 disabled:opacity-50"
-            >
-              Clear Logs
-            </button>
-          </div>
-          
-          <div className="mt-4 text-sm text-gray-600 dark:text-gray-400">
-            This test will:
-            <ul className="list-disc list-inside mt-2">
-              <li>Login with test credentials</li>
-              <li>Sync session with server</li>
-              <li>Verify client can read updated cookies</li>
-              <li>Test database access with synced session</li>
-            </ul>
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--bg)' }}>
+      <div className={getContainerClasses()}>
+        <div className="py-6">
+          <div className={getSectionClasses()}>
+            <ElevatedCard className="p-6">
+              <h1 className="text-3xl font-bold mb-6" style={{ color: 'var(--text)' }}>
+                Session Synchronization Fix Test
+              </h1>
+              
+              <div className="mb-6">
+                <h2 className="text-xl font-semibold mb-4" style={{ color: 'var(--text)' }}>
+                  Test Controls
+                </h2>
+                
+                <div className="flex gap-4">
+                  <PrimaryButton
+                    onClick={testSessionFix}
+                    disabled={isRunning}
+                  >
+                    {isRunning ? 'Running Test...' : 'Run Session Fix Test'}
+                  </PrimaryButton>
+                  
+                  <SecondaryButton
+                    onClick={clearLogs}
+                    disabled={isRunning}
+                  >
+                    Clear Logs
+                  </SecondaryButton>
+                </div>
+                
+                <div className="mt-4 text-sm" style={{ color: 'var(--muted)' }}>
+                  This test will:
+                  <ul className="list-disc list-inside mt-2">
+                    <li>Login with test credentials</li>
+                    <li>Sync session with server</li>
+                    <li>Verify client can read updated cookies</li>
+                    <li>Test database access with synced session</li>
+                  </ul>
+                </div>
+              </div>
+              
+              {logs.length > 0 && (
+                <div className="rounded-lg shadow-lg p-6" style={{ backgroundColor: 'var(--card-bg)' }}>
+                  <h2 className="text-xl font-semibold mb-4" style={{ color: 'var(--text)' }}>
+                    Test Logs
+                  </h2>
+                  
+                  <div className="rounded p-4 max-h-96 overflow-y-auto" style={{ backgroundColor: 'var(--muted-bg)' }}>
+                    <pre className="text-xs font-mono">
+                      {logs.map((log, index) => (
+                        <div 
+                          key={index} 
+                          className={
+                            log.includes('❌') ? 'text-red-400' :
+                            log.includes('✅') ? 'text-green-400' :
+                            'text-gray-300'
+                          }
+                        >
+                          {log}
+                        </div>
+                      ))}
+                    </pre>
+                  </div>
+                </div>
+              )}
+            </ElevatedCard>
           </div>
         </div>
-        
-        {logs.length > 0 && (
-          <div className="bg-gray-900 rounded-lg shadow-lg p-6">
-            <h2 className="text-xl font-semibold mb-4 text-white">
-              Test Logs
-            </h2>
-            
-            <div className="bg-black rounded p-4 max-h-96 overflow-y-auto">
-              <pre className="text-xs text-green-400 font-mono">
-                {logs.map((log, index) => (
-                  <div 
-                    key={index} 
-                    className={
-                      log.includes('❌') ? 'text-red-400' :
-                      log.includes('✅') ? 'text-green-400' :
-                      'text-gray-300'
-                    }
-                  >
-                    {log}
-                  </div>
-                ))}
-              </pre>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   )

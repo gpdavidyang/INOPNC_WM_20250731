@@ -1,10 +1,20 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase'
 import Navbar from '@/components/navbar'
+import {
+    ChipA,
+    ChipB,
+    ChipD,
+    ElevatedCard,
+    getSectionClasses,
+    PrimaryButton,
+    ProminentCard,
+    SecondaryButton
+} from '@/components/ui'
+import { createClient } from '@/lib/supabase'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 
 interface TaskListProps {
   currentUser: any
@@ -54,44 +64,48 @@ export default function TaskList({ currentUser, currentProfile, tasks, projects,
     }
   }
 
-  const getStatusBadge = (status: string) => {
-    const badges = {
-      pending: 'bg-gray-100 text-gray-800',
-      in_progress: 'bg-blue-100 text-blue-800',
-      completed: 'bg-green-100 text-green-800',
-      cancelled: 'bg-red-100 text-red-800',
+  const getStatusChip = (status: string) => {
+    const statusConfig: Record<string, { variant: 'a' | 'b' | 'd', label: string }> = {
+      pending: { variant: 'd', label: '대기 중' },
+      in_progress: { variant: 'b', label: '진행 중' },
+      completed: { variant: 'a', label: '완료됨' },
+      cancelled: { variant: 'd', label: '취소됨' },
     }
-    return badges[status as keyof typeof badges] || badges.pending
+    
+    const config = statusConfig[status] || statusConfig.pending
+    
+    switch (config.variant) {
+      case 'a':
+        return <ChipA>{config.label}</ChipA>
+      case 'b':
+        return <ChipB>{config.label}</ChipB>
+      case 'd':
+        return <ChipD>{config.label}</ChipD>
+      default:
+        return <ChipD>{config.label}</ChipD>
+    }
   }
 
-  const getStatusLabel = (status: string) => {
-    const labels = {
-      pending: '대기 중',
-      in_progress: '진행 중',
-      completed: '완료됨',
-      cancelled: '취소됨',
+  const getPriorityChip = (priority: string) => {
+    const priorityConfig: Record<string, { variant: 'a' | 'b' | 'd', label: string }> = {
+      low: { variant: 'd', label: '낮음' },
+      medium: { variant: 'b', label: '보통' },
+      high: { variant: 'a', label: '높음' },
+      urgent: { variant: 'a', label: '긴급' },
     }
-    return labels[status as keyof typeof labels] || '대기 중'
-  }
-
-  const getPriorityBadge = (priority: string) => {
-    const badges = {
-      low: 'bg-gray-100 text-gray-600',
-      medium: 'bg-yellow-100 text-yellow-800',
-      high: 'bg-orange-100 text-orange-800',
-      urgent: 'bg-red-100 text-red-800',
+    
+    const config = priorityConfig[priority] || priorityConfig.medium
+    
+    switch (config.variant) {
+      case 'a':
+        return <ChipA>{config.label}</ChipA>
+      case 'b':
+        return <ChipB>{config.label}</ChipB>
+      case 'd':
+        return <ChipD>{config.label}</ChipD>
+      default:
+        return <ChipD>{config.label}</ChipD>
     }
-    return badges[priority as keyof typeof badges] || badges.medium
-  }
-
-  const getPriorityLabel = (priority: string) => {
-    const labels = {
-      low: '낮음',
-      medium: '보통',
-      high: '높음',
-      urgent: '긴급',
-    }
-    return labels[priority as keyof typeof labels] || '보통'
   }
 
   // Filter tasks
@@ -103,145 +117,190 @@ export default function TaskList({ currentUser, currentProfile, tasks, projects,
   })
 
   return (
-    <>
+    <div>
       <Navbar user={currentUser} profile={currentProfile} />
       
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
+      <main className="app">
+        <div className="section">
           {/* Header */}
-          <div className="md:flex md:items-center md:justify-between mb-6">
-            <div className="flex-1 min-w-0">
-              <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
-                작업 목록
-              </h2>
-            </div>
-            <div className="mt-4 flex md:mt-0 md:ml-4">
-              <Link
-                href="/tasks/new"
-                className="ml-3 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                새 작업 만들기
-              </Link>
-            </div>
-          </div>
+          <div className={getSectionClasses()}>
+            <ProminentCard>
+              <div className="flex justify-between items-center mb-6">
+                <h1 className="title-xl" style={{ color: 'var(--text)' }}>
+                  작업 관리
+                </h1>
+                <Link href="/tasks/new">
+                  <PrimaryButton size="field">
+                    새 작업 만들기
+                  </PrimaryButton>
+                </Link>
+              </div>
 
-          {/* Filters */}
-          <div className="bg-white shadow rounded-lg mb-6 p-4">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">상태</label>
-                <select
-                  value={filter.status}
-                  onChange={(e) => setFilter({ ...filter, status: e.target.value })}
-                  className="w-full px-3 py-1.5 text-sm font-medium border border-gray-200 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                >
-                  <option value="all">전체</option>
-                  <option value="pending">대기 중</option>
-                  <option value="in_progress">진행 중</option>
-                  <option value="completed">완료됨</option>
-                  <option value="cancelled">취소됨</option>
-                </select>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700">프로젝트</label>
-                <select
-                  value={filter.project}
-                  onChange={(e) => setFilter({ ...filter, project: e.target.value })}
-                  className="w-full px-3 py-1.5 text-sm font-medium border border-gray-200 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                >
-                  <option value="all">전체</option>
-                  {projects.map(project => (
-                    <option key={project.id} value={project.id}>{project.name}</option>
-                  ))}
-                </select>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700">담당자</label>
-                <select
-                  value={filter.assignee}
-                  onChange={(e) => setFilter({ ...filter, assignee: e.target.value })}
-                  className="w-full px-3 py-1.5 text-sm font-medium border border-gray-200 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                >
-                  <option value="all">전체</option>
-                  {users.map(user => (
-                    <option key={user.id} value={user.id}>
-                      {user.full_name || user.email}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </div>
+              {/* Filters */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div>
+                  <label className="block text-r12 font-medium mb-2" style={{ color: 'var(--text)' }}>
+                    상태
+                  </label>
+                  <div className="select-wrap">
+                    <select
+                      value={filter.status}
+                      onChange={(e) => setFilter(prev => ({ ...prev, status: e.target.value }))}
+                      className="select"
+                      style={{
+                        backgroundColor: 'var(--input-bg)',
+                        border: '1px solid var(--input-border)',
+                        color: 'var(--text)'
+                      }}
+                    >
+                      <option value="all">모든 상태</option>
+                      <option value="pending">대기 중</option>
+                      <option value="in_progress">진행 중</option>
+                      <option value="completed">완료됨</option>
+                      <option value="cancelled">취소됨</option>
+                    </select>
+                  </div>
+                </div>
 
-          {/* Task List */}
-          <div className="bg-white shadow overflow-hidden sm:rounded-md">
-            <ul className="divide-y divide-gray-200">
+                <div>
+                  <label className="block text-r12 font-medium mb-2" style={{ color: 'var(--text)' }}>
+                    프로젝트
+                  </label>
+                  <div className="select-wrap">
+                    <select
+                      value={filter.project}
+                      onChange={(e) => setFilter(prev => ({ ...prev, project: e.target.value }))}
+                      className="select"
+                      style={{
+                        backgroundColor: 'var(--input-bg)',
+                        border: '1px solid var(--input-border)',
+                        color: 'var(--text)'
+                      }}
+                    >
+                      <option value="all">모든 프로젝트</option>
+                      {projects.map(project => (
+                        <option key={project.id} value={project.id}>
+                          {project.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-r12 font-medium mb-2" style={{ color: 'var(--text)' }}>
+                    담당자
+                  </label>
+                  <div className="select-wrap">
+                    <select
+                      value={filter.assignee}
+                      onChange={(e) => setFilter(prev => ({ ...prev, assignee: e.target.value }))}
+                      className="select"
+                      style={{
+                        backgroundColor: 'var(--input-bg)',
+                        border: '1px solid var(--input-border)',
+                        color: 'var(--text)'
+                      }}
+                    >
+                      <option value="all">모든 담당자</option>
+                      {users.map(user => (
+                        <option key={user.id} value={user.id}>
+                          {user.full_name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Task List */}
               {filteredTasks.length === 0 ? (
-                <li className="px-4 py-8 text-center text-gray-500">
-                  작업이 없습니다.
-                </li>
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--muted-bg)' }}>
+                    <svg className="w-8 h-8" style={{ color: 'var(--muted)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                  </div>
+                  <h3 className="title-lg mb-2" style={{ color: 'var(--text)' }}>
+                    작업이 없습니다
+                  </h3>
+                  <p className="mb-4" style={{ color: 'var(--muted)' }}>
+                    새로운 작업을 만들어보세요
+                  </p>
+                  <Link href="/tasks/new">
+                    <PrimaryButton size="field">
+                      첫 작업 만들기
+                    </PrimaryButton>
+                  </Link>
+                </div>
               ) : (
-                filteredTasks.map((task: any) => (
-                  <li key={task.id}>
-                    <div className="px-4 py-4 sm:px-6">
-                      <div className="flex items-center justify-between">
+                <div className="space-y-4">
+                  {filteredTasks.map(task => (
+                    <ElevatedCard key={task.id} className="p-6">
+                      <div className="flex justify-between items-start">
                         <div className="flex-1">
-                          <Link 
-                            href={`/tasks/${task.id}`}
-                            className="text-sm font-medium text-blue-600 hover:text-blue-500"
-                          >
-                            {task.title}
-                          </Link>
-                          <div className="mt-2 sm:flex sm:justify-between">
-                            <div className="sm:flex">
-                              <p className="flex items-center text-sm text-gray-500">
-                                {task.project?.name || '프로젝트 없음'}
-                              </p>
-                              <p className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0 sm:ml-6">
-                                담당: {task.assigned_user?.full_name || task.assigned_user?.email || '미지정'}
-                              </p>
+                          <div className="flex items-center space-x-3 mb-2">
+                            <h3 className="title-lg" style={{ color: 'var(--text)' }}>
+                              {task.title}
+                            </h3>
+                            {getStatusChip(task.status)}
+                            {getPriorityChip(task.priority)}
+                          </div>
+                          
+                          <p className="mb-3" style={{ color: 'var(--muted)' }}>
+                            {task.description}
+                          </p>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                            <div>
+                              <span className="font-medium" style={{ color: 'var(--text)' }}>프로젝트:</span>
+                              <span className="ml-2" style={{ color: 'var(--muted)' }}>
+                                {task.project?.name || '미지정'}
+                              </span>
                             </div>
-                            <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
-                              {task.due_date && (
-                                <p>마감: {new Date(task.due_date).toLocaleDateString()}</p>
-                              )}
+                            <div>
+                              <span className="font-medium" style={{ color: 'var(--text)' }}>담당자:</span>
+                              <span className="ml-2" style={{ color: 'var(--muted)' }}>
+                                {task.assigned_user?.full_name || '미지정'}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="font-medium" style={{ color: 'var(--text)' }}>마감일:</span>
+                              <span className="ml-2" style={{ color: 'var(--muted)' }}>
+                                {task.due_date ? new Date(task.due_date).toLocaleDateString() : '미지정'}
+                              </span>
                             </div>
                           </div>
                         </div>
-                        <div className="ml-4 flex items-center space-x-2">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityBadge(task.priority)}`}>
-                            {getPriorityLabel(task.priority)}
-                          </span>
-                          <select
-                            value={task.status}
-                            onChange={(e) => handleStatusChange(task.id, e.target.value)}
-                            className={`text-xs rounded-full px-2.5 py-0.5 font-medium ${getStatusBadge(task.status)}`}
+                        
+                        <div className="flex items-center space-x-2 ml-4">
+                          <Link href={`/tasks/${task.id}`}>
+                            <SecondaryButton size="compact">
+                              보기
+                            </SecondaryButton>
+                          </Link>
+                          <SecondaryButton 
+                            size="compact"
+                            onClick={() => handleStatusChange(task.id, 'completed')}
                           >
-                            <option value="pending">대기 중</option>
-                            <option value="in_progress">진행 중</option>
-                            <option value="completed">완료됨</option>
-                            <option value="cancelled">취소됨</option>
-                          </select>
-                          {(currentProfile?.role === 'admin' || task.created_by === currentUser.id) && (
-                            <button
-                              onClick={() => handleDelete(task.id)}
-                              className="text-red-600 hover:text-red-900 text-sm"
-                            >
-                              삭제
-                            </button>
-                          )}
+                            완료
+                          </SecondaryButton>
+                          <SecondaryButton 
+                            size="compact"
+                            onClick={() => handleDelete(task.id)}
+                          >
+                            삭제
+                          </SecondaryButton>
                         </div>
                       </div>
-                    </div>
-                  </li>
-                ))
+                    </ElevatedCard>
+                  ))}
+                </div>
               )}
-            </ul>
+            </ProminentCard>
           </div>
         </div>
       </main>
-    </>
+    </div>
   )
 }

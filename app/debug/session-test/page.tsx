@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { ElevatedCard, getContainerClasses, getSectionClasses, PrimaryButton, SecondaryButton } from '@/components/ui'
 import { createClient } from '@/lib/supabase/client'
 import { signInWithSync, syncSession } from '@/lib/supabase/session-sync'
+import { useState } from 'react'
 
 export default function SessionTestPage() {
   const [results, setResults] = useState<string[]>([])
@@ -106,40 +107,46 @@ export default function SessionTestPage() {
   }
 
   return (
-    <div className="min-h-screen p-8 bg-gray-50">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">Session Synchronization Test</h1>
-        
-        <div className="space-y-4 mb-8">
-          <button
-            onClick={testClientSession}
-            disabled={loading}
-            className="bg-blue-500 text-white px-6 py-2 rounded disabled:opacity-50"
-          >
-            {loading ? 'Testing...' : 'Test Client Session'}
-          </button>
-          
-          <button
-            onClick={clearSession}
-            disabled={loading}
-            className="bg-red-500 text-white px-6 py-2 rounded disabled:opacity-50 ml-4"
-          >
-            Clear Session
-          </button>
-        </div>
-        
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-bold mb-4">Test Results</h2>
-          <div className="space-y-2 max-h-96 overflow-y-auto">
-            {results.map((result, index) => (
-              <div key={index} className="font-mono text-sm bg-gray-100 p-2 rounded">
-                {result}
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--bg)' }}>
+      <div className={getContainerClasses()}>
+        <div className="py-6">
+          <div className={getSectionClasses()}>
+            <ElevatedCard className="p-6">
+              <h1 className="text-3xl font-bold mb-8" style={{ color: 'var(--text)' }}>Session Synchronization Test</h1>
+              
+              <div className="space-y-4 mb-8">
+                <PrimaryButton
+                  onClick={testClientSession}
+                  disabled={loading}
+                  className="bg-blue-500 hover:bg-blue-600"
+                >
+                  {loading ? 'Testing...' : 'Test Client Session'}
+                </PrimaryButton>
+                
+                <SecondaryButton
+                  onClick={clearSession}
+                  disabled={loading}
+                  className="bg-red-500 hover:bg-red-600 text-white ml-4"
+                >
+                  Clear Session
+                </SecondaryButton>
               </div>
-            ))}
+              
+              <div className="p-6 rounded-lg" style={{ backgroundColor: 'var(--card-bg)' }}>
+                <h2 className="text-xl font-bold mb-4" style={{ color: 'var(--text)' }}>Test Results</h2>
+                <div className="space-y-2 max-h-96 overflow-y-auto">
+                  {results.map((result, index) => (
+                    <div key={index} className="font-mono text-sm p-2 rounded" style={{ backgroundColor: 'var(--muted-bg)' }}>
+                      {result}
+                    </div>
+                  ))}
+                </div>
+                {results.length === 0 && (
+                  <p className="italic" style={{ color: 'var(--muted)' }}>No results yet. Click "Test Client Session" to start.</p>
+                )}
+              </div>
+            </ElevatedCard>
           </div>
-          {results.length === 0 && (
-            <p className="text-gray-500 italic">No results yet. Click "Test Client Session" to start.</p>
-          )}
         </div>
       </div>
     </div>

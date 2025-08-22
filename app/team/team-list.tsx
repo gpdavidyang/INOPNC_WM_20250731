@@ -1,9 +1,19 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase'
 import Navbar from '@/components/navbar'
+import {
+    ChipA,
+    ChipB,
+    ChipD,
+    ElevatedCard,
+    getSectionClasses,
+    PrimaryButton,
+    ProminentCard,
+    SecondaryButton
+} from '@/components/ui'
+import { createClient } from '@/lib/supabase'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 
 interface TeamListProps {
   currentUser: any
@@ -50,180 +60,209 @@ export default function TeamList({ currentUser, currentProfile, teamMembers }: T
     }
   }
 
-  const getRoleBadge = (role: string) => {
-    const badges = {
-      admin: 'bg-red-100 text-red-800',
-      manager: 'bg-blue-100 text-blue-800',
-      user: 'bg-gray-100 text-gray-800',
+  const getRoleChip = (role: string) => {
+    const roleConfig: Record<string, { variant: 'a' | 'b' | 'd', label: string }> = {
+      admin: { variant: 'a', label: '관리자' },
+      manager: { variant: 'b', label: '매니저' },
+      user: { variant: 'd', label: '팀원' },
     }
-    return badges[role as keyof typeof badges] || badges.user
-  }
-
-  const getRoleLabel = (role: string) => {
-    const labels = {
-      admin: '관리자',
-      manager: '매니저',
-      user: '팀원',
+    
+    const config = roleConfig[role] || roleConfig.user
+    
+    switch (config.variant) {
+      case 'a':
+        return <ChipA>{config.label}</ChipA>
+      case 'b':
+        return <ChipB>{config.label}</ChipB>
+      case 'd':
+        return <ChipD>{config.label}</ChipD>
+      default:
+        return <ChipD>{config.label}</ChipD>
     }
-    return labels[role as keyof typeof labels] || '팀원'
   }
 
   return (
-    <>
+    <div>
       <Navbar user={currentUser} profile={currentProfile} />
       
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          <div className="bg-white shadow overflow-hidden sm:rounded-md">
-            <div className="px-4 py-5 sm:px-6">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">
-                팀원 목록
-              </h3>
-              <p className="mt-1 text-sm text-gray-500">
-                전체 {teamMembers.length}명의 팀원
-              </p>
-            </div>
-            <ul className="divide-y divide-gray-200">
-              {teamMembers.map((member: any) => (
-                <li key={member.id}>
-                  <div className="px-4 py-4 sm:px-6">
+      <main className="app">
+        <div className="section">
+          {/* Header */}
+          <div className={getSectionClasses()}>
+            <ProminentCard>
+              <div className="mb-6">
+                <h1 className="title-xl" style={{ color: 'var(--text)' }}>
+                  팀원 관리
+                </h1>
+                <p className="mt-2" style={{ color: 'var(--muted)' }}>
+                  전체 {teamMembers.length}명의 팀원
+                </p>
+              </div>
+
+              {/* Team Members List */}
+              <div className="space-y-4">
+                {teamMembers.map((member: any) => (
+                  <ElevatedCard key={member.id} className="p-6">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center">
                         <div className="flex-shrink-0">
-                          <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
-                            <span className="text-gray-600 font-medium">
+                          <div className="h-12 w-12 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--muted-bg)' }}>
+                            <span className="title-lg" style={{ color: 'var(--muted)' }}>
                               {member.full_name?.charAt(0) || member.email.charAt(0).toUpperCase()}
                             </span>
                           </div>
                         </div>
                         <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">
-                            {member.full_name || member.email}
+                          <div className="flex items-center space-x-3 mb-2">
+                            <h3 className="title-lg" style={{ color: 'var(--text)' }}>
+                              {member.full_name || '이름 없음'}
+                            </h3>
+                            {getRoleChip(member.role)}
                           </div>
-                          <div className="text-sm text-gray-500">
-                            {member.email}
-                          </div>
-                          <div className="flex items-center mt-1 space-x-2">
-                            {member.department && (
-                              <span className="text-xs text-gray-500">{member.department}</span>
-                            )}
-                            {member.position && (
-                              <span className="text-xs text-gray-500">• {member.position}</span>
-                            )}
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                            <div>
+                              <span className="font-medium" style={{ color: 'var(--text)' }}>이메일:</span>
+                              <span className="ml-2" style={{ color: 'var(--muted)' }}>
+                                {member.email}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="font-medium" style={{ color: 'var(--text)' }}>부서:</span>
+                              <span className="ml-2" style={{ color: 'var(--muted)' }}>
+                                {member.department || '미지정'}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="font-medium" style={{ color: 'var(--text)' }}>직책:</span>
+                              <span className="ml-2" style={{ color: 'var(--muted)' }}>
+                                {member.position || '미지정'}
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getRoleBadge(member.role)}`}>
-                          {getRoleLabel(member.role)}
-                        </span>
-                        {isAdmin && (
-                          <button
+                      
+                      {isAdmin && (
+                        <div className="flex items-center space-x-2 ml-4">
+                          <SecondaryButton 
+                            size="compact"
                             onClick={() => handleEdit(member)}
-                            className="text-blue-600 hover:text-blue-900 text-sm font-medium"
                           >
-                            수정
-                          </button>
-                        )}
-                      </div>
+                            편집
+                          </SecondaryButton>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
+                  </ElevatedCard>
+                ))}
+              </div>
+            </ProminentCard>
           </div>
         </div>
       </main>
 
-      {/* Edit Modal */}
+      {/* Edit Member Modal */}
       {showEditModal && (
-        <div className="fixed z-10 inset-0 overflow-y-auto">
-          <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 transition-opacity" aria-hidden="true">
-              <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
-            </div>
-
-            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-              <form onSubmit={handleUpdate}>
-                <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">
-                    팀원 정보 수정
-                  </h3>
-                  
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">
-                        이름
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.full_name}
-                        onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">
-                        부서
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.department}
-                        onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">
-                        직책
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.position}
-                        onChange={(e) => setFormData({ ...formData, position: e.target.value })}
-                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">
-                        역할
-                      </label>
-                      <select
-                        value={formData.role}
-                        onChange={(e) => setFormData({ ...formData, role: e.target.value as any })}
-                        className="w-full px-3 py-1.5 text-sm font-medium border border-gray-200 dark:border-gray-700 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                      >
-                        <option value="user">팀원</option>
-                        <option value="manager">매니저</option>
-                        <option value="admin">관리자</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                  <button
-                    type="submit"
-                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm"
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="card max-w-md w-full" style={{ backgroundColor: 'var(--card-bg)' }}>
+            <h3 className="title-lg mb-4" style={{ color: 'var(--text)' }}>
+              팀원 정보 편집
+            </h3>
+            
+            <form onSubmit={handleUpdate} className="space-y-4">
+              <div>
+                <label className="block text-r12 font-medium mb-2" style={{ color: 'var(--text)' }}>
+                  이름
+                </label>
+                <input
+                  type="text"
+                  value={formData.full_name}
+                  onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
+                  required
+                  className="input"
+                  style={{
+                    backgroundColor: 'var(--input-bg)',
+                    border: '1px solid var(--input-border)',
+                    color: 'var(--text)'
+                  }}
+                />
+              </div>
+              
+              <div>
+                <label className="block text-r12 font-medium mb-2" style={{ color: 'var(--text)' }}>
+                  부서
+                </label>
+                <input
+                  type="text"
+                  value={formData.department}
+                  onChange={(e) => setFormData(prev => ({ ...prev, department: e.target.value }))}
+                  className="input"
+                  style={{
+                    backgroundColor: 'var(--input-bg)',
+                    border: '1px solid var(--input-border)',
+                    color: 'var(--text)'
+                  }}
+                />
+              </div>
+              
+              <div>
+                <label className="block text-r12 font-medium mb-2" style={{ color: 'var(--text)' }}>
+                  직책
+                </label>
+                <input
+                  type="text"
+                  value={formData.position}
+                  onChange={(e) => setFormData(prev => ({ ...prev, position: e.target.value }))}
+                  className="input"
+                  style={{
+                    backgroundColor: 'var(--input-bg)',
+                    border: '1px solid var(--input-border)',
+                    color: 'var(--text)'
+                  }}
+                />
+              </div>
+              
+              <div>
+                <label className="block text-r12 font-medium mb-2" style={{ color: 'var(--text)' }}>
+                  권한
+                </label>
+                <div className="select-wrap">
+                  <select
+                    value={formData.role}
+                    onChange={(e) => setFormData(prev => ({ ...prev, role: e.target.value as 'admin' | 'manager' | 'user' }))}
+                    className="select"
+                    style={{
+                      backgroundColor: 'var(--input-bg)',
+                      border: '1px solid var(--input-border)',
+                      color: 'var(--text)'
+                    }}
                   >
-                    저장
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowEditModal(false)}
-                    className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
-                  >
-                    취소
-                  </button>
+                    <option value="user">팀원</option>
+                    <option value="manager">매니저</option>
+                    <option value="admin">관리자</option>
+                  </select>
                 </div>
-              </form>
-            </div>
+              </div>
+              
+              <div className="flex justify-end space-x-3 pt-4">
+                <SecondaryButton 
+                  size="compact"
+                  onClick={() => setShowEditModal(false)}
+                >
+                  취소
+                </SecondaryButton>
+                <PrimaryButton 
+                  size="compact"
+                  type="submit"
+                >
+                  저장
+                </PrimaryButton>
+              </div>
+            </form>
           </div>
         </div>
       )}
-    </>
+    </div>
   )
 }

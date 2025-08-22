@@ -46,7 +46,7 @@ export default async function TasksPage() {
     .order('full_name')
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--bg)' }}>
       <TaskList 
         currentUser={user} 
         currentProfile={currentProfile}

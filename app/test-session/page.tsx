@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { getCurrentUserSiteWithAuth } from '@/app/actions/site-info-client'
-import { syncSessionAfterAuth } from '@/hooks/use-auto-login'
 import { SessionDiagnosticsPanel } from '@/components/debug/session-diagnostics'
+import { ElevatedCard, getContainerClasses, getSectionClasses, PrimaryButton, SecondaryButton } from '@/components/ui'
+import { syncSessionAfterAuth } from '@/hooks/use-auto-login'
+import { createClient } from '@/lib/supabase/client'
+import { useState } from 'react'
 
 export default function TestSessionPage() {
   const [testResults, setTestResults] = useState<any[]>([])
@@ -93,7 +94,7 @@ export default function TestSessionPage() {
       addResult('Fetching site data...')
       const siteResult = await getCurrentUserSiteWithAuth()
       
-      if (siteResult.success && siteResult.data) {
+      if (siteResult.success && siteResult.data && 'site_name' in siteResult.data) {
         addResult(`Site data fetched: ${siteResult.data.site_name}`)
       } else {
         addResult(`Site data fetch failed: ${siteResult.error}`, false)
@@ -129,56 +130,63 @@ export default function TestSessionPage() {
   }
   
   return (
-    <div className="container mx-auto p-6 max-w-4xl">
-      <h1 className="text-2xl font-bold mb-6">Session Synchronization Test</h1>
-      
-      {/* Session Diagnostics Panel */}
-      <div className="mb-6">
-        <SessionDiagnosticsPanel />
-      </div>
-      
-      {/* Test Controls */}
-      <div className="mb-6 space-x-4">
-        <button
-          onClick={runComprehensiveTest}
-          disabled={isRunning}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-        >
-          {isRunning ? 'Running Test...' : 'Run Comprehensive Test'}
-        </button>
-        
-        <button
-          onClick={clearSession}
-          disabled={isRunning}
-          className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50"
-        >
-          Clear Session
-        </button>
-      </div>
-      
-      {/* Test Results */}
-      {testResults.length > 0 && (
-        <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4">
-          <h2 className="text-lg font-semibold mb-3">Test Results:</h2>
-          <div className="space-y-2">
-            {testResults.map((result, index) => (
-              <div
-                key={index}
-                className={`p-2 rounded ${
-                  result.success 
-                    ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                    : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                }`}
-              >
-                <span className="text-xs text-gray-600 dark:text-gray-400 mr-2">
-                  {new Date(result.timestamp).toLocaleTimeString()}
-                </span>
-                {result.message}
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--bg)' }}>
+      <div className={getContainerClasses()}>
+        <div className="py-6">
+          <div className={getSectionClasses()}>
+            <ElevatedCard className="p-6">
+              <h1 className="text-2xl font-bold mb-6" style={{ color: 'var(--text)' }}>Session Synchronization Test</h1>
+              
+              {/* Session Diagnostics Panel */}
+              <div className="mb-6">
+                <SessionDiagnosticsPanel />
               </div>
-            ))}
+              
+              {/* Test Controls */}
+              <div className="mb-6 space-x-4">
+                <PrimaryButton
+                  onClick={runComprehensiveTest}
+                  disabled={isRunning}
+                >
+                  {isRunning ? 'Running Test...' : 'Run Comprehensive Test'}
+                </PrimaryButton>
+                
+                <SecondaryButton
+                  onClick={clearSession}
+                  disabled={isRunning}
+                  className="bg-red-600 hover:bg-red-700 text-white"
+                >
+                  Clear Session
+                </SecondaryButton>
+              </div>
+              
+              {/* Test Results */}
+              {testResults.length > 0 && (
+                <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--muted-bg)' }}>
+                  <h2 className="text-lg font-semibold mb-3" style={{ color: 'var(--text)' }}>Test Results:</h2>
+                  <div className="space-y-2">
+                    {testResults.map((result, index) => (
+                      <div
+                        key={index}
+                        className={`p-2 rounded ${
+                          result.success 
+                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                            : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                        }`}
+                      >
+                        <span className="text-xs text-gray-600 dark:text-gray-400 mr-2">
+                          {new Date(result.timestamp).toLocaleTimeString()}
+                        </span>
+                        {result.message}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </ElevatedCard>
           </div>
         </div>
-      )}
+      </div>
     </div>
   )
 }

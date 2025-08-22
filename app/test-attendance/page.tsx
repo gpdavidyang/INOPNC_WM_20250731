@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { ElevatedCard, getContainerClasses, getSectionClasses } from '@/components/ui'
 import { createClient } from '@/lib/supabase/client'
+import { useEffect, useState } from 'react'
 
 export default function TestAttendancePage() {
   const [data, setData] = useState<any>(null)
@@ -55,27 +56,35 @@ export default function TestAttendancePage() {
   }, [])
 
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold mb-4">Attendance Test Page</h1>
-      
-      {loading && <p>Loading...</p>}
-      
-      {error && (
-        <div className="bg-red-100 p-4 rounded">
-          <h2 className="font-bold">Error:</h2>
-          <pre>{JSON.stringify(error, null, 2)}</pre>
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--bg)' }}>
+      <div className={getContainerClasses()}>
+        <div className="py-6">
+          <div className={getSectionClasses()}>
+            <ElevatedCard className="p-8">
+              <h1 className="text-2xl font-bold mb-4" style={{ color: 'var(--text)' }}>Attendance Test Page</h1>
+              
+              {loading && <p style={{ color: 'var(--muted)' }}>Loading...</p>}
+              
+              {error && (
+                <div className="p-4 rounded mb-4" style={{ backgroundColor: 'var(--error-bg)' }}>
+                  <h2 className="font-bold mb-2" style={{ color: 'var(--error-text)' }}>Error:</h2>
+                  <pre className="text-sm" style={{ color: 'var(--error-text)' }}>{JSON.stringify(error, null, 2)}</pre>
+                </div>
+              )}
+              
+              {data && (
+                <div className="p-4 rounded mb-4" style={{ backgroundColor: 'var(--success-bg)' }}>
+                  <h2 className="font-bold mb-2" style={{ color: 'var(--success-text)' }}>Found {data.length} records:</h2>
+                  <pre className="text-sm" style={{ color: 'var(--success-text)' }}>{JSON.stringify(data, null, 2)}</pre>
+                </div>
+              )}
+              
+              <div className="mt-4">
+                <p style={{ color: 'var(--muted)' }}>Check browser console for detailed logs</p>
+              </div>
+            </ElevatedCard>
+          </div>
         </div>
-      )}
-      
-      {data && (
-        <div className="bg-green-100 p-4 rounded">
-          <h2 className="font-bold">Found {data.length} records:</h2>
-          <pre>{JSON.stringify(data, null, 2)}</pre>
-        </div>
-      )}
-      
-      <div className="mt-4">
-        <p>Check browser console for detailed logs</p>
       </div>
     </div>
   )

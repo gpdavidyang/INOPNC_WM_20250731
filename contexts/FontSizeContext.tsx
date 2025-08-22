@@ -1,11 +1,14 @@
 'use client'
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { createContext, ReactNode, useContext, useEffect, useState } from 'react'
+
+type FontSizeType = 'small' | 'normal' | 'large' | 'xlarge'
 
 interface FontSizeContextType {
-  isLargeFont: boolean
-  setIsLargeFont: (large: boolean) => void
-  toggleFontSize: () => void
+  fontSize: FontSizeType
+  setFontSize: (size: FontSizeType) => void
+  fontSizeMultiplier: number
+  isLargeText: boolean
 }
 
 const FontSizeContext = createContext<FontSizeContextType | undefined>(undefined)
@@ -15,57 +18,52 @@ interface FontSizeProviderProps {
 }
 
 export function FontSizeProvider({ children }: FontSizeProviderProps) {
-  const [isLargeFont, setIsLargeFontState] = useState(false)
+  const [fontSize, setFontSizeState] = useState<FontSizeType>('normal')
 
-  // Load font size preference from localStorage on mount
+  const fontSizeMultiplier = {
+    small: 0.875,      // 14px (기준 16px 대비)
+    normal: 1,         // 16px (기준)
+    large: 1.25,       // 20px
+    xlarge: 1.5        // 24px
+  }[fontSize]
+
+  const isLargeText = fontSize === 'large' || fontSize === 'xlarge'
+
+  // localStorage에서 설정 불러오기
   useEffect(() => {
     try {
       const saved = localStorage.getItem('inopnc-font-size')
-      if (saved === 'large') {
-        setIsLargeFontState(true)
-      } else {
-        // 기본값을 작은 폰트로 설정 (saved가 null이거나 'normal'인 경우)
-        setIsLargeFontState(false)
+      if (saved && ['small', 'normal', 'large', 'xlarge'].includes(saved)) {
+        setFontSizeState(saved as FontSizeType)
       }
     } catch (error) {
       console.warn('Failed to load font size preference:', error)
     }
   }, [])
 
-  // Save font size preference to localStorage
-  const setIsLargeFont = (large: boolean) => {
-    setIsLargeFontState(large)
+  // 글자 크기 변경 시 CSS 변수 업데이트
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.documentElement.style.setProperty('--font-size-multiplier', fontSizeMultiplier.toString())
+      document.documentElement.classList.remove('font-size-small', 'font-size-normal', 'font-size-large', 'font-size-xlarge')
+      document.documentElement.classList.add(`font-size-${fontSize}`)
+    }
+  }, [fontSize, fontSizeMultiplier])
+
+  const setFontSize = (size: FontSizeType) => {
+    setFontSizeState(size)
     try {
-      localStorage.setItem('inopnc-font-size', large ? 'large' : 'normal')
+      localStorage.setItem('inopnc-font-size', size)
     } catch (error) {
       console.warn('Failed to save font size preference:', error)
     }
   }
 
-  // Toggle font size
-  const toggleFontSize = () => {
-    setIsLargeFont(!isLargeFont)
-  }
-
-  // Apply font size class to document root
-  useEffect(() => {
-    if (typeof document !== 'undefined') {
-      const root = document.documentElement
-      // Use requestAnimationFrame to avoid layout thrashing
-      requestAnimationFrame(() => {
-        if (isLargeFont) {
-          root.classList.add('large-font-mode')
-        } else {
-          root.classList.remove('large-font-mode')
-        }
-      })
-    }
-  }, [isLargeFont])
-
   const value = {
-    isLargeFont,
-    setIsLargeFont,
-    toggleFontSize
+    fontSize,
+    setFontSize,
+    fontSizeMultiplier,
+    isLargeText
   }
 
   return (
@@ -84,66 +82,90 @@ export function useFontSize() {
   return context
 }
 
-// Utility function to get responsive text class
-export function getResponsiveTextClass(
+// Utility function to get font-size-optimized classes
+export function getFontSizeClass(
   baseClass: string,
-  largeClass: string,
-  isLargeFont: boolean
-): string {
-  return isLargeFont ? largeClass : baseClass
-}
-
-// Utility function to get typography class from design system
-export function getFullTypographyClass(
-  type: 'heading' | 'body' | 'caption' | 'button',
-  size: 'xs' | 'sm' | 'base' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl',
-  isLargeFont: boolean
+  fontSize: FontSizeType
 ): string {
   const sizeMap = {
-    xs: isLargeFont ? 'text-base' : 'text-xs',
-    sm: isLargeFont ? 'text-lg' : 'text-sm', 
-    base: isLargeFont ? 'text-xl' : 'text-base',
-    lg: isLargeFont ? 'text-2xl' : 'text-lg',
-    xl: isLargeFont ? 'text-3xl' : 'text-xl',
-    '2xl': isLargeFont ? 'text-4xl' : 'text-2xl',
-    '3xl': isLargeFont ? 'text-5xl' : 'text-3xl',
-    '4xl': isLargeFont ? 'text-6xl' : 'text-4xl'
+    small: baseClass.replace(/text-(\w+)/, 'text-$1-sm'),
+    normal: baseClass,
+    large: baseClass.replace(/text-(\w+)/, 'text-$1-lg'),
+    xlarge: baseClass.replace(/text-(\w+)/, 'text-$1-xl')
   }
-
-  const weightMap = {
-    heading: 'font-semibold',
-    body: 'font-normal',
-    caption: 'font-normal',
-    button: 'font-medium'
-  }
-
-  return `${sizeMap[size]} ${weightMap[type]}`
+  
+  return sizeMap[fontSize] || baseClass
 }
 
-// Simplified typography class getter (for common use cases)
+// Typography class utility for backward compatibility
 export function getTypographyClass(
-  size: 'xs' | 'sm' | 'base' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | 'small' | 'large' | 'label',
+  size: string,
   isLargeFont: boolean
 ): string {
-  // Handle common aliases
-  const sizeMapping: Record<string, string> = {
-    'small': 'sm',
-    'large': 'lg', 
-    'label': 'sm'
+  if (isLargeFont) {
+    switch (size) {
+      case 'xs': return 'text-xs'
+      case 'sm': return 'text-sm'
+      case 'base': return 'text-base'
+      case 'lg': return 'text-lg'
+      case 'xl': return 'text-xl'
+      case '2xl': return 'text-2xl'
+      case '3xl': return 'text-3xl'
+      case 'label': return 'text-sm'
+      case 'body': return 'text-base'
+      case 'large': return 'text-lg'
+      default: return 'text-base'
+    }
+  } else {
+    switch (size) {
+      case 'xs': return 'text-xs'
+      case 'sm': return 'text-sm'
+      case 'base': return 'text-base'
+      case 'lg': return 'text-lg'
+      case 'xl': return 'text-xl'
+      case '2xl': return 'text-2xl'
+      case '3xl': return 'text-3xl'
+      case 'label': return 'text-sm'
+      case 'body': return 'text-base'
+      case 'large': return 'text-lg'
+      default: return 'text-base'
+    }
   }
-  
-  const actualSize = sizeMapping[size] || size
-  
-  const sizeMap = {
-    xs: isLargeFont ? 'text-base' : 'text-xs',
-    sm: isLargeFont ? 'text-lg' : 'text-sm', 
-    base: isLargeFont ? 'text-xl' : 'text-base',
-    lg: isLargeFont ? 'text-2xl' : 'text-lg',
-    xl: isLargeFont ? 'text-3xl' : 'text-xl',
-    '2xl': isLargeFont ? 'text-4xl' : 'text-2xl',
-    '3xl': isLargeFont ? 'text-5xl' : 'text-3xl',
-    '4xl': isLargeFont ? 'text-6xl' : 'text-4xl'
+}
+
+// Full typography class utility
+export function getFullTypographyClass(
+  element: string,
+  size: string,
+  isLargeFont: boolean
+): string {
+  if (isLargeFont) {
+    switch (size) {
+      case 'xs': return 'text-xs'
+      case 'sm': return 'text-sm'
+      case 'base': return 'text-base'
+      case 'lg': return 'text-lg'
+      case 'xl': return 'text-xl'
+      case '2xl': return 'text-2xl'
+      case '3xl': return 'text-3xl'
+      case 'label': return 'text-sm'
+      case 'body': return 'text-base'
+      case 'large': return 'text-lg'
+      default: return 'text-base'
+    }
+  } else {
+    switch (size) {
+      case 'xs': return 'text-xs'
+      case 'sm': return 'text-sm'
+      case 'base': return 'text-base'
+      case 'lg': return 'text-lg'
+      case 'xl': return 'text-xl'
+      case '2xl': return 'text-2xl'
+      case '3xl': return 'text-3xl'
+      case 'label': return 'text-sm'
+      case 'body': return 'text-base'
+      case 'large': return 'text-lg'
+      default: return 'text-base'
+    }
   }
-  
-  return sizeMap[actualSize as keyof typeof sizeMap] || sizeMap.base
 }

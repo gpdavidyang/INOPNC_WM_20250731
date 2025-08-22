@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
+import type { NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
 
 export async function middleware(request: NextRequest) {
   try {
@@ -11,9 +11,9 @@ export async function middleware(request: NextRequest) {
       },
     })
 
-    // Skip middleware for static assets, API routes, and auth callback
-    // 성능 최적화: 더 많은 정적 자원에 대해 미들웨어 건너뛰기
     const pathname = request.nextUrl.pathname
+    
+    // Skip middleware for static assets, API routes, and auth callback
     if (
       pathname.startsWith('/_next') ||
       pathname.startsWith('/api/') ||
@@ -27,6 +27,34 @@ export async function middleware(request: NextRequest) {
     ) {
       return response
     }
+
+    // Demo pages that are accessible regardless of auth status - COMPLETELY BYPASS MIDDLEWARE
+    const demoPaths = [
+      '/mobile-demo', 
+      '/components',
+      '/test-simple',
+      '/ui-showcase',
+      '/design-system-demo',
+      '/design-system-preview',
+      '/public-demo',
+      '/complete-ui-showcase',
+      '/simple-test',
+      '/design-system-showcase',
+      '/design-system-html'
+    ]
+    
+    // Check if current path is a demo path
+    const isDemoPath = demoPaths.some(path => pathname === path || pathname.startsWith(path + '/'))
+    
+    // Skip ALL middleware processing for demo pages
+    if (isDemoPath) {
+      console.log('Demo page accessed:', pathname, '- bypassing all middleware')
+      return response
+    }
+
+    // Public routes that don't require authentication
+    const publicPaths = ['/auth/login', '/auth/signup', '/auth/signup-request', '/auth/reset-password', '/auth/update-password']
+    const isPublicPath = publicPaths.some(path => pathname.startsWith(path))
 
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -75,31 +103,17 @@ export async function middleware(request: NextRequest) {
       }
     }
 
-    // Public routes that don't require authentication
-    const publicPaths = ['/auth/login', '/auth/signup', '/auth/signup-request', '/auth/reset-password', '/auth/update-password']
-    const isPublicPath = publicPaths.some(path => pathname.startsWith(path))
-    
-    // Demo pages that are accessible regardless of auth status
-    const demoPaths = ['/mobile-demo', '/components']
-    const isDemoPath = demoPaths.some(path => pathname.startsWith(path))
-
     // Debug logging - only log important events, not every request
-    if (sessionError || (!user && !isPublicPath && !isDemoPath)) {
+    if (sessionError || (!user && !isPublicPath)) {
       console.log('Middleware auth issue:', {
         pathname,
         hasUser: !!user,
         isPublicPath,
-        isDemoPath,
         error: sessionError?.message,
         cookies: request.cookies.getAll().map(c => ({ name: c.name, hasValue: !!c.value })),
         sessionExists: !!session,
         userExists: !!user
       })
-    }
-    
-    // Skip auth check for demo pages
-    if (isDemoPath) {
-      return response
     }
 
     // If user is not signed in and tries to access protected route

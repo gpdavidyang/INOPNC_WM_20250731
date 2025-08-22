@@ -1,8 +1,23 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import {
+    ChipA,
+    ChipB,
+    ChipD,
+    ElevatedCard,
+    getContainerClasses,
+    getSectionClasses,
+    INOPNCInput,
+    MainButton,
+    MutedButton,
+    PrimaryButton,
+    ProminentCard,
+    SecondaryButton
+} from '@/components/ui'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { createClient } from '@/lib/supabase'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 
 interface DashboardContentProps {
   user: any
@@ -28,92 +43,210 @@ export default function DashboardContent({ user, profile, taskStats }: Dashboard
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--bg)' }}>
       {/* Navigation */}
-      <nav className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <h1 className="text-xl font-semibold">작업 관리 시스템</h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-gray-700">안녕하세요, {profile?.full_name || user.email}</span>
+      <nav className="header">
+        <div className={getContainerClasses()}>
+          <div className="flex justify-between items-center">
+            {/* Left side - empty for balance */}
+            <div className="w-32"></div>
+            
+            {/* Center - INOPNC Logo */}
+            <div className="flex-1 flex justify-center">
               <button
+                onClick={() => router.push('/dashboard')}
+                className="cursor-pointer transition-all duration-200 hover:scale-105 active:scale-95"
+                style={{
+                  fontFamily: 'Poppins, sans-serif',
+                  fontWeight: 600,
+                  fontSize: '23px',
+                  color: 'var(--text)',
+                  textDecoration: 'none',
+                  border: 'none',
+                  background: 'none',
+                  outline: 'none'
+                }}
+              >
+                INOPNC
+              </button>
+            </div>
+            
+            {/* Right side - User controls */}
+            <div className="flex items-center space-x-4 w-32 justify-end">
+              <ThemeToggle />
+              <span style={{ color: 'var(--text)' }}>
+                안녕하세요, {profile?.full_name || user.email}
+              </span>
+              <MutedButton 
+                size="compact"
                 onClick={handleLogout}
                 disabled={loading}
-                className="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
               >
-                로그아웃
-              </button>
+                {loading ? '로그아웃 중...' : '로그아웃'}
+              </MutedButton>
             </div>
           </div>
         </div>
       </nav>
 
       {/* Main content */}
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        {/* Welcome section */}
-        <div className="px-4 py-6 sm:px-0">
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="px-4 py-5 sm:p-6">
-              <h2 className="text-lg font-medium text-gray-900 mb-4">대시보드</h2>
+      <main className="app">
+        <div className="section">
+          {/* Welcome section */}
+          <div className={getSectionClasses()}>
+            <ProminentCard>
+              <h2 className="title-lg mb-4" style={{ color: 'var(--text)' }}>
+                대시보드
+              </h2>
               
               {/* Task Statistics */}
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                <div className="bg-white overflow-hidden shadow rounded-lg">
-                  <div className="px-4 py-5 sm:p-6">
-                    <dt className="text-sm font-medium text-gray-500 truncate">전체 작업</dt>
-                    <dd className="mt-1 text-3xl font-semibold text-gray-900">{taskStats.total}</dd>
+                <ElevatedCard>
+                  <div className="p-5">
+                    <dt className="text-r12 font-medium" style={{ color: 'var(--muted)' }}>
+                      전체 작업
+                    </dt>
+                    <dd className="mt-1 text-3xl font-semibold" style={{ color: 'var(--text)' }}>
+                      {taskStats.total}
+                    </dd>
                   </div>
-                </div>
+                </ElevatedCard>
 
-                <div className="bg-blue-50 overflow-hidden shadow rounded-lg">
-                  <div className="px-4 py-5 sm:p-6">
-                    <dt className="text-sm font-medium text-blue-600 truncate">대기 중</dt>
-                    <dd className="mt-1 text-3xl font-semibold text-blue-900">{taskStats.pending}</dd>
+                <ElevatedCard>
+                  <div className="p-5">
+                    <dt className="text-r12 font-medium" style={{ color: 'var(--primary)' }}>
+                      대기 중
+                    </dt>
+                    <dd className="mt-1 text-3xl font-semibold" style={{ color: 'var(--primary)' }}>
+                      {taskStats.pending}
+                    </dd>
                   </div>
-                </div>
+                </ElevatedCard>
 
-                <div className="bg-yellow-50 overflow-hidden shadow rounded-lg">
-                  <div className="px-4 py-5 sm:p-6">
-                    <dt className="text-sm font-medium text-yellow-600 truncate">진행 중</dt>
-                    <dd className="mt-1 text-3xl font-semibold text-yellow-900">{taskStats.inProgress}</dd>
+                <ElevatedCard>
+                  <div className="p-5">
+                    <dt className="text-r12 font-medium" style={{ color: '#f59e0b' }}>
+                      진행 중
+                    </dt>
+                    <dd className="mt-1 text-3xl font-semibold" style={{ color: '#f59e0b' }}>
+                      {taskStats.inProgress}
+                    </dd>
                   </div>
-                </div>
+                </ElevatedCard>
 
-                <div className="bg-green-50 overflow-hidden shadow rounded-lg">
-                  <div className="px-4 py-5 sm:p-6">
-                    <dt className="text-sm font-medium text-green-600 truncate">완료됨</dt>
-                    <dd className="mt-1 text-3xl font-semibold text-green-900">{taskStats.completed}</dd>
+                <ElevatedCard>
+                  <div className="p-5">
+                    <dt className="text-r12 font-medium" style={{ color: '#10b981' }}>
+                      완료됨
+                    </dt>
+                    <dd className="mt-1 text-3xl font-semibold" style={{ color: '#10b981' }}>
+                      {taskStats.completed}
+                    </dd>
                   </div>
-                </div>
+                </ElevatedCard>
               </div>
 
               {/* Quick Actions */}
               <div className="mt-8">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">빠른 작업</h3>
+                <h3 className="title-lg mb-4" style={{ color: 'var(--text)' }}>
+                  빠른 작업
+                </h3>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  <button
+                  <PrimaryButton 
+                    size="field"
                     onClick={() => router.push('/tasks/new')}
-                    className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
                   >
                     새 작업 만들기
-                  </button>
-                  <button
-                    onClick={() => router.push('/tasks')}
-                    className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                  </PrimaryButton>
+
+                  <SecondaryButton 
+                    size="field"
+                    onClick={() => router.push('/daily-reports/new')}
                   >
-                    작업 목록 보기
-                  </button>
-                  <button
-                    onClick={() => router.push('/projects')}
-                    className="inline-flex items-center justify-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                    일일 보고서 작성
+                  </SecondaryButton>
+
+                  <MainButton 
+                    size="field"
+                    onClick={() => router.push('/materials')}
                   >
-                    프로젝트 관리
-                  </button>
+                    자재 관리
+                  </MainButton>
                 </div>
               </div>
-            </div>
+
+              {/* Recent Activity */}
+              <div className="mt-8">
+                <h3 className="title-lg mb-4" style={{ color: 'var(--text)' }}>
+                  최근 활동
+                </h3>
+                <div className="space-y-3">
+                  <div className="row">
+                    <div className="flex justify-between items-center">
+                      <span style={{ color: 'var(--text)' }}>새 작업이 생성되었습니다</span>
+                      <ChipA>완료</ChipA>
+                    </div>
+                  </div>
+                  
+                  <div className="row">
+                    <div className="flex justify-between items-center">
+                      <span style={{ color: 'var(--text)' }}>일일 보고서가 제출되었습니다</span>
+                      <ChipB>진행</ChipB>
+                    </div>
+                  </div>
+                  
+                  <div className="row">
+                    <div className="flex justify-between items-center">
+                      <span style={{ color: 'var(--text)' }}>자재 재고가 업데이트되었습니다</span>
+                      <ChipD>정보</ChipD>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </ProminentCard>
+          </div>
+
+          {/* User Profile Summary */}
+          <div className={getSectionClasses()}>
+            <ElevatedCard>
+              <h3 className="title-lg mb-4" style={{ color: 'var(--text)' }}>
+                사용자 정보
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <INOPNCInput
+                  label="이름"
+                  value={profile?.full_name || 'N/A'}
+                  readOnly
+                  fullWidth
+                />
+                
+                <INOPNCInput
+                  label="역할"
+                  value={profile?.role || 'N/A'}
+                  readOnly
+                  fullWidth
+                />
+                
+                <INOPNCInput
+                  label="이메일"
+                  type="email"
+                  value={user.email || 'N/A'}
+                  readOnly
+                  fullWidth
+                />
+                
+                <div>
+                  <label className="block text-r12 font-medium mb-2" style={{ color: 'var(--text)' }}>
+                    상태
+                  </label>
+                  <div className="flex items-center">
+                    <ChipD>
+                      {profile?.status === 'active' ? '활성' : '비활성'}
+                    </ChipD>
+                  </div>
+                </div>
+              </div>
+            </ElevatedCard>
           </div>
         </div>
       </main>

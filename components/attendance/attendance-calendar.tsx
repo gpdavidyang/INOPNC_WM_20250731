@@ -1,36 +1,35 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { 
-  CustomSelect,
-  CustomSelectContent,
-  CustomSelectItem,
-  CustomSelectTrigger,
-  CustomSelectValue,
-} from '@/components/ui/custom-select'
-import { 
-  Calendar,
-  ChevronLeft,
-  ChevronRight,
-  Building2,
-  MapPin,
-  CalendarDays,
-  Users,
-  Clock,
-  FileText
-} from 'lucide-react'
 import { getAttendanceRecords, getCompanyAttendanceSummary } from '@/app/actions/attendance'
 import { getSites } from '@/app/actions/sites'
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isSameMonth, isSameDay } from 'date-fns'
-import { ko } from 'date-fns/locale'
-import { cn } from '@/lib/utils'
-import { useFontSize, getTypographyClass, getFullTypographyClass } from '@/contexts/FontSizeContext'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import {
+    CustomSelect,
+    CustomSelectContent,
+    CustomSelectItem,
+    CustomSelectTrigger,
+    CustomSelectValue,
+} from '@/components/ui/custom-select'
+import { getFullTypographyClass, useFontSize } from '@/contexts/FontSizeContext'
 import { useTouchMode } from '@/contexts/TouchModeContext'
-import type { AttendanceCalendarProps, AttendanceRecord } from '@/types/attendance'
+import { cn } from '@/lib/utils'
 import type { Site } from '@/types'
+import type { AttendanceCalendarProps, AttendanceRecord } from '@/types/attendance'
+import { eachDayOfInterval, endOfMonth, format, getDay, isSameDay, isSameMonth, startOfMonth } from 'date-fns'
+import { ko } from 'date-fns/locale'
+import {
+    Building2,
+    CalendarDays,
+    ChevronLeft,
+    ChevronRight,
+    Clock,
+    FileText,
+    MapPin,
+    Users
+} from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 export function AttendanceCalendar({ profile, isPartnerView }: AttendanceCalendarProps) {
   // All hooks must be called before any conditional returns
@@ -488,8 +487,7 @@ export function AttendanceCalendar({ profile, isPartnerView }: AttendanceCalenda
                         "text-sm font-bold absolute top-2 left-3 z-10",
                         dayOfWeek === 0 && "text-red-500",
                         dayOfWeek === 6 && "text-blue-600",
-                        isToday && "text-yellow-600 text-shadow-glow",
-                        attendance && "text-shadow-sm"
+                        isToday && "text-yellow-600"
                       )}>
                         {format(day, 'd')}
                       </div>

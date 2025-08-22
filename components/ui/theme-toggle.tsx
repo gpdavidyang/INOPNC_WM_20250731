@@ -1,47 +1,70 @@
 'use client'
 
+import { getTheme, toggleTheme } from '@/lib/design-system-utils'
 import { useEffect, useState } from 'react'
-import { Moon, Sun } from 'lucide-react'
+import { PrimaryButton } from './inopnc-button'
 
 export function ThemeToggle() {
-  const [theme, setTheme] = useState<'light' | 'dark'>('light')
+  const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>('light')
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    // Check for saved theme preference or default to light
-    const savedTheme = localStorage.getItem('theme') || 'light'
-    setTheme(savedTheme as 'light' | 'dark')
-    
-    // Apply theme to document
-    if (savedTheme === 'dark') {
-      document.documentElement.classList.add('dark')
-    } else {
-      document.documentElement.classList.remove('dark')
-    }
+    setMounted(true)
+    const theme = getTheme()
+    setCurrentTheme(theme)
   }, [])
 
-  const toggleTheme = () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light'
-    setTheme(newTheme)
-    localStorage.setItem('theme', newTheme)
-    
-    if (newTheme === 'dark') {
-      document.documentElement.classList.add('dark')
-    } else {
-      document.documentElement.classList.remove('dark')
-    }
+  const handleToggle = () => {
+    const newTheme = toggleTheme()
+    setCurrentTheme(newTheme)
+  }
+
+  if (!mounted) {
+    return (
+      <PrimaryButton size="compact" disabled>
+        로딩 중...
+      </PrimaryButton>
+    )
+  }
+
+  return (
+    <PrimaryButton 
+      size="compact" 
+      onClick={handleToggle}
+      className="min-w-[120px]"
+    >
+      {currentTheme === 'light' ? '🌙 다크 모드' : '☀️ 라이트 모드'}
+    </PrimaryButton>
+  )
+}
+
+// 간단한 아이콘만 있는 버전
+export function ThemeToggleIcon() {
+  const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>('light')
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+    const theme = getTheme()
+    setCurrentTheme(theme)
+  }, [])
+
+  const handleToggle = () => {
+    const newTheme = toggleTheme()
+    setCurrentTheme(newTheme)
+  }
+
+  if (!mounted) {
+    return <div className="w-8 h-8 bg-gray-300 rounded animate-pulse" />
   }
 
   return (
     <button
-      onClick={toggleTheme}
-      className="p-2 text-toss-gray-500 hover:text-toss-gray-700 dark:text-toss-gray-400 dark:hover:text-toss-gray-200 rounded-lg hover:bg-toss-gray-100 dark:hover:bg-toss-gray-700 transition-colors min-h-[40px] min-w-[40px] touch-manipulation"
-      aria-label={theme === 'light' ? '다크 모드로 전환' : '라이트 모드로 전환'}
+      onClick={handleToggle}
+      className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+      aria-label={`${currentTheme === 'light' ? '다크' : '라이트'} 모드로 전환`}
     >
-      {theme === 'light' ? (
-        <Moon className="h-4 w-4" strokeWidth={1.5} />
-      ) : (
-        <Sun className="h-4 w-4" strokeWidth={1.5} />
-      )}
+      {currentTheme === 'light' ? '🌙' : '☀️'}
     </button>
   )
 }

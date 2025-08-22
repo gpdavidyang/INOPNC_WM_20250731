@@ -1,7 +1,8 @@
 'use client'
 
+import { ElevatedCard, getContainerClasses, getSectionClasses, PrimaryButton } from '@/components/ui'
+import { RefreshCw, Trash2 } from 'lucide-react'
 import { useState } from 'react'
-import { Trash2, RefreshCw } from 'lucide-react'
 
 export default function ClearCachePage() {
   const [isClearing, setIsClearing] = useState(false)
@@ -72,55 +73,59 @@ export default function ClearCachePage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-8 space-y-6">
-        <div className="text-center">
-          <Trash2 className="mx-auto h-12 w-12 text-red-500 mb-4" />
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">PWA 캐시 삭제</h1>
-          <p className="text-gray-600 text-sm">
-            모든 PWA 캐시, Service Worker, Local Storage를 삭제합니다.
-          </p>
-        </div>
-
-        <button
-          onClick={clearAllCaches}
-          disabled={isClearing}
-          className="w-full flex items-center justify-center gap-3 py-4 px-6 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white font-semibold rounded-xl transition-colors"
-        >
-          {isClearing ? (
-            <>
-              <RefreshCw className="h-5 w-5 animate-spin" />
-              삭제 중...
-            </>
-          ) : (
-            <>
-              <Trash2 className="h-5 w-5" />
-              모든 캐시 삭제
-            </>
-          )}
-        </button>
-
-        {result && (
-          <div className="bg-gray-50 rounded-xl p-4">
-            <h3 className="font-semibold text-gray-900 mb-2">삭제 결과:</h3>
-            <pre className="text-xs text-gray-700 whitespace-pre-wrap">
-              {result}
-            </pre>
-            {result.includes('✅') && (
-              <p className="text-green-600 text-sm mt-2 font-medium">
-                3초 후 페이지가 새로고침됩니다...
+    <div className="min-h-screen flex items-center justify-center px-4" style={{ backgroundColor: 'var(--bg)' }}>
+      <div className={getContainerClasses()}>
+        <div className={getSectionClasses()}>
+          <ElevatedCard className="max-w-md w-full p-8 space-y-6">
+            <div className="text-center">
+              <Trash2 className="mx-auto h-12 w-12 text-red-500 mb-4" />
+              <h1 className="text-2xl font-bold mb-2" style={{ color: 'var(--text)' }}>PWA 캐시 삭제</h1>
+              <p className="text-sm" style={{ color: 'var(--muted)' }}>
+                모든 PWA 캐시, Service Worker, Local Storage를 삭제합니다.
               </p>
-            )}
-          </div>
-        )}
+            </div>
 
-        <div className="bg-blue-50 rounded-xl p-4">
-          <h3 className="font-semibold text-blue-900 mb-2">💡 다른 방법들:</h3>
-          <ul className="text-sm text-blue-800 space-y-1">
-            <li>• F12 → Application → Clear Storage</li>
-            <li>• Ctrl+Shift+R (하드 새로고침)</li>
-            <li>• 시크릿/프라이빗 모드 사용</li>
-          </ul>
+            <PrimaryButton
+              onClick={clearAllCaches}
+              disabled={isClearing}
+              className="w-full flex items-center justify-center gap-3 py-4 px-6 bg-red-600 hover:bg-red-700 disabled:bg-red-400"
+            >
+              {isClearing ? (
+                <>
+                  <RefreshCw className="h-5 w-5 animate-spin" />
+                  삭제 중...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-5 w-5" />
+                  모든 캐시 삭제
+                </>
+              )}
+            </PrimaryButton>
+
+            {result && (
+              <div className="p-4 rounded-xl" style={{ backgroundColor: 'var(--muted-bg)' }}>
+                <h3 className="font-semibold mb-2" style={{ color: 'var(--text)' }}>삭제 결과:</h3>
+                <pre className="text-xs whitespace-pre-wrap" style={{ color: 'var(--muted)' }}>
+                  {result}
+                </pre>
+                {result.includes('✅') && (
+                  <p className="text-green-600 text-sm mt-2 font-medium">
+                    3초 후 페이지가 새로고침됩니다...
+                  </p>
+                )}
+              </div>
+            )}
+
+            <div className="p-4 rounded-xl" style={{ backgroundColor: 'var(--accent-bg)' }}>
+              <h3 className="font-semibold mb-2" style={{ color: 'var(--accent-text)' }}>💡 다른 방법들:</h3>
+              <ul className="text-sm space-y-1" style={{ color: 'var(--accent-text)' }}>
+                <li>• F12 → Application → Clear Storage</li>
+                <li>• Ctrl+Shift+R (하드 새로고침)</li>
+                <li>• 시크릿/프라이빗 모드 사용</li>
+              </ul>
+            </div>
+          </ElevatedCard>
         </div>
       </div>
     </div>

@@ -8,6 +8,51 @@
   --tw-saturate: saturate(1.1);
 }
 
+/* Font size system variables */
+:root {
+  /* Base font size variables */
+  --font-size-multiplier: 1;
+  --font-size-base: 16px;
+  --font-size-small: calc(var(--font-size-base) * 0.875);
+  --font-size-normal: var(--font-size-base);
+  --font-size-large: calc(var(--font-size-base) * 1.25);
+  --font-size-xlarge: calc(var(--font-size-base) * 1.5);
+  
+  /* Touch mode font size adjustments */
+  --touch-mode-font-multiplier: 1;
+}
+
+/* Font size classes */
+.font-size-small {
+  --font-size-multiplier: 0.875;
+}
+
+.font-size-normal {
+  --font-size-multiplier: 1;
+}
+
+.font-size-large {
+  --font-size-multiplier: 1.25;
+}
+
+.font-size-xlarge {
+  --font-size-multiplier: 1.5;
+}
+
+/* Touch mode font size adjustments */
+.touch-mode-glove {
+  --touch-mode-font-multiplier: 1.2;
+}
+
+.touch-mode-precision {
+  --touch-mode-font-multiplier: 0.9;
+}
+
+/* Apply font size adjustments to body */
+body {
+  font-size: calc(var(--font-size-normal) * var(--font-size-multiplier) * var(--touch-mode-font-multiplier));
+}
+
 /* Enhanced text contrast for sunlight mode */
 .sunlight-mode .text-gray-500 { color: rgb(55 65 81) !important; } /* darker gray-700 */
 .sunlight-mode .text-gray-600 { color: rgb(31 41 55) !important; } /* darker gray-800 */
@@ -150,6 +195,21 @@
   padding-right: 40px !important;
 }
 
+/* Font size responsive adjustments for sunlight mode */
+.sunlight-mode.font-size-large button,
+.sunlight-mode.font-size-xlarge button {
+  min-height: 56px !important;
+  font-size: 18px !important;
+}
+
+.sunlight-mode.font-size-large input,
+.sunlight-mode.font-size-large select,
+.sunlight-mode.font-size-xlarge input,
+.sunlight-mode.font-size-xlarge select {
+  min-height: 56px !important;
+  font-size: 18px !important;
+}
+
 /* Mobile-specific sunlight optimizations */
 @media (max-width: 768px) {
   .sunlight-mode {
@@ -166,6 +226,21 @@
   .sunlight-mode select {
     min-height: 56px !important;
     font-size: 16px !important;
+  }
+  
+  /* Mobile font size adjustments */
+  .font-size-large button,
+  .font-size-xlarge button {
+    min-height: 64px !important;
+    font-size: 20px !important;
+  }
+  
+  .font-size-large input,
+  .font-size-large select,
+  .font-size-xlarge input,
+  .font-size-xlarge select {
+    min-height: 64px !important;
+    font-size: 20px !important;
   }
 }
 

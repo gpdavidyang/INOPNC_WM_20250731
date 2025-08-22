@@ -1,0 +1,175 @@
+/* INOPNC 디자인 시스템 - 일관된 컴포넌트 스타일 */
+/* Tailwind @apply 제거 → 순수 CSS 버전 */
+
+/* -----------------------------------------
+   DESIGN TOKENS
+----------------------------------------- */
+:root {
+  --primary: #0a84ff;
+  --secondary: #40c4ff;
+  --point: #0068FE;
+
+  --btn-main: #1A254F;
+  --btn-muted: #99A4BE;
+
+  --bg: #F5F9FE;
+  --text: #0B1220;
+  --muted: #6B7280;
+  --card-bg: #FFFFFF;
+  --card-border: #E1E6EF;
+  --input-bg: #FFFFFF;
+  --input-border: #D0D7E4;
+  --header-solid: #FFFFFF;
+
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.1);
+  --shadow-md: 0 4px 6px rgba(0,0,0,.1);
+  --shadow-lg: 0 10px 15px rgba(0,0,0,.1);
+}
+
+html[data-theme="dark"] {
+  --bg: #0E1422;
+  --text: #E8EDF6;
+  --muted: #9FB0C8;
+  --card-bg: #191E2F;
+  --card-border: #26304A;
+  --input-bg: #0F1626;
+  --input-border: #324064;
+  --header-solid: #0E1422;
+}
+
+/* -----------------------------------------
+   BASE
+----------------------------------------- */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+}
+
+/* -----------------------------------------
+   LAYOUT
+----------------------------------------- */
+.container {
+  max-width: 390px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-md);
+}
+@media (max-width:370px){ .container{padding:0 var(--spacing-sm);} }
+
+/* -----------------------------------------
+   HEADER
+----------------------------------------- */
+.header {
+  background: var(--header-solid);
+  border-bottom:1px solid var(--card-border);
+  padding: var(--spacing-md);
+  position: sticky; top:0; z-index:100;
+}
+
+/* -----------------------------------------
+   CARD
+----------------------------------------- */
+.card {
+  background: var(--card-bg);
+  border:1px solid var(--card-border);
+  border-radius:12px;
+  padding:20px;
+  margin-bottom:var(--spacing-md);
+  box-shadow:var(--shadow-sm);
+  transition: all .2s ease;
+}
+.card:hover { box-shadow:var(--shadow-md); transform:translateY(-1px); }
+
+/* -----------------------------------------
+   ROW
+----------------------------------------- */
+.row {
+  border:2px solid var(--card-border);
+  border-radius:8px;
+  padding:var(--spacing-md);
+  margin-bottom:var(--spacing-sm);
+  background:var(--card-bg);
+  transition: all .2s ease;
+}
+.row:hover { border-color:var(--primary); background:rgba(10,132,255,.02); }
+.card .row { border:1px solid var(--input-border); }
+
+/* -----------------------------------------
+   BUTTONS
+----------------------------------------- */
+.btn {
+  height:48px; border-radius:8px; padding:0 var(--spacing-lg);
+  font-size:16px; font-weight:600;
+  display:inline-flex; align-items:center; justify-content:center;
+  cursor:pointer; border:none;
+  transition: all .2s ease;
+}
+.btn:active { transform:scale(.97); }
+
+.btn-main { background:var(--btn-main); color:#fff; }
+.btn-main:hover { background:#2a3550; }
+
+.btn-primary { background:var(--primary); color:#fff; }
+.btn-primary:hover { background:var(--point); }
+
+.btn-secondary { background:var(--secondary); color:#fff; }
+.btn-secondary:hover { background:#33a3e6; }
+
+.btn-muted { background:transparent; color:var(--btn-main); border:1px solid var(--btn-muted); }
+.btn-muted:hover { background:var(--btn-muted); color:var(--btn-main); }
+
+/* OUTLINE VARIANT (순수 CSS) */
+.btn-variant-outline {
+  background: transparent;
+  color: #374151;
+  border:2px solid #D1D5DB;
+}
+.dark .btn-variant-outline { color:#E5E7EB; border-color:#4B5563; }
+.btn-variant-outline:hover { border-color:#9CA3AF; }
+.dark .btn-variant-outline:hover { border-color:#6B7280; }
+
+/* -----------------------------------------
+   CHIP
+----------------------------------------- */
+.chip {
+  font-size:12px; border-radius:6px; padding:6px 12px; height:28px;
+  display:inline-flex; align-items:center;
+}
+.chip-a{ background:rgba(51,230,246,.2); color:#28C1CF; }
+.chip-b{ background:rgba(41,52,208,.15); color:#2934D0; }
+html[data-theme="dark"] .chip-b{ background:#0F1626; color:#A8B4FF; border:1px solid #2A3550; }
+.chip-d{ background:#D9FFE8; color:#01903B; }
+.chip-e{ background:#FFDCDC; color:#FF2929; }
+
+/* -----------------------------------------
+   INPUT
+----------------------------------------- */
+.input {
+  background:var(--input-bg);
+  border:1px solid var(--input-border);
+  border-radius:8px; padding:var(--spacing-md);
+  min-height:44px; font-size:16px;
+  color:var(--text);
+}
+.input:focus { border-color:var(--primary); outline:none; box-shadow:0 0 0 3px rgba(10,132,255,.1); }
+
+/* -----------------------------------------
+   UTILS
+----------------------------------------- */
+.section { margin-bottom:var(--spacing-xl); }
+.btn-group{ display:flex; gap:var(--spacing-sm); flex-wrap:wrap; }
+.btn-group .btn{ flex:1; min-width:120px; }
+
+/* -----------------------------------------
+   ACCESSIBILITY
+----------------------------------------- */
+*:focus-visible{ outline:2px solid var(--primary); outline-offset:2px; }
+@media(prefers-reduced-motion:reduce){ *{transition:none!important; transform:none!important;} }

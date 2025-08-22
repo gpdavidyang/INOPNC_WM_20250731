@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { ElevatedCard, getContainerClasses, getSectionClasses, PrimaryButton } from '@/components/ui'
 import { createClient } from '@/lib/supabase/client'
-import { User, Session } from '@supabase/supabase-js'
+import { Session, User } from '@supabase/supabase-js'
+import { useEffect, useState } from 'react'
 
 interface TestResult {
   name: string
@@ -268,130 +269,136 @@ export default function AuthTestPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">
-          🔐 Authentication Flow Test Suite
-        </h1>
-        
-        {/* Current Auth State */}
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
-          <h2 className="text-xl font-semibold mb-4">Current Authentication State</h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <span className="font-medium">User:</span> 
-              <span className={currentUser ? 'text-green-600' : 'text-gray-500'}>
-                {currentUser ? currentUser.email : 'Not signed in'}
-              </span>
-            </div>
-            <div>
-              <span className="font-medium">Session:</span> 
-              <span className={currentSession ? 'text-green-600' : 'text-gray-500'}>
-                {currentSession ? 'Active' : 'None'}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Test Controls */}
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
-          <div className="flex gap-4 mb-4">
-            <button
-              onClick={runAllTests}
-              disabled={isRunning}
-              className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white px-4 py-2 rounded-md font-medium"
-            >
-              {isRunning ? '🔄 Running Tests...' : '🚀 Run All Tests'}
-            </button>
-            
-            <button
-              onClick={testSignInFlow}
-              disabled={isRunning}
-              className="bg-green-600 hover:bg-green-700 disabled:bg-green-300 text-white px-4 py-2 rounded-md"
-            >
-              Test Sign In
-            </button>
-            
-            <button
-              onClick={testSignOutFlow}
-              disabled={isRunning}
-              className="bg-red-600 hover:bg-red-700 disabled:bg-red-300 text-white px-4 py-2 rounded-md"
-            >
-              Test Sign Out
-            </button>
-          </div>
-        </div>
-
-        {/* Test Results */}
-        <div className="bg-white rounded-lg shadow">
-          <div className="p-6 border-b">
-            <h2 className="text-xl font-semibold">Test Results</h2>
-          </div>
-          
-          <div className="divide-y">
-            {results.length === 0 ? (
-              <div className="p-6 text-gray-500 text-center">
-                Click "Run All Tests" to start testing the authentication flow
-              </div>
-            ) : (
-              results.map((result, index) => (
-                <div key={index} className="p-6">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">{getStatusIcon(result.status)}</span>
-                      <h3 className="font-medium text-lg">{result.name}</h3>
-                    </div>
-                    <span className={`text-sm font-medium ${getStatusColor(result.status)}`}>
-                      {result.status.toUpperCase()}
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--bg)' }}>
+      <div className={getContainerClasses()}>
+        <div className="py-6">
+          <div className={getSectionClasses()}>
+            <ElevatedCard className="p-6">
+              <h1 className="text-3xl font-bold mb-8" style={{ color: 'var(--text)' }}>
+                🔐 Authentication Flow Test Suite
+              </h1>
+              
+              {/* Current Auth State */}
+              <div className="p-6 rounded-lg mb-8" style={{ backgroundColor: 'var(--card-bg)' }}>
+                <h2 className="text-xl font-semibold mb-4" style={{ color: 'var(--text)' }}>Current Authentication State</h2>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <span className="font-medium" style={{ color: 'var(--text)' }}>User:</span> 
+                    <span className={currentUser ? 'text-green-600' : 'text-gray-500'}>
+                      {currentUser ? currentUser.email : 'Not signed in'}
                     </span>
                   </div>
+                  <div>
+                    <span className="font-medium" style={{ color: 'var(--text)' }}>Session:</span> 
+                    <span className={currentSession ? 'text-green-600' : 'text-gray-500'}>
+                      {currentSession ? 'Active' : 'None'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Test Controls */}
+              <div className="p-6 rounded-lg mb-8" style={{ backgroundColor: 'var(--card-bg)' }}>
+                <div className="flex gap-4 mb-4">
+                  <PrimaryButton
+                    onClick={runAllTests}
+                    disabled={isRunning}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    {isRunning ? '🔄 Running Tests...' : '🚀 Run All Tests'}
+                  </PrimaryButton>
                   
-                  {result.message && (
-                    <p className="text-gray-600 ml-9 mb-2">{result.message}</p>
-                  )}
+                  <PrimaryButton
+                    onClick={testSignInFlow}
+                    disabled={isRunning}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    Test Sign In
+                  </PrimaryButton>
                   
-                  {result.details && (
-                    <details className="ml-9">
-                      <summary className="text-sm text-gray-500 cursor-pointer">
-                        View Details
-                      </summary>
-                      <pre className="mt-2 text-xs bg-gray-100 p-3 rounded overflow-x-auto">
-                        {JSON.stringify(result.details, null, 2)}
-                      </pre>
-                    </details>
+                  <PrimaryButton
+                    onClick={testSignOutFlow}
+                    disabled={isRunning}
+                    className="bg-red-600 hover:bg-red-700"
+                  >
+                    Test Sign Out
+                  </PrimaryButton>
+                </div>
+              </div>
+
+              {/* Test Results */}
+              <div className="rounded-lg" style={{ backgroundColor: 'var(--card-bg)' }}>
+                <div className="p-6 border-b" style={{ borderColor: 'var(--border)' }}>
+                  <h2 className="text-xl font-semibold" style={{ color: 'var(--text)' }}>Test Results</h2>
+                </div>
+                
+                <div className="divide-y" style={{ borderColor: 'var(--border)' }}>
+                  {results.length === 0 ? (
+                    <div className="p-6 text-center" style={{ color: 'var(--muted)' }}>
+                      Click "Run All Tests" to start testing the authentication flow
+                    </div>
+                  ) : (
+                    results.map((result, index) => (
+                      <div key={index} className="p-6">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-3">
+                            <span className="text-2xl">{getStatusIcon(result.status)}</span>
+                            <h3 className="font-medium text-lg" style={{ color: 'var(--text)' }}>{result.name}</h3>
+                          </div>
+                          <span className={`text-sm font-medium ${getStatusColor(result.status)}`}>
+                            {result.status.toUpperCase()}
+                          </span>
+                        </div>
+                        
+                        {result.message && (
+                          <p className="ml-9 mb-2" style={{ color: 'var(--muted)' }}>{result.message}</p>
+                        )}
+                        
+                        {result.details && (
+                          <details className="ml-9">
+                            <summary className="text-sm cursor-pointer" style={{ color: 'var(--muted)' }}>
+                              View Details
+                            </summary>
+                            <pre className="mt-2 text-xs p-3 rounded overflow-x-auto" style={{ backgroundColor: 'var(--muted-bg)' }}>
+                              {JSON.stringify(result.details, null, 2)}
+                            </pre>
+                          </details>
+                        )}
+                      </div>
+                    ))
                   )}
                 </div>
-              ))
-            )}
+              </div>
+
+              {/* Test Summary */}
+              {results.length > 0 && (
+                <div className="mt-8 p-6 rounded-lg" style={{ backgroundColor: 'var(--card-bg)' }}>
+                  <h2 className="text-xl font-semibold mb-4" style={{ color: 'var(--text)' }}>Summary</h2>
+                  <div className="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                      <div className="text-2xl font-bold text-green-600">
+                        {results.filter(r => r.status === 'success').length}
+                      </div>
+                      <div className="text-sm" style={{ color: 'var(--muted)' }}>Passed</div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold text-red-600">
+                        {results.filter(r => r.status === 'error').length}
+                      </div>
+                      <div className="text-sm" style={{ color: 'var(--muted)' }}>Failed</div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold text-yellow-600">
+                        {results.filter(r => r.status === 'pending').length}
+                      </div>
+                      <div className="text-sm" style={{ color: 'var(--muted)' }}>Pending</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </ElevatedCard>
           </div>
         </div>
-
-        {/* Test Summary */}
-        {results.length > 0 && (
-          <div className="mt-8 bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold mb-4">Summary</h2>
-            <div className="grid grid-cols-3 gap-4 text-center">
-              <div>
-                <div className="text-2xl font-bold text-green-600">
-                  {results.filter(r => r.status === 'success').length}
-                </div>
-                <div className="text-sm text-gray-600">Passed</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-red-600">
-                  {results.filter(r => r.status === 'error').length}
-                </div>
-                <div className="text-sm text-gray-600">Failed</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-yellow-600">
-                  {results.filter(r => r.status === 'pending').length}
-                </div>
-                <div className="text-sm text-gray-600">Pending</div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   )

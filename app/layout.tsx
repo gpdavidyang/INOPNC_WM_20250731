@@ -1,25 +1,26 @@
 import type { Metadata } from "next";
 // import { Inter } from "next/font/google"; // Google Fonts 비활성화
+import "@/styles/design-system-complete.css";
 import "./globals.css";
 // import "@/styles/sunlight-mode.css"; // Sunlight Mode CSS 비활성화
 // import "@/styles/font-optimization.css"; // 폰트 최적화 CSS 비활성화
-import { AuthProvider } from "@/providers/auth-provider";
 import { ErrorBoundary } from "@/components/error-boundary";
-import { FontSizeProvider } from "@/contexts/FontSizeContext";
-import { TouchModeProvider } from "@/contexts/TouchModeContext";
-import { ContrastModeProvider } from "@/contexts/ContrastModeContext";
-import { SunlightModeProvider } from "@/contexts/SunlightModeContext";
-import { EnvironmentalProvider } from "@/contexts/EnvironmentalContext";
-import { SkipNavigation } from "@/components/ui/skip-navigation";
-import { Toaster } from 'sonner';
-import { ThemeInitializer } from "@/components/theme-initializer";
-import { InstallPrompt } from "@/components/pwa/install-prompt";
-import { ServiceWorkerRegistration } from "@/components/pwa/service-worker-registration";
-import { OfflineIndicator } from "@/components/pwa/offline-indicator";
-import { NotificationPermission } from "@/components/pwa/notification-permission";
 import { DeepLinkProvider } from "@/components/providers/deep-link-provider";
 import { PerformanceMonitoringProvider } from "@/components/providers/performance-monitoring-provider";
+import { InstallPrompt } from "@/components/pwa/install-prompt";
+import { NotificationPermission } from "@/components/pwa/notification-permission";
+import { OfflineIndicator } from "@/components/pwa/offline-indicator";
+import { ServiceWorkerRegistration } from "@/components/pwa/service-worker-registration";
+import { ThemeInitializer } from "@/components/theme-initializer";
+import { SkipNavigation } from "@/components/ui/skip-navigation";
+import { ContrastModeProvider } from "@/contexts/ContrastModeContext";
+import { EnvironmentalProvider } from "@/contexts/EnvironmentalContext";
+import { FontSizeProvider } from "@/contexts/FontSizeContext";
+import { SunlightModeProvider } from "@/contexts/SunlightModeContext";
+import { TouchModeProvider } from "@/contexts/TouchModeContext";
+import { AuthProvider } from "@/providers/auth-provider";
 import { ThemeProvider } from "next-themes";
+import { Toaster } from 'sonner';
 
 // const inter = Inter({ subsets: ["latin"] }); // Google Fonts 비활성화
 

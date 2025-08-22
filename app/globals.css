@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Google Fonts - Poppins */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+/* INOPNC 통합 디자인 시스템 */
+@import '../styles/design-system.css';
+
 /* WCAG 2.1 Color and Contrast System */
 
 /* 
@@ -177,14 +183,16 @@
 
 @layer base {
   body {
-    @apply bg-white text-toss-gray-900;
+    background-color: white;
+    color: #0B1220;
     font-size: 1.125rem; /* 18px - 기본 크기보다 더 크게 */
     line-height: 1.6; /* 더 나은 가독성을 위한 줄 간격 */
   }
 }
 
 .dark body {
-  @apply bg-toss-gray-900 text-toss-gray-100;
+  background-color: #0B1220;
+  color: #E8EDF6;
   font-size: 1.125rem; /* 18px - 기본 크기보다 더 크게 */
   line-height: 1.6; /* 더 나은 가독성을 위한 줄 간격 */
 }
@@ -194,26 +202,37 @@
   height: env(safe-area-inset-bottom);
 }
 
+/* Remove all text shadows globally */
+* {
+  text-shadow: none !important;
+}
+
+/* Ensure no text shadows on specific elements */
+h1, h2, h3, h4, h5, h6, p, span, div, button, input, textarea, select, label, a {
+  text-shadow: none !important;
+}
+
 /* Keyboard navigation indicator */
 .keyboard-navigation *:focus {
-  @apply outline-2 outline-offset-2 outline-toss-blue-500;
+  outline: 2px solid #0a84ff;
+  outline-offset: 2px;
 }
 
 /* Focus-visible styles for all interactive elements */
 @layer utilities {
   /* Remove default focus outline */
   *:focus {
-    @apply outline-none;
+    outline: none;
   }
   
   /* Add focus-visible ring to all focusable elements */
   *:focus-visible {
-    @apply ring-2 ring-toss-blue-500 ring-offset-2;
+    box-shadow: 0 0 0 2px #0a84ff, 0 0 0 4px white;
   }
   
   /* Enhanced focus for high contrast mode */
   .high-contrast *:focus-visible {
-    @apply ring-4 ring-offset-4;
+    box-shadow: 0 0 0 4px #0a84ff, 0 0 0 8px white;
   }
   
   /* Custom focus styles for specific elements */
@@ -222,14 +241,26 @@
   input:focus-visible,
   textarea:focus-visible,
   select:focus-visible {
-    @apply ring-2 ring-toss-blue-500 ring-offset-2;
+    box-shadow: 0 0 0 2px #0a84ff, 0 0 0 4px white;
   }
   
   /* Skip link styles */
   .skip-link {
-    @apply absolute -top-10 left-4 z-[100] bg-toss-blue-500 text-white px-4 py-2 rounded-lg;
-    @apply focus:top-4 focus:outline-none focus:ring-2 focus:ring-toss-blue-500 focus:ring-offset-2;
-    @apply transition-all duration-200;
+    position: absolute;
+    top: -2.5rem;
+    left: 1rem;
+    z-index: 100;
+    background-color: #0a84ff;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    transition: top 0.2s ease;
+  }
+  
+  .skip-link:focus {
+    top: 1rem;
+    outline: none;
+    box-shadow: 0 0 0 2px #0a84ff, 0 0 0 4px white;
   }
 }
 
@@ -417,16 +448,17 @@ select:focus {
   
   /* Focus visible utilities for keyboard navigation */
   .focus-visible-outline {
-    @apply focus-visible:outline-2 focus-visible:outline-offset-2;
+    outline: 2px solid transparent;
+    outline-offset: 2px;
     outline-color: var(--color-border-focus);
   }
   
   /* High contrast mode specific utilities */
   .high-contrast {
     /* Increase font weights for better readability */
-    .font-normal { @apply font-medium; }
-    .font-medium { @apply font-semibold; }
-    .font-semibold { @apply font-bold; }
+    .font-normal { font-weight: 500; }
+    .font-medium { font-weight: 600; }
+    .font-semibold { font-weight: 700; }
     
     /* Thicker borders */
     .border { border-width: 2px; }
@@ -434,7 +466,8 @@ select:focus {
     
     /* Enhanced focus states */
     .focus-visible-outline {
-      @apply focus-visible:outline-4 focus-visible:outline-offset-4;
+      outline: 4px solid transparent;
+      outline-offset: 4px;
     }
   }
 }
@@ -443,45 +476,89 @@ select:focus {
 @layer components {
   /* Success status */
   .status-success {
-    @apply flex items-center gap-2;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
     color: var(--color-success);
   }
   .status-success::before {
     content: "✓";
-    @apply inline-block w-5 h-5 rounded-full text-white flex items-center justify-center text-xs font-bold;
+    display: inline-block;
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 9999px;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
     background-color: var(--color-success);
   }
   
   /* Warning status */
   .status-warning {
-    @apply flex items-center gap-2;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
     color: var(--color-warning);
   }
   .status-warning::before {
     content: "!";
-    @apply inline-block w-5 h-5 rounded-full text-white flex items-center justify-center text-xs font-bold;
+    display: inline-block;
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 9999px;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
     background-color: var(--color-warning);
   }
   
   /* Error status */
   .status-error {
-    @apply flex items-center gap-2;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
     color: var(--color-error);
   }
   .status-error::before {
     content: "✕";
-    @apply inline-block w-5 h-5 rounded-full text-white flex items-center justify-center text-xs font-bold;
+    display: inline-block;
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 9999px;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
     background-color: var(--color-error);
   }
   
   /* Info status */
   .status-info {
-    @apply flex items-center gap-2;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
     color: var(--color-primary);
   }
   .status-info::before {
     content: "i";
-    @apply inline-block w-5 h-5 rounded-full text-white flex items-center justify-center text-xs font-bold;
+    display: inline-block;
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 9999px;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
     background-color: var(--color-primary);
   }
 }
@@ -492,14 +569,12 @@ select:focus {
   .sunlight-mode {
     /* Increase contrast and reduce glare */
     filter: contrast(1.2) brightness(0.9);
-    
-    /* Darker text shadows for better readability */
-    text-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
   }
   
   /* Glove-friendly touch targets */
   .touch-target-glove {
-    @apply min-h-[60px] min-w-[60px];
+    min-height: 3.75rem;
+    min-width: 3.75rem;
   }
   
   /* Weather-resistant UI patterns */

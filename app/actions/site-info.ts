@@ -105,7 +105,7 @@ export async function getCurrentUserSite() {
     // Get the most recent active assignment
     const assignment = assignments?.[0] || null
 
-    log('getCurrentUserSite: Direct query result:', { assignments: assignments?.length, error })
+    log('getCurrentUserSite: Direct query result:', { assignments: assignments?.length, error, timestamp: new Date().toISOString() })
 
     if (error) {
       console.error('getCurrentUserSite: Query error:', error)

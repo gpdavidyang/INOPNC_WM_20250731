@@ -6,6 +6,7 @@ import { NotificationExtended } from '@/types/notifications'
 import { createClient } from '@/lib/supabase/client'
 import { getCurrentUserSiteWithAuth, getUserSiteHistoryWithAuth } from '@/app/actions/site-info-client'
 import TodaySiteInfo from '@/components/site-info/TodaySiteInfo'
+import SiteDebugHelper from '@/components/debug/SiteDebugHelper'
 import { useFontSize,  getTypographyClass, getFullTypographyClass } from '@/contexts/FontSizeContext'
 import { useTouchMode } from '@/contexts/TouchModeContext'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -1194,6 +1195,9 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
           </div>
         )}
       </Card>
+
+      {/* Debug Helper - Development Only */}
+      <SiteDebugHelper />
 
       {/* Quick Menu Settings Modal */}
       {quickMenuSettingsOpen && (

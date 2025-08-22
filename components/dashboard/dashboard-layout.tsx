@@ -16,9 +16,7 @@ import {
   preloadForRole
 } from './tabs/lazy-components'
 // import SiteInfoTab from './tabs/site-info-tab' // Moved to dedicated page: /dashboard/site-info
-import { BottomNavigation, BottomNavItem } from '@/components/ui/bottom-navigation'
-import { NavigationController } from '@/components/navigation/navigation-controller'
-import { ConstructionNavBar, ConstructionNavItem } from '@/components/navigation/construction-nav-bar'
+import { UnifiedMobileNav } from '@/components/ui/unified-mobile-nav'
 
 interface DashboardLayoutProps {
   user: User
@@ -124,76 +122,7 @@ export default function DashboardLayout({ user, profile, children, initialActive
     )
   }
 
-  // PRD 사양에 맞는 하단 네비게이션 아이템 구성
-  const bottomNavItems: BottomNavItem[] = [
-    { 
-      label: "빠른메뉴", 
-      href: "/dashboard", 
-      icon: <Home className="stroke-current fill-none" /> 
-    },
-    { 
-      label: "출력정보", 
-      href: "/dashboard/attendance", 
-      icon: <Calendar className="stroke-current fill-none" /> 
-    },
-    { 
-      label: "작업일지", 
-      href: "/dashboard/daily-reports", 
-      icon: <FileText className="stroke-current fill-none" />, 
-      badge: 3 // TODO: 실제 미완성 보고서 수로 동적 설정
-    },
-    { 
-      label: "현장정보", 
-      href: "/dashboard/site-info", 
-      icon: <MapPin className="stroke-current fill-none" /> 
-    },
-    { 
-      label: "문서함", 
-      href: "#documents-unified", 
-      icon: <FolderOpen className="stroke-current fill-none" /> 
-    }
-  ]
-  
-  // 건설 현장 네비게이션 아이템 (성능 최적화 및 안전 기능 강화)
-  const constructionNavItems: ConstructionNavItem[] = [
-    { 
-      id: "home",
-      label: "빠른메뉴", 
-      href: "/dashboard", 
-      icon: <Home className="stroke-current fill-none" />,
-      priority: 'normal'
-    },
-    { 
-      id: "attendance",
-      label: "출력정보", 
-      href: "/dashboard/attendance", 
-      icon: <Calendar className="stroke-current fill-none" />,
-      priority: 'high', // 출근 기록은 중요
-      badge: 1
-    },
-    { 
-      id: "daily-reports",
-      label: "작업일지", 
-      href: "/dashboard/daily-reports", 
-      icon: <FileText className="stroke-current fill-none" />, 
-      priority: 'high',
-      badge: 3
-    },
-    { 
-      id: "site-info",
-      label: "현장정보", 
-      href: "/dashboard/site-info", 
-      icon: <MapPin className="stroke-current fill-none" />,
-      priority: 'normal'
-    },
-    { 
-      id: "documents",
-      label: "문서함", 
-      href: "#documents-unified", 
-      icon: <FolderOpen className="stroke-current fill-none" />,
-      priority: 'normal'
-    }
-  ]
+  // Navigation items moved to UnifiedMobileNav component
 
 
 
@@ -397,8 +326,7 @@ export default function DashboardLayout({ user, profile, children, initialActive
   }
 
   return (
-    <NavigationController>
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 theme-transition">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 theme-transition">
       {/* Skip link for keyboard users */}
       <a 
         href="#main-content" 
@@ -445,29 +373,12 @@ export default function DashboardLayout({ user, profile, children, initialActive
         </main>
       </div>
 
-      {/* Mobile Bottom Navigation - 건설 모드에 따라 선택 */}
-      <nav aria-label="모바일 하단 네비게이션" className="md:hidden">
-        {useConstructionMode ? (
-          <ConstructionNavBar 
-            items={constructionNavItems}
-            currentUser={{ 
-              id: profile.id, 
-              active_site_id: (profile as any).site_id || undefined 
-            }}
-          />
-        ) : (
-          <BottomNavigation 
-            items={bottomNavItems}
-            currentUser={{ 
-              id: profile.id, 
-              active_site_id: (profile as any).site_id || undefined 
-            }}
-            onTabChange={handleBottomNavClick}
-            activeTab={activeTab}
-          />
-        )}
-      </nav>
-      </div>
-    </NavigationController>
+      {/* Simplified Mobile Bottom Navigation */}
+      <UnifiedMobileNav 
+        userRole={profile.role}
+        activeTab={activeTab}
+        onTabChange={handleBottomNavClick}
+      />
+    </div>
   )
 }

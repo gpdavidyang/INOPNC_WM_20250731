@@ -1,15 +1,9 @@
-import { requireAdminAuth } from '@/lib/auth/admin'
-import AdminDashboardLayout from '@/components/admin/AdminDashboardLayout'
 import EnhancedDocumentManagement from '@/components/admin/documents/EnhancedDocumentManagement'
 
-export default async function AdminDocumentsPage() {
-  const { profile } = await requireAdminAuth()
-
+export default function AdminDocumentsPage() {
   return (
-    <AdminDashboardLayout profile={profile}>
-      <div className="px-4 sm:px-6 lg:px-8 py-8">
-        <EnhancedDocumentManagement profile={profile} />
-      </div>
-    </AdminDashboardLayout>
+    <div className="px-4 sm:px-6 lg:px-8 py-8">
+        <EnhancedDocumentManagement />
+    </div>
   )
 }

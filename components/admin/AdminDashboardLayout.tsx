@@ -4,7 +4,8 @@ import { Profile } from '@/types'
 import { 
   Shield, Menu, X, Home, Users, Building2, FolderCheck, 
   DollarSign, Package, Layers, Settings, LogOut, BarChart3, Bell,
-  ChevronDown, User, Key, UserPlus, FileText, MessageSquare
+  ChevronDown, ChevronRight, User, Key, UserPlus, FileText, MessageSquare,
+  FolderOpen, FileImage, FileCheck, Camera, Edit3, Share2
 } from 'lucide-react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useState, useEffect, useRef } from 'react'
@@ -23,6 +24,7 @@ const menuCategories = [
   {
     id: 'main',
     label: null, // 첫 번째 카테고리는 라벨 없음
+    collapsible: false,
     items: [
       {
         id: 'home',
@@ -35,6 +37,7 @@ const menuCategories = [
   {
     id: 'analytics',
     label: '업무 관리',
+    collapsible: true,
     items: [
       {
         id: 'analytics',
@@ -65,6 +68,7 @@ const menuCategories = [
   {
     id: 'accounts',
     label: '인사 관리',
+    collapsible: true,
     items: [
       {
         id: 'users',
@@ -93,38 +97,78 @@ const menuCategories = [
     ]
   },
   {
+    id: 'documents',
+    label: '문서함 관리',
+    collapsible: true,
+    items: [
+      {
+        id: 'my-documents',
+        label: '내문서함',
+        icon: FolderOpen,
+        href: '/dashboard/admin/documents/my-documents'
+      },
+      {
+        id: 'shared-documents',
+        label: '공유문서함',
+        icon: Share2,
+        href: '/dashboard/admin/documents/shared'
+      },
+      {
+        id: 'markup-documents',
+        label: '도면마킹',
+        icon: Edit3,
+        href: '/dashboard/admin/documents/markup'
+      },
+      {
+        id: 'required-documents',
+        label: '필수 제출 서류',
+        icon: FileCheck,
+        href: '/dashboard/admin/documents/required'
+      },
+      {
+        id: 'invoice-documents',
+        label: '기성청구함',
+        icon: FileText,
+        href: '/dashboard/admin/documents/invoice'
+      }
+    ]
+  },
+  {
+    id: 'tools',
+    label: '도구 관리',
+    collapsible: true,
+    items: [
+      {
+        id: 'photo-grid-tool',
+        label: '사진대지 도구',
+        icon: Camera,
+        href: '/dashboard/admin/tools/photo-grid'
+      },
+      {
+        id: 'markup-tool',
+        label: '도면마킹 도구',
+        icon: Edit3,
+        href: '/dashboard/admin/tools/markup'
+      }
+    ]
+  },
+  {
     id: 'resources',
     label: '자원 관리',
+    collapsible: true,
     items: [
       {
         id: 'materials',
         label: '자재 관리',
         icon: Package,
         href: '/dashboard/admin/materials'
-      },
-      {
-        id: 'documents',
-        label: '문서함 관리',
-        icon: Layers,
-        href: '/dashboard/admin/documents'
-      },
-      {
-        id: 'markup',
-        label: '도면 마킹',
-        icon: FileText,
-        href: '/dashboard/admin/markup'
-      },
-      {
-        id: 'photo-grid-reports',
-        label: '사진대지',
-        icon: FileText,
-        href: '/dashboard/admin/photo-grid-reports'
       }
     ]
   },
   {
     id: 'communication',
     label: '소통',
+    collapsible: true,
     items: [
       {
         id: 'notifications',
@@ -146,6 +190,7 @@ const menuCategories = [
 const systemCategory = {
   id: 'system',
   label: '시스템',
+  collapsible: true,
   items: [
     {
       id: 'system',
@@ -201,6 +246,9 @@ function Sidebar({ profile, pathname, onItemClick }: {
   const { isLargeFont } = useFontSize()
   const { touchMode } = useTouchMode()
   
+  // State for managing collapsed categories
+  const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set())
+  
   const handleLogout = async () => {
     try {
       const result = await signOut()
@@ -213,6 +261,19 @@ function Sidebar({ profile, pathname, onItemClick }: {
       console.error('Logout error:', error)
       window.location.href = '/auth/login'
     }
+  }
+
+  // Toggle category collapse state
+  const toggleCategory = (categoryId: string) => {
+    setCollapsedCategories(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(categoryId)) {
+        newSet.delete(categoryId)
+      } else {
+        newSet.add(categoryId)
+      }
+      return newSet
+    })
   }
 
   // admin과 system_admin 모두 시스템 관리 메뉴 접근 가능
@@ -261,47 +322,68 @@ function Sidebar({ profile, pathname, onItemClick }: {
       {/* Navigation */}
       <div className="flex-1 overflow-y-auto py-3">
         <nav className="space-y-3 px-2">
-          {allCategories.map((category: any, categoryIndex: number) => (
-            <div key={category.id}>
-              {/* Category label */}
-              {category.label && (
-                <h3 className={`px-3 mb-2 ${getTypographyClass('overline', 'xs', isLargeFont)} font-semibold text-gray-500 uppercase tracking-wider`}>
-                  {category.label}
-                </h3>
-              )}
-              
-              {/* Category items */}
-              <div className="space-y-1">
-                {category.items.map((item: any) => {
-                  const Icon = item.icon
-                  const isActive = pathname === item.href
-                  
-                  return (
-                    <Link
-                      key={item.id}
-                      href={item.href}
-                      onClick={onItemClick}
-                      className={`flex items-center ${
-                        touchMode === 'glove' ? 'px-5 py-3' : touchMode === 'precision' ? 'px-3 py-1.5' : 'px-4 py-2'
-                      } ${getTypographyClass('body', 'sm', isLargeFont)} font-medium rounded-md transition-colors ${
-                        isActive
-                          ? 'bg-red-50 text-red-700'
-                          : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
-                      }`}
-                    >
-                      <Icon className="mr-3 h-5 w-5" />
-                      {item.label}
-                    </Link>
-                  )
-                })}
+          {allCategories.map((category: any, categoryIndex: number) => {
+            const isCollapsed = collapsedCategories.has(category.id)
+            const hasActiveItem = category.items.some((item: any) => pathname === item.href)
+            
+            return (
+              <div key={category.id}>
+                {/* Category label with accordion button */}
+                {category.label && (
+                  <button
+                    onClick={() => category.collapsible && toggleCategory(category.id)}
+                    className={`w-full flex items-center justify-between px-3 mb-2 ${
+                      category.collapsible ? 'cursor-pointer hover:bg-gray-50 rounded-md py-1' : ''
+                    }`}
+                  >
+                    <h3 className={`${getTypographyClass('overline', 'xs', isLargeFont)} font-semibold text-gray-500 uppercase tracking-wider`}>
+                      {category.label}
+                    </h3>
+                    {category.collapsible && (
+                      <ChevronRight 
+                        className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${
+                          !isCollapsed ? 'rotate-90' : ''
+                        }`}
+                      />
+                    )}
+                  </button>
+                )}
+                
+                {/* Category items - show if not collapsed or has active item */}
+                {(!category.collapsible || !isCollapsed || hasActiveItem) && (
+                  <div className="space-y-1">
+                    {category.items.map((item: any) => {
+                      const Icon = item.icon
+                      const isActive = pathname === item.href
+                      
+                      return (
+                        <Link
+                          key={item.id}
+                          href={item.href}
+                          onClick={onItemClick}
+                          className={`flex items-center ${
+                            touchMode === 'glove' ? 'px-5 py-3' : touchMode === 'precision' ? 'px-3 py-1.5' : 'px-4 py-2'
+                          } ${getTypographyClass('body', 'sm', isLargeFont)} font-medium rounded-md transition-colors ${
+                            isActive
+                              ? 'bg-red-50 text-red-700'
+                              : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
+                          }`}
+                        >
+                          <Icon className="mr-3 h-5 w-5" />
+                          {item.label}
+                        </Link>
+                      )
+                    })}
+                  </div>
+                )}
+                
+                {/* Divider between categories (except for the last one) */}
+                {categoryIndex < allCategories.length - 1 && (
+                  <div className="mt-3 mb-3 border-t border-gray-200 mx-3" />
+                )}
               </div>
-              
-              {/* Divider between categories (except for the last one) */}
-              {categoryIndex < allCategories.length - 1 && (
-                <div className="mt-3 mb-3 border-t border-gray-200 mx-3" />
-              )}
-            </div>
-          ))}
+            )
+          })}
         </nav>
       </div>
 
@@ -430,10 +512,28 @@ export default function AdminDashboardLayout({ children }: AdminDashboardLayoutP
                pathname.includes('users') ? '사용자 관리' :
                pathname.includes('sites') ? '현장 관리' :
                pathname.includes('daily-reports') ? '작업일지 관리' :
+               pathname.includes('documents/my-documents') ? '내문서함' :
+               pathname.includes('documents/shared') ? '공유문서함' :
+               pathname.includes('documents/markup') ? '도면마킹 문서' :
+               pathname.includes('documents/required') ? '필수 제출 서류' :
+               pathname.includes('documents/invoice') ? '기성청구함' :
                pathname.includes('documents') ? '문서함 관리' :
+               pathname.includes('tools/photo-grid') ? '사진대지 도구' :
+               pathname.includes('tools/markup') ? '도면마킹 도구' :
                pathname.includes('analytics') ? '분석 대시보드' :
                pathname.includes('notifications') ? '알림 관리' :
+               pathname.includes('organizations') ? '조직 관리' :
+               pathname.includes('partners') ? '파트너사 관리' :
+               pathname.includes('salary') ? '급여 관리' :
+               pathname.includes('materials') ? '자재 관리' :
+               pathname.includes('communication') ? '커뮤니케이션' :
                pathname.includes('system') ? '시스템 설정' :
+               pathname.includes('account') ? '계정 설정' :
+               pathname.includes('monitoring') ? '시스템 모니터링' :
+               pathname.includes('audit-logs') ? '감사 로그' :
+               pathname.includes('backup') ? '백업 관리' :
+               pathname.includes('signup-requests') ? '가입 요청 관리' :
+               pathname.includes('approvals') ? '승인 관리' :
                '관리자 페이지'}
             </h1>
 

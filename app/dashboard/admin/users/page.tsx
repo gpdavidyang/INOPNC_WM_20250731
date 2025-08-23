@@ -1,19 +1,13 @@
-import { requireAdminAuth } from '@/lib/auth/admin'
-import AdminDashboardLayout from '@/components/admin/AdminDashboardLayout'
 import UserManagement from '@/components/admin/UserManagement'
 
-export default async function UserManagementPage() {
-  const { profile } = await requireAdminAuth()
-
+export default function UserManagementPage() {
   return (
-    <AdminDashboardLayout profile={profile}>
-      <div className="px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">사용자 관리</h1>
-          <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">사용자 계정 관리, 역할 배정 및 권한 설정</p>
-        </div>
-        <UserManagement profile={profile} />
+    <div className="px-4 sm:px-6 lg:px-8 py-8">
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">사용자 관리</h1>
+        <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">사용자 계정 관리, 역할 배정 및 권한 설정</p>
       </div>
-    </AdminDashboardLayout>
+      <UserManagement />
+    </div>
   )
 }

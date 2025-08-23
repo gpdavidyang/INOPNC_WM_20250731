@@ -1,20 +1,14 @@
-import { requireAdminAuth } from '@/lib/auth/admin'
-import AdminDashboardLayout from '@/components/admin/AdminDashboardLayout'
 import AdminPermissionValidator from '@/components/admin/AdminPermissionValidator'
 
-export default async function TestPermissionsPage() {
-  const { profile } = await requireAdminAuth()
-
+export default function TestPermissionsPage() {
   return (
-    <AdminDashboardLayout profile={profile}>
-      <div className="px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
+    <div className="px-4 sm:px-6 lg:px-8 py-8">
+    <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">권한 테스트</h1>
           <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">관리자 권한 검증 및 기능 테스트</p>
-        </div>
+    </div>
 
-      <AdminPermissionValidator profile={profile} />
-          </div>
-    </AdminDashboardLayout>
+      <AdminPermissionValidator />
+    </div>
   )
 }

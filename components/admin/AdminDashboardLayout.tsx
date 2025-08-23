@@ -37,7 +37,7 @@ const menuCategories = [
   },
   {
     id: 'analytics',
-    label: '업무 관리',
+    label: '현장작업 관리',
     collapsible: true,
     items: [
       {
@@ -58,12 +58,6 @@ const menuCategories = [
         label: '작업일지 관리',
         icon: FileText,
         href: '/dashboard/admin/daily-reports'
-      },
-      {
-        id: 'approvals',
-        label: '승인 관리',
-        icon: FolderCheck,
-        href: '/dashboard/admin/approvals'
       }
     ]
   },
@@ -77,6 +71,12 @@ const menuCategories = [
         label: '사용자 관리',
         icon: Users,
         href: '/dashboard/admin/users'
+      },
+      {
+        id: 'approvals',
+        label: '가입 승인 관리',
+        icon: FolderCheck,
+        href: '/dashboard/admin/approvals'
       },
       {
         id: 'organizations',

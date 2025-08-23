@@ -6,6 +6,7 @@ import {
   SharedDocument, 
   DocumentFilters, 
   DocumentSortOptions,
+  DocumentCategory,
   FILE_TYPE_ICONS,
   formatFileSize
 } from '@/types/shared-documents'
@@ -45,9 +46,21 @@ export default function SharedDocumentsList() {
     setLoading(true)
     try {
       let query = supabase
-        .from('v_shared_documents_with_permissions')
-        .select('*')
-        .eq('is_deleted', false)
+        .from('documents')
+        .select(`
+          *,
+          profiles!owner_id (
+            id,
+            full_name,
+            email
+          ),
+          sites (
+            id,
+            name
+          )
+        `)
+        .eq('folder_path', '/shared')
+        .or('is_public.eq.true,folder_path.eq./shared')
 
       // 필터 적용
       if (filters.site_id) {
@@ -82,7 +95,35 @@ export default function SharedDocumentsList() {
 
       if (error) throw error
 
-      setDocuments(data || [])
+      // Map documents table data to SharedDocument type
+      const mappedDocuments: SharedDocument[] = (data || []).map(doc => ({
+        id: doc.id,
+        title: doc.title,
+        description: doc.description,
+        file_url: doc.file_url,
+        file_name: doc.file_name,
+        file_type: doc.file_name?.split('.').pop() || 'unknown',
+        file_size: doc.file_size || 0,
+        mime_type: doc.mime_type,
+        site_id: doc.site_id,
+        uploaded_by: doc.owner_id,
+        organization_id: doc.organization_id,
+        category: doc.document_category as DocumentCategory,
+        tags: doc.tags,
+        version: doc.version || 1,
+        is_deleted: false,
+        created_at: doc.created_at,
+        updated_at: doc.updated_at,
+        // Joined data
+        site_name: doc.sites?.name,
+        uploaded_by_name: doc.profiles?.full_name,
+        uploaded_by_email: doc.profiles?.email,
+        view_count: doc.view_count || 0,
+        download_count: doc.download_count || 0,
+        permission_count: 0
+      }))
+
+      setDocuments(mappedDocuments)
     } catch (error) {
       console.error('Failed to load documents:', error)
     } finally {
@@ -100,12 +141,8 @@ export default function SharedDocumentsList() {
 
     try {
       const { error } = await supabase
-        .from('shared_documents')
-        .update({
-          is_deleted: true,
-          deleted_at: new Date().toISOString(),
-          deleted_by: (await supabase.auth.getUser()).data.user?.id
-        })
+        .from('documents')
+        .delete()
         .eq('id', documentId)
 
       if (error) throw error
@@ -118,19 +155,23 @@ export default function SharedDocumentsList() {
   }
 
   // 문서 다운로드
-  const handleDownloadDocument = async (document: SharedDocument) => {
+  const handleDownloadDocument = async (doc: SharedDocument) => {
     try {
-      // 다운로드 로그 기록
-      await supabase.from('document_access_logs').insert({
-        document_id: document.id,
-        user_id: (await supabase.auth.getUser()).data.user?.id,
-        action: 'download'
-      })
+      // 다운로드 로그 기록 (테이블이 있을 경우만)
+      const user = await supabase.auth.getUser()
+      if (user.data.user?.id) {
+        // Ignore error if log table doesn't exist
+        await supabase.from('document_access_logs').insert({
+          document_id: doc.id,
+          user_id: user.data.user.id,
+          action: 'download'
+        }).then(() => {}).catch(() => {})
+      }
 
       // 파일 다운로드
       const link = document.createElement('a')
-      link.href = document.file_url
-      link.download = document.file_name
+      link.href = doc.file_url
+      link.download = doc.file_name
       link.click()
     } catch (error) {
       console.error('Failed to download document:', error)
@@ -148,12 +189,8 @@ export default function SharedDocumentsList() {
 
     try {
       const { error } = await supabase
-        .from('shared_documents')
-        .update({
-          is_deleted: true,
-          deleted_at: new Date().toISOString(),
-          deleted_by: (await supabase.auth.getUser()).data.user?.id
-        })
+        .from('documents')
+        .delete()
         .in('id', Array.from(selectedDocuments))
 
       if (error) throw error

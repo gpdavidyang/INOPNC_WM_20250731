@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import RequiredDocumentsManagement from '@/components/admin/documents/RequiredDocumentsManagement'
+import RequiredDocumentsWithMockData from '@/components/admin/documents/RequiredDocumentsWithMockData'
 
 export default async function AdminRequiredDocumentsPage() {
   const supabase = createClient()
@@ -30,10 +30,10 @@ export default async function AdminRequiredDocumentsPage() {
       <div className="space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">필수 제출 서류 관리</h1>
-          <p className="text-gray-600 mt-1">사용자가 제출한 필수 서류를 관리합니다.</p>
+          <p className="text-gray-600 mt-1">작업자별 필수 제출 서류를 조회, 등록, 수정, 삭제할 수 있습니다.</p>
         </div>
         
-        <RequiredDocumentsManagement />
+        <RequiredDocumentsWithMockData />
       </div>
     )
   } catch (error) {

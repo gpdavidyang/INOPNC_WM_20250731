@@ -1,0 +1,36 @@
+/* styles/override.css */
+
+/* 1) 제목의 'ㅣ' 색상 (#1A254F) + Regular */
+.brand .sep{
+  color:#1A254F !important;
+  font-weight:400 !important;
+}
+
+/* 2) 입력/버튼 텍스트 Medium(500) + Noto Sans KR */
+.field input,
+.btn,
+button[type="submit"]{
+  font-weight:500 !important;
+  font-family:"Noto Sans KR",-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Apple SD Gothic Neo,"맑은 고딕","Malgun Gothic",sans-serif !important;
+}
+
+/* 3) 입력 필드 hover/focus 파랑 테두리 */
+.field:hover,
+.field:focus-within{
+  border-color:#0068FE !important;
+  box-shadow:0 0 0 4px rgba(0,104,254,.12) !important;
+}
+
+/* 4) 비밀번호 뷰어(눈) 아이콘: 배경 없음 */
+.toggle,
+.toggle:hover,
+.toggle:active,
+.toggle:focus{
+  background:transparent !important;
+}
+
+/* 5) 로그인 버튼 hover 색상 파랑 */
+.btn:hover,
+button[type="submit"]:hover{
+  background:#0068FE !important;
+}

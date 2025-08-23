@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 // import { Inter } from "next/font/google"; // Google Fonts 비활성화
 import "./globals.css";
+import "../styles/override.css"; // ← UI/CSS 오버라이드 (NotoSansKR Medium, 파랑 hover 등)
 // import "@/styles/sunlight-mode.css"; // Sunlight Mode CSS 비활성화
 // import "@/styles/font-optimization.css"; // 폰트 최적화 CSS 비활성화
 import { AuthProvider } from "@/providers/auth-provider";
@@ -104,11 +105,11 @@ export default function RootLayout({
                           }
                         }}
                       />
-                  </EnvironmentalProvider>
-                </SunlightModeProvider>
-              </ContrastModeProvider>
-            </TouchModeProvider>
-          </FontSizeProvider>
+                    </EnvironmentalProvider>
+                  </SunlightModeProvider>
+                </ContrastModeProvider>
+              </TouchModeProvider>
+            </FontSizeProvider>
           </ThemeProvider>
         </ErrorBoundary>
       </body>

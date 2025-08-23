@@ -85,7 +85,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               await fetchProfile(session.user.id)
               
               // Redirect based on role
-              if (profile) {
+              if (profile?.role) {
                 const redirectPath = profileManager.getRoleBasedRedirect(profile.role)
                 router.push(redirectPath)
               }
@@ -164,7 +164,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Check if user has required roles
   const canAccess = (requiredRoles: string[]): boolean => {
-    if (!profile) return false
+    if (!profile?.role) return false
     return requiredRoles.includes(profile.role)
   }
 

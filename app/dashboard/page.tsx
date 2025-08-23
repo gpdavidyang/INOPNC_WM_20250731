@@ -122,9 +122,9 @@ export default async function DashboardPage() {
   // Redirect based on role
   if (profile) {
     // admin@inopnc.com은 관리자 대시보드로 리다이렉트
-    if (profile.role === 'admin' || profile.role === 'system_admin') {
+    if (profile?.role === 'admin' || profile?.role === 'system_admin') {
       redirect('/dashboard/admin')
-    } else if (profile.role === 'customer_manager') {
+    } else if (profile?.role === 'customer_manager') {
       redirect('/partner/dashboard')
     }
   }

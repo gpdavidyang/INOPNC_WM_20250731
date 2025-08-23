@@ -23,7 +23,7 @@ export default async function PerformancePage() {
   }
 
   // Check if user has admin permissions
-  if (!['admin', 'system_admin'].includes(profile.role)) {
+  if (!profile?.role || !['admin', 'system_admin'].includes(profile.role)) {
     redirect('/dashboard')
   }
 

@@ -41,7 +41,7 @@ export default async function AttendancePage() {
     profileEmail: profile?.email
   })
 
-  const isPartnerCompany = profile.role === 'customer_manager'
+  const isPartnerCompany = profile?.role === 'customer_manager'
 
   return (
     <DashboardLayout 

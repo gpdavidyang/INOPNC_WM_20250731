@@ -23,7 +23,7 @@ export default async function NotificationAnalyticsPage() {
     .eq('id', user.id)
     .single()
 
-  if (!profile || !['admin', 'system_admin', 'site_manager'].includes(profile.role)) {
+  if (!profile?.role || !['admin', 'system_admin', 'site_manager'].includes(profile.role)) {
     redirect('/dashboard')
   }
 

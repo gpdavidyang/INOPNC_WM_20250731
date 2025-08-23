@@ -217,11 +217,11 @@ export default function DashboardLayout({ user, profile, children, initialActive
               <div>
                 <label className="text-sm font-medium text-gray-500 dark:text-gray-400">역할</label>
                 <p className="text-lg text-gray-900 dark:text-gray-100">
-                  {profile.role === 'worker' && '작업자'}
-                  {profile.role === 'site_manager' && '현장관리자'}
-                  {profile.role === 'customer_manager' && '파트너사'}
-                  {profile.role === 'admin' && '관리자'}
-                  {profile.role === 'system_admin' && '시스템관리자'}
+                  {profile?.role === 'worker' && '작업자'}
+                  {profile?.role === 'site_manager' && '현장관리자'}
+                  {profile?.role === 'customer_manager' && '파트너사'}
+                  {profile?.role === 'admin' && '관리자'}
+                  {profile?.role === 'system_admin' && '시스템관리자'}
                 </p>
               </div>
             </CardContent>

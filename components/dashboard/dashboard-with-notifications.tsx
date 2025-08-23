@@ -23,7 +23,7 @@ export default function DashboardWithNotifications({ user, profile, initialCurre
   })
 
   // 건설 현장 모드 결정 (작업자, 현장관리자에게 최적화된 UI 제공)
-  const useConstructionMode = profile.role === 'worker' || profile.role === 'site_manager'
+  const useConstructionMode = profile?.role === 'worker' || profile?.role === 'site_manager'
 
   return <DashboardLayout 
     user={user} 

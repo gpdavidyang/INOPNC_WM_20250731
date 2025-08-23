@@ -144,10 +144,10 @@ export function SharedDocuments({ profile, initialSearch }: SharedDocumentsProps
     try {
       const result = await getSharedDocuments({
         category: selectedCategory!,
-        userId: profile.id,
-        siteId: profile.site_id,
-        organizationId: profile.organization_id,
-        role: profile.role
+        userId: profile?.id,
+        siteId: profile?.site_id,
+        organizationId: profile?.organization_id,
+        role: profile?.role
       })
       
       if (result.success && result.data) {
@@ -206,9 +206,9 @@ export function SharedDocuments({ profile, initialSearch }: SharedDocumentsProps
   // Filter categories based on user access
   const accessibleCategories = sharedCategories.filter(category => {
     if (category.accessLevel === 'public') return true
-    if (category.accessLevel === 'site' && profile.site_id) return true
-    if (category.accessLevel === 'organization' && profile.organization_id) return true
-    if (category.accessLevel === 'role' && ['admin', 'site_manager'].includes(profile.role)) return true
+    if (category.accessLevel === 'site' && profile?.site_id) return true
+    if (category.accessLevel === 'organization' && profile?.organization_id) return true
+    if (category.accessLevel === 'role' && profile?.role && ['admin', 'site_manager'].includes(profile.role)) return true
     return false
   })
 
@@ -222,7 +222,7 @@ export function SharedDocuments({ profile, initialSearch }: SharedDocumentsProps
               공유문서함
             </h2>
             <Badge variant="secondary" className="text-xs">
-              {profile.role === 'admin' ? '관리자' : profile.role === 'site_manager' ? '현장소장' : '작업자'}
+              {profile?.role === 'admin' ? '관리자' : profile?.role === 'site_manager' ? '현장소장' : '작업자'}
             </Badge>
           </div>
         </div>

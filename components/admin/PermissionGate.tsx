@@ -18,14 +18,14 @@ export type AdminAction =
  * Check if user has system admin privileges
  */
 function isSystemAdmin(profile: Profile): boolean {
-  return profile.role === 'system_admin'
+  return profile?.role === 'system_admin'
 }
 
 /**
  * Check if user has admin privileges (admin or system_admin)
  */
 function isAdmin(profile: Profile): boolean {
-  return profile.role === 'admin' || profile.role === 'system_admin'
+  return profile?.role === 'admin' || profile?.role === 'system_admin'
 }
 
 /**
@@ -33,12 +33,12 @@ function isAdmin(profile: Profile): boolean {
  */
 function canPerformAdminAction(profile: Profile, action: AdminAction): boolean {
   // System admin can do everything
-  if (profile.role === 'system_admin') {
+  if (profile?.role === 'system_admin') {
     return true
   }
 
   // Regular admin restrictions
-  if (profile.role === 'admin') {
+  if (profile?.role === 'admin') {
     // Restricted actions for regular admin
     const systemAdminOnlyActions: AdminAction[] = [
       'manage_system_settings',

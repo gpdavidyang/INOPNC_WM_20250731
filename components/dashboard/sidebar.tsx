@@ -204,7 +204,7 @@ export default function Sidebar({ profile, activeTab, onTabChange, isOpen, onClo
 
   // 사용자 역할에 따른 메뉴 구성
   const getMenuItemsForRole = () => {
-    if (profile.role === 'admin' || profile.role === 'system_admin') {
+    if (profile?.role === 'admin' || profile?.role === 'system_admin') {
       // 본사 관리자는 관리자 전용 메뉴를 사용 (admin = 본사관리자/시스템관리자)
       return {
         mainMenuItems: adminMenuItems.filter(item => 
@@ -217,7 +217,7 @@ export default function Sidebar({ profile, activeTab, onTabChange, isOpen, onClo
       // 일반 사용자 (작업자, 현장관리자, 고객사)는 일반 메뉴를 사용
       return {
         mainMenuItems: generalUserMenuItems.filter(item => 
-          item.roles.includes(profile.role as UserRole)
+          profile?.role && item.roles.includes(profile.role as UserRole)
         ),
         systemMenuItems: []
       }
@@ -445,17 +445,17 @@ function SidebarContent({
             {profile.email}
           </p>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1" aria-label={`역할: ${
-            profile.role === 'worker' ? '작업자' :
-            profile.role === 'site_manager' ? '현장관리자' :
-            profile.role === 'customer_manager' ? '파트너사' :
-            profile.role === 'admin' ? '관리자' :
-            profile.role === 'system_admin' ? '시스템관리자' : profile.role
+            profile?.role === 'worker' ? '작업자' :
+            profile?.role === 'site_manager' ? '현장관리자' :
+            profile?.role === 'customer_manager' ? '파트너사' :
+            profile?.role === 'admin' ? '관리자' :
+            profile?.role === 'system_admin' ? '시스템관리자' : profile?.role || '알 수 없음'
           }`}>
-            {profile.role === 'worker' && '작업자'}
-            {profile.role === 'site_manager' && '현장관리자'}
-            {profile.role === 'customer_manager' && '파트너사'}
-            {profile.role === 'admin' && '관리자'}
-            {profile.role === 'system_admin' && '시스템관리자'}
+            {profile?.role === 'worker' && '작업자'}
+            {profile?.role === 'site_manager' && '현장관리자'}
+            {profile?.role === 'customer_manager' && '파트너사'}
+            {profile?.role === 'admin' && '관리자'}
+            {profile?.role === 'system_admin' && '시스템관리자'}
           </p>
         </section>
 

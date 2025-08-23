@@ -23,7 +23,7 @@ export default async function TestNotificationsRoute() {
     .eq('id', user.id)
     .single()
 
-  if (!profile || !['admin', 'system_admin'].includes(profile.role)) {
+  if (!profile?.role || !['admin', 'system_admin'].includes(profile.role)) {
     redirect('/dashboard')
   }
 

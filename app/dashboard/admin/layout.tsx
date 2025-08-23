@@ -24,7 +24,7 @@ export default async function AdminLayout({
     .single()
 
   // Only admin and system_admin can access
-  if (!profile || !['admin', 'system_admin'].includes(profile.role)) {
+  if (!profile?.role || !['admin', 'system_admin'].includes(profile.role)) {
     redirect('/dashboard')
   }
 

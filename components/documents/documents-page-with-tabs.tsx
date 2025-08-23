@@ -87,11 +87,11 @@ export function DocumentsPageWithTabs({ profile, searchParams }: DocumentsPageWi
         <div className="hidden sm:flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
           <div className="flex items-center gap-1">
             <Users className="h-4 w-4" />
-            {profile.role === 'worker' && '작업자'}
-            {profile.role === 'site_manager' && '현장관리자'}
-            {profile.role === 'customer_manager' && '파트너사'}
-            {profile.role === 'admin' && '관리자'}
-            {profile.role === 'system_admin' && '시스템관리자'}
+            {profile?.role === 'worker' && '작업자'}
+            {profile?.role === 'site_manager' && '현장관리자'}
+            {profile?.role === 'customer_manager' && '파트너사'}
+            {profile?.role === 'admin' && '관리자'}
+            {profile?.role === 'system_admin' && '시스템관리자'}
           </div>
         </div>
       </div>

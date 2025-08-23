@@ -30,7 +30,7 @@ async function getInitialData() {
   }
 
   // Check if user has access to analytics
-  if (!['admin', 'system_admin', 'site_manager'].includes(profile.role)) {
+  if (!profile?.role || !['admin', 'system_admin', 'site_manager'].includes(profile.role)) {
     redirect('/dashboard')
   }
 

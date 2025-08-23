@@ -257,7 +257,7 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
   return (
     <div className="space-y-4">
       {/* Work Log Creation Button - Primary CTA */}
-      {(profile.role === 'worker' || profile.role === 'site_manager') && (
+      {(profile?.role === 'worker' || profile?.role === 'site_manager') && (
         <Card className="bg-gradient-to-r from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 border-0 shadow-lg hover:shadow-xl transition-all duration-200">
           <CardContent className="p-3">
             <div className="flex items-center justify-between">
@@ -409,7 +409,7 @@ function HomeTab({ profile, onTabChange, onDocumentsSearch, initialCurrentSite, 
       {/* SimpleSiteInfo Component */}
       <SimpleSiteInfo 
         userId={profile.id}
-        userRole={profile.role}
+        userRole={profile?.role}
       />
 
       {/* Announcements Section */}

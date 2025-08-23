@@ -60,11 +60,11 @@ export default function WorkLogsTab({ profile }: WorkLogsTabProps) {
   const supabase = createClient()
   const router = useRouter()
   
-  const canCreate = ['worker', 'site_manager'].includes(profile.role)
+  const canCreate = profile?.role && ['worker', 'site_manager'].includes(profile.role)
 
   const loadWorkLogs = useCallback(async () => {
     try {
-      console.log('[WorkLogsTab] Loading work logs for user:', profile.role)
+      console.log('[WorkLogsTab] Loading work logs for user:', profile?.role)
       
       // Check if the browser client has a valid session
       const { data: { session }, error: sessionError } = await supabase.auth.getSession()
@@ -137,11 +137,11 @@ export default function WorkLogsTab({ profile }: WorkLogsTabProps) {
         .limit(50)
 
       // Apply role-based filtering
-      if (profile.role === 'worker') {
+      if (profile?.role === 'worker') {
         console.log('[WorkLogsTab] Applying worker filter for user:', profile.id)
         simpleQuery.eq('created_by', profile.id)
       } else {
-        console.log('[WorkLogsTab] No role filter applied - user role:', profile.role)
+        console.log('[WorkLogsTab] No role filter applied - user role:', profile?.role)
       }
 
       const { data, error } = await simpleQuery
@@ -172,7 +172,7 @@ export default function WorkLogsTab({ profile }: WorkLogsTabProps) {
           .limit(50)
         
         // Apply same role filtering to fallback
-        if (profile.role === 'worker') {
+        if (profile?.role === 'worker') {
           console.log('[WorkLogsTab] Fallback: Applying worker filter for user:', profile.id)
           // Note: This might not work if RLS is blocking access, but we try anyway
         }
@@ -228,7 +228,7 @@ export default function WorkLogsTab({ profile }: WorkLogsTabProps) {
       console.error('[WorkLogsTab] Unexpected error loading work logs:', error)
       setWorkLogs([])
     }
-  }, [profile.id, profile.role, supabase])
+  }, [profile.id, profile?.role, supabase])
 
   const loadSites = useCallback(async () => {
     try {

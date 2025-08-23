@@ -40,7 +40,7 @@ export default async function DailyReportsPage() {
   console.log('DailyReportsPage - sites query result:', { sites, sitesError })
 
   // Check if user can create reports
-  const canCreateReport = ['worker', 'site_manager', 'admin'].includes(profile.role)
+  const canCreateReport = profile?.role && ['worker', 'site_manager', 'admin'].includes(profile.role)
   
   return (
     <DailyReportsPageClient 

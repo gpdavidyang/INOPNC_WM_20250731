@@ -33,9 +33,9 @@ export default async function PartnerWorkLogDetail({ params }: PartnerWorkLogDet
   }
 
   // Verify user is a partner (customer_manager)
-  if (profile.role !== 'customer_manager') {
+  if (profile?.role !== 'customer_manager') {
     console.log('User is not a partner, redirecting to appropriate dashboard')
-    if (profile.role === 'admin' || profile.role === 'system_admin') {
+    if (profile?.role === 'admin' || profile?.role === 'system_admin') {
       redirect('/dashboard/admin')
     } else {
       redirect('/dashboard')

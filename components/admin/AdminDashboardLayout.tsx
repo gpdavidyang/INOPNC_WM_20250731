@@ -80,7 +80,7 @@ const menuCategories = [
       },
       {
         id: 'organizations',
-        label: '조직 관리',
+        label: '소속업체 관리',
         icon: Shield,
         href: '/dashboard/admin/organizations'
       },

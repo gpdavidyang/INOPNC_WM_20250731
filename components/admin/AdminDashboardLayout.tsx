@@ -15,7 +15,6 @@ import { useTouchMode } from '@/contexts/TouchModeContext'
 import GlobalSearch from '@/components/admin/GlobalSearch'
 
 interface AdminDashboardLayoutProps {
-  profile: Profile
   children: React.ReactNode
 }
 
@@ -56,15 +55,15 @@ const menuCategories = [
         href: '/dashboard/admin/daily-reports'
       },
       {
-        id: 'notifications',
-        label: '통합 알림 센터',
-        icon: Bell,
-        href: '/dashboard/admin/notifications'
+        id: 'approvals',
+        label: '승인 관리',
+        icon: FolderCheck,
+        href: '/dashboard/admin/approvals'
       }
     ]
   },
   {
-    id: 'hr',
+    id: 'accounts',
     label: '인사 관리',
     items: [
       {
@@ -74,21 +73,15 @@ const menuCategories = [
         href: '/dashboard/admin/users'
       },
       {
-        id: 'approvals',
-        label: '가입 요청 관리',
-        icon: UserPlus,
-        href: '/dashboard/admin/approvals'
-      },
-      {
         id: 'organizations',
-        label: '소속(거래처) 관리',
-        icon: Building2,
+        label: '조직 관리',
+        icon: Shield,
         href: '/dashboard/admin/organizations'
       },
       {
         id: 'partners',
         label: '파트너사 관리',
-        icon: Layers,
+        icon: UserPlus,
         href: '/dashboard/admin/partners'
       },
       {
@@ -100,42 +93,78 @@ const menuCategories = [
     ]
   },
   {
-    id: 'documents',
-    label: '문서 관리',
+    id: 'resources',
+    label: '자원 관리',
     items: [
+      {
+        id: 'materials',
+        label: '자재 관리',
+        icon: Package,
+        href: '/dashboard/admin/materials'
+      },
       {
         id: 'documents',
         label: '문서함 관리',
-        icon: FolderCheck,
+        icon: Layers,
         href: '/dashboard/admin/documents'
       },
       {
-        id: 'communication',
-        label: '커뮤니케이션 관리',
-        icon: MessageSquare,
-        href: '/dashboard/admin/communication'
+        id: 'markup',
+        label: '도면 마킹',
+        icon: FileText,
+        href: '/dashboard/admin/markup'
+      },
+      {
+        id: 'photo-grid-reports',
+        label: '사진대지',
+        icon: FileText,
+        href: '/dashboard/admin/photo-grid-reports'
       }
     ]
   },
   {
-    id: 'materials',
-    label: '자재/재고',
+    id: 'communication',
+    label: '소통',
     items: [
       {
-        id: 'materials',
-        label: 'NPC-1000 자재 관리',
-        icon: Package,
-        href: '/dashboard/admin/materials'
+        id: 'notifications',
+        label: '알림 관리',
+        icon: Bell,
+        href: '/dashboard/admin/notifications'
+      },
+      {
+        id: 'communication',
+        label: '커뮤니케이션',
+        icon: MessageSquare,
+        href: '/dashboard/admin/communication'
       }
     ]
   }
 ]
 
-// 시스템 관리 카테고리 (admin과 system_admin만 접근 가능)
+// 시스템 카테고리 (admin/system_admin만 접근 가능)
 const systemCategory = {
   id: 'system',
   label: '시스템',
   items: [
+    {
+      id: 'system',
+      label: '시스템 설정',
+      icon: Settings,
+      href: '/dashboard/admin/system'
+    },
+    {
+      id: 'account',
+      label: '계정 설정',
+      icon: Key,
+      href: '/dashboard/admin/account'
+    },
+    {
+      id: 'monitoring',
+      label: '시스템 모니터링',
+      icon: Shield,
+      href: '/dashboard/admin/monitoring'
+    },
     {
       id: 'audit-logs',
       label: '감사 로그',
@@ -143,51 +172,35 @@ const systemCategory = {
       href: '/dashboard/admin/audit-logs'
     },
     {
-      id: 'system',
-      label: '시스템 관리',
-      icon: Settings,
-      href: '/dashboard/admin/system'
+      id: 'backup',
+      label: '백업 관리',
+      icon: Shield,
+      href: '/dashboard/admin/backup'
+    },
+    {
+      id: 'signup-requests',
+      label: '가입 요청 관리',
+      icon: UserPlus,
+      href: '/dashboard/admin/signup-requests'
     }
   ]
 }
 
-export default function AdminDashboardLayout({ profile, children }: AdminDashboardLayoutProps) {
+// Helper function to get typography class
+function getTypographyClass(type: string, size: string = 'base', isLargeFont: boolean = false): string {
+  return getFullTypographyClass(type, size, isLargeFont)
+}
+
+// Sidebar component
+function Sidebar({ profile, pathname, onItemClick }: {
+  profile?: Profile | null
+  pathname: string
+  onItemClick?: () => void
+}) {
   const router = useRouter()
-  const pathname = usePathname()
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-  const [isDarkMode, setIsDarkMode] = useState(false)
-  const [showUserMenu, setShowUserMenu] = useState(false)
-  const userMenuRef = useRef<HTMLDivElement>(null)
   const { isLargeFont } = useFontSize()
   const { touchMode } = useTouchMode()
-
-  // Initialize theme - Always use light mode for admin
-  useEffect(() => {
-    // Force light mode for admin/system_admin
-    setIsDarkMode(false)
-    document.documentElement.classList.remove('dark')
-    localStorage.setItem('theme', 'light')
-  }, [])
-
-  // Toggle theme function - Disabled for admin
-  // Admin users always use light mode
-  const toggleTheme = () => {
-    // Do nothing - theme toggle is disabled for admin users
-    return
-  }
-
-  // Handle click outside for user menu
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
-        setShowUserMenu(false)
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
-
+  
   const handleLogout = async () => {
     try {
       const result = await signOut()
@@ -208,193 +221,51 @@ export default function AdminDashboardLayout({ profile, children }: AdminDashboa
     : menuCategories
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Mobile sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-gray-800 shadow-lg transform transition-transform duration-200 ease-in-out lg:hidden ${
-        isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      }`}>
-        <div className="flex h-full flex-col">
-          <div className={`flex items-center justify-between ${
-            touchMode === 'glove' ? 'px-5 py-5' : touchMode === 'precision' ? 'px-3 py-3' : 'px-4 py-4'
-          } border-b border-gray-200 dark:border-gray-700`}>
-            <div className="flex items-center">
-              <Shield className="h-8 w-8 text-red-600 mr-3" />
-              <span className={`${getFullTypographyClass('heading', 'lg', isLargeFont)} font-semibold text-gray-900 dark:text-gray-100`}>시스템 관리자</span>
-            </div>
-            <button 
-              onClick={() => setIsSidebarOpen(false)} 
-              className={`text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 ${
-                touchMode === 'glove' ? 'p-3' : touchMode === 'precision' ? 'p-1.5' : 'p-2'
-              } rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors`}
-            >
-              <X className="h-6 w-6" />
-            </button>
-          </div>
-          <SidebarContent 
-            profile={profile}
-            menuCategories={allCategories}
-            pathname={pathname}
-            handleLogout={handleLogout}
-            onItemClick={() => setIsSidebarOpen(false)}
-            isLargeFont={isLargeFont}
-            touchMode={touchMode}
-          />
-        </div>
-      </div>
-
-      {/* Desktop sidebar */}
-      <div className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-50 lg:block lg:w-72 lg:bg-white lg:dark:bg-gray-800 lg:shadow-lg">
-        <div className="flex h-full flex-col">
-          <div className={`flex items-center ${
-            touchMode === 'glove' ? 'px-5 py-5' : touchMode === 'precision' ? 'px-3 py-3' : 'px-4 py-4'
-          } border-b border-gray-200 dark:border-gray-700`}>
-            <Shield className="h-8 w-8 text-red-600 mr-3" />
-            <span className={`${getFullTypographyClass('heading', 'lg', isLargeFont)} font-semibold text-gray-900 dark:text-gray-100`}>시스템 관리자</span>
-          </div>
-          <SidebarContent 
-            profile={profile}
-            menuCategories={allCategories}
-            pathname={pathname}
-            handleLogout={handleLogout}
-            onItemClick={() => {}}
-            isLargeFont={isLargeFont}
-            touchMode={touchMode}
-          />
-        </div>
-      </div>
-
-      {/* Main content */}
-      <div className="lg:pl-72">
-        {/* Top header */}
-        <div className="sticky top-0 z-40 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-          <div className={`${
-            touchMode === 'glove' ? 'px-5 sm:px-7 lg:px-9' : touchMode === 'precision' ? 'px-3 sm:px-5 lg:px-7' : 'px-4 sm:px-6 lg:px-8'
-          }`}>
-            <div className={`flex items-center justify-between ${
-              touchMode === 'glove' ? 'h-20' : touchMode === 'precision' ? 'h-14' : 'h-16'
-            }`}>
-              <button
-                onClick={() => setIsSidebarOpen(true)}
-                className={`text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 lg:hidden ${
-                  touchMode === 'glove' ? 'p-3' : touchMode === 'precision' ? 'p-1.5' : 'p-2'
-                }`}
-              >
-                <Menu className="h-6 w-6" />
-              </button>
-              
-              <div className="flex-1" />
-              
-              <div className="flex items-center gap-4">
-                <GlobalSearch />
-                
-                {/* Theme Toggle Button - Hidden for admin users */}
-                {/* Dark mode is disabled for admin/system_admin roles */}
-                
-                {/* User Menu Dropdown */}
-                <div className="relative" ref={userMenuRef}>
-                  <button
-                    onClick={() => setShowUserMenu(!showUserMenu)}
-                    className={`flex items-center gap-2 ${
-                      touchMode === 'glove' ? 'px-4 py-2' : touchMode === 'precision' ? 'px-2.5 py-1' : 'px-3 py-1.5'
-                    } rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors`}
-                  >
-                    <div className="text-right">
-                      <div className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-700 dark:text-gray-300`}>
-                        {profile?.full_name}
-                      </div>
-                      <div className={`${getFullTypographyClass('caption', 'xs', isLargeFont)} text-gray-500 dark:text-gray-400`}>
-                        {profile?.role === 'system_admin' ? '시스템 관리자' : '관리자'}
-                      </div>
-                    </div>
-                    <ChevronDown className={`h-4 w-4 text-gray-500 transition-transform ${showUserMenu ? 'rotate-180' : ''}`} />
-                  </button>
-                  
-                  {/* Dropdown Menu */}
-                  {showUserMenu && (
-                    <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
-                      <Link
-                        href="/dashboard/admin/account"
-                        onClick={() => setShowUserMenu(false)}
-                        className={`flex items-center gap-3 ${
-                          touchMode === 'glove' ? 'px-5 py-3' : touchMode === 'precision' ? 'px-3 py-2' : 'px-4 py-2.5'
-                        } hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors`}
-                      >
-                        <User className="h-4 w-4 text-gray-500" />
-                        <span className={getFullTypographyClass('body', 'sm', isLargeFont)}>계정 설정</span>
-                      </Link>
-                      
-                      <Link
-                        href="/dashboard/admin/account"
-                        onClick={() => setShowUserMenu(false)}
-                        className={`flex items-center gap-3 ${
-                          touchMode === 'glove' ? 'px-5 py-3' : touchMode === 'precision' ? 'px-3 py-2' : 'px-4 py-2.5'
-                        } hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors`}
-                      >
-                        <Key className="h-4 w-4 text-gray-500" />
-                        <span className={getFullTypographyClass('body', 'sm', isLargeFont)}>비밀번호 변경</span>
-                      </Link>
-                      
-                      <div className="border-t border-gray-200 dark:border-gray-700 my-1"></div>
-                      
-                      <button
-                        onClick={() => {
-                          setShowUserMenu(false)
-                          handleLogout()
-                        }}
-                        className={`flex items-center gap-3 w-full ${
-                          touchMode === 'glove' ? 'px-5 py-3' : touchMode === 'precision' ? 'px-3 py-2' : 'px-4 py-2.5'
-                        } hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-red-600 dark:text-red-400`}
-                      >
-                        <LogOut className="h-4 w-4" />
-                        <span className={getFullTypographyClass('body', 'sm', isLargeFont)}>로그아웃</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
+    <div className="flex flex-col h-full bg-white shadow-xl">
+      {/* Logo and user info */}
+      <div className={`${
+        touchMode === 'glove' ? 'p-5' : touchMode === 'precision' ? 'p-3' : 'p-4'
+      } border-b border-gray-200`}>
+        <div className="flex items-center mb-4">
+          <Shield className="h-8 w-8 text-red-600 mr-3" />
+          <div>
+            <h2 className={`${getTypographyClass('header', 'sm', isLargeFont)} font-bold text-gray-900`}>
+              시스템 관리자
+            </h2>
+            <p className={`${getTypographyClass('caption', 'xs', isLargeFont)} text-gray-500`}>
+              Admin Dashboard
+            </p>
           </div>
         </div>
-
-        {/* Page content */}
-        <main>
-          {children}
-        </main>
-      </div>
-    </div>
-  )
-}
-
-function SidebarContent({ 
-  profile, 
-  menuCategories, 
-  pathname,
-  handleLogout,
-  onItemClick,
-  isLargeFont,
-  touchMode
-}: any) {
-  return (
-    <div className="flex-1 flex flex-col overflow-y-auto">
-      <div className="flex-1 px-3 py-4">
+        
         {/* User info */}
-        <div className={`mb-4 ${
-          touchMode === 'glove' ? 'px-5 py-4' : touchMode === 'precision' ? 'px-3 py-2' : 'px-4 py-3'
-        } bg-gray-50 rounded-lg mx-3`}>
-          <p className={`${getFullTypographyClass('body', 'sm', isLargeFont)} font-medium text-gray-900 dark:text-gray-100 truncate`}>{profile?.full_name}</p>
-          <p className={`${getFullTypographyClass('caption', 'xs', isLargeFont)} text-gray-500 dark:text-gray-400 truncate`}>{profile?.email}</p>
-          <p className={`${getFullTypographyClass('caption', 'xs', isLargeFont)} text-gray-500 dark:text-gray-400 mt-1`}>
-            {profile?.role === 'admin' ? '관리자' : '시스템 관리자'}
-          </p>
-        </div>
+        {profile && (
+          <div className="bg-gray-50 rounded-lg p-3">
+            <p className={`${getTypographyClass('body', 'sm', isLargeFont)} font-medium text-gray-900`}>
+              {profile.name || profile.email}
+            </p>
+            <p className={`${getTypographyClass('caption', 'xs', isLargeFont)} text-gray-500`}>
+              {profile.role === 'admin' ? '본사관리자' : '시스템관리자'}
+            </p>
+          </div>
+        )}
+      </div>
 
-        {/* Navigation with categories */}
-        <nav className="space-y-3">
-          {menuCategories.map((category: any, categoryIndex: number) => (
+      {/* Search */}
+      <div className={`${
+        touchMode === 'glove' ? 'px-5 py-3' : touchMode === 'precision' ? 'px-3 py-2' : 'px-4 py-3'
+      } border-b border-gray-200`}>
+        <GlobalSearch />
+      </div>
+
+      {/* Navigation */}
+      <div className="flex-1 overflow-y-auto py-3">
+        <nav className="space-y-3 px-2">
+          {allCategories.map((category: any, categoryIndex: number) => (
             <div key={category.id}>
               {/* Category label */}
               {category.label && (
-                <h3 className={`mx-3 mb-2 ${getFullTypographyClass('caption', 'xs', isLargeFont)} font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider`}>
+                <h3 className={`px-3 mb-2 ${getTypographyClass('overline', 'xs', isLargeFont)} font-semibold text-gray-500 uppercase tracking-wider`}>
                   {category.label}
                 </h3>
               )}
@@ -412,10 +283,10 @@ function SidebarContent({
                       onClick={onItemClick}
                       className={`flex items-center ${
                         touchMode === 'glove' ? 'px-5 py-3' : touchMode === 'precision' ? 'px-3 py-1.5' : 'px-4 py-2'
-                      } ${getFullTypographyClass('body', 'sm', isLargeFont)} font-medium rounded-md transition-colors ${
+                      } ${getTypographyClass('body', 'sm', isLargeFont)} font-medium rounded-md transition-colors ${
                         isActive
-                          ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300'
-                          : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700'
+                          ? 'bg-red-50 text-red-700'
+                          : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
                       }`}
                     >
                       <Icon className="mr-3 h-5 w-5" />
@@ -426,7 +297,7 @@ function SidebarContent({
               </div>
               
               {/* Divider between categories (except for the last one) */}
-              {categoryIndex < menuCategories.length - 1 && (
+              {categoryIndex < allCategories.length - 1 && (
                 <div className="mt-3 mb-3 border-t border-gray-200 mx-3" />
               )}
             </div>
@@ -437,16 +308,180 @@ function SidebarContent({
       {/* Logout button */}
       <div className={`${
         touchMode === 'glove' ? 'p-5' : touchMode === 'precision' ? 'p-3' : 'p-4'
-      } border-t border-gray-200 dark:border-gray-700`}>
+      } border-t border-gray-200`}>
         <button
           onClick={handleLogout}
           className={`w-full flex items-center justify-center ${
             touchMode === 'glove' ? 'px-5 py-4' : touchMode === 'precision' ? 'px-3 py-2' : 'px-4 py-3'
-          } border border-gray-300 dark:border-gray-600 rounded-md shadow-sm ${getFullTypographyClass('button', 'base', isLargeFont)} font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors`}
+          } border border-gray-300 rounded-md shadow-sm ${getTypographyClass('button', 'base', isLargeFont)} font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors`}
         >
           <LogOut className="mr-2 h-4 w-4" />
           로그아웃
         </button>
+      </div>
+    </div>
+  )
+}
+
+export default function AdminDashboardLayout({ children }: AdminDashboardLayoutProps) {
+  const router = useRouter()
+  const pathname = usePathname()
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const [isDarkMode, setIsDarkMode] = useState(false)
+  const [showUserMenu, setShowUserMenu] = useState(false)
+  const [profile, setProfile] = useState<Profile | null>(null)
+  const userMenuRef = useRef<HTMLDivElement>(null)
+  const { isLargeFont } = useFontSize()
+  const { touchMode } = useTouchMode()
+
+  // Initialize theme - Always use light mode for admin
+  useEffect(() => {
+    // Force light mode for admin/system_admin
+    setIsDarkMode(false)
+    document.documentElement.classList.remove('dark')
+    localStorage.setItem('theme', 'light')
+  }, [])
+
+  // Fetch profile
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await fetch('/api/admin/profile')
+        if (response.ok) {
+          const data = await response.json()
+          setProfile(data)
+        }
+      } catch (error) {
+        console.error('Error fetching profile:', error)
+      }
+    }
+    fetchProfile()
+  }, [])
+
+  // Handle click outside for user menu
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setShowUserMenu(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const handleLogout = async () => {
+    try {
+      const result = await signOut()
+      if (result.success) {
+        window.location.href = '/auth/login'
+      } else if (result.error) {
+        console.error('Logout error:', result.error)
+      }
+    } catch (error) {
+      console.error('Logout error:', error)
+      window.location.href = '/auth/login'
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Mobile sidebar */}
+      <div className={`fixed inset-y-0 left-0 z-50 w-72 transform transition-transform duration-200 ease-in-out lg:hidden ${
+        isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+      }`}>
+        <Sidebar 
+          profile={profile} 
+          pathname={pathname} 
+          onItemClick={() => setIsSidebarOpen(false)} 
+        />
+      </div>
+
+      {/* Mobile sidebar backdrop */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
+      {/* Desktop sidebar */}
+      <div className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:flex lg:w-72 lg:flex-col">
+        <Sidebar profile={profile} pathname={pathname} />
+      </div>
+
+      {/* Main content area - lg:pl-72로 사이드바 너비만큼 패딩 */}
+      <div className="lg:pl-72">
+        {/* Top header */}
+        <header className="sticky top-0 z-30 bg-white shadow-sm">
+          <div className="flex items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+            {/* Mobile menu button */}
+            <button
+              type="button"
+              className="lg:hidden -ml-0.5 -mt-0.5 inline-flex h-12 w-12 items-center justify-center rounded-md text-gray-500 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-red-500"
+              onClick={() => setIsSidebarOpen(true)}
+            >
+              <span className="sr-only">Open sidebar</span>
+              <Menu className="h-6 w-6" />
+            </button>
+
+            {/* Page title */}
+            <h1 className={`${getTypographyClass('header', 'lg', isLargeFont)} font-semibold text-gray-900`}>
+              {pathname === '/dashboard/admin' ? '관리자 대시보드' : 
+               pathname.includes('users') ? '사용자 관리' :
+               pathname.includes('sites') ? '현장 관리' :
+               pathname.includes('daily-reports') ? '작업일지 관리' :
+               pathname.includes('documents') ? '문서함 관리' :
+               pathname.includes('analytics') ? '분석 대시보드' :
+               pathname.includes('notifications') ? '알림 관리' :
+               pathname.includes('system') ? '시스템 설정' :
+               '관리자 페이지'}
+            </h1>
+
+            {/* Right side actions */}
+            <div className="flex items-center space-x-4">
+              {/* User menu */}
+              <div className="relative" ref={userMenuRef}>
+                <button
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  className="flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                >
+                  <span className="sr-only">Open user menu</span>
+                  <div className="h-8 w-8 rounded-full bg-red-600 flex items-center justify-center">
+                    <User className="h-5 w-5 text-white" />
+                  </div>
+                  <ChevronDown className="ml-2 h-4 w-4 text-gray-500" />
+                </button>
+
+                {/* Dropdown menu */}
+                {showUserMenu && (
+                  <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
+                    <div className="py-1">
+                      <Link
+                        href="/dashboard/admin/account"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        계정 설정
+                      </Link>
+                      <button
+                        onClick={handleLogout}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        로그아웃
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Page content */}
+        <main className="py-6">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            {children}
+          </div>
+        </main>
       </div>
     </div>
   )

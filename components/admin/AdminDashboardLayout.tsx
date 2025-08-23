@@ -3,7 +3,7 @@
 import { Profile } from '@/types'
 import { 
   Shield, Menu, X, Home, Users, Building2, FolderCheck, 
-  DollarSign, Package, Layers, Settings, LogOut, BarChart3, Bell, Sun, Moon,
+  DollarSign, Package, Layers, Settings, LogOut, BarChart3, Bell,
   ChevronDown, User, Key, UserPlus, FileText, MessageSquare
 } from 'lucide-react'
 import { useRouter, usePathname } from 'next/navigation'
@@ -155,32 +155,19 @@ export default function AdminDashboardLayout({ profile, children }: AdminDashboa
   const { isLargeFont } = useFontSize()
   const { touchMode } = useTouchMode()
 
-  // Initialize theme from localStorage or system preference
+  // Initialize theme - Always use light mode for admin
   useEffect(() => {
-    const storedTheme = localStorage.getItem('theme')
-    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-    
-    if (storedTheme === 'dark' || (!storedTheme && systemPrefersDark)) {
-      setIsDarkMode(true)
-      document.documentElement.classList.add('dark')
-    } else {
-      setIsDarkMode(false)
-      document.documentElement.classList.remove('dark')
-    }
+    // Force light mode for admin/system_admin
+    setIsDarkMode(false)
+    document.documentElement.classList.remove('dark')
+    localStorage.setItem('theme', 'light')
   }, [])
 
-  // Toggle theme function
+  // Toggle theme function - Disabled for admin
+  // Admin users always use light mode
   const toggleTheme = () => {
-    const newTheme = !isDarkMode
-    setIsDarkMode(newTheme)
-    
-    if (newTheme) {
-      document.documentElement.classList.add('dark')
-      localStorage.setItem('theme', 'dark')
-    } else {
-      document.documentElement.classList.remove('dark')
-      localStorage.setItem('theme', 'light')
-    }
+    // Do nothing - theme toggle is disabled for admin users
+    return
   }
 
   // Handle click outside for user menu
@@ -294,21 +281,8 @@ export default function AdminDashboardLayout({ profile, children }: AdminDashboa
               <div className="flex items-center gap-4">
                 <GlobalSearch />
                 
-                {/* Theme Toggle Button */}
-                <button
-                  onClick={toggleTheme}
-                  className={`${
-                    touchMode === 'glove' ? 'p-3' : touchMode === 'precision' ? 'p-1.5' : 'p-2'
-                  } rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300`}
-                  aria-label={isDarkMode ? '라이트 모드로 전환' : '다크 모드로 전환'}
-                  title={isDarkMode ? '라이트 모드로 전환' : '다크 모드로 전환'}
-                >
-                  {isDarkMode ? (
-                    <Sun className="h-5 w-5" />
-                  ) : (
-                    <Moon className="h-5 w-5" />
-                  )}
-                </button>
+                {/* Theme Toggle Button - Hidden for admin users */}
+                {/* Dark mode is disabled for admin/system_admin roles */}
                 
                 {/* User Menu Dropdown */}
                 <div className="relative" ref={userMenuRef}>

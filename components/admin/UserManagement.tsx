@@ -53,6 +53,14 @@ export default function UserManagement({ profile }: UserManagementProps) {
     setError(null)
     
     try {
+      console.log('[UserManagement] Loading users with params:', {
+        currentPage,
+        pageSize,
+        searchTerm,
+        roleFilter,
+        statusFilter
+      })
+      
       const result = await getUsers(
         currentPage,
         pageSize,
@@ -61,14 +69,19 @@ export default function UserManagement({ profile }: UserManagementProps) {
         statusFilter || undefined
       )
       
+      console.log('[UserManagement] GetUsers result:', result)
+      
       if (result.success && result.data) {
+        console.log('[UserManagement] Users loaded:', result.data.users.length, 'total:', result.data.total)
         setUsers(result.data.users)
         setTotalCount(result.data.total)
         setTotalPages(result.data.pages)
       } else {
+        console.error('[UserManagement] Failed to load users:', result.error)
         setError(result.error || '사용자 데이터를 불러오는데 실패했습니다.')
       }
     } catch (err) {
+      console.error('[UserManagement] Error loading users:', err)
       setError('사용자 데이터를 불러오는데 실패했습니다.')
     } finally {
       setLoading(false)

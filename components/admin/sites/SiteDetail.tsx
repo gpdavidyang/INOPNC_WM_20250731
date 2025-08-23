@@ -50,13 +50,13 @@ interface SiteAssignment {
 
 interface DailyReport {
   id: string
-  title: string
+  member_name: string
+  process_type: string
   work_date: string
   status: string
+  total_workers: number
+  issues?: string
   created_at: string
-  profile: {
-    full_name: string
-  }
 }
 
 interface SiteDetailProps {
@@ -111,11 +111,13 @@ export default function SiteDetail({ siteId, onClose, onEdit }: SiteDetailProps)
         .from('daily_reports')
         .select(`
           id,
-          title,
+          member_name,
+          process_type,
           work_date,
           status,
-          created_at,
-          profile:profiles(full_name)
+          total_workers,
+          issues,
+          created_at
         `)
         .eq('site_id', siteId)
         .order('work_date', { ascending: false })
@@ -451,7 +453,7 @@ export default function SiteDetail({ siteId, onClose, onEdit }: SiteDetailProps)
                       <div className="flex items-center justify-between">
                         <div>
                           <h4 className="font-medium text-gray-900 dark:text-gray-100">
-                            {report.title}
+                            {report.member_name} - {report.process_type}
                           </h4>
                           <div className="flex items-center gap-4 mt-1 text-sm text-gray-600 dark:text-gray-400">
                             <div className="flex items-center gap-1">
@@ -459,10 +461,15 @@ export default function SiteDetail({ siteId, onClose, onEdit }: SiteDetailProps)
                               {format(new Date(report.work_date), 'yyyy.MM.dd (E)', { locale: ko })}
                             </div>
                             <div className="flex items-center gap-1">
-                              <User className="h-4 w-4" />
-                              {report.profile.full_name}
+                              <Users className="h-4 w-4" />
+                              작업인원 {report.total_workers}명
                             </div>
                           </div>
+                          {report.issues && (
+                            <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                              {report.issues}
+                            </p>
+                          )}
                         </div>
                         <div className="flex items-center gap-2">
                           {getStatusBadge(report.status)}

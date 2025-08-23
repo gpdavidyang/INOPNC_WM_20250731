@@ -12,7 +12,7 @@ import {
   User,
   Building,
   BarChart3,
-  ArrowDownTrayIcon,
+  Download as ArrowDownTrayIcon,
   Plus,
   RefreshCw
 } from 'lucide-react'

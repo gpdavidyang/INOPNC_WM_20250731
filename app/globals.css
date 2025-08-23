@@ -44,6 +44,35 @@
   }
 }
 
+/* Force mobile navigation to stay at bottom */
+@media (max-width: 768px) {
+  /* Ensure body doesn't overflow */
+  body {
+    position: fixed;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+  }
+  
+  /* Make root container scrollable */
+  #__next {
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  /* Force bottom nav to stay visible */
+  nav[class*="fixed bottom-0"] {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 9999 !important;
+    transform: translateZ(0) !important;
+  }
+}
+
 /* WCAG 2.1 Color and Contrast System */
 
 /* 

@@ -24,13 +24,11 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   
-  // DISABLE SWC minification to prevent quality degradation
-  swcMinify: false, // Disabled to maintain visual quality
-  // 프로덕션 빌드 품질 개선을 위한 추가 설정
-  productionBrowserSourceMaps: process.env.NODE_ENV === 'production' && process.env.ENABLE_SOURCE_MAPS === 'true',
+  // Enable SWC for build but disable aggressive minification
+  swcMinify: true, // Required for build
   
-  // DISABLE compression to prevent quality loss
-  compress: false, // Disabled - CDN transformation prevention
+  // Enable compression for deployment
+  compress: true, // Required for Vercel
   poweredByHeader: false,
   generateEtags: true, // 캐싱 최적화
   onDemandEntries: {
@@ -38,16 +36,14 @@ const nextConfig = {
     pagesBufferLength: 2,
   },
   
-  // Webpack configuration - DISABLE aggressive optimization
+  // Webpack configuration - balanced optimization
   webpack: (config, { buildId, dev, isServer, defaultLoaders, nextRuntime, webpack }) => {
     if (!dev) {
-      // REDUCE optimization to prevent quality loss
-      config.optimization.minimize = false; // Disable minification
+      // Use balanced optimization settings
+      config.optimization.minimize = true; // Enable for deployment
       
-      // DISABLE CSS extraction optimization
-      config.plugins = config.plugins.filter(
-        (plugin) => plugin.constructor.name !== 'CssMinimizerPlugin'
-      );
+      // Keep CSS optimization enabled
+      // config.plugins remain unchanged
       
       // DISABLE Terser minification
       if (config.optimization.minimizer) {
@@ -89,13 +85,7 @@ const nextConfig = {
     // Instrumentation hook 완전 비활성화 (성능 향상)
     instrumentationHook: false,
     
-    // DISABLE CSS optimization to prevent style loss
-    optimizeCss: false,
-    
-    // DISABLE server minification
-    serverMinification: false,
-    
-    // DISABLE font fallback adjustments
+    // Font optimization disabled for quality
     adjustFontFallbacks: false,
   },
   
@@ -115,8 +105,8 @@ const nextConfig = {
   
   // CRITICAL: Disable image optimization to prevent color/quality degradation
   images: {
-    // REMOVE AVIF/WebP to prevent color space issues
-    formats: ['image/png', 'image/jpeg'], // Original formats only
+    // Use WebP format for Next.js compatibility (will be ignored with unoptimized: true)
+    formats: ['image/webp'], // Required format for Next.js
     domains: ['localhost', 'yjtnpscnnsnvfsyvajku.supabase.co'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],

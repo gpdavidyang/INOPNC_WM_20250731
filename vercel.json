@@ -62,10 +62,7 @@
   ],
   "env": {
     "NODE_ENV": "production",
-    "NEXT_TELEMETRY_DISABLED": "1",
-    "NEXT_OPTIMIZE_IMAGES": "false",
-    "NEXT_OPTIMIZE_CSS": "false",
-    "NEXT_OPTIMIZE_FONTS": "false"
+    "NEXT_TELEMETRY_DISABLED": "1"
   },
   "functions": {
     "app/api/**": {
@@ -78,10 +75,5 @@
     "sizes": [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     "domains": ["localhost", "yjtnpscnnsnvfsyvajku.supabase.co"],
     "unoptimized": true
-  },
-  "build": {
-    "env": {
-      "DISABLE_OPTIMIZATIONS": "true"
-    }
   }
 }

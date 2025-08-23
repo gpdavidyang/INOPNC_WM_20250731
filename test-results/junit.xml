@@ -1,12 +1,14 @@
-<testsuites id="" name="" tests="5" failures="5" skipped="0" errors="0" time="38.755589">
-<testsuite name="manager-navigation.spec.ts" timestamp="2025-08-23T01:56:40.932Z" hostname="chromium" tests="5" failures="5" skipped="0" time="87.899" errors="0">
-<testcase name="현장 관리자 네비게이션 테스트 › 데스크톱 사이드바 네비게이션 테스트" classname="manager-navigation.spec.ts" time="18.469">
+<testsuites id="" name="" tests="5" failures="3" skipped="0" errors="0" time="44.885613000000006">
+<testsuite name="manager-navigation.spec.ts" timestamp="2025-08-23T02:28:06.424Z" hostname="chromium" tests="5" failures="3" skipped="0" time="80.989" errors="0">
+<testcase name="현장 관리자 네비게이션 테스트 › 데스크톱 사이드바 네비게이션 테스트" classname="manager-navigation.spec.ts" time="11.766">
 <failure message="manager-navigation.spec.ts:23:7 데스크톱 사이드바 네비게이션 테스트" type="FAILURE">
 <![CDATA[  [chromium] › manager-navigation.spec.ts:23:7 › 현장 관리자 네비게이션 테스트 › 데스크톱 사이드바 네비게이션 테스트 ────────────
 
-    TimeoutError: page.fill: Timeout 15000ms exceeded.
+    Error: page.fill: Target page, context or browser has been closed
     Call log:
       - waiting for locator('input[name="email"]')
+        - waiting for" http://localhost:3000/auth/login" navigation to finish...
+        - navigated to "http://localhost:3000/auth/login"
 
 
       11 |     
@@ -18,15 +20,20 @@
       16 |     
         at /Users/davidyang/workspace/INOPNC_WM_20250731/e2e/manager-navigation.spec.ts:13:16
 
-    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    ../test-results/manager-navigation-현장-관리자-네비게이션-테스트-데스크톱-사이드바-네비게이션-테스트-chromium/test-failed-1.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
+    Error: page.screenshot: Target page, context or browser has been closed
 
-    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+      228 |     // 스크린샷 저장 (실패 시)
+      229 |     if (test.info().status !== test.info().expectedStatus) {
+    > 230 |       await page.screenshot({ 
+          |                  ^
+      231 |         path: `test-results/manager-nav-${Date.now()}.png`,
+      232 |         fullPage: true 
+      233 |       });
+        at /Users/davidyang/workspace/INOPNC_WM_20250731/e2e/manager-navigation.spec.ts:230:18
+
+    attachment #1: video (video/webm) ──────────────────────────────────────────────────────────────
     ../test-results/manager-navigation-현장-관리자-네비게이션-테스트-데스크톱-사이드바-네비게이션-테스트-chromium/video.webm
     ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: ../test-results/manager-navigation-현장-관리자-네비게이션-테스트-데스크톱-사이드바-네비게이션-테스트-chromium/error-context.md
 ]]>
 </failure>
 <system-out>
@@ -35,76 +42,55 @@
 ==================================================
 📊 현장 관리자 네비게이션 테스트 완료
 ==================================================
-
-[[ATTACHMENT|manager-navigation-현장-관리자-네비게이션-테스트-데스크톱-사이드바-네비게이션-테스트-chromium/test-failed-1.png]]
 
 [[ATTACHMENT|manager-navigation-현장-관리자-네비게이션-테스트-데스크톱-사이드바-네비게이션-테스트-chromium/video.webm]]
-
-[[ATTACHMENT|manager-navigation-현장-관리자-네비게이션-테스트-데스크톱-사이드바-네비게이션-테스트-chromium/error-context.md]]
 ]]>
 </system-out>
 </testcase>
-<testcase name="현장 관리자 네비게이션 테스트 › 모바일 하단바 네비게이션 테스트" classname="manager-navigation.spec.ts" time="16.709">
-<failure message="manager-navigation.spec.ts:75:7 모바일 하단바 네비게이션 테스트" type="FAILURE">
-<![CDATA[  [chromium] › manager-navigation.spec.ts:75:7 › 현장 관리자 네비게이션 테스트 › 모바일 하단바 네비게이션 테스트 ──────────────
-
-    TimeoutError: page.fill: Timeout 15000ms exceeded.
-    Call log:
-      - waiting for locator('input[name="email"]')
-
-
-      11 |     
-      12 |     // 로그인 수행
-    > 13 |     await page.fill('input[name="email"]', 'manager@inopnc.com');
-         |                ^
-      14 |     await page.fill('input[name="password"]', 'password123');
-      15 |     await page.click('button[type="submit"]');
-      16 |     
-        at /Users/davidyang/workspace/INOPNC_WM_20250731/e2e/manager-navigation.spec.ts:13:16
-
-    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    ../test-results/manager-navigation-현장-관리자-네비게이션-테스트-모바일-하단바-네비게이션-테스트-chromium/test-failed-1.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
-    ../test-results/manager-navigation-현장-관리자-네비게이션-테스트-모바일-하단바-네비게이션-테스트-chromium/video.webm
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: ../test-results/manager-navigation-현장-관리자-네비게이션-테스트-모바일-하단바-네비게이션-테스트-chromium/error-context.md
-]]>
-</failure>
+<testcase name="현장 관리자 네비게이션 테스트 › 모바일 하단바 네비게이션 테스트" classname="manager-navigation.spec.ts" time="18.576">
 <system-out>
 <![CDATA[🔐 현장 관리자 계정으로 로그인 시작...
+✅ 로그인 성공
+
+📱 모바일 하단바 테스트 시작...
+  ✓ 하단 네비게이션 바 표시 확인
+  🔍 하단바 "홈" 테스트 중...
+    ⚠️ "홈" 버튼을 찾을 수 없음
+  🔍 하단바 "출근현황" 테스트 중...
+    ✓ "출근현황" 클릭 성공
+  🔍 하단바 "작업일지" 테스트 중...
+    ✓ "작업일지" 클릭 성공
+  🔍 하단바 "문서함" 테스트 중...
+    ✓ "문서함" 클릭 성공
+  🔍 하단바 "내정보" 테스트 중...
+    ⚠️ "내정보" 버튼을 찾을 수 없음
 
 ==================================================
 📊 현장 관리자 네비게이션 테스트 완료
 ==================================================
-
-[[ATTACHMENT|manager-navigation-현장-관리자-네비게이션-테스트-모바일-하단바-네비게이션-테스트-chromium/test-failed-1.png]]
-
-[[ATTACHMENT|manager-navigation-현장-관리자-네비게이션-테스트-모바일-하단바-네비게이션-테스트-chromium/video.webm]]
-
-[[ATTACHMENT|manager-navigation-현장-관리자-네비게이션-테스트-모바일-하단바-네비게이션-테스트-chromium/error-context.md]]
 ]]>
 </system-out>
 </testcase>
-<testcase name="현장 관리자 네비게이션 테스트 › 모바일 햄버거 메뉴 테스트" classname="manager-navigation.spec.ts" time="17.627">
+<testcase name="현장 관리자 네비게이션 테스트 › 모바일 햄버거 메뉴 테스트" classname="manager-navigation.spec.ts" time="26.473">
 <failure message="manager-navigation.spec.ts:123:7 모바일 햄버거 메뉴 테스트" type="FAILURE">
 <![CDATA[  [chromium] › manager-navigation.spec.ts:123:7 › 현장 관리자 네비게이션 테스트 › 모바일 햄버거 메뉴 테스트 ────────────────
 
-    TimeoutError: page.fill: Timeout 15000ms exceeded.
-    Call log:
-      - waiting for locator('input[name="email"]')
+    TimeoutError: page.waitForURL: Timeout 10000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation to "**/dashboard" until "load"
+      navigated to "http://localhost:3000/auth/login"
+      navigated to "http://localhost:3000/dashboard"
+      "domcontentloaded" event fired
+    ============================================================
 
-
-      11 |     
-      12 |     // 로그인 수행
-    > 13 |     await page.fill('input[name="email"]', 'manager@inopnc.com');
-         |                ^
-      14 |     await page.fill('input[name="password"]', 'password123');
-      15 |     await page.click('button[type="submit"]');
       16 |     
-        at /Users/davidyang/workspace/INOPNC_WM_20250731/e2e/manager-navigation.spec.ts:13:16
+      17 |     // 대시보드 로딩 대기
+    > 18 |     await page.waitForURL('**/dashboard', { timeout: 10000 });
+         |                ^
+      19 |     await page.waitForLoadState('networkidle');
+      20 |     console.log('✅ 로그인 성공');
+      21 |   });
+        at /Users/davidyang/workspace/INOPNC_WM_20250731/e2e/manager-navigation.spec.ts:18:16
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     ../test-results/manager-navigation-현장-관리자-네비게이션-테스트-모바일-햄버거-메뉴-테스트-chromium/test-failed-1.png
@@ -132,77 +118,52 @@
 ]]>
 </system-out>
 </testcase>
-<testcase name="현장 관리자 네비게이션 테스트 › 반응형 레이아웃 전환 테스트" classname="manager-navigation.spec.ts" time="16.838">
-<failure message="manager-navigation.spec.ts:170:7 반응형 레이아웃 전환 테스트" type="FAILURE">
-<![CDATA[  [chromium] › manager-navigation.spec.ts:170:7 › 현장 관리자 네비게이션 테스트 › 반응형 레이아웃 전환 테스트 ───────────────
-
-    TimeoutError: page.fill: Timeout 15000ms exceeded.
-    Call log:
-      - waiting for locator('input[name="email"]')
-
-
-      11 |     
-      12 |     // 로그인 수행
-    > 13 |     await page.fill('input[name="email"]', 'manager@inopnc.com');
-         |                ^
-      14 |     await page.fill('input[name="password"]', 'password123');
-      15 |     await page.click('button[type="submit"]');
-      16 |     
-        at /Users/davidyang/workspace/INOPNC_WM_20250731/e2e/manager-navigation.spec.ts:13:16
-
-    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    ../test-results/manager-navigation-현장-관리자-네비게이션-테스트-반응형-레이아웃-전환-테스트-chromium/test-failed-1.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
-    ../test-results/manager-navigation-현장-관리자-네비게이션-테스트-반응형-레이아웃-전환-테스트-chromium/video.webm
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: ../test-results/manager-navigation-현장-관리자-네비게이션-테스트-반응형-레이아웃-전환-테스트-chromium/error-context.md
-]]>
-</failure>
+<testcase name="현장 관리자 네비게이션 테스트 › 반응형 레이아웃 전환 테스트" classname="manager-navigation.spec.ts" time="11.169">
 <system-out>
 <![CDATA[🔐 현장 관리자 계정으로 로그인 시작...
+✅ 로그인 성공
+
+🔄 반응형 레이아웃 전환 테스트 시작...
+  ✓ 모바일 하단바로 전환됨
 
 ==================================================
 📊 현장 관리자 네비게이션 테스트 완료
 ==================================================
-
-[[ATTACHMENT|manager-navigation-현장-관리자-네비게이션-테스트-반응형-레이아웃-전환-테스트-chromium/test-failed-1.png]]
-
-[[ATTACHMENT|manager-navigation-현장-관리자-네비게이션-테스트-반응형-레이아웃-전환-테스트-chromium/video.webm]]
-
-[[ATTACHMENT|manager-navigation-현장-관리자-네비게이션-테스트-반응형-레이아웃-전환-테스트-chromium/error-context.md]]
 ]]>
 </system-out>
 </testcase>
-<testcase name="현장 관리자 네비게이션 테스트 › 네비게이션 활성 상태 테스트" classname="manager-navigation.spec.ts" time="18.256">
+<testcase name="현장 관리자 네비게이션 테스트 › 네비게이션 활성 상태 테스트" classname="manager-navigation.spec.ts" time="13.005">
 <failure message="manager-navigation.spec.ts:200:7 네비게이션 활성 상태 테스트" type="FAILURE">
 <![CDATA[  [chromium] › manager-navigation.spec.ts:200:7 › 현장 관리자 네비게이션 테스트 › 네비게이션 활성 상태 테스트 ───────────────
 
-    TimeoutError: page.fill: Timeout 15000ms exceeded.
-    Call log:
-      - waiting for locator('input[name="email"]')
+    Error: page.waitForURL: Target page, context or browser has been closed
+    =========================== logs ===========================
+    waiting for navigation to "**/dashboard" until "load"
+    ============================================================
 
-
-      11 |     
-      12 |     // 로그인 수행
-    > 13 |     await page.fill('input[name="email"]', 'manager@inopnc.com');
-         |                ^
-      14 |     await page.fill('input[name="password"]', 'password123');
-      15 |     await page.click('button[type="submit"]');
       16 |     
-        at /Users/davidyang/workspace/INOPNC_WM_20250731/e2e/manager-navigation.spec.ts:13:16
+      17 |     // 대시보드 로딩 대기
+    > 18 |     await page.waitForURL('**/dashboard', { timeout: 10000 });
+         |                ^
+      19 |     await page.waitForLoadState('networkidle');
+      20 |     console.log('✅ 로그인 성공');
+      21 |   });
+        at /Users/davidyang/workspace/INOPNC_WM_20250731/e2e/manager-navigation.spec.ts:18:16
 
-    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    ../test-results/manager-navigation-현장-관리자-네비게이션-테스트-네비게이션-활성-상태-테스트-chromium/test-failed-1.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
+    Error: page.screenshot: Target page, context or browser has been closed
 
-    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+      228 |     // 스크린샷 저장 (실패 시)
+      229 |     if (test.info().status !== test.info().expectedStatus) {
+    > 230 |       await page.screenshot({ 
+          |                  ^
+      231 |         path: `test-results/manager-nav-${Date.now()}.png`,
+      232 |         fullPage: true 
+      233 |       });
+        at /Users/davidyang/workspace/INOPNC_WM_20250731/e2e/manager-navigation.spec.ts:230:18
+
+    attachment #1: video (video/webm) ──────────────────────────────────────────────────────────────
     ../test-results/manager-navigation-현장-관리자-네비게이션-테스트-네비게이션-활성-상태-테스트-chromium/video.webm
     ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: ../test-results/manager-navigation-현장-관리자-네비게이션-테스트-네비게이션-활성-상태-테스트-chromium/error-context.md
 ]]>
 </failure>
 <system-out>
@@ -212,11 +173,7 @@
 📊 현장 관리자 네비게이션 테스트 완료
 ==================================================
 
-[[ATTACHMENT|manager-navigation-현장-관리자-네비게이션-테스트-네비게이션-활성-상태-테스트-chromium/test-failed-1.png]]
-
 [[ATTACHMENT|manager-navigation-현장-관리자-네비게이션-테스트-네비게이션-활성-상태-테스트-chromium/video.webm]]
-
-[[ATTACHMENT|manager-navigation-현장-관리자-네비게이션-테스트-네비게이션-활성-상태-테스트-chromium/error-context.md]]
 ]]>
 </system-out>
 </testcase>

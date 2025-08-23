@@ -93,17 +93,45 @@ export default function SiteDetail({ siteId, onClose, onEdit }: SiteDetailProps)
       // Fetch site assignments
       const { data: assignmentsData, error: assignmentsError } = await supabase
         .from('site_assignments')
-        .select(`
-          *,
-          profile:profiles(full_name, email, phone)
-        `)
+        .select('*')
         .eq('site_id', siteId)
+        .eq('is_active', true)
 
       if (assignmentsError) {
         console.error('Error fetching assignments:', assignmentsError)
         setAssignments([])
       } else {
-        setAssignments(assignmentsData || [])
+        // Fetch profile data separately to avoid FK issues
+        const enrichedAssignments = await Promise.all(
+          (assignmentsData || []).map(async (assignment) => {
+            try {
+              const { data: profile } = await supabase
+                .from('profiles')
+                .select('full_name, email, phone')
+                .eq('id', assignment.user_id)
+                .single()
+              
+              return {
+                ...assignment,
+                profile: profile || {
+                  full_name: 'Unknown User',
+                  email: 'unknown@example.com',
+                  phone: null
+                }
+              }
+            } catch (err) {
+              return {
+                ...assignment,
+                profile: {
+                  full_name: 'Unknown User',
+                  email: 'unknown@example.com',
+                  phone: null
+                }
+              }
+            }
+          })
+        )
+        setAssignments(enrichedAssignments)
       }
 
       // Fetch recent daily reports

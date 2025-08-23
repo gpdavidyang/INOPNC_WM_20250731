@@ -17,7 +17,7 @@ import { Plus, Search, Filter, Eye, Edit, MapPin, Calendar, Phone, Users, FileTe
 import SiteDetail from './sites/SiteDetail'
 
 interface SiteManagementProps {
-  profile: Profile
+  profile?: Profile
 }
 
 export default function SiteManagement({ profile }: SiteManagementProps) {

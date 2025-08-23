@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import { getSignupRequests, approveSignupRequest, rejectSignupRequest } from '@/app/actions/admin/signup-approvals'
 import { UserRole } from '@/types'
+import ApprovalModal from './ApprovalModal'
 
 interface SignupRequest {
   id: string
@@ -42,6 +43,8 @@ export default function SignupApprovals() {
   const [selectedRequest, setSelectedRequest] = useState<SignupRequest | null>(null)
   const [processing, setProcessing] = useState(false)
   const [rejectionReason, setRejectionReason] = useState('')
+  const [showApprovalModal, setShowApprovalModal] = useState(false)
+  const [approvalRequest, setApprovalRequest] = useState<SignupRequest | null>(null)
 
   useEffect(() => {
     fetchRequests()
@@ -89,27 +92,40 @@ export default function SignupApprovals() {
     }
   }
 
-  const handleApprove = async (request: SignupRequest) => {
-    setProcessing(true)
+  const handleApproveClick = (request: SignupRequest) => {
+    setApprovalRequest(request)
+    setShowApprovalModal(true)
+  }
+
+  const handleApprove = async (data: {
+    requestId: string
+    organizationId?: string
+    siteIds?: string[]
+  }) => {
     try {
-      const result = await approveSignupRequest(request.id)
+      const result = await approveSignupRequest(
+        data.requestId,
+        data.organizationId,
+        data.siteIds
+      )
       
       if (result.success) {
         alert(result.message)
         if (result.tempPassword) {
           // In development, show the temp password
           console.log('Temporary password:', result.tempPassword)
+          alert(`임시 비밀번호가 생성되었습니다: ${result.tempPassword}\n(실제 운영에서는 이메일로 전송됩니다)`)
         }
         fetchRequests()
-        setSelectedRequest(null)
+        setShowApprovalModal(false)
+        setApprovalRequest(null)
       } else {
         throw new Error(result.error)
       }
     } catch (error: any) {
       console.error('Error approving request:', error)
       alert(error.message || '승인 처리 중 오류가 발생했습니다.')
-    } finally {
-      setProcessing(false)
+      throw error // Re-throw to let modal handle loading state
     }
   }
 
@@ -286,7 +302,7 @@ export default function SignupApprovals() {
                         <Eye className="h-5 w-5" />
                       </button>
                       <button
-                        onClick={() => handleApprove(request)}
+                        onClick={() => handleApproveClick(request)}
                         disabled={processing}
                         className="p-2 text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 disabled:opacity-50"
                         title="승인"
@@ -351,6 +367,17 @@ export default function SignupApprovals() {
           </div>
         </div>
       )}
+
+      {/* Approval Modal */}
+      <ApprovalModal
+        isOpen={showApprovalModal}
+        onClose={() => {
+          setShowApprovalModal(false)
+          setApprovalRequest(null)
+        }}
+        request={approvalRequest}
+        onApprove={handleApprove}
+      />
     </div>
   )
 }

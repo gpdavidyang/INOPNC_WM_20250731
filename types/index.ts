@@ -285,6 +285,40 @@ export interface AttendanceRecord {
 // 문서 타입
 export type DocumentType = 'personal' | 'shared' | 'blueprint' | 'required' | 'progress_payment' | 'report' | 'certificate' | 'other'
 
+// 필수 문서 제출 상태
+export type RequiredDocumentStatus = 'pending' | 'submitted' | 'approved' | 'rejected'
+
+// 필수 문서 타입
+export type RequiredDocumentType = 
+  | 'identity_verification'    // 신분증명서
+  | 'health_certificate'       // 건강진단서
+  | 'safety_education'         // 안전교육증명서
+  | 'insurance_certificate'    // 보험증서
+  | 'employment_contract'      // 고용계약서
+  | 'bank_account'            // 통장사본
+  | 'emergency_contact'       // 비상연락처
+  | 'other'                   // 기타
+
+// 사용자 필수 문서 제출 현황
+export interface UserRequiredDocument {
+  id: string
+  user_id: string
+  document_type: RequiredDocumentType
+  status: RequiredDocumentStatus
+  document_id?: string | null
+  submitted_at?: string | null
+  reviewed_by?: string | null
+  reviewed_at?: string | null
+  review_notes?: string | null
+  expires_at?: string | null
+  is_required: boolean
+  created_at: string
+  updated_at: string
+  // 조인된 정보
+  document?: Document | null
+  reviewer?: Profile | null
+}
+
 // 사이트 문서 타입 (새로운 site_documents 테이블용)
 export type SiteDocumentType = 'ptw' | 'blueprint' | 'other'
 
@@ -589,6 +623,49 @@ export interface QuickAction {
   is_active: boolean
   display_order: number
   created_by?: string
+  created_at: string
+  updated_at: string
+}
+
+// 이메일 알림 상태
+export type EmailNotificationStatus = 'pending' | 'sent' | 'failed' | 'scheduled'
+
+// 이메일 알림 타입
+export type EmailNotificationType = 'welcome' | 'password_reset' | 'account_update' | 'document_reminder' | 'system_notification'
+
+// 이메일 알림 우선순위
+export type EmailNotificationPriority = 'low' | 'normal' | 'high' | 'urgent'
+
+// 이메일 알림
+export interface EmailNotification {
+  id: string
+  recipient_email: string
+  recipient_name: string
+  subject: string
+  content: string
+  notification_type: EmailNotificationType
+  sender_id: string
+  priority: EmailNotificationPriority
+  status: EmailNotificationStatus
+  scheduled_at: string
+  sent_at?: string | null
+  error_message?: string | null
+  metadata?: any | null
+  created_by: string
+  created_at: string
+  updated_at: string
+}
+
+// 이메일 템플릿
+export interface EmailTemplate {
+  id: string
+  name: string
+  subject: string
+  content: string
+  type: EmailNotificationType
+  variables?: string[] | null
+  is_active: boolean
+  created_by: string
   created_at: string
   updated_at: string
 }

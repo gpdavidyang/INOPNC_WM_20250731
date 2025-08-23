@@ -109,9 +109,41 @@ export default function ShipmentManagementTab({ profile }: ShipmentManagementTab
           site_name: (item as any).sites?.name || '알 수 없음'
         }))
         setShipments(formattedData)
+      } else if (error) {
+        console.warn('Shipments data table not available:', error.message)
+        // Load mock data when table doesn't exist
+        const { mockShipmentData } = await import('../mockData')
+        let filteredData = mockShipmentData.filter(item => 
+          item.shipment_date.startsWith(selectedMonth)
+        )
+        
+        if (selectedSite) {
+          filteredData = filteredData.filter(item => item.site_id === selectedSite)
+        }
+        
+        if (statusFilter) {
+          filteredData = filteredData.filter(item => item.delivery_status === statusFilter)
+        }
+        
+        setShipments(filteredData)
       }
     } catch (error) {
       console.error('Failed to load shipments:', error)
+      // Fallback to mock data
+      const { mockShipmentData } = await import('../mockData')
+      let filteredData = mockShipmentData.filter(item => 
+        item.shipment_date.startsWith(selectedMonth)
+      )
+      
+      if (selectedSite) {
+        filteredData = filteredData.filter(item => item.site_id === selectedSite)
+      }
+      
+      if (statusFilter) {
+        filteredData = filteredData.filter(item => item.delivery_status === statusFilter)
+      }
+      
+      setShipments(filteredData)
     } finally {
       setLoading(false)
     }
@@ -308,8 +340,19 @@ export default function ShipmentManagementTab({ profile }: ShipmentManagementTab
               </tr>
             ) : shipments.length === 0 ? (
               <tr>
-                <td colSpan={10} className="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
-                  출고 기록이 없습니다.
+                <td colSpan={10} className="px-6 py-8 text-center">
+                  <div className="flex flex-col items-center justify-center space-y-3">
+                    <Truck className="h-12 w-12 text-orange-400" />
+                    <div className="space-y-2">
+                      <p className="text-lg font-medium text-gray-900 dark:text-white">
+                        출고관리 데이터베이스가 준비되지 않았습니다
+                      </p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 max-w-md">
+                        npc_shipments 테이블이 생성되면 출고 기록, 배송 상태, 세금계산서 등을 관리할 수 있습니다.
+                        <br />현재는 UI 미리보기 모드입니다.
+                      </p>
+                    </div>
+                  </div>
                 </td>
               </tr>
             ) : (

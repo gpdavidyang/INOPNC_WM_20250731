@@ -18,10 +18,10 @@ import {
   ChevronRight,
   X
 } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import DailyReportDetailModal from './DailyReportDetailModal'
+import { getDailyReports, getSites, deleteDailyReport } from '@/app/actions/admin/daily-reports'
 
 interface DailyReport {
   id: string
@@ -94,8 +94,6 @@ export default function DailyReportsManagement() {
     search: ''
   })
 
-  const supabase = createClient()
-
   useEffect(() => {
     fetchSites()
     fetchReports()
@@ -103,14 +101,12 @@ export default function DailyReportsManagement() {
 
   const fetchSites = async () => {
     try {
-      const { data, error } = await supabase
-        .from('sites')
-        .select('id, name')
-        .eq('status', 'active')
-        .order('name')
-
-      if (error) throw error
-      setSites(data || [])
+      const result = await getSites()
+      if (result.success) {
+        setSites(result.data)
+      } else {
+        console.error('Error fetching sites:', result.error)
+      }
     } catch (error) {
       console.error('Error fetching sites:', error)
     }
@@ -119,47 +115,28 @@ export default function DailyReportsManagement() {
   const fetchReports = async () => {
     setLoading(true)
     try {
-      let query = supabase
-        .from('daily_reports')
-        .select(`
-          *,
-          sites(name, address),
-          profiles(full_name, email)
-        `, { count: 'exact' })
+      const result = await getDailyReports({
+        site: filters.site,
+        status: filters.status,
+        dateFrom: filters.dateFrom,
+        dateTo: filters.dateTo,
+        search: filters.search,
+        page: currentPage,
+        itemsPerPage
+      })
 
-      // Apply filters
-      if (filters.site) {
-        query = query.eq('site_id', filters.site)
+      if (result.success) {
+        setReports(result.data.reports)
+        setTotalCount(result.data.totalCount)
+      } else {
+        console.error('Error fetching reports:', result.error)
+        setReports([])
+        setTotalCount(0)
       }
-      if (filters.status) {
-        query = query.eq('status', filters.status)
-      }
-      if (filters.dateFrom) {
-        query = query.gte('work_date', filters.dateFrom)
-      }
-      if (filters.dateTo) {
-        query = query.lte('work_date', filters.dateTo)
-      }
-      if (filters.search) {
-        query = query.or(`member_name.ilike.%${filters.search}%,process_type.ilike.%${filters.search}%,issues.ilike.%${filters.search}%`)
-      }
-
-      // Pagination
-      const from = (currentPage - 1) * itemsPerPage
-      const to = from + itemsPerPage - 1
-
-      const { data, error, count } = await query
-        .order('work_date', { ascending: false })
-        .order('created_at', { ascending: false })
-        .range(from, to)
-
-      if (error) throw error
-      
-      setReports(data || [])
-      setTotalCount(count || 0)
     } catch (error) {
       console.error('Error fetching reports:', error)
       setReports([])
+      setTotalCount(0)
     }
     setLoading(false)
   }
@@ -198,13 +175,13 @@ export default function DailyReportsManagement() {
     if (!confirm('작업일지를 삭제하시겠습니까?')) return
 
     try {
-      const { error } = await supabase
-        .from('daily_reports')
-        .delete()
-        .eq('id', reportId)
-
-      if (error) throw error
-      fetchReports() // Refresh list
+      const result = await deleteDailyReport(reportId)
+      if (result.success) {
+        fetchReports() // Refresh list
+        alert(result.message)
+      } else {
+        alert(result.error)
+      }
     } catch (error) {
       console.error('Error deleting report:', error)
       alert('작업일지 삭제 중 오류가 발생했습니다.')

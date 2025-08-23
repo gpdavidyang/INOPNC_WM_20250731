@@ -23,20 +23,23 @@ import OrganizationDetail from './OrganizationDetail'
 interface Organization {
   id: string
   name: string
-  representative_name?: string
-  business_number?: string
-  bank_name?: string
-  bank_account?: string
-  phone?: string
-  email?: string
-  fax?: string
+  type: string
+  description?: string
   address?: string
-  business_type?: string
-  business_category?: string
-  notes?: string
+  phone?: string
   is_active: boolean
   created_at: string
   updated_at?: string
+  // Extended fields (for future use)
+  representative_name?: string
+  business_number?: string
+  email?: string
+  fax?: string
+  business_type?: string
+  business_category?: string
+  bank_name?: string
+  bank_account?: string
+  notes?: string
 }
 
 export default function OrganizationList() {
@@ -64,39 +67,7 @@ export default function OrganizationList() {
       setOrganizations(data || [])
     } catch (error) {
       console.error('Error fetching organizations:', error)
-      // Mock data for development
-      setOrganizations([
-        {
-          id: '1',
-          name: '대한건설',
-          representative_name: '김대한',
-          business_number: '123-45-67890',
-          bank_name: '국민은행',
-          bank_account: '123-456789-01-234',
-          phone: '02-1234-5678',
-          email: 'contact@daehan.co.kr',
-          address: '서울시 강남구 테헤란로 123',
-          business_type: '건설업',
-          business_category: '종합건설',
-          is_active: true,
-          created_at: new Date().toISOString()
-        },
-        {
-          id: '2',
-          name: '한국토건',
-          representative_name: '이한국',
-          business_number: '234-56-78901',
-          bank_name: '신한은행',
-          bank_account: '234-567890-12-345',
-          phone: '02-2345-6789',
-          email: 'info@hankook.co.kr',
-          address: '서울시 서초구 반포대로 456',
-          business_type: '건설업',
-          business_category: '토목공사',
-          is_active: true,
-          created_at: new Date().toISOString()
-        }
-      ])
+      setOrganizations([])
     } finally {
       setLoading(false)
     }
@@ -141,8 +112,9 @@ export default function OrganizationList() {
 
   const filteredOrganizations = organizations.filter(org =>
     org.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    org.representative_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    org.business_number?.includes(searchTerm) ||
+    org.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    org.type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    org.address?.includes(searchTerm) ||
     org.phone?.includes(searchTerm)
   )
 
@@ -180,7 +152,7 @@ export default function OrganizationList() {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
           <input
             type="text"
-            placeholder="회사명, 대표자, 사업자번호, 전화번호로 검색..."
+            placeholder="회사명, 설명, 타입, 주소, 전화번호로 검색..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
@@ -200,13 +172,13 @@ export default function OrganizationList() {
               <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                    회사명
+                    조직명
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                    대표자
+                    타입
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                    사업자번호
+                    설명
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     연락처
@@ -226,25 +198,30 @@ export default function OrganizationList() {
                       <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
                         {org.name}
                       </div>
-                      {org.business_category && (
-                        <div className="text-xs text-gray-500 dark:text-gray-400">
-                          {org.business_category}
-                        </div>
-                      )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                      {org.representative_name || '-'}
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+                        org.type === 'head_office' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-300' :
+                        org.type === 'branch_office' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300' :
+                        'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300'
+                      }`}>
+                        {org.type === 'head_office' ? '본사' :
+                         org.type === 'branch_office' ? '지사' :
+                         org.type === 'department' ? '부서' : org.type}
+                      </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                      {org.business_number || '-'}
+                    <td className="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
+                      <div className="max-w-xs truncate">
+                        {org.description || '-'}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900 dark:text-gray-100">
                         {org.phone || '-'}
                       </div>
-                      {org.email && (
-                        <div className="text-xs text-gray-500 dark:text-gray-400">
-                          {org.email}
+                      {org.address && (
+                        <div className="text-xs text-gray-500 dark:text-gray-400 max-w-xs truncate">
+                          {org.address}
                         </div>
                       )}
                     </td>

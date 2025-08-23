@@ -47,7 +47,11 @@ export async function getSignupRequests(filter: 'all' | 'pending' | 'approved' |
   }
 }
 
-export async function approveSignupRequest(requestId: string) {
+export async function approveSignupRequest(
+  requestId: string, 
+  organizationId?: string, 
+  siteIds?: string[]
+) {
   const supabase = createClient()
   const serviceClient = createServiceRoleClient()
   
@@ -81,6 +85,15 @@ export async function approveSignupRequest(requestId: string) {
       throw new Error('Request has already been processed')
     }
     
+    // Validate required assignments based on role
+    if ((request.requested_role === 'worker' || request.requested_role === 'site_manager') && !organizationId) {
+      throw new Error('작업자와 현장관리자는 소속 업체가 필요합니다.')
+    }
+    
+    if (request.requested_role === 'worker' && (!siteIds || siteIds.length === 0)) {
+      throw new Error('작업자는 최소 1개 이상의 현장 배정이 필요합니다.')
+    }
+    
     // Generate a temporary password
     const tempPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8).toUpperCase()
     
@@ -107,11 +120,33 @@ export async function approveSignupRequest(requestId: string) {
         full_name: request.full_name,
         role: request.requested_role,
         phone: request.phone,
-        company_name: request.company_name
+        company_name: request.company_name,
+        organization_id: organizationId
       })
     
     if (profileError && profileError.code !== '23505') { // Ignore duplicate key error
       console.error('Profile creation error:', profileError)
+    }
+    
+    // Create site assignments if provided
+    if (siteIds && siteIds.length > 0) {
+      const siteAssignments = siteIds.map(siteId => ({
+        user_id: authData.user.id,
+        site_id: siteId,
+        role: request.requested_role,
+        assigned_date: new Date().toISOString(),
+        assigned_by: user.id,
+        status: 'active'
+      }))
+      
+      const { error: assignmentError } = await serviceClient
+        .from('site_assignments')
+        .insert(siteAssignments)
+      
+      if (assignmentError) {
+        console.error('Site assignment error:', assignmentError)
+        // Don't fail the whole process, just log the error
+      }
     }
     
     // Update signup request status
@@ -126,12 +161,42 @@ export async function approveSignupRequest(requestId: string) {
     
     if (updateError) throw updateError
     
+    // Get organization and site names for the response message
+    let organizationName = ''
+    let siteNames: string[] = []
+    
+    if (organizationId) {
+      const { data: org } = await supabase
+        .from('organizations')
+        .select('name')
+        .eq('id', organizationId)
+        .single()
+      organizationName = org?.name || ''
+    }
+    
+    if (siteIds && siteIds.length > 0) {
+      const { data: sites } = await supabase
+        .from('sites')
+        .select('name')
+        .in('id', siteIds)
+      siteNames = sites?.map(s => s.name) || []
+    }
+    
+    // Build success message
+    let message = `${request.full_name}님의 가입이 승인되었습니다.`
+    if (organizationName) {
+      message += ` (소속: ${organizationName})`
+    }
+    if (siteNames.length > 0) {
+      message += ` (배정 현장: ${siteNames.join(', ')})`
+    }
+    
     // TODO: Send welcome email with temporary password
     console.log('Welcome email would be sent to:', request.email, 'with password:', tempPassword)
     
     return { 
       success: true, 
-      message: `${request.full_name}님의 가입이 승인되었습니다.`,
+      message,
       tempPassword // In production, this should be sent via email
     }
   } catch (error: any) {

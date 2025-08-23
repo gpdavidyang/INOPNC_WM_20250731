@@ -17,7 +17,8 @@ import {
   UpdateUserData,
   UserWithSites 
 } from '@/app/actions/admin/users'
-import { Plus, Search, User, Phone, Mail, Shield, MapPin, Key, UserCheck, UserX } from 'lucide-react'
+import { Plus, Search, User, Phone, Mail, Shield, MapPin, Key, UserCheck, UserX, FileText, ClipboardCheck, Calendar, Building } from 'lucide-react'
+import UserDetailModal from './UserDetailModal'
 
 interface UserManagementProps {
   profile: Profile
@@ -46,6 +47,8 @@ export default function UserManagement({ profile }: UserManagementProps) {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [editingUser, setEditingUser] = useState<UserWithSites | null>(null)
+  const [showDetailModal, setShowDetailModal] = useState(false)
+  const [detailUser, setDetailUser] = useState<UserWithSites | null>(null)
 
   // Load users data
   const loadUsers = async () => {
@@ -172,8 +175,8 @@ export default function UserManagement({ profile }: UserManagementProps) {
 
   // Handle view user
   const handleViewUser = (user: UserWithSites) => {
-    // TODO: Implement user detail view
-    alert(`사용자 상세 정보: ${user.full_name}`)
+    setDetailUser(user)
+    setShowDetailModal(true)
   }
 
   // Handle password reset
@@ -219,6 +222,37 @@ export default function UserManagement({ profile }: UserManagementProps) {
           </div>
         </div>
       )
+    },
+    {
+      key: 'organization',
+      label: '소속 조직',
+      render: (organization: UserWithSites['organization']) => {
+        if (!organization) {
+          return <span className="text-gray-400">소속 없음</span>
+        }
+        
+        const typeConfig = {
+          head_office: { text: '본사', color: 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-300' },
+          branch_office: { text: '지사', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300' },
+          department: { text: '부서', color: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300' }
+        }
+        
+        const config = typeConfig[organization.type as keyof typeof typeConfig] || typeConfig.department
+        
+        return (
+          <div className="text-sm">
+            <div className="flex items-center text-gray-900 dark:text-gray-100 font-medium">
+              <Building className="h-3 w-3 mr-1" />
+              {organization.name}
+            </div>
+            <div className="mt-1">
+              <span className={`inline-flex px-2 py-1 text-xs rounded-full ${config.color}`}>
+                {config.text}
+              </span>
+            </div>
+          </div>
+        )
+      }
     },
     {
       key: 'role',
@@ -284,6 +318,69 @@ export default function UserManagement({ profile }: UserManagementProps) {
             {activeAssignments.length > 2 && (
               <div className="text-xs text-gray-400">
                 +{activeAssignments.length - 2} 더보기
+              </div>
+            )}
+          </div>
+        )
+      }
+    },
+    {
+      key: 'required_documents',
+      label: '필수 서류',
+      render: (documents: UserWithSites['required_documents']) => {
+        if (!documents || documents.length === 0) {
+          return <span className="text-gray-400">서류 없음</span>
+        }
+        
+        const submitted = documents.filter(d => d.status === 'submitted' || d.status === 'approved').length
+        const total = documents.length
+        const pending = documents.filter(d => d.status === 'pending').length
+        const rejected = documents.filter(d => d.status === 'rejected').length
+        
+        const getStatusColor = () => {
+          if (rejected > 0) return 'text-red-600 dark:text-red-400'
+          if (pending > 0) return 'text-yellow-600 dark:text-yellow-400'
+          if (submitted === total) return 'text-green-600 dark:text-green-400'
+          return 'text-gray-600 dark:text-gray-400'
+        }
+        
+        return (
+          <div className="text-sm">
+            <div className={`flex items-center font-medium ${getStatusColor()}`}>
+              <FileText className="h-3 w-3 mr-1" />
+              {submitted}/{total}
+            </div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              {pending > 0 && <span className="text-yellow-600">대기 {pending}건</span>}
+              {rejected > 0 && (
+                <span className={`${pending > 0 ? 'ml-2' : ''} text-red-600`}>반려 {rejected}건</span>
+              )}
+            </div>
+          </div>
+        )
+      }
+    },
+    {
+      key: 'work_log_stats',
+      label: '작업일지',
+      render: (stats: UserWithSites['work_log_stats']) => {
+        if (!stats) {
+          return <span className="text-gray-400">통계 없음</span>
+        }
+        
+        return (
+          <div className="text-sm">
+            <div className="flex items-center text-gray-900 dark:text-gray-100">
+              <ClipboardCheck className="h-3 w-3 mr-1" />
+              <span className="font-medium">총 {stats.total_reports}건</span>
+            </div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              이번 달 {stats.this_month}건
+            </div>
+            {stats.last_report_date && (
+              <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center mt-1">
+                <Calendar className="h-3 w-3 mr-1" />
+                최근 {new Date(stats.last_report_date).toLocaleDateString('ko-KR')}
               </div>
             )}
           </div>
@@ -422,6 +519,16 @@ export default function UserManagement({ profile }: UserManagementProps) {
       />
 
       {/* Modals */}
+      <UserDetailModal
+        isOpen={showDetailModal}
+        onClose={() => {
+          setShowDetailModal(false)
+          setDetailUser(null)
+        }}
+        user={detailUser}
+        onUserUpdated={loadUsers}
+      />
+
       {showCreateModal && (
         <UserCreateEditModal
           isOpen={showCreateModal}

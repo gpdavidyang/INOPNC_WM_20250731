@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Edit3, Search, Download, Eye, Trash2, Building2, Calendar, RefreshCw, Upload, PenTool } from 'lucide-react'
+import { Edit3, Search, Download, Eye, Trash2, Building2, Calendar, RefreshCw, Upload, PenTool, History, GitBranch } from 'lucide-react'
+import MarkupDocumentVersionModal from './MarkupDocumentVersionModal'
 
 interface MarkupDocument {
   id: string
@@ -18,6 +19,9 @@ interface MarkupDocument {
   updated_at: string
   created_by: string
   site_id?: string
+  version_number?: number
+  is_latest_version?: boolean
+  change_summary?: string
   profiles?: {
     id: string
     full_name: string
@@ -44,6 +48,8 @@ export default function MarkupDocumentsManagement() {
   const [selectedSite, setSelectedSite] = useState<string>('')
   const [currentPage, setCurrentPage] = useState(1)
   const [totalCount, setTotalCount] = useState(0)
+  const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null)
+  const [isVersionModalOpen, setIsVersionModalOpen] = useState(false)
   const itemsPerPage = 20
 
   const supabase = createClient()
@@ -135,6 +141,16 @@ export default function MarkupDocumentsManagement() {
   const handleOpenMarkupEditor = (document: MarkupDocument) => {
     // 도면마킹 에디터로 이동
     window.open(`/markup-editor?document=${document.id}`, '_blank')
+  }
+
+  const handleOpenVersionModal = (document: MarkupDocument) => {
+    setSelectedDocumentId(document.id)
+    setIsVersionModalOpen(true)
+  }
+
+  const handleVersionRestore = () => {
+    // 버전 복원 후 목록 새로고침
+    fetchDocuments()
   }
 
   useEffect(() => {
@@ -253,6 +269,9 @@ export default function MarkupDocumentsManagement() {
                     마킹 수
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    버전
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     최근 수정일
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -314,6 +333,23 @@ export default function MarkupDocumentsManagement() {
                         {document.markup_count}개 마킹
                       </span>
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center space-x-1">
+                        <span className="text-sm font-medium text-gray-900">
+                          v{document.version_number || 1}
+                        </span>
+                        {document.is_latest_version !== false && (
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            최신
+                          </span>
+                        )}
+                      </div>
+                      {document.change_summary && (
+                        <div className="text-xs text-gray-500 mt-1">
+                          {document.change_summary}
+                        </div>
+                      )}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {new Date(document.updated_at).toLocaleDateString('ko-KR', {
                         year: 'numeric',
@@ -331,6 +367,13 @@ export default function MarkupDocumentsManagement() {
                           title="도면마킹 편집"
                         >
                           <PenTool className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleOpenVersionModal(document)}
+                          className="text-purple-600 hover:text-purple-900 p-1 rounded"
+                          title="버전 관리"
+                        >
+                          <GitBranch className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleDownloadDocument(document)}
@@ -397,6 +440,19 @@ export default function MarkupDocumentsManagement() {
             </button>
           </div>
         </div>
+      )}
+
+      {/* 버전 관리 모달 */}
+      {selectedDocumentId && (
+        <MarkupDocumentVersionModal
+          documentId={selectedDocumentId}
+          isOpen={isVersionModalOpen}
+          onClose={() => {
+            setIsVersionModalOpen(false)
+            setSelectedDocumentId(null)
+          }}
+          onVersionRestore={handleVersionRestore}
+        />
       )}
     </div>
   )

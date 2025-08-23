@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { FileCheck, Search, Download, Eye, Trash2, User, Calendar, RefreshCw, Upload, AlertCircle, CheckCircle } from 'lucide-react'
+import RequiredDocumentUploadModal from './RequiredDocumentUploadModal'
+import RequiredDocumentDetailModal from './RequiredDocumentDetailModal'
 
 interface RequiredDocument {
   id: string
@@ -53,6 +55,9 @@ export default function RequiredDocumentsManagement() {
   const [typeFilter, setTypeFilter] = useState<string>('')
   const [currentPage, setCurrentPage] = useState(1)
   const [totalCount, setTotalCount] = useState(0)
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
+  const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null)
   const itemsPerPage = 20
 
   const supabase = createClient()
@@ -256,7 +261,7 @@ export default function RequiredDocumentsManagement() {
           </button>
 
           <button
-            onClick={() => {/* TODO: 서류 직접 업로드 모달 */}}
+            onClick={() => setIsUploadModalOpen(true)}
             className="flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
           >
             <Upload className="w-4 h-4 mr-2" />
@@ -374,35 +379,22 @@ export default function RequiredDocumentsManagement() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex items-center space-x-2">
                         <button
-                          onClick={() => handleDownloadDocument(document)}
+                          onClick={() => {
+                            setSelectedDocumentId(document.id)
+                            setIsDetailModalOpen(true)
+                          }}
                           className="text-blue-600 hover:text-blue-900 p-1 rounded"
+                          title="상세보기"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDownloadDocument(document)}
+                          className="text-gray-600 hover:text-gray-900 p-1 rounded"
                           title="다운로드"
                         >
                           <Download className="w-4 h-4" />
                         </button>
-                        {document.status === 'pending' && (
-                          <>
-                            <button
-                              onClick={() => handleStatusUpdate(document.id, 'approved')}
-                              className="text-green-600 hover:text-green-900 p-1 rounded"
-                              title="승인"
-                            >
-                              <CheckCircle className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => {
-                                const notes = prompt('반려 사유를 입력하세요:')
-                                if (notes !== null) {
-                                  handleStatusUpdate(document.id, 'rejected', notes)
-                                }
-                              }}
-                              className="text-red-600 hover:text-red-900 p-1 rounded"
-                              title="반려"
-                            >
-                              <AlertCircle className="w-4 h-4" />
-                            </button>
-                          </>
-                        )}
                         <button
                           onClick={() => handleDeleteDocument(document.id)}
                           className="text-red-600 hover:text-red-900 p-1 rounded"
@@ -462,6 +454,30 @@ export default function RequiredDocumentsManagement() {
           </div>
         </div>
       )}
+
+      {/* 모달들 */}
+      <RequiredDocumentUploadModal
+        isOpen={isUploadModalOpen}
+        onClose={() => setIsUploadModalOpen(false)}
+        onSuccess={() => {
+          setIsUploadModalOpen(false)
+          fetchDocuments()
+        }}
+      />
+
+      <RequiredDocumentDetailModal
+        isOpen={isDetailModalOpen}
+        onClose={() => {
+          setIsDetailModalOpen(false)
+          setSelectedDocumentId(null)
+        }}
+        onSuccess={() => {
+          setIsDetailModalOpen(false)
+          setSelectedDocumentId(null)
+          fetchDocuments()
+        }}
+        documentId={selectedDocumentId}
+      />
     </div>
   )
 }

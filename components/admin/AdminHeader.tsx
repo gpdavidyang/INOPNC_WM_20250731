@@ -120,11 +120,11 @@ export default function AdminHeader({ profile, onMenuClick, isSidebarOpen }: Adm
               <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
             </button>
 
-            {/* Theme Toggle */}
+            {/* Theme Toggle - Hidden for admin */}
             {mounted && (
               <button
                 onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                className="hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 aria-label="테마 변경"
               >
                 {theme === 'dark' ? (
@@ -135,10 +135,10 @@ export default function AdminHeader({ profile, onMenuClick, isSidebarOpen }: Adm
               </button>
             )}
 
-            {/* Font Size Toggle */}
+            {/* Font Size Toggle - Hidden for admin */}
             <button
               onClick={toggleFontSize}
-              className="hidden sm:flex p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               aria-label="글자 크기"
             >
               <span className={`font-medium ${isLargeFont ? 'text-lg' : 'text-sm'} text-gray-600 dark:text-gray-400`}>

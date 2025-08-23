@@ -7,18 +7,21 @@ import { createClient } from '@/lib/supabase/client'
 interface Organization {
   id?: string
   name: string
+  type: string
+  description?: string
+  address?: string
+  phone?: string
+  is_active: boolean
+  // Extended fields (for future use)
   representative_name?: string
   business_number?: string
-  bank_name?: string
-  bank_account?: string
-  phone?: string
   email?: string
   fax?: string
-  address?: string
   business_type?: string
   business_category?: string
+  bank_name?: string
+  bank_account?: string
   notes?: string
-  is_active: boolean
 }
 
 interface OrganizationFormProps {
@@ -30,17 +33,10 @@ interface OrganizationFormProps {
 export default function OrganizationForm({ organization, onClose, onSave }: OrganizationFormProps) {
   const [formData, setFormData] = useState<Organization>({
     name: organization?.name || '',
-    representative_name: organization?.representative_name || '',
-    business_number: organization?.business_number || '',
-    bank_name: organization?.bank_name || '',
-    bank_account: organization?.bank_account || '',
-    phone: organization?.phone || '',
-    email: organization?.email || '',
-    fax: organization?.fax || '',
+    type: organization?.type || 'branch_office',
+    description: organization?.description || '',
     address: organization?.address || '',
-    business_type: organization?.business_type || '건설업',
-    business_category: organization?.business_category || '',
-    notes: organization?.notes || '',
+    phone: organization?.phone || '',
     is_active: organization?.is_active ?? true
   })
   const [saving, setSaving] = useState(false)
@@ -50,7 +46,7 @@ export default function OrganizationForm({ organization, onClose, onSave }: Orga
     e.preventDefault()
     
     if (!formData.name) {
-      alert('회사명은 필수 입력 항목입니다.')
+      alert('조직명은 필수 입력 항목입니다.')
       return
     }
 
@@ -64,7 +60,7 @@ export default function OrganizationForm({ organization, onClose, onSave }: Orga
           .eq('id', organization.id)
 
         if (error) throw error
-        alert('거래처 정보가 수정되었습니다.')
+        alert('조직 정보가 수정되었습니다.')
       } else {
         // Create new organization
         const { error } = await supabase
@@ -72,7 +68,7 @@ export default function OrganizationForm({ organization, onClose, onSave }: Orga
           .insert([formData])
 
         if (error) throw error
-        alert('새 거래처가 등록되었습니다.')
+        alert('새 조직이 등록되었습니다.')
       }
       
       onSave()
@@ -91,7 +87,7 @@ export default function OrganizationForm({ organization, onClose, onSave }: Orga
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
             <Building2 className="h-5 w-5" />
-            {organization ? '거래처 수정' : '거래처 등록'}
+            {organization ? '조직 수정' : '조직 등록'}
           </h2>
           <button
             onClick={onClose}
@@ -111,7 +107,7 @@ export default function OrganizationForm({ organization, onClose, onSave }: Orga
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                회사명 <span className="text-red-500">*</span>
+                조직명 <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -124,55 +120,30 @@ export default function OrganizationForm({ organization, onClose, onSave }: Orga
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                대표자명
-              </label>
-              <input
-                type="text"
-                value={formData.representative_name}
-                onChange={(e) => setFormData({...formData, representative_name: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                사업자등록번호
-              </label>
-              <input
-                type="text"
-                value={formData.business_number}
-                onChange={(e) => setFormData({...formData, business_number: e.target.value})}
-                placeholder="123-45-67890"
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                업종
+                조직 타입 <span className="text-red-500">*</span>
               </label>
               <select
-                value={formData.business_type}
-                onChange={(e) => setFormData({...formData, business_type: e.target.value})}
+                value={formData.type}
+                onChange={(e) => setFormData({...formData, type: e.target.value})}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                required
               >
-                <option value="건설업">건설업</option>
-                <option value="제조업">제조업</option>
-                <option value="서비스업">서비스업</option>
-                <option value="기타">기타</option>
+                <option value="head_office">본사</option>
+                <option value="branch_office">지사/협력업체</option>
+                <option value="department">부서</option>
               </select>
             </div>
 
-            <div>
+            <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                업태
+                설명
               </label>
-              <input
-                type="text"
-                value={formData.business_category}
-                onChange={(e) => setFormData({...formData, business_category: e.target.value})}
-                placeholder="예: 종합건설, 토목공사"
+              <textarea
+                value={formData.description || ''}
+                onChange={(e) => setFormData({...formData, description: e.target.value})}
+                rows={2}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                placeholder="조직에 대한 간단한 설명을 입력하세요..."
               />
             </div>
 
@@ -187,35 +158,9 @@ export default function OrganizationForm({ organization, onClose, onSave }: Orga
               </label>
               <input
                 type="tel"
-                value={formData.phone}
+                value={formData.phone || ''}
                 onChange={(e) => setFormData({...formData, phone: e.target.value})}
                 placeholder="02-1234-5678"
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                팩스번호
-              </label>
-              <input
-                type="tel"
-                value={formData.fax}
-                onChange={(e) => setFormData({...formData, fax: e.target.value})}
-                placeholder="02-1234-5679"
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                이메일
-              </label>
-              <input
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({...formData, email: e.target.value})}
-                placeholder="contact@company.co.kr"
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
               />
             </div>
@@ -226,54 +171,10 @@ export default function OrganizationForm({ organization, onClose, onSave }: Orga
               </label>
               <input
                 type="text"
-                value={formData.address}
+                value={formData.address || ''}
                 onChange={(e) => setFormData({...formData, address: e.target.value})}
+                placeholder="조직의 주소를 입력하세요"
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-              />
-            </div>
-
-            {/* 금융 정보 */}
-            <div className="md:col-span-2 mt-4">
-              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">금융 정보</h3>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                은행명
-              </label>
-              <input
-                type="text"
-                value={formData.bank_name}
-                onChange={(e) => setFormData({...formData, bank_name: e.target.value})}
-                placeholder="예: 국민은행"
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                계좌번호
-              </label>
-              <input
-                type="text"
-                value={formData.bank_account}
-                onChange={(e) => setFormData({...formData, bank_account: e.target.value})}
-                placeholder="123-456789-01-234"
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-              />
-            </div>
-
-            {/* 기타 정보 */}
-            <div className="md:col-span-2 mt-4">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                메모
-              </label>
-              <textarea
-                value={formData.notes}
-                onChange={(e) => setFormData({...formData, notes: e.target.value})}
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                placeholder="추가 정보나 특이사항을 입력하세요..."
               />
             </div>
 
@@ -289,6 +190,13 @@ export default function OrganizationForm({ organization, onClose, onSave }: Orga
                   활성 상태
                 </span>
               </label>
+            </div>
+
+            {/* Future Enhancement Note */}
+            <div className="md:col-span-2 mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+              <p className="text-sm text-blue-800 dark:text-blue-300">
+                💡 <strong>향후 추가 예정 기능:</strong> 대표자명, 사업자번호, 이메일, 금융정보 등의 상세 정보 관리 기능이 추가될 예정입니다.
+              </p>
             </div>
           </div>
         </form>

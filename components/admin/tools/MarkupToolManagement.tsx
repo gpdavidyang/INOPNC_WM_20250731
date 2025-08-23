@@ -618,6 +618,40 @@ export default function MarkupToolManagement({ profile }: MarkupToolManagementPr
         )}
       </div>
 
+      {/* Tool Actions */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
+          <Edit3 className="h-5 w-5 mr-2 text-purple-600" />
+          도구 사용
+        </h2>
+        
+        <div className="flex flex-wrap gap-3 mb-6">
+          <Button
+            onClick={() => window.open('/dashboard/admin/markup-editor', '_blank')}
+            className="flex items-center bg-purple-600 hover:bg-purple-700 text-white"
+          >
+            <Edit3 className="h-4 w-4 mr-2" />
+            마킹 도구 사용하기
+          </Button>
+          
+          <Button
+            onClick={() => window.open('/dashboard/admin/documents/markup', '_blank')}
+            variant="outline"
+            className="flex items-center"
+          >
+            <FileImage className="h-4 w-4 mr-2" />
+            도면마킹문서함 보기
+          </Button>
+        </div>
+        
+        <div className="p-3 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded mb-6">
+          <p className="text-sm text-purple-800 dark:text-purple-300">
+            <Edit3 className="h-4 w-4 inline mr-1" />
+            관리자는 모든 사용자의 도면 마킹 문서를 보고 편집할 수 있습니다.
+          </p>
+        </div>
+      </div>
+
       {/* Maintenance Actions */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">

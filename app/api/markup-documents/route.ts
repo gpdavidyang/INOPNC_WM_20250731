@@ -14,13 +14,49 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
     
+    // 사용자 프로필 확인 (관리자 권한 체크)
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('id, role')
+      .eq('id', user.id)
+      .single()
+    
+    const isAdmin = profile?.role === 'admin'
+    
     // 쿼리 파라미터
     const location = searchParams.get('location') || 'personal'
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '20')
     const search = searchParams.get('search')
     const site = searchParams.get('site')
+    const admin = searchParams.get('admin') === 'true'
+    const stats = searchParams.get('stats') === 'true'
     const offset = (page - 1) * limit
+    
+    // 통계 요청 처리
+    if (stats) {
+      const statsQuery = isAdmin 
+        ? supabase.from('markup_documents').select('*', { count: 'exact' }).eq('is_deleted', false)
+        : supabase.from('markup_documents').select('*', { count: 'exact' }).eq('is_deleted', false).eq('created_by', user.id)
+      
+      const { count: total } = await statsQuery
+      const { count: personal } = await (isAdmin 
+        ? supabase.from('markup_documents').select('*', { count: 'exact' }).eq('is_deleted', false).eq('location', 'personal')
+        : supabase.from('markup_documents').select('*', { count: 'exact' }).eq('is_deleted', false).eq('created_by', user.id).eq('location', 'personal'))
+      
+      const { count: shared } = await (isAdmin 
+        ? supabase.from('markup_documents').select('*', { count: 'exact' }).eq('is_deleted', false).eq('location', 'shared')
+        : supabase.from('markup_documents').select('*', { count: 'exact' }).eq('is_deleted', false).eq('location', 'shared'))
+
+      return NextResponse.json({
+        total: total || 0,
+        personal: personal || 0,
+        shared: shared || 0,
+        total_markups: 0, // TODO: Calculate from markup_data
+        total_size: 0, // TODO: Calculate actual size
+        last_created: new Date().toISOString()
+      })
+    }
     
     // 기본 쿼리 생성 - 관계 정보 포함
     let query = supabase
@@ -43,11 +79,14 @@ export async function GET(request: NextRequest) {
       .eq('is_deleted', false)
       .order('created_at', { ascending: false })
     
-    // location 필터
-    if (location === 'personal') {
-      query = query.eq('created_by', user.id).eq('location', 'personal')
-    } else if (location === 'shared') {
-      query = query.eq('location', 'shared')
+    // 관리자 모드가 아니면 사용자 권한에 따라 필터링
+    if (!admin || !isAdmin) {
+      // location 필터
+      if (location === 'personal') {
+        query = query.eq('created_by', user.id).eq('location', 'personal')
+      } else if (location === 'shared') {
+        query = query.eq('location', 'shared')
+      }
     }
     
     // 검색어 필터
@@ -81,6 +120,21 @@ export async function GET(request: NextRequest) {
     })) || []
     
     const totalPages = Math.ceil((count || 0) / limit)
+    
+    // 관리자 모드인 경우 documents 키로도 반환
+    if (admin && isAdmin) {
+      return NextResponse.json({
+        success: true,
+        documents: formattedDocuments,
+        data: formattedDocuments,
+        pagination: {
+          page,
+          limit,
+          total: count || 0,
+          totalPages
+        }
+      })
+    }
     
     return NextResponse.json({
       success: true,

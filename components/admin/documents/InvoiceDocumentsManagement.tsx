@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { FileText, Search, Download, Eye, Trash2, Building2, Users, Calendar, RefreshCw, Upload, DollarSign, Clock } from 'lucide-react'
+import InvoiceDocumentUploadModal from './InvoiceDocumentUploadModal'
+import InvoiceDocumentDetailModal from './InvoiceDocumentDetailModal'
 
 interface InvoiceDocument {
   id: string
@@ -73,6 +75,12 @@ export default function InvoiceDocumentsManagement() {
   const [currentPage, setCurrentPage] = useState(1)
   const [totalCount, setTotalCount] = useState(0)
   const itemsPerPage = 20
+
+  // Modal states
+  const [showUploadModal, setShowUploadModal] = useState(false)
+  const [showDetailModal, setShowDetailModal] = useState(false)
+  const [selectedDocument, setSelectedDocument] = useState<InvoiceDocument | null>(null)
+  const [userRole, setUserRole] = useState<string>('')
 
   const supabase = createClient()
 
@@ -213,8 +221,48 @@ export default function InvoiceDocumentsManagement() {
     }
   }
 
+  // Fetch user role
+  const fetchUserRole = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single()
+        
+        if (profile) {
+          setUserRole(profile.role)
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching user role:', error)
+    }
+  }
+
+  const handleShowDetail = (document: InvoiceDocument) => {
+    setSelectedDocument(document)
+    setShowDetailModal(true)
+  }
+
+  const handleCloseDetail = () => {
+    setShowDetailModal(false)
+    setSelectedDocument(null)
+  }
+
+  const handleUploadSuccess = () => {
+    setShowUploadModal(false)
+    fetchDocuments()
+  }
+
+  const handleUpdateSuccess = () => {
+    fetchDocuments()
+  }
+
   useEffect(() => {
     fetchSites()
+    fetchUserRole()
   }, [])
 
   useEffect(() => {
@@ -302,7 +350,7 @@ export default function InvoiceDocumentsManagement() {
           </button>
 
           <button
-            onClick={() => {/* TODO: 기성청구 서류 업로드 모달 */}}
+            onClick={() => setShowUploadModal(true)}
             className="flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
           >
             <Upload className="w-4 h-4 mr-2" />
@@ -438,7 +486,7 @@ export default function InvoiceDocumentsManagement() {
                           <Download className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => {/* TODO: 기성청구 상세 모달 */}}
+                          onClick={() => handleShowDetail(document)}
                           className="text-green-600 hover:text-green-900 p-1 rounded"
                           title="상세보기"
                         >
@@ -503,6 +551,23 @@ export default function InvoiceDocumentsManagement() {
           </div>
         </div>
       )}
+
+      {/* Upload Modal */}
+      <InvoiceDocumentUploadModal
+        isOpen={showUploadModal}
+        onClose={() => setShowUploadModal(false)}
+        onSuccess={handleUploadSuccess}
+        sites={sites}
+      />
+
+      {/* Detail Modal */}
+      <InvoiceDocumentDetailModal
+        document={selectedDocument}
+        isOpen={showDetailModal}
+        onClose={handleCloseDetail}
+        onUpdate={handleUpdateSuccess}
+        userRole={userRole}
+      />
     </div>
   )
 }

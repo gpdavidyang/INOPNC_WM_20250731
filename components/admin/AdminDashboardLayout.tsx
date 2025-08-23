@@ -113,7 +113,8 @@ const menuCategories = [
         id: 'my-documents',
         label: '내문서함',
         icon: FolderOpen,
-        href: '/dashboard/admin/documents/my-documents'
+        href: '/dashboard/admin/documents/my-documents',
+        hidden: true  // Private function - 나중에 필요시 활용
       },
       {
         id: 'shared-documents',

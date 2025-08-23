@@ -1,9 +1,18 @@
+import { getProfile } from '@/app/auth/actions'
+import { redirect } from 'next/navigation'
 import CommunicationManagement from '@/components/admin/communication/CommunicationManagement'
 
-export default function CommunicationManagementPage() {
-  return (
-    <div className="px-4 sm:px-6 lg:px-8 py-8">
-        <CommunicationManagement />
-    </div>
-  )
+export default async function CommunicationManagementPage() {
+  const { data: profile } = await getProfile()
+  
+  if (!profile) {
+    redirect('/auth/login')
+  }
+  
+  // Only admin role can access admin communications
+  if (profile.role !== 'admin') {
+    redirect('/dashboard')
+  }
+
+  return <CommunicationManagement profile={profile} />
 }

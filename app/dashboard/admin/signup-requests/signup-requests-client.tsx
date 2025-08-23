@@ -16,7 +16,9 @@ import {
   Phone, 
   Mail,
   Calendar,
-  Copy
+  Copy,
+  FileText,
+  AlertTriangle
 } from 'lucide-react'
 
 interface SignupRequest {
@@ -50,18 +52,59 @@ export default function SignupRequestsClient({ requests, currentUser }: SignupRe
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all')
   const [rejectionReason, setRejectionReason] = useState('')
   const [showRejectModal, setShowRejectModal] = useState<string | null>(null)
+  const [showApprovalModal, setShowApprovalModal] = useState<string | null>(null)
 
   const filteredRequests = requests.filter(request => {
     if (filter === 'all') return true
     return request.status === filter
   })
 
+  // Mock function to simulate required documents check
+  const getRequiredDocumentsStatus = (request: SignupRequest) => {
+    // 실제 구현에서는 DB에서 해당 사용자의 필수 서류 상태를 조회
+    // 여기서는 시연을 위한 Mock 데이터
+    const mockDocuments = [
+      { type: '신분증', submitted: request.id !== '1' }, // 김철수(id='1')만 미제출
+      { type: '재직증명서', submitted: request.id !== '2' }, // 이영희(id='2')만 미제출
+      { type: '건강검진서', submitted: request.id !== '3' } // 박민수(id='3')만 미제출
+    ]
+    
+    const total = mockDocuments.length
+    const submitted = mockDocuments.filter(doc => doc.submitted).length
+    const missing = mockDocuments.filter(doc => !doc.submitted)
+    
+    return {
+      total,
+      submitted,
+      missing,
+      isComplete: submitted === total,
+      completionRate: Math.round((submitted / total) * 100)
+    }
+  }
+
   const handleApprove = async (requestId: string) => {
+    // 필수 서류 상태를 먼저 확인
+    const request = requests.find(r => r.id === requestId)
+    if (request) {
+      const docsStatus = getRequiredDocumentsStatus(request)
+      if (!docsStatus.isComplete) {
+        // 필수 서류가 미흡한 경우 확인 모달 표시
+        setShowApprovalModal(requestId)
+        return
+      }
+    }
+    
+    // 필수 서류가 완비된 경우 바로 승인 진행
+    await performApproval(requestId)
+  }
+
+  const performApproval = async (requestId: string) => {
     setLoading(requestId)
     try {
       const result = await approveSignupRequest(requestId, currentUser.id)
       if (result.success) {
         toast.success('승인이 완료되었습니다.')
+        setShowApprovalModal(null)
         router.refresh()
       } else {
         toast.error(result.error || '승인 처리에 실패했습니다.')
@@ -206,6 +249,28 @@ export default function SignupRequestsClient({ requests, currentUser }: SignupRe
                       {new Date(request.requested_at).toLocaleDateString('ko-KR')}
                     </span>
                   </div>
+                  {/* 필수 서류 상태 표시 */}
+                  {(() => {
+                    const docsStatus = getRequiredDocumentsStatus(request)
+                    return (
+                      <div className="flex items-center space-x-2 text-sm">
+                        <FileText className="w-4 h-4 text-gray-400" />
+                        <span className="text-gray-600 dark:text-gray-400">필수서류:</span>
+                        <div className="flex items-center space-x-2">
+                          <span className={`text-sm font-medium ${
+                            docsStatus.isComplete 
+                              ? 'text-green-600 dark:text-green-400' 
+                              : 'text-orange-600 dark:text-orange-400'
+                          }`}>
+                            {docsStatus.submitted}/{docsStatus.total} ({docsStatus.completionRate}%)
+                          </span>
+                          {!docsStatus.isComplete && (
+                            <AlertTriangle className="w-4 h-4 text-orange-500" />
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })()}
                 </div>
               </div>
 
@@ -273,6 +338,72 @@ export default function SignupRequestsClient({ requests, currentUser }: SignupRe
           ))
         )}
       </div>
+
+      {/* Approval Confirmation Modal - for incomplete documents */}
+      {showApprovalModal && (() => {
+        const request = requests.find(r => r.id === showApprovalModal)
+        const docsStatus = request ? getRequiredDocumentsStatus(request) : null
+        
+        return (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg w-full max-w-md">
+              <div className="flex items-center mb-4">
+                <AlertTriangle className="w-5 h-5 text-orange-500 mr-2" />
+                <h3 className="text-lg font-semibold">승인 확인</h3>
+              </div>
+              
+              <div className="mb-4">
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                  <strong>{request?.full_name}</strong>님의 필수 서류가 미흡합니다.
+                </p>
+                
+                {docsStatus && !docsStatus.isComplete && (
+                  <div className="bg-orange-50 dark:bg-orange-900/20 p-3 rounded-lg mb-4">
+                    <div className="flex items-center mb-2">
+                      <FileText className="w-4 h-4 text-orange-600 dark:text-orange-400 mr-2" />
+                      <span className="text-sm font-medium text-orange-800 dark:text-orange-300">
+                        서류 현황: {docsStatus.submitted}/{docsStatus.total} ({docsStatus.completionRate}%)
+                      </span>
+                    </div>
+                    {docsStatus.missing.length > 0 && (
+                      <div className="text-sm text-orange-700 dark:text-orange-300">
+                        <span className="font-medium">미제출 서류:</span>
+                        <ul className="mt-1 ml-4">
+                          {docsStatus.missing.map((doc, index) => (
+                            <li key={index} className="list-disc">{doc.type}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                )}
+                
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  그래도 승인하시겠습니까? 승인 후 사용자에게 임시 비밀번호가 발급되며, 
+                  나중에 추가 서류 제출을 요청할 수 있습니다.
+                </p>
+              </div>
+              
+              <div className="flex space-x-3">
+                <Button
+                  onClick={() => performApproval(showApprovalModal)}
+                  disabled={loading === showApprovalModal}
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                >
+                  {loading === showApprovalModal ? '승인 중...' : '승인 진행'}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowApprovalModal(null)}
+                  disabled={loading === showApprovalModal}
+                >
+                  취소
+                </Button>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
 
       {/* Reject Modal */}
       {showRejectModal && (

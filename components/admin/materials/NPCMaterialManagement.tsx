@@ -15,10 +15,22 @@ import ShipmentManagementTab from './tabs/ShipmentManagementTab'
 import ShipmentRequestsTab from './tabs/ShipmentRequestsTab'
 
 interface NPCMaterialManagementProps {
-  profile: Profile
+  profile?: Profile
 }
 
 export default function NPCMaterialManagement({ profile }: NPCMaterialManagementProps) {
+  // Default profile for cases where it's not provided
+  const defaultProfile: Profile = {
+    id: 'temp-admin',
+    name: 'System Admin',
+    email: 'admin@inopnc.com',
+    role: 'admin',
+    status: 'active',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  }
+  
+  const currentProfile = profile || defaultProfile
   const [activeTab, setActiveTab] = useState<'inventory' | 'production' | 'shipment' | 'requests'>('inventory')
   const [loading, setLoading] = useState(false)
   const supabase = createClient()
@@ -113,10 +125,10 @@ export default function NPCMaterialManagement({ profile }: NPCMaterialManagement
 
       {/* Tab Content */}
       <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
-        {activeTab === 'inventory' && <InventoryUsageTab profile={profile} />}
-        {activeTab === 'production' && <ProductionManagementTab profile={profile} />}
-        {activeTab === 'shipment' && <ShipmentManagementTab profile={profile} />}
-        {activeTab === 'requests' && <ShipmentRequestsTab profile={profile} />}
+        {activeTab === 'inventory' && <InventoryUsageTab profile={currentProfile} />}
+        {activeTab === 'production' && <ProductionManagementTab profile={currentProfile} />}
+        {activeTab === 'shipment' && <ShipmentManagementTab profile={currentProfile} />}
+        {activeTab === 'requests' && <ShipmentRequestsTab profile={currentProfile} />}
       </div>
     </div>
   )

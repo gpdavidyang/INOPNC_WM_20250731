@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { ProfileManager } from '@/lib/auth/profile-manager'
+import type { UserRole } from '@/types'
 
 export async function signIn(email: string, password: string) {
   const supabase = createClient()
@@ -501,4 +502,26 @@ export async function rejectSignupRequest(requestId: string, adminUserId: string
     console.error('Reject signup request error:', error)
     return { error: '거절 처리 중 오류가 발생했습니다.' }
   }
+}
+
+export async function getProfile() {
+  const supabase = createClient()
+  
+  const { data: { user }, error: userError } = await supabase.auth.getUser()
+  
+  if (userError || !user) {
+    return { error: 'Not authenticated' }
+  }
+  
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .single()
+  
+  if (profileError || !profile) {
+    return { error: 'Profile not found' }
+  }
+  
+  return { data: profile }
 }

@@ -111,8 +111,8 @@ export function UnifiedMobileNav({ userRole, activeTab, onTabChange }: UnifiedMo
   }, [pathname, activeTab])
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 md:hidden">
-      <div className="flex h-16 items-center justify-around px-2">
+    <nav className="fixed bottom-0 left-0 right-0 z-[100] bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 md:hidden shadow-lg safe-bottom">
+      <div className="flex h-16 items-center justify-around px-2 pb-safe">
         {visibleItems.map((item) => {
           const active = isActive(item)
           

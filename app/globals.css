@@ -2,6 +2,48 @@
 @tailwind components;
 @tailwind utilities;
 
+/* CRITICAL: Production Quality Preservation Layer */
+/* These rules MUST be loaded to prevent quality degradation in production */
+@layer base {
+  /* Force consistent rendering across environments */
+  html {
+    -webkit-text-size-adjust: 100% !important;
+    -webkit-font-smoothing: antialiased !important;
+    -moz-osx-font-smoothing: grayscale !important;
+    text-rendering: optimizeLegibility !important;
+    /* Prevent color space issues */
+    color-profile: sRGB;
+    rendering-intent: relative-colorimetric;
+  }
+  
+  /* Ensure colors render correctly */
+  * {
+    /* Disable any filters that might be applied */
+    filter: none !important;
+    -webkit-filter: none !important;
+    /* Preserve color accuracy */
+    color-rendering: optimizeQuality !important;
+  }
+  
+  /* Fix image quality degradation */
+  img, video, canvas, svg {
+    image-rendering: -webkit-optimize-contrast !important;
+    image-rendering: high-quality !important;
+    -ms-interpolation-mode: bicubic !important;
+  }
+}
+
+/* Safe area support for mobile devices */
+@supports (padding: max(0px)) {
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+  
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+}
+
 /* WCAG 2.1 Color and Contrast System */
 
 /* 
@@ -176,13 +218,14 @@
 }
 
 @layer base {
-  /* Critical font rendering optimization for production */
+  /* Enhanced font rendering for production quality */
   * {
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility;
-    font-feature-settings: "kern" 1;
-    font-kerning: normal;
+    -webkit-font-smoothing: antialiased !important;
+    -moz-osx-font-smoothing: grayscale !important;
+    text-rendering: optimizeLegibility !important;
+    font-feature-settings: "kern" 1, "liga" 1, "calt" 1 !important;
+    font-kerning: normal !important;
+    font-synthesis: none !important;
   }
   
   /* High DPI screen optimization */

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Worker 초기화</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        button {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #b91c1c;
+        }
+        .success {
+            background: #10b981;
+        }
+        .success:hover {
+            background: #059669;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            background: #f0f9ff;
+            border: 1px solid #bfdbfe;
+        }
+        .error {
+            background: #fef2f2;
+            border-color: #fecaca;
+            color: #dc2626;
+        }
+        .success-msg {
+            background: #f0fdf4;
+            border-color: #bbf7d0;
+            color: #059669;
+        }
+        pre {
+            background: #1f2937;
+            color: #f3f4f6;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .instructions {
+            margin-top: 30px;
+            padding: 20px;
+            background: #fef3c7;
+            border: 1px solid #fde68a;
+            border-radius: 6px;
+        }
+        .instructions h2 {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: #92400e;
+        }
+        .instructions ol {
+            margin-left: 20px;
+            color: #78350f;
+        }
+        .instructions li {
+            margin: 8px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Service Worker 초기화 도구</h1>
+        
+        <p>Service Worker 캐시 문제를 해결하기 위한 도구입니다.</p>
+        
+        <div style="margin: 20px 0;">
+            <button onclick="clearServiceWorker()">Service Worker 초기화</button>
+            <button onclick="clearAllCache()">모든 캐시 삭제</button>
+            <button onclick="checkStatus()">상태 확인</button>
+            <button class="success" onclick="goToApp()">앱으로 이동</button>
+        </div>
+        
+        <div id="status" class="status"></div>
+        
+        <div class="instructions">
+            <h2>📋 사용 방법</h2>
+            <ol>
+                <li>브라우저에서 이 파일을 엽니다: <code>file:///Users/davidyang/workspace/INOPNC_WM_20250731/clear-service-worker.html</code></li>
+                <li>"Service Worker 초기화" 버튼을 클릭합니다</li>
+                <li>"모든 캐시 삭제" 버튼을 클릭합니다</li>
+                <li>브라우저를 완전히 종료했다가 다시 엽니다</li>
+                <li>"앱으로 이동" 버튼을 클릭하거나 직접 http://localhost:3000 으로 접속합니다</li>
+            </ol>
+        </div>
+        
+        <div style="margin-top: 30px;">
+            <h3>브라우저 개발자 도구에서 직접 실행:</h3>
+            <pre>// Service Worker 제거
+navigator.serviceWorker.getRegistrations().then(function(registrations) {
+    for(let registration of registrations) {
+        registration.unregister();
+    }
+});
+
+// 모든 캐시 삭제
+caches.keys().then(function(names) {
+    for (let name of names) {
+        caches.delete(name);
+    }
+});</pre>
+        </div>
+    </div>
+    
+    <script>
+        function updateStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.className = 'status';
+            if (type === 'error') statusDiv.className += ' error';
+            if (type === 'success') statusDiv.className += ' success-msg';
+            statusDiv.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong>: ${message}`;
+        }
+        
+        async function clearServiceWorker() {
+            try {
+                updateStatus('Service Worker 제거 중...', 'info');
+                
+                // localhost:3000에 대한 Service Worker 제거
+                if ('serviceWorker' in navigator) {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    
+                    if (registrations.length === 0) {
+                        updateStatus('등록된 Service Worker가 없습니다.', 'info');
+                    } else {
+                        for (let registration of registrations) {
+                            const success = await registration.unregister();
+                            console.log('Service Worker 제거:', registration.scope, success);
+                        }
+                        updateStatus(`${registrations.length}개의 Service Worker를 제거했습니다.`, 'success');
+                    }
+                } else {
+                    updateStatus('이 브라우저는 Service Worker를 지원하지 않습니다.', 'error');
+                }
+            } catch (error) {
+                updateStatus(`오류 발생: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+        
+        async function clearAllCache() {
+            try {
+                updateStatus('캐시 삭제 중...', 'info');
+                
+                const cacheNames = await caches.keys();
+                
+                if (cacheNames.length === 0) {
+                    updateStatus('삭제할 캐시가 없습니다.', 'info');
+                } else {
+                    await Promise.all(
+                        cacheNames.map(name => caches.delete(name))
+                    );
+                    updateStatus(`${cacheNames.length}개의 캐시를 삭제했습니다.`, 'success');
+                }
+                
+                // localStorage와 sessionStorage도 정리
+                localStorage.clear();
+                sessionStorage.clear();
+                updateStatus('모든 저장소를 초기화했습니다.', 'success');
+                
+            } catch (error) {
+                updateStatus(`오류 발생: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+        
+        async function checkStatus() {
+            try {
+                let status = '<strong>현재 상태:</strong><br>';
+                
+                // Service Worker 상태
+                if ('serviceWorker' in navigator) {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    status += `• Service Workers: ${registrations.length}개 등록됨<br>`;
+                    registrations.forEach(reg => {
+                        status += `  - ${reg.scope}<br>`;
+                    });
+                }
+                
+                // 캐시 상태
+                const cacheNames = await caches.keys();
+                status += `• 캐시: ${cacheNames.length}개 존재<br>`;
+                cacheNames.forEach(name => {
+                    status += `  - ${name}<br>`;
+                });
+                
+                // 저장소 상태
+                status += `• localStorage: ${localStorage.length}개 항목<br>`;
+                status += `• sessionStorage: ${sessionStorage.length}개 항목<br>`;
+                
+                document.getElementById('status').innerHTML = status;
+                
+            } catch (error) {
+                updateStatus(`상태 확인 중 오류: ${error.message}`, 'error');
+            }
+        }
+        
+        function goToApp() {
+            window.location.href = 'http://localhost:3000';
+        }
+        
+        // 페이지 로드 시 상태 확인
+        window.onload = function() {
+            checkStatus();
+        };
+    </script>
+</body>
+</html>

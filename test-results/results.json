@@ -10,7 +10,9 @@
     "grep": {},
     "grepInvert": null,
     "maxFailures": 0,
-    "metadata": {},
+    "metadata": {
+      "actualWorkers": 3
+    },
     "preserveOutput": "always",
     "reporter": [
       [
@@ -40,7 +42,9 @@
         "outputDir": "/Users/davidyang/workspace/INOPNC_WM_20250731/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {},
+        "metadata": {
+          "actualWorkers": 3
+        },
         "id": "chromium",
         "name": "chromium",
         "testDir": "/Users/davidyang/workspace/INOPNC_WM_20250731/e2e",
@@ -48,13 +52,15 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 60000
+        "timeout": 30000
       },
       {
         "outputDir": "/Users/davidyang/workspace/INOPNC_WM_20250731/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {},
+        "metadata": {
+          "actualWorkers": 3
+        },
         "id": "firefox",
         "name": "firefox",
         "testDir": "/Users/davidyang/workspace/INOPNC_WM_20250731/e2e",
@@ -62,13 +68,15 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 60000
+        "timeout": 30000
       },
       {
         "outputDir": "/Users/davidyang/workspace/INOPNC_WM_20250731/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {},
+        "metadata": {
+          "actualWorkers": 3
+        },
         "id": "webkit",
         "name": "webkit",
         "testDir": "/Users/davidyang/workspace/INOPNC_WM_20250731/e2e",
@@ -76,13 +84,15 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 60000
+        "timeout": 30000
       },
       {
         "outputDir": "/Users/davidyang/workspace/INOPNC_WM_20250731/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {},
+        "metadata": {
+          "actualWorkers": 3
+        },
         "id": "desktop-large",
         "name": "desktop-large",
         "testDir": "/Users/davidyang/workspace/INOPNC_WM_20250731/e2e",
@@ -90,13 +100,15 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 60000
+        "timeout": 30000
       },
       {
         "outputDir": "/Users/davidyang/workspace/INOPNC_WM_20250731/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {},
+        "metadata": {
+          "actualWorkers": 3
+        },
         "id": "iphone-14",
         "name": "iphone-14",
         "testDir": "/Users/davidyang/workspace/INOPNC_WM_20250731/e2e",
@@ -104,13 +116,15 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 60000
+        "timeout": 30000
       },
       {
         "outputDir": "/Users/davidyang/workspace/INOPNC_WM_20250731/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {},
+        "metadata": {
+          "actualWorkers": 3
+        },
         "id": "iphone-14-pro",
         "name": "iphone-14-pro",
         "testDir": "/Users/davidyang/workspace/INOPNC_WM_20250731/e2e",
@@ -118,13 +132,15 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 60000
+        "timeout": 30000
       },
       {
         "outputDir": "/Users/davidyang/workspace/INOPNC_WM_20250731/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {},
+        "metadata": {
+          "actualWorkers": 3
+        },
         "id": "iphone-se",
         "name": "iphone-se",
         "testDir": "/Users/davidyang/workspace/INOPNC_WM_20250731/e2e",
@@ -132,13 +148,15 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 60000
+        "timeout": 30000
       },
       {
         "outputDir": "/Users/davidyang/workspace/INOPNC_WM_20250731/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {},
+        "metadata": {
+          "actualWorkers": 3
+        },
         "id": "pixel-7",
         "name": "pixel-7",
         "testDir": "/Users/davidyang/workspace/INOPNC_WM_20250731/e2e",
@@ -146,13 +164,15 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 60000
+        "timeout": 30000
       },
       {
         "outputDir": "/Users/davidyang/workspace/INOPNC_WM_20250731/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {},
+        "metadata": {
+          "actualWorkers": 3
+        },
         "id": "galaxy-s9",
         "name": "galaxy-s9",
         "testDir": "/Users/davidyang/workspace/INOPNC_WM_20250731/e2e",
@@ -160,13 +180,15 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 60000
+        "timeout": 30000
       },
       {
         "outputDir": "/Users/davidyang/workspace/INOPNC_WM_20250731/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {},
+        "metadata": {
+          "actualWorkers": 3
+        },
         "id": "ipad",
         "name": "ipad",
         "testDir": "/Users/davidyang/workspace/INOPNC_WM_20250731/e2e",
@@ -174,13 +196,15 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 60000
+        "timeout": 30000
       },
       {
         "outputDir": "/Users/davidyang/workspace/INOPNC_WM_20250731/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {},
+        "metadata": {
+          "actualWorkers": 3
+        },
         "id": "ipad-mini",
         "name": "ipad-mini",
         "testDir": "/Users/davidyang/workspace/INOPNC_WM_20250731/e2e",
@@ -188,13 +212,15 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 60000
+        "timeout": 30000
       },
       {
         "outputDir": "/Users/davidyang/workspace/INOPNC_WM_20250731/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {},
+        "metadata": {
+          "actualWorkers": 3
+        },
         "id": "mobile-slow-3g",
         "name": "mobile-slow-3g",
         "testDir": "/Users/davidyang/workspace/INOPNC_WM_20250731/e2e",
@@ -202,13 +228,15 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 60000
+        "timeout": 30000
       },
       {
         "outputDir": "/Users/davidyang/workspace/INOPNC_WM_20250731/test-results",
         "repeatEach": 1,
         "retries": 0,
-        "metadata": {},
+        "metadata": {
+          "actualWorkers": 3
+        },
         "id": "desktop-accessibility",
         "name": "desktop-accessibility",
         "testDir": "/Users/davidyang/workspace/INOPNC_WM_20250731/e2e",
@@ -216,7 +244,7 @@
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
         ],
-        "timeout": 60000
+        "timeout": 30000
       }
     ],
     "shard": null,
@@ -231,19 +259,467 @@
       "timeout": 120000
     }
   },
-  "suites": [],
-  "errors": [
+  "suites": [
     {
-      "message": "Error: No tests found.\nMake sure that arguments are regular expressions matching test files.\nYou may need to escape symbols like \"$\" or \"*\" and quote the arguments.",
-      "stack": "Error: No tests found.\nMake sure that arguments are regular expressions matching test files.\nYou may need to escape symbols like \"$\" or \"*\" and quote the arguments."
+      "title": "manager-navigation.spec.ts",
+      "file": "manager-navigation.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "현장 관리자 네비게이션 테스트",
+          "file": "manager-navigation.spec.ts",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "데스크톱 사이드바 네비게이션 테스트",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 18469,
+                      "error": {
+                        "message": "TimeoutError: page.fill: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"email\"]')\u001b[22m\n",
+                        "stack": "TimeoutError: page.fill: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"email\"]')\u001b[22m\n\n    at /Users/davidyang/workspace/INOPNC_WM_20250731/e2e/manager-navigation.spec.ts:13:16",
+                        "location": {
+                          "file": "/Users/davidyang/workspace/INOPNC_WM_20250731/e2e/manager-navigation.spec.ts",
+                          "column": 16,
+                          "line": 13
+                        },
+                        "snippet": "  11 |     \n  12 |     // 로그인 수행\n> 13 |     await page.fill('input[name=\"email\"]', 'manager@inopnc.com');\n     |                ^\n  14 |     await page.fill('input[name=\"password\"]', 'password123');\n  15 |     await page.click('button[type=\"submit\"]');\n  16 |     "
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/davidyang/workspace/INOPNC_WM_20250731/e2e/manager-navigation.spec.ts",
+                            "column": 16,
+                            "line": 13
+                          },
+                          "message": "TimeoutError: page.fill: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"email\"]')\u001b[22m\n\n\n  11 |     \n  12 |     // 로그인 수행\n> 13 |     await page.fill('input[name=\"email\"]', 'manager@inopnc.com');\n     |                ^\n  14 |     await page.fill('input[name=\"password\"]', 'password123');\n  15 |     await page.click('button[type=\"submit\"]');\n  16 |     \n    at /Users/davidyang/workspace/INOPNC_WM_20250731/e2e/manager-navigation.spec.ts:13:16"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "🔐 현장 관리자 계정으로 로그인 시작...\n"
+                        },
+                        {
+                          "text": "\n==================================================\n"
+                        },
+                        {
+                          "text": "📊 현장 관리자 네비게이션 테스트 완료\n"
+                        },
+                        {
+                          "text": "==================================================\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-23T01:56:41.362Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/davidyang/workspace/INOPNC_WM_20250731/test-results/manager-navigation-현장-관리자-네비게이션-테스트-데스크톱-사이드바-네비게이션-테스트-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/Users/davidyang/workspace/INOPNC_WM_20250731/test-results/manager-navigation-현장-관리자-네비게이션-테스트-데스크톱-사이드바-네비게이션-테스트-chromium/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/davidyang/workspace/INOPNC_WM_20250731/test-results/manager-navigation-현장-관리자-네비게이션-테스트-데스크톱-사이드바-네비게이션-테스트-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/davidyang/workspace/INOPNC_WM_20250731/e2e/manager-navigation.spec.ts",
+                        "column": 16,
+                        "line": 13
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "0c8a9826ecee38f42993-b3811e20efb5c349dbad",
+              "file": "manager-navigation.spec.ts",
+              "line": 23,
+              "column": 7
+            },
+            {
+              "title": "모바일 하단바 네비게이션 테스트",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 16709,
+                      "error": {
+                        "message": "TimeoutError: page.fill: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"email\"]')\u001b[22m\n",
+                        "stack": "TimeoutError: page.fill: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"email\"]')\u001b[22m\n\n    at /Users/davidyang/workspace/INOPNC_WM_20250731/e2e/manager-navigation.spec.ts:13:16",
+                        "location": {
+                          "file": "/Users/davidyang/workspace/INOPNC_WM_20250731/e2e/manager-navigation.spec.ts",
+                          "column": 16,
+                          "line": 13
+                        },
+                        "snippet": "  11 |     \n  12 |     // 로그인 수행\n> 13 |     await page.fill('input[name=\"email\"]', 'manager@inopnc.com');\n     |                ^\n  14 |     await page.fill('input[name=\"password\"]', 'password123');\n  15 |     await page.click('button[type=\"submit\"]');\n  16 |     "
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/davidyang/workspace/INOPNC_WM_20250731/e2e/manager-navigation.spec.ts",
+                            "column": 16,
+                            "line": 13
+                          },
+                          "message": "TimeoutError: page.fill: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"email\"]')\u001b[22m\n\n\n  11 |     \n  12 |     // 로그인 수행\n> 13 |     await page.fill('input[name=\"email\"]', 'manager@inopnc.com');\n     |                ^\n  14 |     await page.fill('input[name=\"password\"]', 'password123');\n  15 |     await page.click('button[type=\"submit\"]');\n  16 |     \n    at /Users/davidyang/workspace/INOPNC_WM_20250731/e2e/manager-navigation.spec.ts:13:16"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "🔐 현장 관리자 계정으로 로그인 시작...\n"
+                        },
+                        {
+                          "text": "\n==================================================\n"
+                        },
+                        {
+                          "text": "📊 현장 관리자 네비게이션 테스트 완료\n"
+                        },
+                        {
+                          "text": "==================================================\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-23T01:57:02.034Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/davidyang/workspace/INOPNC_WM_20250731/test-results/manager-navigation-현장-관리자-네비게이션-테스트-모바일-하단바-네비게이션-테스트-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/Users/davidyang/workspace/INOPNC_WM_20250731/test-results/manager-navigation-현장-관리자-네비게이션-테스트-모바일-하단바-네비게이션-테스트-chromium/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/davidyang/workspace/INOPNC_WM_20250731/test-results/manager-navigation-현장-관리자-네비게이션-테스트-모바일-하단바-네비게이션-테스트-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/davidyang/workspace/INOPNC_WM_20250731/e2e/manager-navigation.spec.ts",
+                        "column": 16,
+                        "line": 13
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "0c8a9826ecee38f42993-6830bb4ed271c2897fd0",
+              "file": "manager-navigation.spec.ts",
+              "line": 75,
+              "column": 7
+            },
+            {
+              "title": "모바일 햄버거 메뉴 테스트",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 17627,
+                      "error": {
+                        "message": "TimeoutError: page.fill: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"email\"]')\u001b[22m\n",
+                        "stack": "TimeoutError: page.fill: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"email\"]')\u001b[22m\n\n    at /Users/davidyang/workspace/INOPNC_WM_20250731/e2e/manager-navigation.spec.ts:13:16",
+                        "location": {
+                          "file": "/Users/davidyang/workspace/INOPNC_WM_20250731/e2e/manager-navigation.spec.ts",
+                          "column": 16,
+                          "line": 13
+                        },
+                        "snippet": "  11 |     \n  12 |     // 로그인 수행\n> 13 |     await page.fill('input[name=\"email\"]', 'manager@inopnc.com');\n     |                ^\n  14 |     await page.fill('input[name=\"password\"]', 'password123');\n  15 |     await page.click('button[type=\"submit\"]');\n  16 |     "
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/davidyang/workspace/INOPNC_WM_20250731/e2e/manager-navigation.spec.ts",
+                            "column": 16,
+                            "line": 13
+                          },
+                          "message": "TimeoutError: page.fill: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"email\"]')\u001b[22m\n\n\n  11 |     \n  12 |     // 로그인 수행\n> 13 |     await page.fill('input[name=\"email\"]', 'manager@inopnc.com');\n     |                ^\n  14 |     await page.fill('input[name=\"password\"]', 'password123');\n  15 |     await page.click('button[type=\"submit\"]');\n  16 |     \n    at /Users/davidyang/workspace/INOPNC_WM_20250731/e2e/manager-navigation.spec.ts:13:16"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "🔐 현장 관리자 계정으로 로그인 시작...\n"
+                        },
+                        {
+                          "text": "\n==================================================\n"
+                        },
+                        {
+                          "text": "📊 현장 관리자 네비게이션 테스트 완료\n"
+                        },
+                        {
+                          "text": "==================================================\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-23T01:56:41.370Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/davidyang/workspace/INOPNC_WM_20250731/test-results/manager-navigation-현장-관리자-네비게이션-테스트-모바일-햄버거-메뉴-테스트-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/Users/davidyang/workspace/INOPNC_WM_20250731/test-results/manager-navigation-현장-관리자-네비게이션-테스트-모바일-햄버거-메뉴-테스트-chromium/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/davidyang/workspace/INOPNC_WM_20250731/test-results/manager-navigation-현장-관리자-네비게이션-테스트-모바일-햄버거-메뉴-테스트-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/davidyang/workspace/INOPNC_WM_20250731/e2e/manager-navigation.spec.ts",
+                        "column": 16,
+                        "line": 13
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "0c8a9826ecee38f42993-33e7107546fca8ded214",
+              "file": "manager-navigation.spec.ts",
+              "line": 123,
+              "column": 7
+            },
+            {
+              "title": "반응형 레이아웃 전환 테스트",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 16838,
+                      "error": {
+                        "message": "TimeoutError: page.fill: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"email\"]')\u001b[22m\n",
+                        "stack": "TimeoutError: page.fill: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"email\"]')\u001b[22m\n\n    at /Users/davidyang/workspace/INOPNC_WM_20250731/e2e/manager-navigation.spec.ts:13:16",
+                        "location": {
+                          "file": "/Users/davidyang/workspace/INOPNC_WM_20250731/e2e/manager-navigation.spec.ts",
+                          "column": 16,
+                          "line": 13
+                        },
+                        "snippet": "  11 |     \n  12 |     // 로그인 수행\n> 13 |     await page.fill('input[name=\"email\"]', 'manager@inopnc.com');\n     |                ^\n  14 |     await page.fill('input[name=\"password\"]', 'password123');\n  15 |     await page.click('button[type=\"submit\"]');\n  16 |     "
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/davidyang/workspace/INOPNC_WM_20250731/e2e/manager-navigation.spec.ts",
+                            "column": 16,
+                            "line": 13
+                          },
+                          "message": "TimeoutError: page.fill: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"email\"]')\u001b[22m\n\n\n  11 |     \n  12 |     // 로그인 수행\n> 13 |     await page.fill('input[name=\"email\"]', 'manager@inopnc.com');\n     |                ^\n  14 |     await page.fill('input[name=\"password\"]', 'password123');\n  15 |     await page.click('button[type=\"submit\"]');\n  16 |     \n    at /Users/davidyang/workspace/INOPNC_WM_20250731/e2e/manager-navigation.spec.ts:13:16"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "🔐 현장 관리자 계정으로 로그인 시작...\n"
+                        },
+                        {
+                          "text": "\n==================================================\n"
+                        },
+                        {
+                          "text": "📊 현장 관리자 네비게이션 테스트 완료\n"
+                        },
+                        {
+                          "text": "==================================================\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-23T01:57:01.936Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/davidyang/workspace/INOPNC_WM_20250731/test-results/manager-navigation-현장-관리자-네비게이션-테스트-반응형-레이아웃-전환-테스트-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/Users/davidyang/workspace/INOPNC_WM_20250731/test-results/manager-navigation-현장-관리자-네비게이션-테스트-반응형-레이아웃-전환-테스트-chromium/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/davidyang/workspace/INOPNC_WM_20250731/test-results/manager-navigation-현장-관리자-네비게이션-테스트-반응형-레이아웃-전환-테스트-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/davidyang/workspace/INOPNC_WM_20250731/e2e/manager-navigation.spec.ts",
+                        "column": 16,
+                        "line": 13
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "0c8a9826ecee38f42993-c85753ce7bd68463a4b8",
+              "file": "manager-navigation.spec.ts",
+              "line": 170,
+              "column": 7
+            },
+            {
+              "title": "네비게이션 활성 상태 테스트",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "failed",
+                      "duration": 18256,
+                      "error": {
+                        "message": "TimeoutError: page.fill: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"email\"]')\u001b[22m\n",
+                        "stack": "TimeoutError: page.fill: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"email\"]')\u001b[22m\n\n    at /Users/davidyang/workspace/INOPNC_WM_20250731/e2e/manager-navigation.spec.ts:13:16",
+                        "location": {
+                          "file": "/Users/davidyang/workspace/INOPNC_WM_20250731/e2e/manager-navigation.spec.ts",
+                          "column": 16,
+                          "line": 13
+                        },
+                        "snippet": "  11 |     \n  12 |     // 로그인 수행\n> 13 |     await page.fill('input[name=\"email\"]', 'manager@inopnc.com');\n     |                ^\n  14 |     await page.fill('input[name=\"password\"]', 'password123');\n  15 |     await page.click('button[type=\"submit\"]');\n  16 |     "
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/davidyang/workspace/INOPNC_WM_20250731/e2e/manager-navigation.spec.ts",
+                            "column": 16,
+                            "line": 13
+                          },
+                          "message": "TimeoutError: page.fill: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"email\"]')\u001b[22m\n\n\n  11 |     \n  12 |     // 로그인 수행\n> 13 |     await page.fill('input[name=\"email\"]', 'manager@inopnc.com');\n     |                ^\n  14 |     await page.fill('input[name=\"password\"]', 'password123');\n  15 |     await page.click('button[type=\"submit\"]');\n  16 |     \n    at /Users/davidyang/workspace/INOPNC_WM_20250731/e2e/manager-navigation.spec.ts:13:16"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "🔐 현장 관리자 계정으로 로그인 시작...\n"
+                        },
+                        {
+                          "text": "\n==================================================\n"
+                        },
+                        {
+                          "text": "📊 현장 관리자 네비게이션 테스트 완료\n"
+                        },
+                        {
+                          "text": "==================================================\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-08-23T01:56:41.361Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/davidyang/workspace/INOPNC_WM_20250731/test-results/manager-navigation-현장-관리자-네비게이션-테스트-네비게이션-활성-상태-테스트-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/Users/davidyang/workspace/INOPNC_WM_20250731/test-results/manager-navigation-현장-관리자-네비게이션-테스트-네비게이션-활성-상태-테스트-chromium/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/davidyang/workspace/INOPNC_WM_20250731/test-results/manager-navigation-현장-관리자-네비게이션-테스트-네비게이션-활성-상태-테스트-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/davidyang/workspace/INOPNC_WM_20250731/e2e/manager-navigation.spec.ts",
+                        "column": 16,
+                        "line": 13
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "0c8a9826ecee38f42993-976f22d446c07480b69a",
+              "file": "manager-navigation.spec.ts",
+              "line": 200,
+              "column": 7
+            }
+          ]
+        }
+      ]
     }
   ],
+  "errors": [],
   "stats": {
-    "startTime": "2025-08-22T13:56:24.508Z",
-    "duration": 368.3019999999999,
+    "startTime": "2025-08-23T01:56:40.814Z",
+    "duration": 38755.589,
     "expected": 0,
     "skipped": 0,
-    "unexpected": 0,
+    "unexpected": 5,
     "flaky": 0
   }
 }

@@ -9,6 +9,9 @@ const bundleAnalyzer = withBundleAnalyzer({
 const nextConfig = {
   reactStrictMode: true,
   
+  // CRITICAL: Disable all optimizations that degrade visual quality
+  // This configuration prioritizes visual fidelity over file size
+  
   // TypeScript 빌드 최적화
   typescript: {
     // 빌드 중 타입 에러 무시 (개발 중에만 체크)
@@ -21,13 +24,13 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   
-  // SWC 컴파일러 최적화 - 프로덕션 품질 향상
-  swcMinify: true, // SWC minifier 활성화로 최적화된 빌드
+  // DISABLE SWC minification to prevent quality degradation
+  swcMinify: false, // Disabled to maintain visual quality
   // 프로덕션 빌드 품질 개선을 위한 추가 설정
   productionBrowserSourceMaps: process.env.NODE_ENV === 'production' && process.env.ENABLE_SOURCE_MAPS === 'true',
   
-  // 프로덕션에서 적절한 압축 활성화 (성능과 품질 균형)
-  compress: true, // gzip 압축 활성화
+  // DISABLE compression to prevent quality loss
+  compress: false, // Disabled - CDN transformation prevention
   poweredByHeader: false,
   generateEtags: true, // 캐싱 최적화
   onDemandEntries: {
@@ -35,58 +38,22 @@ const nextConfig = {
     pagesBufferLength: 2,
   },
   
-  // Webpack 설정 - 프로덕션 최적화 활성화
+  // Webpack configuration - DISABLE aggressive optimization
   webpack: (config, { buildId, dev, isServer, defaultLoaders, nextRuntime, webpack }) => {
-    // 프로덕션에서 필수 최적화만 적용
     if (!dev) {
-      // 기본 최적화는 유지하되 과도한 압축은 제한
-      config.optimization.minimize = true;
+      // REDUCE optimization to prevent quality loss
+      config.optimization.minimize = false; // Disable minification
       
-      // CSS 추출 플러그인 품질 보존 설정
-      config.plugins = config.plugins.map((plugin) => {
-        if (plugin.constructor.name === 'MiniCssExtractPlugin') {
-          plugin.options = {
-            ...plugin.options,
-            // 프로덕션용 CSS 파일명 최적화
-            filename: '[name].[contenthash].css',
-            chunkFilename: '[id].[contenthash].css',
-            // CSS 품질 보존 옵션
-            ignoreOrder: false,
-          }
-        }
-        return plugin
-      });
+      // DISABLE CSS extraction optimization
+      config.plugins = config.plugins.filter(
+        (plugin) => plugin.constructor.name !== 'CssMinimizerPlugin'
+      );
       
-      // Terser 옵션 최적화 - 품질과 성능 균형
+      // DISABLE Terser minification
       if (config.optimization.minimizer) {
-        config.optimization.minimizer.forEach((minimizer) => {
-          if (minimizer.constructor.name === 'TerserPlugin') {
-            minimizer.options.terserOptions = {
-              ...minimizer.options.terserOptions,
-              compress: {
-                ...minimizer.options.terserOptions?.compress,
-                drop_console: true, // 프로덕션에서 콘솔 제거
-                drop_debugger: true, // 디버거 제거
-                pure_funcs: ['console.log', 'console.debug'], // 특정 함수만 제거
-                passes: 2, // 압축 패스 횟수 증가로 최적화 향상
-              },
-              mangle: {
-                safari10: true, // Safari 10 호환성
-              },
-              format: {
-                ...minimizer.options.terserOptions?.format,
-                comments: false,
-                ascii_only: false, // Unicode 문자 보존
-              },
-              // 출력 품질 개선
-              output: {
-                ascii_only: false, // Unicode 보존
-                comments: false,
-                webkit: true, // WebKit 버그 회피
-              },
-            };
-          }
-        });
+        config.optimization.minimizer = config.optimization.minimizer.filter(
+          (minimizer) => minimizer.constructor.name !== 'TerserPlugin'
+        );
       }
     }
     
@@ -122,14 +89,14 @@ const nextConfig = {
     // Instrumentation hook 완전 비활성화 (성능 향상)
     instrumentationHook: false,
     
-    // CSS 최적화 활성화 (프로덕션 품질 향상)
-    optimizeCss: true,
+    // DISABLE CSS optimization to prevent style loss
+    optimizeCss: false,
     
-    // 서버 최적화 활성화 (프로덕션 성능 향상)
-    serverMinification: true,
+    // DISABLE server minification
+    serverMinification: false,
     
-    // 프리페치 최적화
-    adjustFontFallbacks: true,
+    // DISABLE font fallback adjustments
+    adjustFontFallbacks: false,
   },
   
   // 개발 서버 최적화
@@ -139,25 +106,24 @@ const nextConfig = {
   
   // 컴파일 성능 향상
   compiler: {
-    // 프로덕션에서 콘솔 제거 (성능 향상)
-    removeConsole: process.env.NODE_ENV === 'production' ? {
-      exclude: ['error', 'warn', 'info'] // error, warn, info는 유지
-    } : false,
-    // React 프로덕션 프로파일링 비활성화
-    reactRemoveProperties: process.env.NODE_ENV === 'production',
+    // KEEP console for debugging quality issues
+    removeConsole: false,
+    // KEEP React properties for debugging
+    reactRemoveProperties: false,
   },
   
   
-  // 이미지 최적화 - 프로덕션 품질 향상 설정
+  // CRITICAL: Disable image optimization to prevent color/quality degradation
   images: {
-    formats: ['image/avif', 'image/webp'],
+    // REMOVE AVIF/WebP to prevent color space issues
+    formats: ['image/png', 'image/jpeg'], // Original formats only
     domains: ['localhost', 'yjtnpscnnsnvfsyvajku.supabase.co'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     minimumCacheTTL: 86400, // 24시간 캐시
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
-    unoptimized: false, // 최적화 활성화
+    unoptimized: true, // DISABLE optimization - maintain original quality
     // 프로덕션 환경에서 최고 품질 보장을 위한 추가 설정
     loader: 'default',
     path: '/_next/image',
@@ -179,12 +145,43 @@ const nextConfig = {
     ],
   },
   
-  // 프로덕션 폰트 렌더링 최적화 - 품질 보존을 위해 활성화
-  optimizeFonts: true,
+  // DISABLE font optimization to prevent subsetting issues
+  optimizeFonts: false,
   
   // PWA 지원을 위한 설정
   headers: async () => {
     return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-transform', // Prevent CDN/proxy transformation
+          },
+          {
+            key: 'Accept-CH',
+            value: 'DPR, Viewport-Width, Width', // High DPI hints
+          },
+        ],
+      },
+      {
+        source: '/_next/static/css/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable, no-transform',
+          },
+        ],
+      },
+      {
+        source: '/_next/static/media/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable, no-transform',
+          },
+        ],
+      },
       {
         source: '/manifest.json',
         headers: [
@@ -199,7 +196,7 @@ const nextConfig = {
         headers: [
           {
             key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
+            value: 'public, max-age=31536000, immutable, no-transform',
           },
         ],
       },

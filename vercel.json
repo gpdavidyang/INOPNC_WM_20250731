@@ -1,6 +1,6 @@
 {
   "framework": "nextjs",
-  "buildCommand": "next build",
+  "buildCommand": "NODE_ENV=production next build",
   "outputDirectory": ".next",
   "installCommand": "npm install",
   "devCommand": "npm run dev",
@@ -62,7 +62,10 @@
   ],
   "env": {
     "NODE_ENV": "production",
-    "NEXT_TELEMETRY_DISABLED": "1"
+    "NEXT_TELEMETRY_DISABLED": "1",
+    "NEXT_OPTIMIZE_IMAGES": "false",
+    "NEXT_OPTIMIZE_CSS": "false",
+    "NEXT_OPTIMIZE_FONTS": "false"
   },
   "functions": {
     "app/api/**": {
@@ -70,8 +73,15 @@
     }
   },
   "images": {
-    "formats": ["image/avif", "image/webp"],
+    "formats": ["image/png", "image/jpeg"],
     "minimumCacheTTL": 86400,
-    "sizes": [640, 750, 828, 1080, 1200, 1920, 2048]
+    "sizes": [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    "domains": ["localhost", "yjtnpscnnsnvfsyvajku.supabase.co"],
+    "unoptimized": true
+  },
+  "build": {
+    "env": {
+      "DISABLE_OPTIMIZATIONS": "true"
+    }
   }
 }

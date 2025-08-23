@@ -7,6 +7,8 @@
     "dev:turbo": "next dev --turbo",
     "dev:fast": "NEXT_TELEMETRY_DISABLED=1 next dev --port 3000",
     "build": "next build",
+    "build:quality": "DISABLE_OPTIMIZATIONS=true NODE_ENV=production next build",
+    "diagnose:quality": "node scripts/diagnose-production-quality.js",
     "start": "next start",
     "lint": "next lint",
     "test": "jest",

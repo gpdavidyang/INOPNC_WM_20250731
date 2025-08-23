@@ -85,9 +85,9 @@ export default async function DashboardPage() {
     }
 
     if (newProfile) {
-      // Redirect admin users to system admin dashboard
+      // Redirect admin users to admin dashboard
       if (newProfile.role === 'admin' || newProfile.role === 'system_admin') {
-        redirect('/dashboard/system-admin')
+        redirect('/dashboard/admin')
       }
       // Pre-fetch site data for new profile
       let currentSite = null
@@ -121,9 +121,9 @@ export default async function DashboardPage() {
 
   // Redirect based on role
   if (profile) {
-    // admin@inopnc.com은 시스템 관리자 대시보드로 리다이렉트
+    // admin@inopnc.com은 관리자 대시보드로 리다이렉트
     if (profile.role === 'admin' || profile.role === 'system_admin') {
-      redirect('/dashboard/system-admin')
+      redirect('/dashboard/admin')
     } else if (profile.role === 'customer_manager') {
       redirect('/partner/dashboard')
     }

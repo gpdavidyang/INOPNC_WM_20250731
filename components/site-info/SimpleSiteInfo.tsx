@@ -26,7 +26,11 @@ export default function SimpleSiteInfo({ userId, userRole }: SimpleSiteInfoProps
     const supabase = createClient()
     
     try {
-      console.log('[SIMPLE-SITE-INFO] Fetching site data for user:', userId)
+      console.log('[SIMPLE-SITE-INFO] Fetching site data for user:', userId, 'role:', userRole)
+      
+      // 먼저 사용자 정보 확인
+      const { data: { user }, error: userError } = await supabase.auth.getUser()
+      console.log('[SIMPLE-SITE-INFO] Current auth user:', user?.email, user?.id)
       
       // 직접 site_assignments 테이블에서 데이터 가져오기
       const { data: assignments, error: assignError } = await supabase
@@ -58,6 +62,7 @@ export default function SimpleSiteInfo({ userId, userRole }: SimpleSiteInfoProps
         console.error('[SIMPLE-SITE-INFO] Error fetching assignment:', assignError)
         
         // 에러 발생 시 기본 데이터 설정 (테스트용)
+        // TODO: 실제 운영 시에는 이 부분을 제거하거나 조건부로 처리
         if (userRole === 'site_manager' || userRole === 'worker') {
           setSiteData({
             site_name: '강남 A현장',

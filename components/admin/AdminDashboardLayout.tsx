@@ -203,7 +203,7 @@ export default function AdminDashboardLayout({ profile, children }: AdminDashboa
   }
 
   // admin과 system_admin 모두 시스템 관리 메뉴 접근 가능
-  const allCategories = (profile.role === 'admin' || profile.role === 'system_admin')
+  const allCategories = (profile?.role === 'admin' || profile?.role === 'system_admin')
     ? [...menuCategories, systemCategory]
     : menuCategories
 
@@ -300,10 +300,10 @@ export default function AdminDashboardLayout({ profile, children }: AdminDashboa
                   >
                     <div className="text-right">
                       <div className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-gray-700 dark:text-gray-300`}>
-                        {profile.full_name}
+                        {profile?.full_name}
                       </div>
                       <div className={`${getFullTypographyClass('caption', 'xs', isLargeFont)} text-gray-500 dark:text-gray-400`}>
-                        {profile.role === 'system_admin' ? '시스템 관리자' : '관리자'}
+                        {profile?.role === 'system_admin' ? '시스템 관리자' : '관리자'}
                       </div>
                     </div>
                     <ChevronDown className={`h-4 w-4 text-gray-500 transition-transform ${showUserMenu ? 'rotate-180' : ''}`} />
@@ -381,10 +381,10 @@ function SidebarContent({
         <div className={`mb-4 ${
           touchMode === 'glove' ? 'px-5 py-4' : touchMode === 'precision' ? 'px-3 py-2' : 'px-4 py-3'
         } bg-gray-50 rounded-lg mx-3`}>
-          <p className={`${getFullTypographyClass('body', 'sm', isLargeFont)} font-medium text-gray-900 dark:text-gray-100 truncate`}>{profile.full_name}</p>
-          <p className={`${getFullTypographyClass('caption', 'xs', isLargeFont)} text-gray-500 dark:text-gray-400 truncate`}>{profile.email}</p>
+          <p className={`${getFullTypographyClass('body', 'sm', isLargeFont)} font-medium text-gray-900 dark:text-gray-100 truncate`}>{profile?.full_name}</p>
+          <p className={`${getFullTypographyClass('caption', 'xs', isLargeFont)} text-gray-500 dark:text-gray-400 truncate`}>{profile?.email}</p>
           <p className={`${getFullTypographyClass('caption', 'xs', isLargeFont)} text-gray-500 dark:text-gray-400 mt-1`}>
-            {profile.role === 'admin' ? '관리자' : '시스템 관리자'}
+            {profile?.role === 'admin' ? '관리자' : '시스템 관리자'}
           </p>
         </div>
 

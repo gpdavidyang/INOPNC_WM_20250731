@@ -44,7 +44,7 @@ export default async function DashboardPage() {
     } else if (user.email === 'customer@inopnc.com') {
       role = 'customer_manager'
     } else if (user.email === 'davidswyang@gmail.com') {
-      role = 'system_admin'
+      role = 'admin' // Use unified admin role
     }
 
     const { data: newProfile, error: insertError } = await supabase
@@ -85,10 +85,31 @@ export default async function DashboardPage() {
     }
 
     if (newProfile) {
-      // Redirect admin users to admin dashboard
+      // Redirect admin users to system admin dashboard
       if (newProfile.role === 'admin' || newProfile.role === 'system_admin') {
-        redirect('/dashboard/admin')
+        redirect('/dashboard/system-admin')
       }
+      // Pre-fetch site data for new profile
+      let currentSite = null
+      let siteHistory = []
+      
+      try {
+        const [currentSiteResult, historyResult] = await Promise.allSettled([
+          getCurrentUserSite(),
+          getUserSiteHistory()
+        ])
+        
+        if (currentSiteResult.status === 'fulfilled' && currentSiteResult.value.success) {
+          currentSite = currentSiteResult.value.data
+        }
+        
+        if (historyResult.status === 'fulfilled' && historyResult.value.success) {
+          siteHistory = historyResult.value.data
+        }
+      } catch (error) {
+        console.error('Error pre-fetching site data for new profile:', error)
+      }
+      
       return <DashboardWithNotifications 
         user={user} 
         profile={newProfile as any}
@@ -100,8 +121,9 @@ export default async function DashboardPage() {
 
   // Redirect based on role
   if (profile) {
+    // admin@inopnc.com은 시스템 관리자 대시보드로 리다이렉트
     if (profile.role === 'admin' || profile.role === 'system_admin') {
-      redirect('/dashboard/admin')
+      redirect('/dashboard/system-admin')
     } else if (profile.role === 'customer_manager') {
       redirect('/partner/dashboard')
     }

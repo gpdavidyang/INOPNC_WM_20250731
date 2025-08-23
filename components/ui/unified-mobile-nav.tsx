@@ -27,35 +27,35 @@ const NAV_ITEMS: NavItem[] = [
     label: "빠른메뉴",
     href: "/dashboard",
     icon: <Home className="h-6 w-6" />,
-    roles: ['worker', 'site_manager', 'admin', 'system_admin']
+    roles: ['worker', 'site_manager', 'customer_manager', 'admin', 'system_admin']
   },
   {
     id: "attendance",
     label: "출근현황",
     href: "/dashboard/attendance",
     icon: <Calendar className="h-6 w-6" />,
-    roles: ['worker', 'site_manager', 'admin', 'system_admin']
+    roles: ['worker', 'site_manager', 'customer_manager', 'admin', 'system_admin']
   },
   {
     id: "daily-reports",
     label: "작업일지",
     href: "/dashboard/daily-reports",
     icon: <FileText className="h-6 w-6" />,
-    roles: ['worker', 'site_manager', 'admin', 'system_admin']
+    roles: ['worker', 'site_manager', 'customer_manager', 'admin', 'system_admin']
   },
   {
     id: "site-info",
     label: "현장정보",
     href: "/dashboard/site-info",
     icon: <MapPin className="h-6 w-6" />,
-    roles: ['worker', 'site_manager', 'admin', 'system_admin']
+    roles: ['worker', 'site_manager', 'customer_manager', 'admin', 'system_admin']
   },
   {
     id: "documents",
     label: "문서함",
     href: "/dashboard/documents",
     icon: <FolderOpen className="h-6 w-6" />,
-    roles: ['worker', 'site_manager', 'admin', 'system_admin']
+    roles: ['worker', 'site_manager', 'customer_manager', 'admin', 'system_admin']
   }
 ]
 

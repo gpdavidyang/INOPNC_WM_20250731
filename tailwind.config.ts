@@ -128,14 +128,18 @@ const config: Config = {
       },
       fontFamily: {
         sans: [
+          'Pretendard Variable',
+          'Pretendard',
           '-apple-system',
           'BlinkMacSystemFont',
+          'system-ui',
           'Apple SD Gothic Neo',
-          'Pretendard',
           'Roboto',
           'Noto Sans KR',
           'Segoe UI',
           'Malgun Gothic',
+          'Apple Color Emoji',
+          'Segoe UI Emoji',
           'sans-serif'
         ]
       },

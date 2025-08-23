@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-// import { Inter } from "next/font/google"; // Google Fonts 비활성화
 import "./globals.css";
+import "./fonts.css"; // Font optimization for production quality
 // import "@/styles/sunlight-mode.css"; // Sunlight Mode CSS 비활성화
 // import "@/styles/font-optimization.css"; // 폰트 최적화 CSS 비활성화
 import { AuthProvider } from "@/providers/auth-provider";
@@ -20,8 +20,7 @@ import { NotificationPermission } from "@/components/pwa/notification-permission
 import { DeepLinkProvider } from "@/components/providers/deep-link-provider";
 import { PerformanceMonitoringProvider } from "@/components/providers/performance-monitoring-provider";
 import { ThemeProvider } from "next-themes";
-
-// const inter = Inter({ subsets: ["latin"] }); // Google Fonts 비활성화
+import { ProductionQualityOptimizer } from "@/components/production-quality-optimizer";
 
 export const metadata: Metadata = {
   title: "INOPNC Work Management",
@@ -60,10 +59,18 @@ export const metadata: Metadata = {
 export const viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  maximumScale: 5, // Allow zoom for accessibility
+  minimumScale: 1,
+  userScalable: true, // Allow user scaling
   viewportFit: "cover",
-  themeColor: "#2563eb"
+  themeColor: "#2563eb",
+  // High DPI optimization
+  colorScheme: "light dark",
+  interactiveWidget: "resizes-content",
+  // Additional viewport optimization for high-quality rendering
+  targetDensityDpi: "device-dpi", // Use device's native DPI
+  handheldFriendly: true,
+  orientation: "portrait"
 };
 
 export default function RootLayout({
@@ -73,7 +80,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko" suppressHydrationWarning>
-      <body className="font-sans">
+      <body className="antialiased">
         <ErrorBoundary>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
             <FontSizeProvider>
@@ -82,6 +89,7 @@ export default function RootLayout({
                   <SunlightModeProvider>
                     <EnvironmentalProvider>
                       <ThemeInitializer />
+                      <ProductionQualityOptimizer />
                       <SkipNavigation />
                       <AuthProvider>
                         <PerformanceMonitoringProvider>

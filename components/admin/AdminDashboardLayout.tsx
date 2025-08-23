@@ -19,95 +19,131 @@ interface AdminDashboardLayoutProps {
   children: React.ReactNode
 }
 
-const adminMenuItems = [
+// 카테고리별로 그룹핑된 메뉴 구조
+const menuCategories = [
   {
-    id: 'home',
-    label: '홈',
-    icon: Home,
-    href: '/dashboard/admin'
+    id: 'main',
+    label: null, // 첫 번째 카테고리는 라벨 없음
+    items: [
+      {
+        id: 'home',
+        label: '홈',
+        icon: Home,
+        href: '/dashboard/admin'
+      }
+    ]
   },
   {
     id: 'analytics',
-    label: '분석 대시보드',
-    icon: BarChart3,
-    href: '/dashboard/admin/analytics'
+    label: '업무 관리',
+    items: [
+      {
+        id: 'analytics',
+        label: '분석 대시보드',
+        icon: BarChart3,
+        href: '/dashboard/admin/analytics'
+      },
+      {
+        id: 'sites',
+        label: '현장 관리',
+        icon: Building2,
+        href: '/dashboard/admin/sites'
+      },
+      {
+        id: 'notifications',
+        label: '통합 알림 센터',
+        icon: Bell,
+        href: '/dashboard/admin/notifications'
+      }
+    ]
   },
   {
-    id: 'notifications',
-    label: '통합 알림 센터',
-    icon: Bell,
-    href: '/dashboard/admin/notifications'
-  },
-  {
-    id: 'sites',
-    label: '현장 관리',
-    icon: Building2,
-    href: '/dashboard/admin/sites'
-  },
-  {
-    id: 'organizations',
-    label: '소속(거래처) 관리',
-    icon: Building2,
-    href: '/dashboard/admin/organizations'
-  },
-  {
-    id: 'partners',
-    label: '파트너사 관리',
-    icon: Layers,
-    href: '/dashboard/admin/partners'
-  },
-  {
-    id: 'users',
-    label: '사용자 관리',
-    icon: Users,
-    href: '/dashboard/admin/users'
-  },
-  {
-    id: 'approvals',
-    label: '가입 요청 관리',
-    icon: UserPlus,
-    href: '/dashboard/admin/approvals'
+    id: 'hr',
+    label: '인사 관리',
+    items: [
+      {
+        id: 'users',
+        label: '사용자 관리',
+        icon: Users,
+        href: '/dashboard/admin/users'
+      },
+      {
+        id: 'approvals',
+        label: '가입 요청 관리',
+        icon: UserPlus,
+        href: '/dashboard/admin/approvals'
+      },
+      {
+        id: 'organizations',
+        label: '소속(거래처) 관리',
+        icon: Building2,
+        href: '/dashboard/admin/organizations'
+      },
+      {
+        id: 'partners',
+        label: '파트너사 관리',
+        icon: Layers,
+        href: '/dashboard/admin/partners'
+      },
+      {
+        id: 'salary',
+        label: '급여 관리',
+        icon: DollarSign,
+        href: '/dashboard/admin/salary'
+      }
+    ]
   },
   {
     id: 'documents',
-    label: '문서함 관리',
-    icon: FolderCheck,
-    href: '/dashboard/admin/documents'
-  },
-  {
-    id: 'salary',
-    label: '급여 관리',
-    icon: DollarSign,
-    href: '/dashboard/admin/salary'
+    label: '문서 관리',
+    items: [
+      {
+        id: 'documents',
+        label: '문서함 관리',
+        icon: FolderCheck,
+        href: '/dashboard/admin/documents'
+      },
+      {
+        id: 'communication',
+        label: '커뮤니케이션 관리',
+        icon: MessageSquare,
+        href: '/dashboard/admin/communication'
+      }
+    ]
   },
   {
     id: 'materials',
-    label: 'NPC-1000 자재 관리',
-    icon: Package,
-    href: '/dashboard/admin/materials'
-  },
-  {
-    id: 'communication',
-    label: '커뮤니케이션 관리',
-    icon: MessageSquare,
-    href: '/dashboard/admin/communication'
+    label: '자재/재고',
+    items: [
+      {
+        id: 'materials',
+        label: 'NPC-1000 자재 관리',
+        icon: Package,
+        href: '/dashboard/admin/materials'
+      }
+    ]
   }
 ]
 
-const systemAdminItems = [
-  {
-    id: 'audit-logs',
-    label: '감사 로그',
-    icon: FileText,
-    href: '/dashboard/admin/audit-logs'
-  },
-  {
-    id: 'system',
-    label: '시스템 관리',
-    icon: Settings,
-    href: '/dashboard/admin/system'
-  }
-]
+// 시스템 관리 카테고리 (admin과 system_admin만 접근 가능)
+const systemCategory = {
+  id: 'system',
+  label: '시스템',
+  items: [
+    {
+      id: 'audit-logs',
+      label: '감사 로그',
+      icon: FileText,
+      href: '/dashboard/admin/audit-logs'
+    },
+    {
+      id: 'system',
+      label: '시스템 관리',
+      icon: Settings,
+      href: '/dashboard/admin/system'
+    }
+  ]
+}
 
 export default function AdminDashboardLayout({ profile, children }: AdminDashboardLayoutProps) {
   const router = useRouter()
@@ -174,9 +210,9 @@ export default function AdminDashboardLayout({ profile, children }: AdminDashboa
   }
 
   // admin과 system_admin 모두 시스템 관리 메뉴 접근 가능
-  const menuItems = (profile.role === 'admin' || profile.role === 'system_admin')
-    ? [...adminMenuItems, ...systemAdminItems]
-    : adminMenuItems
+  const allCategories = (profile.role === 'admin' || profile.role === 'system_admin')
+    ? [...menuCategories, systemCategory]
+    : menuCategories
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -203,7 +239,7 @@ export default function AdminDashboardLayout({ profile, children }: AdminDashboa
           </div>
           <SidebarContent 
             profile={profile}
-            menuItems={menuItems}
+            menuCategories={allCategories}
             pathname={pathname}
             handleLogout={handleLogout}
             onItemClick={() => setIsSidebarOpen(false)}
@@ -224,7 +260,7 @@ export default function AdminDashboardLayout({ profile, children }: AdminDashboa
           </div>
           <SidebarContent 
             profile={profile}
-            menuItems={menuItems}
+            menuCategories={allCategories}
             pathname={pathname}
             handleLogout={handleLogout}
             onItemClick={() => {}}
@@ -351,7 +387,7 @@ export default function AdminDashboardLayout({ profile, children }: AdminDashboa
 
 function SidebarContent({ 
   profile, 
-  menuItems, 
+  menuCategories, 
   pathname,
   handleLogout,
   onItemClick,
@@ -372,30 +408,49 @@ function SidebarContent({
           </p>
         </div>
 
-        {/* Navigation */}
-        <nav className="space-y-1">
-          {menuItems.map((item: any) => {
-            const Icon = item.icon
-            const isActive = pathname === item.href
-            
-            return (
-              <Link
-                key={item.id}
-                href={item.href}
-                onClick={onItemClick}
-                className={`flex items-center ${
-                  touchMode === 'glove' ? 'px-5 py-4' : touchMode === 'precision' ? 'px-3 py-2' : 'px-4 py-3'
-                } ${getFullTypographyClass('body', 'sm', isLargeFont)} font-medium rounded-md transition-colors ${
-                  isActive
-                    ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300'
-                    : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700'
-                }`}
-              >
-                <Icon className="mr-3 h-5 w-5" />
-                {item.label}
-              </Link>
-            )
-          })}
+        {/* Navigation with categories */}
+        <nav className="space-y-6">
+          {menuCategories.map((category: any, categoryIndex: number) => (
+            <div key={category.id}>
+              {/* Category label */}
+              {category.label && (
+                <h3 className={`mx-3 mb-2 ${getFullTypographyClass('caption', 'xs', isLargeFont)} font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider`}>
+                  {category.label}
+                </h3>
+              )}
+              
+              {/* Category items */}
+              <div className="space-y-1">
+                {category.items.map((item: any) => {
+                  const Icon = item.icon
+                  const isActive = pathname === item.href
+                  
+                  return (
+                    <Link
+                      key={item.id}
+                      href={item.href}
+                      onClick={onItemClick}
+                      className={`flex items-center ${
+                        touchMode === 'glove' ? 'px-5 py-4' : touchMode === 'precision' ? 'px-3 py-2' : 'px-4 py-3'
+                      } ${getFullTypographyClass('body', 'sm', isLargeFont)} font-medium rounded-md transition-colors ${
+                        isActive
+                          ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300'
+                          : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700'
+                      }`}
+                    >
+                      <Icon className="mr-3 h-5 w-5" />
+                      {item.label}
+                    </Link>
+                  )
+                })}
+              </div>
+              
+              {/* Divider between categories (except for the last one) */}
+              {categoryIndex < menuCategories.length - 1 && (
+                <div className="mt-6 mb-6 border-t border-gray-200 dark:border-gray-700 mx-3" />
+              )}
+            </div>
+          ))}
         </nav>
       </div>
 

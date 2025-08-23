@@ -32,7 +32,7 @@ export default function DashboardLayout({ user, profile, children, initialActive
   const pathname = usePathname()
   const router = useRouter()
   const [activeTab, setActiveTab] = useState(initialActiveTab)
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false) // 초기값은 항상 false (닫힌 상태)
   const [documentsInitialSearch, setDocumentsInitialSearch] = useState<string | undefined>()
 
   // Helper function to get active tab from pathname and hash
@@ -350,19 +350,30 @@ export default function DashboardLayout({ user, profile, children, initialActive
       {isSidebarOpen && (
         <div
           className="fixed inset-0 bg-gray-600 dark:bg-gray-900 bg-opacity-75 dark:bg-opacity-75 z-40 lg:hidden transition-opacity duration-200"
-          onClick={() => setIsSidebarOpen(false)}
+          onClick={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            console.log('[DashboardLayout] Backdrop clicked, closing sidebar')
+            setIsSidebarOpen(false)
+          }}
           aria-hidden="true"
+          role="button"
+          tabIndex={-1}
         />
       )}
 
       {/* Sidebar Navigation */}
       <aside aria-label="메인 네비게이션">
         <Sidebar
+          key={`sidebar-${isSidebarOpen}`}
           profile={profile}
           activeTab={activeTab}
           onTabChange={setActiveTab}
           isOpen={isSidebarOpen}
-          onClose={() => setIsSidebarOpen(false)}
+          onClose={() => {
+            console.log('[DashboardLayout] onClose called, setting isSidebarOpen to false')
+            setIsSidebarOpen(false)
+          }}
         />
       </aside>
 
@@ -371,7 +382,10 @@ export default function DashboardLayout({ user, profile, children, initialActive
         {/* Page header */}
         <Header
           isSidebarOpen={isSidebarOpen}
-          onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          onMenuClick={() => {
+            console.log('[DashboardLayout] Menu button clicked, toggling sidebar from', isSidebarOpen, 'to', !isSidebarOpen)
+            setIsSidebarOpen(!isSidebarOpen)
+          }}
         />
         
         {/* Main content */}

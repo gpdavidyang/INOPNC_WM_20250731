@@ -176,10 +176,33 @@
 }
 
 @layer base {
+  /* Critical font rendering optimization for production */
+  * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "kern" 1;
+    font-kerning: normal;
+  }
+  
+  /* High DPI screen optimization */
+  @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    * {
+      -webkit-font-smoothing: subpixel-antialiased;
+    }
+  }
+  
   body {
     @apply bg-white text-toss-gray-900;
     font-size: 1.125rem; /* 18px - 기본 크기보다 더 크게 */
     line-height: 1.6; /* 더 나은 가독성을 위한 줄 간격 */
+    /* Font optimization for production */
+    font-synthesis: none;
+    text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+    /* Prevent font boosting on mobile */
+    max-height: 999999px;
   }
 }
 
@@ -187,6 +210,8 @@
   @apply bg-toss-gray-900 text-toss-gray-100;
   font-size: 1.125rem; /* 18px - 기본 크기보다 더 크게 */
   line-height: 1.6; /* 더 나은 가독성을 위한 줄 간격 */
+  /* Ensure font smoothing in dark mode */
+  -webkit-font-smoothing: antialiased;
 }
 
 /* Ensure safe area for iOS devices */

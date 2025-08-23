@@ -60,24 +60,9 @@ export default function SimpleSiteInfo({ userId, userRole }: SimpleSiteInfoProps
       
       if (assignError) {
         console.error('[SIMPLE-SITE-INFO] Error fetching assignment:', assignError)
-        
-        // 에러 발생 시 기본 데이터 설정 (테스트용)
-        // TODO: 실제 운영 시에는 이 부분을 제거하거나 조건부로 처리
-        if (userRole === 'site_manager' || userRole === 'worker') {
-          setSiteData({
-            site_name: '강남 A현장',
-            site_address: '서울시 강남구 테헤란로 456',
-            manager_name: '김현장',
-            manager_phone: '010-1234-5678',
-            safety_manager_name: '이안전',
-            safety_manager_phone: '010-2345-6789',
-            accommodation_name: '강남 숙소',
-            accommodation_address: '서울시 강남구 역삼동 123-45',
-            work_instructions: '1층 철근 배근 작업',
-            work_section: 'A구역'
-          })
-          setIsExpanded(true) // 데이터가 있으면 자동 확장
-        }
+        // 에러 발생 시 빈 상태로 표시
+        setSiteData(null)
+        setIsExpanded(false)
         return
       }
       
@@ -121,10 +106,10 @@ export default function SimpleSiteInfo({ userId, userRole }: SimpleSiteInfoProps
                 <MapPin className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
-                <h3 className={getTypographyClass('base', isLargeFont, 'font-semibold text-gray-900 dark:text-gray-100')}>
+                <h3 className={`${getTypographyClass('base', isLargeFont)} font-semibold text-gray-900 dark:text-gray-100`}>
                   오늘의 현장 정보
                 </h3>
-                <p className={getTypographyClass('sm', isLargeFont, 'text-gray-500 dark:text-gray-400')}>
+                <p className={`${getTypographyClass('sm', isLargeFont)} text-gray-500 dark:text-gray-400`}>
                   로딩 중...
                 </p>
               </div>
@@ -151,10 +136,10 @@ export default function SimpleSiteInfo({ userId, userRole }: SimpleSiteInfoProps
               <MapPin className="h-5 w-5 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
-              <h3 className={getTypographyClass('base', isLargeFont, 'font-semibold text-gray-900 dark:text-gray-100')}>
+              <h3 className={`${getTypographyClass('base', isLargeFont)} font-semibold text-gray-900 dark:text-gray-100`}>
                 오늘의 현장 정보
               </h3>
-              <p className={getTypographyClass('sm', isLargeFont, 'text-blue-600 dark:text-blue-400 font-medium')}>
+              <p className={`${getTypographyClass('sm', isLargeFont)} text-blue-600 dark:text-blue-400 font-medium`}>
                 {siteData.site_name}
               </p>
             </div>
@@ -173,10 +158,10 @@ export default function SimpleSiteInfo({ userId, userRole }: SimpleSiteInfoProps
               <div className="flex items-start gap-2">
                 <MapPin className="h-4 w-4 text-gray-400 mt-0.5" />
                 <div className="flex-1">
-                  <p className={getTypographyClass('xs', isLargeFont, 'text-gray-500 dark:text-gray-400')}>
+                  <p className={`${getTypographyClass('xs', isLargeFont)} text-gray-500 dark:text-gray-400`}>
                     현장 주소
                   </p>
-                  <p className={getTypographyClass('sm', isLargeFont, 'text-gray-900 dark:text-gray-100 font-medium')}>
+                  <p className={`${getTypographyClass('sm', isLargeFont)} text-gray-900 dark:text-gray-100 font-medium`}>
                     {siteData.site_address}
                   </p>
                 </div>
@@ -188,13 +173,13 @@ export default function SimpleSiteInfo({ userId, userRole }: SimpleSiteInfoProps
               <div className="flex items-start gap-2">
                 <Building2 className="h-4 w-4 text-gray-400 mt-0.5" />
                 <div className="flex-1">
-                  <p className={getTypographyClass('xs', isLargeFont, 'text-gray-500 dark:text-gray-400')}>
+                  <p className={`${getTypographyClass('xs', isLargeFont)} text-gray-500 dark:text-gray-400`}>
                     숙소
                   </p>
-                  <p className={getTypographyClass('sm', isLargeFont, 'text-gray-900 dark:text-gray-100 font-medium')}>
+                  <p className={`${getTypographyClass('sm', isLargeFont)} text-gray-900 dark:text-gray-100 font-medium`}>
                     {siteData.accommodation_name}
                   </p>
-                  <p className={getTypographyClass('xs', isLargeFont, 'text-gray-600 dark:text-gray-400')}>
+                  <p className={`${getTypographyClass('xs', isLargeFont)} text-gray-600 dark:text-gray-400`}>
                     {siteData.accommodation_address}
                   </p>
                 </div>
@@ -207,13 +192,13 @@ export default function SimpleSiteInfo({ userId, userRole }: SimpleSiteInfoProps
                 <div className="flex items-start gap-2">
                   <Phone className="h-4 w-4 text-gray-400 mt-0.5" />
                   <div className="flex-1">
-                    <p className={getTypographyClass('xs', isLargeFont, 'text-gray-500 dark:text-gray-400')}>
+                    <p className={`${getTypographyClass('xs', isLargeFont)} text-gray-500 dark:text-gray-400`}>
                       현장소장
                     </p>
-                    <p className={getTypographyClass('sm', isLargeFont, 'text-gray-900 dark:text-gray-100 font-medium')}>
+                    <p className={`${getTypographyClass('sm', isLargeFont)} text-gray-900 dark:text-gray-100 font-medium`}>
                       {siteData.manager_name}
                     </p>
-                    <p className={getTypographyClass('xs', isLargeFont, 'text-blue-600 dark:text-blue-400')}>
+                    <p className={`${getTypographyClass('xs', isLargeFont)} text-blue-600 dark:text-blue-400`}>
                       {siteData.manager_phone}
                     </p>
                   </div>
@@ -224,13 +209,13 @@ export default function SimpleSiteInfo({ userId, userRole }: SimpleSiteInfoProps
                 <div className="flex items-start gap-2">
                   <HardHat className="h-4 w-4 text-gray-400 mt-0.5" />
                   <div className="flex-1">
-                    <p className={getTypographyClass('xs', isLargeFont, 'text-gray-500 dark:text-gray-400')}>
+                    <p className={`${getTypographyClass('xs', isLargeFont)} text-gray-500 dark:text-gray-400`}>
                       안전관리자
                     </p>
-                    <p className={getTypographyClass('sm', isLargeFont, 'text-gray-900 dark:text-gray-100 font-medium')}>
+                    <p className={`${getTypographyClass('sm', isLargeFont)} text-gray-900 dark:text-gray-100 font-medium`}>
                       {siteData.safety_manager_name}
                     </p>
-                    <p className={getTypographyClass('xs', isLargeFont, 'text-blue-600 dark:text-blue-400')}>
+                    <p className={`${getTypographyClass('xs', isLargeFont)} text-blue-600 dark:text-blue-400`}>
                       {siteData.safety_manager_phone}
                     </p>
                   </div>
@@ -245,10 +230,10 @@ export default function SimpleSiteInfo({ userId, userRole }: SimpleSiteInfoProps
               <div className="flex items-start gap-2">
                 <FileText className="h-4 w-4 text-gray-400 mt-0.5" />
                 <div className="flex-1">
-                  <p className={getTypographyClass('xs', isLargeFont, 'text-gray-500 dark:text-gray-400')}>
+                  <p className={`${getTypographyClass('xs', isLargeFont)} text-gray-500 dark:text-gray-400`}>
                     작업내용
                   </p>
-                  <p className={getTypographyClass('sm', isLargeFont, 'text-gray-900 dark:text-gray-100 font-medium')}>
+                  <p className={`${getTypographyClass('sm', isLargeFont)} text-gray-900 dark:text-gray-100 font-medium`}>
                     {siteData.work_section} - {siteData.work_instructions}
                   </p>
                 </div>
@@ -259,14 +244,14 @@ export default function SimpleSiteInfo({ userId, userRole }: SimpleSiteInfoProps
             <div className="grid grid-cols-2 gap-3">
               <button className="flex items-center justify-center gap-2 p-3 bg-blue-100 dark:bg-blue-900/50 hover:bg-blue-200 dark:hover:bg-blue-900/70 rounded-lg transition-colors">
                 <Image className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                <span className={getTypographyClass('sm', isLargeFont, 'text-blue-600 dark:text-blue-400 font-medium')}>
+                <span className={`${getTypographyClass('sm', isLargeFont)} text-blue-600 dark:text-blue-400 font-medium`}>
                   현장 공도면
                 </span>
               </button>
               
               <button className="flex items-center justify-center gap-2 p-3 bg-green-100 dark:bg-green-900/50 hover:bg-green-200 dark:hover:bg-green-900/70 rounded-lg transition-colors">
                 <FileText className="h-4 w-4 text-green-600 dark:text-green-400" />
-                <span className={getTypographyClass('sm', isLargeFont, 'text-green-600 dark:text-green-400 font-medium')}>
+                <span className={`${getTypographyClass('sm', isLargeFont)} text-green-600 dark:text-green-400 font-medium`}>
                   PTW 문서
                 </span>
               </button>

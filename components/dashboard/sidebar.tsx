@@ -175,6 +175,11 @@ export default function Sidebar({ profile, activeTab, onTabChange, isOpen, onClo
   const router = useRouter()
   const supabase = createClient()
 
+  // Debug logging
+  React.useEffect(() => {
+    console.log('[Sidebar] Component mounted/updated, isOpen:', isOpen)
+  }, [isOpen])
+
   const handleLogout = async () => {
     try {
       const result = await signOut()
@@ -229,6 +234,9 @@ export default function Sidebar({ profile, activeTab, onTabChange, isOpen, onClo
         className={`fixed inset-y-0 left-0 z-50 w-72 sm:w-64 bg-white dark:bg-gray-800 shadow-xl border-r border-gray-200 dark:border-gray-700 theme-transition transform transition-transform duration-300 ease-in-out lg:hidden ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
+        style={{
+          transform: isOpen ? 'translateX(0)' : 'translateX(-100%)'
+        }}
         aria-label="사이드바 네비게이션"
         {...(!isOpen && { inert: "true" })}
       >
@@ -241,9 +249,18 @@ export default function Sidebar({ profile, activeTab, onTabChange, isOpen, onClo
               <h1 className="ml-3 text-lg font-semibold text-gray-900 dark:text-gray-100">INOPNC</h1>
             </div>
             <button 
-              onClick={onClose} 
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                console.log('[Sidebar] X button clicked, calling onClose')
+                // Simply call the onClose function - let React handle the state
+                if (typeof onClose === 'function') {
+                  onClose()
+                }
+              }} 
               className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 theme-transition focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
               aria-label="사이드바 닫기"
+              type="button"
             >
               <X className="h-6 w-6" aria-hidden="true" />
             </button>
@@ -349,8 +366,17 @@ function SidebarContent({
       id: item.id,
       href: item.href,
       isNavigating,
-      pathname
+      pathname,
+      isMobile: window.innerWidth < 1024,
+      onCloseType: typeof onClose,
+      onCloseExists: !!onClose
     })
+    
+    // 모바일에서는 무조건 사이드바 닫기 (React state를 통해)
+    if (window.innerWidth < 1024 && typeof onClose === 'function') {
+      console.log('[Sidebar] Mobile detected, closing sidebar via React state')
+      onClose()
+    }
     
     // 이미 네비게이션 중이면 무시
     if (isNavigating) {
@@ -379,18 +405,13 @@ function SidebarContent({
             router.push(targetUrl)
           }
         }
-        
-        // Close sidebar on mobile
-        if (window.innerWidth < 1024) {
-          onClose()
-        }
         return
       }
       
       // Check if current path matches (accounting for hash)
       const currentFullPath = pathname + (window.location.hash || '')
       if (currentFullPath === item.href) {
-        console.log('[Sidebar] Same path, skipping:', currentFullPath)
+        console.log('[Sidebar] Same path, navigation skipped')
         return
       }
       
@@ -404,21 +425,10 @@ function SidebarContent({
         console.log('[Sidebar] NavigationController not available, using router.push')
         router.push(item.href)
       }
-      
-      // Close sidebar on mobile devices
-      if (window.innerWidth < 1024) {
-        onClose()
-      }
     } else {
       console.log('[Sidebar] Tab-based navigation to:', item.id)
       // For tab-based items, only call onTabChange
       onTabChange(item.id)
-    }
-    
-    // 모바일에서만 사이드바 닫기 (lg 미만 화면에서)
-    if (window.innerWidth < 1024) {
-      console.log('[Sidebar] Closing mobile sidebar')
-      onClose()
     }
   }, [navigate, router, pathname, isNavigating, onTabChange, onClose])
 
@@ -500,7 +510,12 @@ function SidebarContent({
                   return (
                     <li key={item.id} role="none">
                       <button
-                        onClick={() => handleMenuClick(item)}
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          console.log('[Sidebar] System menu item clicked:', item.id)
+                          handleMenuClick(item)
+                        }}
                         {...getRovingProps(itemIndex)}
                         className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-md theme-transition touch-manipulation min-h-[48px] focus-visible:ring-2 focus-visible:ring-toss-blue-500 focus-visible:ring-offset-2 ${
                           currentActiveTab === item.id
@@ -526,7 +541,16 @@ function SidebarContent({
       {/* Logout section */}
       <footer className="p-4 pb-20 md:pb-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
         <button
-          onClick={handleLogout}
+          onClick={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            console.log('[Sidebar] Logout clicked')
+            // 모바일에서는 먼저 사이드바 닫기 (React state를 통해)
+            if (window.innerWidth < 1024 && typeof onClose === 'function') {
+              onClose()
+            }
+            handleLogout()
+          }}
           {...getRovingProps(totalItems - 1)}
           className="w-full flex items-center justify-center px-4 py-3 min-h-[48px] border border-gray-300 dark:border-gray-600 rounded-md elevation-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 touch-manipulation theme-transition focus-visible:ring-2 focus-visible:ring-toss-blue-500 focus-visible:ring-offset-2"
           aria-label="시스템에서 로그아웃"

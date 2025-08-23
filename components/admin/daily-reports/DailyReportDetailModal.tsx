@@ -30,7 +30,7 @@ interface DailyReport {
   npc1000_used: number
   npc1000_remaining: number
   issues: string
-  status: 'draft' | 'submitted' | 'approved' | 'rejected'
+  status: 'draft' | 'submitted' | 'completed'
   created_at: string
   updated_at: string
   created_by: string
@@ -66,15 +66,13 @@ interface DailyReportDetailModalProps {
 const statusLabels = {
   draft: '임시저장',
   submitted: '제출됨',
-  approved: '승인됨',
-  rejected: '반려됨'
+  completed: '완료'
 }
 
 const statusColors = {
   draft: 'bg-gray-100 text-gray-800',
   submitted: 'bg-blue-100 text-blue-800',
-  approved: 'bg-green-100 text-green-800',
-  rejected: 'bg-red-100 text-red-800'
+  completed: 'bg-green-100 text-green-800'
 }
 
 export default function DailyReportDetailModal({ report, onClose, onUpdated }: DailyReportDetailModalProps) {
@@ -689,20 +687,12 @@ export default function DailyReportDetailModal({ report, onClose, onUpdated }: D
           <div className="flex justify-between items-center">
             <div className="flex gap-2">
               {!isEditing && report.status === 'submitted' && (
-                <>
-                  <button
-                    onClick={() => handleStatusChange('approved')}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                  >
-                    승인
-                  </button>
-                  <button
-                    onClick={() => handleStatusChange('rejected')}
-                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                  >
-                    반려
-                  </button>
-                </>
+                <button
+                  onClick={() => handleStatusChange('completed')}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                >
+                  완료 처리
+                </button>
               )}
             </div>
             

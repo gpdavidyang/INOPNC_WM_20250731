@@ -215,7 +215,7 @@ export interface UserSiteHistory {
 }
 
 // 작업일지 상태
-export type DailyReportStatus = 'draft' | 'submitted'
+export type DailyReportStatus = 'draft' | 'submitted' | 'completed'
 
 // 작업일지
 export interface DailyReport {

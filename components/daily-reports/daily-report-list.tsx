@@ -57,8 +57,7 @@ export default function DailyReportList({ siteId, canCreate = false }: DailyRepo
     const statusMap = {
       draft: { label: '작성중', className: 'bg-gray-100 text-gray-800' },
       submitted: { label: '제출됨', className: 'bg-blue-100 text-blue-800' },
-      approved: { label: '승인됨', className: 'bg-green-100 text-green-800' },
-      rejected: { label: '반려됨', className: 'bg-red-100 text-red-800' }
+      completed: { label: '완료', className: 'bg-green-100 text-green-800' }
     }
     
     const statusInfo = statusMap[status as keyof typeof statusMap] || statusMap.draft

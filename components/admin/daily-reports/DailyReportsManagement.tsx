@@ -33,7 +33,7 @@ interface DailyReport {
   npc1000_used: number
   npc1000_remaining: number
   issues: string
-  status: 'draft' | 'submitted' | 'approved' | 'rejected'
+  status: 'draft' | 'submitted' | 'completed'
   created_at: string
   updated_at: string
   created_by: string
@@ -64,15 +64,13 @@ interface FilterState {
 const statusLabels = {
   draft: '임시저장',
   submitted: '제출됨',
-  approved: '승인됨',
-  rejected: '반려됨'
+  completed: '완료'
 }
 
 const statusColors = {
   draft: 'bg-gray-100 text-gray-800',
   submitted: 'bg-blue-100 text-blue-800',
-  approved: 'bg-green-100 text-green-800',
-  rejected: 'bg-red-100 text-red-800'
+  completed: 'bg-green-100 text-green-800'
 }
 
 export default function DailyReportsManagement() {
@@ -249,8 +247,7 @@ export default function DailyReportsManagement() {
                   <option value="">모든 상태</option>
                   <option value="draft">임시저장</option>
                   <option value="submitted">제출됨</option>
-                  <option value="approved">승인됨</option>
-                  <option value="rejected">반려됨</option>
+                  <option value="completed">완료</option>
                 </select>
               </div>
               <div>

@@ -372,9 +372,9 @@ function SidebarContent({
     <div className="flex-1 flex flex-col overflow-y-auto">
       <div className="flex-1 px-3 py-4">
         {/* User info */}
-        <div className={`mb-6 ${
+        <div className={`mb-4 ${
           touchMode === 'glove' ? 'px-5 py-4' : touchMode === 'precision' ? 'px-3 py-2' : 'px-4 py-3'
-        } bg-gray-50 dark:bg-gray-700 rounded-lg mx-3`}>
+        } bg-gray-50 rounded-lg mx-3`}>
           <p className={`${getFullTypographyClass('body', 'sm', isLargeFont)} font-medium text-gray-900 dark:text-gray-100 truncate`}>{profile.full_name}</p>
           <p className={`${getFullTypographyClass('caption', 'xs', isLargeFont)} text-gray-500 dark:text-gray-400 truncate`}>{profile.email}</p>
           <p className={`${getFullTypographyClass('caption', 'xs', isLargeFont)} text-gray-500 dark:text-gray-400 mt-1`}>
@@ -383,7 +383,7 @@ function SidebarContent({
         </div>
 
         {/* Navigation with categories */}
-        <nav className="space-y-6">
+        <nav className="space-y-3">
           {menuCategories.map((category: any, categoryIndex: number) => (
             <div key={category.id}>
               {/* Category label */}
@@ -405,7 +405,7 @@ function SidebarContent({
                       href={item.href}
                       onClick={onItemClick}
                       className={`flex items-center ${
-                        touchMode === 'glove' ? 'px-5 py-4' : touchMode === 'precision' ? 'px-3 py-2' : 'px-4 py-3'
+                        touchMode === 'glove' ? 'px-5 py-3' : touchMode === 'precision' ? 'px-3 py-1.5' : 'px-4 py-2'
                       } ${getFullTypographyClass('body', 'sm', isLargeFont)} font-medium rounded-md transition-colors ${
                         isActive
                           ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300'
@@ -421,7 +421,7 @@ function SidebarContent({
               
               {/* Divider between categories (except for the last one) */}
               {categoryIndex < menuCategories.length - 1 && (
-                <div className="mt-6 mb-6 border-t border-gray-200 dark:border-gray-700 mx-3" />
+                <div className="mt-3 mb-3 border-t border-gray-200 mx-3" />
               )}
             </div>
           ))}

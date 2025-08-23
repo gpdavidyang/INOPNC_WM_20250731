@@ -13,10 +13,11 @@ import { signOut } from '@/app/auth/actions'
 import Link from 'next/link'
 import { useFontSize, getFullTypographyClass } from '@/contexts/FontSizeContext'
 import { useTouchMode } from '@/contexts/TouchModeContext'
-import GlobalSearch from '@/components/admin/GlobalSearch'
+import AdminHeader from '@/components/admin/AdminHeader'
 
 interface AdminDashboardLayoutProps {
   children: React.ReactNode
+  profile?: Profile | null
 }
 
 // 카테고리별로 그룹핑된 메뉴 구조
@@ -43,7 +44,8 @@ const menuCategories = [
         id: 'analytics',
         label: '분석 대시보드',
         icon: BarChart3,
-        href: '/dashboard/admin/analytics'
+        href: '/dashboard/admin/analytics',
+        hidden: true  // 현재 필요 없음
       },
       {
         id: 'sites',
@@ -312,12 +314,6 @@ function Sidebar({ profile, pathname, onItemClick }: {
         )}
       </div>
 
-      {/* Search */}
-      <div className={`${
-        touchMode === 'glove' ? 'px-5 py-3' : touchMode === 'precision' ? 'px-3 py-2' : 'px-4 py-3'
-      } border-b border-gray-200`}>
-        <GlobalSearch />
-      </div>
 
       {/* Navigation */}
       <div className="flex-1 overflow-y-auto py-3">
@@ -352,7 +348,7 @@ function Sidebar({ profile, pathname, onItemClick }: {
                 {/* Category items - show if not collapsed or has active item */}
                 {(!category.collapsible || !isCollapsed || hasActiveItem) && (
                   <div className="space-y-1">
-                    {category.items.map((item: any) => {
+                    {category.items.filter((item: any) => !item.hidden).map((item: any) => {
                       const Icon = item.icon
                       const isActive = pathname === item.href
                       
@@ -405,13 +401,13 @@ function Sidebar({ profile, pathname, onItemClick }: {
   )
 }
 
-export default function AdminDashboardLayout({ children }: AdminDashboardLayoutProps) {
+export default function AdminDashboardLayout({ children, profile: propProfile }: AdminDashboardLayoutProps) {
   const router = useRouter()
   const pathname = usePathname()
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [showUserMenu, setShowUserMenu] = useState(false)
-  const [profile, setProfile] = useState<Profile | null>(null)
+  const [profile, setProfile] = useState<Profile | null>(propProfile || null)
   const userMenuRef = useRef<HTMLDivElement>(null)
   const { isLargeFont } = useFontSize()
   const { touchMode } = useTouchMode()
@@ -466,11 +462,18 @@ export default function AdminDashboardLayout({ children }: AdminDashboardLayoutP
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+      {/* Admin Header with integrated search */}
+      <AdminHeader 
+        profile={profile}
+        onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        isSidebarOpen={isSidebarOpen}
+      />
+      
       {/* Mobile sidebar */}
       <div className={`fixed inset-y-0 left-0 z-50 w-72 transform transition-transform duration-200 ease-in-out lg:hidden ${
         isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      }`}>
+      }`} style={{ top: '64px' }}>
         <Sidebar 
           profile={profile} 
           pathname={pathname} 
@@ -483,98 +486,17 @@ export default function AdminDashboardLayout({ children }: AdminDashboardLayoutP
         <div 
           className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden"
           onClick={() => setIsSidebarOpen(false)}
+          style={{ top: '64px' }}
         />
       )}
 
       {/* Desktop sidebar */}
-      <div className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:flex lg:w-72 lg:flex-col">
+      <div className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:flex lg:w-72 lg:flex-col" style={{ top: '64px', height: 'calc(100vh - 64px)' }}>
         <Sidebar profile={profile} pathname={pathname} />
       </div>
 
       {/* Main content area - lg:pl-72로 사이드바 너비만큼 패딩 */}
-      <div className="lg:pl-72">
-        {/* Top header */}
-        <header className="sticky top-0 z-30 bg-white shadow-sm">
-          <div className="flex items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-            {/* Mobile menu button */}
-            <button
-              type="button"
-              className="lg:hidden -ml-0.5 -mt-0.5 inline-flex h-12 w-12 items-center justify-center rounded-md text-gray-500 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-red-500"
-              onClick={() => setIsSidebarOpen(true)}
-            >
-              <span className="sr-only">Open sidebar</span>
-              <Menu className="h-6 w-6" />
-            </button>
-
-            {/* Page title */}
-            <h1 className={`${getTypographyClass('header', 'lg', isLargeFont)} font-semibold text-gray-900`}>
-              {pathname === '/dashboard/admin' ? '관리자 대시보드' : 
-               pathname.includes('users') ? '사용자 관리' :
-               pathname.includes('sites') ? '현장 관리' :
-               pathname.includes('daily-reports') ? '작업일지 관리' :
-               pathname.includes('documents/my-documents') ? '내문서함' :
-               pathname.includes('documents/shared') ? '공유문서함' :
-               pathname.includes('documents/markup') ? '도면마킹 문서' :
-               pathname.includes('documents/required') ? '필수 제출 서류' :
-               pathname.includes('documents/invoice') ? '기성청구함' :
-               pathname.includes('documents') ? '문서함 관리' :
-               pathname.includes('tools/photo-grid') ? '사진대지 도구' :
-               pathname.includes('tools/markup') ? '도면마킹 도구' :
-               pathname.includes('analytics') ? '분석 대시보드' :
-               pathname.includes('notifications') ? '알림 관리' :
-               pathname.includes('organizations') ? '조직 관리' :
-               pathname.includes('partners') ? '파트너사 관리' :
-               pathname.includes('salary') ? '급여 관리' :
-               pathname.includes('materials') ? '자재 관리' :
-               pathname.includes('communication') ? '커뮤니케이션' :
-               pathname.includes('system') ? '시스템 설정' :
-               pathname.includes('account') ? '계정 설정' :
-               pathname.includes('monitoring') ? '시스템 모니터링' :
-               pathname.includes('audit-logs') ? '감사 로그' :
-               pathname.includes('backup') ? '백업 관리' :
-               pathname.includes('signup-requests') ? '가입 요청 관리' :
-               pathname.includes('approvals') ? '승인 관리' :
-               '관리자 페이지'}
-            </h1>
-
-            {/* Right side actions */}
-            <div className="flex items-center space-x-4">
-              {/* User menu */}
-              <div className="relative" ref={userMenuRef}>
-                <button
-                  onClick={() => setShowUserMenu(!showUserMenu)}
-                  className="flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                >
-                  <span className="sr-only">Open user menu</span>
-                  <div className="h-8 w-8 rounded-full bg-red-600 flex items-center justify-center">
-                    <User className="h-5 w-5 text-white" />
-                  </div>
-                  <ChevronDown className="ml-2 h-4 w-4 text-gray-500" />
-                </button>
-
-                {/* Dropdown menu */}
-                {showUserMenu && (
-                  <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
-                    <div className="py-1">
-                      <Link
-                        href="/dashboard/admin/account"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        계정 설정
-                      </Link>
-                      <button
-                        onClick={handleLogout}
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        로그아웃
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </header>
+      <div className="lg:pl-72" style={{ paddingTop: '64px' }}>
 
         {/* Page content */}
         <main className="py-6">

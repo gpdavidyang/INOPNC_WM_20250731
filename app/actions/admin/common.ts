@@ -1,4 +1,5 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient as createServerClient } from '@/lib/supabase/server'
+import { createClient } from '@supabase/supabase-js'
 import { requireAdminAuth } from '@/lib/auth/admin'
 
 /**
@@ -21,8 +22,12 @@ export async function withAdminAuth<T>(
     // Verify admin authentication
     const { profile } = await requireAdminAuth()
     
-    // Create supabase client
-    const supabase = createClient()
+    // Create supabase client with service role key for admin operations
+    // This bypasses RLS policies and allows admin to access all data
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
     
     // Execute the action
     const result = await action(supabase, profile)

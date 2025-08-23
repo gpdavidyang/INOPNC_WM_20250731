@@ -50,6 +50,12 @@ const menuCategories = [
         href: '/dashboard/admin/sites'
       },
       {
+        id: 'daily-reports',
+        label: '작업일지 관리',
+        icon: FileText,
+        href: '/dashboard/admin/daily-reports'
+      },
+      {
         id: 'notifications',
         label: '통합 알림 센터',
         icon: Bell,

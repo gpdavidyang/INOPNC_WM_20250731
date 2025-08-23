@@ -58,14 +58,26 @@ const menuCategories = [
         label: '작업일지 관리',
         icon: FileText,
         href: '/dashboard/admin/daily-reports'
+      },
+      {
+        id: 'materials',
+        label: '자재 관리',
+        icon: Package,
+        href: '/dashboard/admin/materials'
       }
     ]
   },
   {
     id: 'accounts',
-    label: '인사 관리',
+    label: '작업자 관리',
     collapsible: true,
     items: [
+      {
+        id: 'approvals',
+        label: '가입 승인 관리',
+        icon: FolderCheck,
+        href: '/dashboard/admin/approvals'
+      },
       {
         id: 'users',
         label: '사용자 관리',
@@ -73,10 +85,10 @@ const menuCategories = [
         href: '/dashboard/admin/users'
       },
       {
-        id: 'approvals',
-        label: '가입 승인 관리',
-        icon: FolderCheck,
-        href: '/dashboard/admin/approvals'
+        id: 'salary',
+        label: '급여 관리',
+        icon: DollarSign,
+        href: '/dashboard/admin/salary'
       },
       {
         id: 'organizations',
@@ -89,12 +101,6 @@ const menuCategories = [
         label: '파트너사 관리',
         icon: UserPlus,
         href: '/dashboard/admin/partners'
-      },
-      {
-        id: 'salary',
-        label: '급여 관리',
-        icon: DollarSign,
-        href: '/dashboard/admin/salary'
       }
     ]
   },
@@ -117,19 +123,19 @@ const menuCategories = [
       },
       {
         id: 'markup-documents',
-        label: '도면마킹',
+        label: '도면마킹문서함',
         icon: Edit3,
         href: '/dashboard/admin/documents/markup'
       },
       {
         id: 'required-documents',
-        label: '필수 제출 서류',
+        label: '필수제출서류함',
         icon: FileCheck,
         href: '/dashboard/admin/documents/required'
       },
       {
         id: 'invoice-documents',
-        label: '기성청구함',
+        label: '기성청구문서함',
         icon: FileText,
         href: '/dashboard/admin/documents/invoice'
       }
@@ -151,19 +157,6 @@ const menuCategories = [
         label: '도면마킹 도구',
         icon: Edit3,
         href: '/dashboard/admin/tools/markup'
-      }
-    ]
-  },
-  {
-    id: 'resources',
-    label: '자원 관리',
-    collapsible: true,
-    items: [
-      {
-        id: 'materials',
-        label: '자재 관리',
-        icon: Package,
-        href: '/dashboard/admin/materials'
       }
     ]
   },

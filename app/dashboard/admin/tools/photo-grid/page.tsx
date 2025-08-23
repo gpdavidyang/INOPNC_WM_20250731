@@ -1,8 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import PhotoGridReportsManagement from '@/components/admin/PhotoGridReportsManagement'
+import PhotoGridToolManagement from '@/components/admin/tools/PhotoGridToolManagement'
 
-export default async function AdminPhotoGridReportsPage() {
+export default async function PhotoGridToolPage() {
   const supabase = createClient()
   const { data: { user }, error: userError } = await supabase.auth.getUser()
   
@@ -20,7 +20,5 @@ export default async function AdminPhotoGridReportsPage() {
     redirect('/dashboard')
   }
   
-  return (
-    <PhotoGridReportsManagement profile={profile} />
-  )
+  return <PhotoGridToolManagement profile={profile} />
 }

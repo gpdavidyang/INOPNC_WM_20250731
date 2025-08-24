@@ -3,28 +3,100 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Profile } from '@/types'
 import DocumentUploadZone from './DocumentUploadZone'
-import { FileText, Download, Eye, Trash2, Upload, Settings, ExternalLink, Search, Filter, CheckSquare, Square, X, AlertCircle } from 'lucide-react'
+import { FileText, Download, Eye, Trash2, Upload, Settings, ExternalLink, Search, Filter, CheckSquare, Square, X, AlertCircle, Share2, FileImage, Receipt, Building2, Users, Calendar, RefreshCw, Edit3, PenTool, DollarSign, Clock } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
-interface SiteDocument {
+// 공유문서함 문서
+interface SharedDocument {
   id: string
-  site_id: string
-  document_type: 'ptw' | 'blueprint' | 'other'
+  title: string
+  description?: string
   file_name: string
-  file_url: string
-  file_size: number | null
-  mime_type: string | null
-  uploaded_by: string | null
-  is_active: boolean
-  version: number
-  notes: string | null
+  file_path: string
+  file_size: number
+  mime_type: string
+  location: 'personal' | 'shared'
   created_at: string
   updated_at: string
-  uploader?: {
+  created_by: string
+  site_id?: string
+  profiles?: {
+    id: string
     full_name: string
     email: string
   }
+  sites?: {
+    id: string
+    name: string
+    address: string
+  }
 }
+
+// 도면마킹문서함 문서
+interface MarkupDocument {
+  id: string
+  title: string
+  description?: string
+  original_blueprint_url: string
+  original_blueprint_filename: string
+  markup_data: any[]
+  preview_image_url?: string
+  location: 'personal' | 'shared'
+  markup_count: number
+  created_at: string
+  updated_at: string
+  created_by: string
+  site_id?: string
+  version_number?: number
+  is_latest_version?: boolean
+  change_summary?: string
+  profiles?: {
+    id: string
+    full_name: string
+    email: string
+  }
+  sites?: {
+    id: string
+    name: string
+    address: string
+  }
+}
+
+// 기성청구함 문서
+interface InvoiceDocument {
+  id: string
+  title: string
+  description?: string
+  document_type: string
+  file_name: string
+  file_path: string
+  file_size: number
+  mime_type: string
+  contract_phase: 'pre_contract' | 'in_progress' | 'completed'
+  amount?: number
+  created_at: string
+  updated_at: string
+  created_by: string
+  site_id?: string
+  partner_company_id?: string
+  profiles?: {
+    id: string
+    full_name: string
+    email: string
+  }
+  sites?: {
+    id: string
+    name: string
+    address: string
+  }
+  organizations?: {
+    id: string
+    name: string
+    business_registration_number: string
+  }
+}
+
+type SiteDocument = SharedDocument | MarkupDocument | InvoiceDocument
 
 interface Site {
   id: string
@@ -34,98 +106,126 @@ interface Site {
 }
 
 interface SiteDocumentManagementProps {
-  profile: Profile
+  siteId: string  // Required site ID since we're on site detail page
+  siteName?: string  // Optional site name for display
 }
 
-export default function SiteDocumentManagement({ profile }: SiteDocumentManagementProps) {
-  const [sites, setSites] = useState<Site[]>([])
-  const [selectedSite, setSelectedSite] = useState<string>('')
+export default function SiteDocumentManagement({ siteId, siteName }: SiteDocumentManagementProps) {
+  const [activeTab, setActiveTab] = useState<'shared' | 'markup' | 'invoice'>('shared')
   const [documents, setDocuments] = useState<SiteDocument[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [uploadMode, setUploadMode] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
-  const [filterType, setFilterType] = useState<string>('all')
   const [selectedDocuments, setSelectedDocuments] = useState<Set<string>>(new Set())
   const [previewDocument, setPreviewDocument] = useState<SiteDocument | null>(null)
   const [showBulkActions, setShowBulkActions] = useState(false)
 
   const supabase = createClient()
 
-  // Load all sites that the user can manage
-  const loadSites = useCallback(async () => {
-    try {
-      const { data, error } = await supabase
-        .from('sites')
-        .select('id, name, address, status')
-        .eq('status', 'active')
-        .order('name')
-
-      if (error) throw error
-
-      setSites(data || [])
-      if (data && data.length > 0 && !selectedSite) {
-        setSelectedSite(data[0].id)
-      }
-    } catch (err) {
-      setError('사이트 목록을 불러오는데 실패했습니다.')
-      console.error('Site loading error:', err)
-    }
-  }, [selectedSite, supabase])
-
-  // Load documents for selected site
+  // Load documents for the site from different tables based on tab
   const loadDocuments = useCallback(async () => {
-    if (!selectedSite) return
+    if (!siteId) return
 
     setLoading(true)
     setError(null)
-    // Clear selections when loading new site data
+    // Clear selections when loading new data
     setSelectedDocuments(new Set())
     setShowBulkActions(false)
 
     try {
-      const { data, error } = await supabase
-        .from('site_documents')
-        .select(`
-          *,
-          uploader:profiles!site_documents_uploaded_by_fkey(
-            full_name,
-            email
-          )
-        `)
-        .eq('site_id', selectedSite)
-        .order('document_type', { ascending: true })
-        .order('is_active', { ascending: false })
-        .order('created_at', { ascending: false })
+      let data: SiteDocument[] = []
 
-      if (error) throw error
+      switch (activeTab) {
+        case 'shared':
+          // 공유문서함에서 현장별 공유 문서 조회
+          const { data: sharedDocs, error: sharedError } = await supabase
+            .from('documents')
+            .select(`
+              *,
+              profiles!documents_created_by_fkey(id, full_name, email),
+              sites(id, name, address)
+            `)
+            .eq('location', 'shared')
+            .eq('site_id', siteId)
+            .order('created_at', { ascending: false })
 
-      setDocuments(data || [])
+          if (sharedError) throw sharedError
+          data = sharedDocs || []
+          break
+
+        case 'markup':
+          // 도면마킹문서함에서 현장별 마킹 문서 조회
+          const { data: markupDocs, error: markupError } = await supabase
+            .from('markup_documents')
+            .select(`
+              *,
+              profiles!markup_documents_created_by_fkey(id, full_name, email),
+              sites(id, name, address)
+            `)
+            .eq('is_deleted', false)
+            .eq('site_id', siteId)
+            .order('updated_at', { ascending: false })
+
+          if (markupError) throw markupError
+          data = markupDocs || []
+          break
+
+        case 'invoice':
+          // 기성청구함에서 현장별 기성청구 문서 조회
+          const { data: invoiceDocs, error: invoiceError } = await supabase
+            .from('documents')
+            .select(`
+              *,
+              profiles!documents_created_by_fkey(id, full_name, email),
+              sites(id, name, address),
+              organizations!documents_partner_company_id_fkey(id, name, business_registration_number)
+            `)
+            .eq('document_category', 'invoice')
+            .eq('site_id', siteId)
+            .order('created_at', { ascending: false })
+
+          if (invoiceError) throw invoiceError
+          data = invoiceDocs || []
+          break
+      }
+
+      setDocuments(data)
     } catch (err) {
-      setError('문서 목록을 불러오는데 실패했습니다.')
+      setError(`${activeTab === 'shared' ? '공유' : activeTab === 'markup' ? '도면마킹' : '기성청구'} 문서 목록을 불러오는데 실패했습니다.`)
       console.error('Document loading error:', err)
     } finally {
       setLoading(false)
     }
-  }, [selectedSite, supabase])
+  }, [siteId, activeTab, supabase])
 
   useEffect(() => {
-    loadSites()
-  }, [loadSites])
-
-  useEffect(() => {
-    if (selectedSite) {
+    if (siteId) {
       loadDocuments()
     }
-  }, [selectedSite, loadDocuments])
+  }, [siteId, activeTab, loadDocuments])
 
   // Handle document activation toggle
   const handleToggleActive = async (documentId: string, currentActive: boolean) => {
     try {
-      const { error } = await supabase
-        .from('site_documents')
-        .update({ is_active: !currentActive, updated_at: new Date().toISOString() })
-        .eq('id', documentId)
+      let error = null
+      
+      // Update based on document type from current tab
+      if (activeTab === 'shared' || activeTab === 'invoice') {
+        // For documents table
+        const { error: docError } = await supabase
+          .from('documents')
+          .update({ is_active: !currentActive, updated_at: new Date().toISOString() })
+          .eq('id', documentId)
+        error = docError
+      } else if (activeTab === 'markup') {
+        // For markup_documents table
+        const { error: markupError } = await supabase
+          .from('markup_documents')
+          .update({ is_active: !currentActive, updated_at: new Date().toISOString() })
+          .eq('id', documentId)
+        error = markupError
+      }
 
       if (error) throw error
 
@@ -143,10 +243,24 @@ export default function SiteDocumentManagement({ profile }: SiteDocumentManageme
     }
 
     try {
-      const { error } = await supabase
-        .from('site_documents')
-        .delete()
-        .eq('id', documentId)
+      let error = null
+      
+      // Delete based on document type from current tab
+      if (activeTab === 'shared' || activeTab === 'invoice') {
+        // For documents table
+        const { error: docError } = await supabase
+          .from('documents')
+          .delete()
+          .eq('id', documentId)
+        error = docError
+      } else if (activeTab === 'markup') {
+        // For markup_documents table - soft delete
+        const { error: markupError } = await supabase
+          .from('markup_documents')
+          .update({ is_deleted: true, updated_at: new Date().toISOString() })
+          .eq('id', documentId)
+        error = markupError
+      }
 
       if (error) throw error
 
@@ -163,6 +277,66 @@ export default function SiteDocumentManagement({ profile }: SiteDocumentManageme
     setPreviewDocument(document)
   }
 
+  // Helper functions to safely access document properties
+  const getDocumentDisplayName = (document: SiteDocument): string => {
+    return document.title || 'Unknown Document'
+  }
+
+  const getDocumentFileName = (document: SiteDocument): string => {
+    if ('file_name' in document) {
+      return document.file_name
+    } else if ('original_blueprint_filename' in document) {
+      return document.original_blueprint_filename
+    }
+    return 'Unknown File'
+  }
+
+  const getDocumentFileSize = (document: SiteDocument): number => {
+    if ('file_size' in document) {
+      return document.file_size
+    }
+    return 0
+  }
+
+  const getDocumentFileUrl = (document: SiteDocument): string => {
+    if ('file_path' in document) {
+      return document.file_path
+    } else if ('original_blueprint_url' in document) {
+      return document.original_blueprint_url
+    }
+    return '#'
+  }
+
+  const getDocumentMimeType = (document: SiteDocument): string => {
+    if ('mime_type' in document) {
+      return document.mime_type
+    }
+    return 'application/octet-stream'
+  }
+
+  const getDocumentAuthor = (document: SiteDocument): string => {
+    if ('profiles' in document && document.profiles) {
+      return document.profiles.full_name
+    }
+    return 'Unknown Author'
+  }
+
+  const getDocumentNotes = (document: SiteDocument): string => {
+    if ('description' in document && document.description) {
+      return document.description
+    }
+    return ''
+  }
+
+  const isDocumentActive = (document: SiteDocument): boolean => {
+    if ('is_public' in document) {
+      return Boolean(document.is_public)
+    } else if ('location' in document) {
+      return document.location === 'shared'
+    }
+    return true // Default to active for invoice documents
+  }
+
   // Close preview modal
   const closePreviewModal = () => {
     setPreviewDocument(null)
@@ -171,8 +345,26 @@ export default function SiteDocumentManagement({ profile }: SiteDocumentManageme
   // Handle document download
   const handleDownloadDocument = (document: SiteDocument) => {
     const link = window.document.createElement('a')
-    link.href = document.file_url
-    link.download = document.file_name
+    
+    // Get correct file URL based on document type
+    let fileUrl: string
+    let fileName: string
+    
+    if ('file_path' in document) {
+      // SharedDocument or InvoiceDocument
+      fileUrl = document.file_path
+      fileName = document.file_name
+    } else if ('original_blueprint_url' in document) {
+      // MarkupDocument
+      fileUrl = document.original_blueprint_url
+      fileName = document.original_blueprint_filename
+    } else {
+      console.error('Unknown document type for download')
+      return
+    }
+    
+    link.href = fileUrl
+    link.download = fileName
     link.click()
   }
 
@@ -211,10 +403,24 @@ export default function SiteDocumentManagement({ profile }: SiteDocumentManageme
     if (!confirm(confirmMessage)) return
 
     try {
-      const { error } = await supabase
-        .from('site_documents')
-        .delete()
-        .in('id', Array.from(selectedDocuments))
+      let error = null
+
+      // Delete based on document type from current tab
+      if (activeTab === 'shared' || activeTab === 'invoice') {
+        // For documents table - hard delete
+        const { error: docError } = await supabase
+          .from('documents')
+          .delete()
+          .in('id', Array.from(selectedDocuments))
+        error = docError
+      } else if (activeTab === 'markup') {
+        // For markup_documents table - soft delete
+        const { error: markupError } = await supabase
+          .from('markup_documents')
+          .update({ is_deleted: true, updated_at: new Date().toISOString() })
+          .in('id', Array.from(selectedDocuments))
+        error = markupError
+      }
 
       if (error) throw error
 
@@ -233,10 +439,25 @@ export default function SiteDocumentManagement({ profile }: SiteDocumentManageme
     if (selectedDocuments.size === 0) return
 
     try {
-      const { error } = await supabase
-        .from('site_documents')
-        .update({ is_active: activate, updated_at: new Date().toISOString() })
-        .in('id', Array.from(selectedDocuments))
+      let error = null
+
+      // Update based on document type from current tab
+      if (activeTab === 'shared' || activeTab === 'invoice') {
+        // For documents table - toggle is_public status
+        const { error: docError } = await supabase
+          .from('documents')
+          .update({ is_public: activate, updated_at: new Date().toISOString() })
+          .in('id', Array.from(selectedDocuments))
+        error = docError
+      } else if (activeTab === 'markup') {
+        // For markup_documents table - toggle location between 'personal' and 'shared'
+        const newLocation = activate ? 'shared' : 'personal'
+        const { error: markupError } = await supabase
+          .from('markup_documents')
+          .update({ location: newLocation, updated_at: new Date().toISOString() })
+          .in('id', Array.from(selectedDocuments))
+        error = markupError
+      }
 
       if (error) throw error
 
@@ -263,11 +484,6 @@ export default function SiteDocumentManagement({ profile }: SiteDocumentManageme
       )
     }
 
-    // Filter by document type
-    if (filterType !== 'all') {
-      filtered = filtered.filter(doc => doc.document_type === filterType)
-    }
-
     return filtered
   }
 
@@ -283,10 +499,23 @@ export default function SiteDocumentManagement({ profile }: SiteDocumentManageme
   const documentTypeLabels = {
     ptw: 'PTW (작업허가서)',
     blueprint: '공사도면',
-    other: '기타 문서'
+    other: '기타 문서',
+    shared: '공유 문서',
+    markup: '도면마킹 문서',
+    invoice: '기성청구 문서'
   }
 
-  const selectedSiteInfo = sites.find(site => site.id === selectedSite)
+  const tabLabels = {
+    shared: '공유문서함',
+    markup: '도면마킹문서함',
+    invoice: '기성청구함'
+  }
+
+  const tabIcons = {
+    shared: <Share2 className="h-4 w-4" />,
+    markup: <FileImage className="h-4 w-4" />,
+    invoice: <Receipt className="h-4 w-4" />
+  }
 
   return (
     <div className="space-y-6">
@@ -294,10 +523,10 @@ export default function SiteDocumentManagement({ profile }: SiteDocumentManageme
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
           <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
-            현장별 문서 관리
+            {siteName ? `${siteName} 문서 관리` : '현장 문서 관리'}
           </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            각 현장의 PTW, 도면 및 기타 문서를 관리합니다
+            현장의 공유문서, 도면마킹문서, 기성청구 문서를 관리합니다
           </p>
         </div>
         
@@ -310,41 +539,33 @@ export default function SiteDocumentManagement({ profile }: SiteDocumentManageme
         </button>
       </div>
 
-      {/* Site Selector */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 p-6">
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          현장 선택
-        </label>
-        <select
-          value={selectedSite}
-          onChange={(e) => setSelectedSite(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">현장을 선택하세요</option>
-          {sites.map((site) => (
-            <option key={site.id} value={site.id}>
-              {site.name} - {site.address}
-            </option>
-          ))}
-        </select>
-        
-        {selectedSiteInfo && (
-          <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-md">
-            <p className="text-sm text-blue-800 dark:text-blue-200">
-              <strong>선택된 현장:</strong> {selectedSiteInfo.name}
-            </p>
-            <p className="text-sm text-blue-600 dark:text-blue-300">
-              {selectedSiteInfo.address}
-            </p>
-          </div>
-        )}
+      {/* Tab Navigation */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700">
+        <div className="border-b border-gray-200 dark:border-gray-700">
+          <nav className="flex -mb-px">
+            {(['shared', 'markup', 'invoice'] as const).map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`flex items-center gap-2 px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
+                  activeTab === tab
+                    ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
+                }`}
+              >
+                {tabIcons[tab]}
+                {tabLabels[tab]}
+              </button>
+            ))}
+          </nav>
+        </div>
       </div>
 
       {/* Upload Zone */}
-      {uploadMode && selectedSite && (
+      {uploadMode && siteId && (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 p-6">
           <DocumentUploadZone
-            siteId={selectedSite}
+            siteId={siteId}
             onUploadComplete={() => {
               loadDocuments()
               setUploadMode(false)
@@ -353,40 +574,19 @@ export default function SiteDocumentManagement({ profile }: SiteDocumentManageme
         </div>
       )}
 
-      {/* Search and Filter */}
-      {selectedSite && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 p-6">
-          <div className="flex flex-col sm:flex-row gap-4">
-            {/* Search */}
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <input
-                  type="text"
-                  placeholder="문서명, 업로더, 메모로 검색..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-            </div>
-            
-            {/* Filter */}
-            <div className="sm:w-48">
-              <select
-                value={filterType}
-                onChange={(e) => setFilterType(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="all">모든 문서 타입</option>
-                <option value="ptw">PTW (작업허가서)</option>
-                <option value="blueprint">공사도면</option>
-                <option value="other">기타 문서</option>
-              </select>
-            </div>
-          </div>
+      {/* Search */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 p-6">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <input
+            type="text"
+            placeholder="문서명, 업로더, 메모로 검색..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
         </div>
-      )}
+      </div>
 
       {/* Bulk Actions */}
       {showBulkActions && (
@@ -432,7 +632,7 @@ export default function SiteDocumentManagement({ profile }: SiteDocumentManageme
       )}
 
       {/* Document List */}
-      {selectedSite && (
+      {siteId && (
         <div className="space-y-6">
           {loading ? (
             <div className="space-y-6">
@@ -507,7 +707,7 @@ export default function SiteDocumentManagement({ profile }: SiteDocumentManageme
                         {documentTypeLabels[docType as keyof typeof documentTypeLabels] || docType}
                       </h3>
                       <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                        {docs.length}개 문서 | 활성: {docs.filter(d => d.is_active).length}개
+                        {docs.length}개 문서 | 활성: {docs.filter(d => isDocumentActive(d)).length}개
                       </p>
                     </div>
                     <button
@@ -541,20 +741,20 @@ export default function SiteDocumentManagement({ profile }: SiteDocumentManageme
                               )}
                             </button>
                             <FileText className={`h-8 w-8 flex-shrink-0 mt-1 ${
-                              document.is_active ? 'text-blue-500' : 'text-gray-400'
+                              isDocumentActive(document) ? 'text-blue-500' : 'text-gray-400'
                             }`} />
                           </div>
                           
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2">
                               <p className={`font-medium truncate ${
-                                document.is_active 
+                                isDocumentActive(document)
                                   ? 'text-gray-900 dark:text-gray-100' 
                                   : 'text-gray-500 dark:text-gray-400'
                               }`}>
-                                {document.file_name}
+                                {getDocumentDisplayName(document)}
                               </p>
-                              {document.is_active && (
+                              {isDocumentActive(document) && (
                                 <span className="inline-flex px-2 py-1 text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300 rounded-full">
                                   활성
                                 </span>
@@ -562,15 +762,14 @@ export default function SiteDocumentManagement({ profile }: SiteDocumentManageme
                             </div>
                             
                             <div className="text-sm text-gray-500 dark:text-gray-400 space-y-1">
-                              {document.file_size && (
-                                <p>크기: {Math.round(document.file_size / 1024)} KB</p>
+                              <p>파일명: {getDocumentFileName(document)}</p>
+                              {getDocumentFileSize(document) && (
+                                <p>크기: {Math.round(getDocumentFileSize(document)! / 1024)} KB</p>
                               )}
-                              <p>업로드: {new Date(document.created_at).toLocaleDateString('ko-KR')}</p>
-                              {document.uploader && (
-                                <p>업로더: {document.uploader.full_name}</p>
-                              )}
-                              {document.notes && (
-                                <p className="text-gray-600 dark:text-gray-300">참고: {document.notes}</p>
+                              <p>생성일: {new Date(document.created_at).toLocaleDateString('ko-KR')}</p>
+                              <p>작성자: {getDocumentAuthor(document)}</p>
+                              {document.description && (
+                                <p className="text-gray-600 dark:text-gray-300">설명: {document.description}</p>
                               )}
                             </div>
                           </div>
@@ -594,13 +793,13 @@ export default function SiteDocumentManagement({ profile }: SiteDocumentManageme
                           </button>
                           
                           <button
-                            onClick={() => handleToggleActive(document.id, document.is_active)}
+                            onClick={() => handleToggleActive(document.id, isDocumentActive(document))}
                             className={`p-2 rounded transition-colors ${
-                              document.is_active
+                              isDocumentActive(document)
                                 ? 'text-gray-400 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20'
                                 : 'text-gray-400 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20'
                             }`}
-                            title={document.is_active ? '비활성화' : '활성화'}
+                            title={isDocumentActive(document) ? '비활성화' : '활성화'}
                           >
                             <Settings className="h-4 w-4" />
                           </button>
@@ -620,17 +819,6 @@ export default function SiteDocumentManagement({ profile }: SiteDocumentManageme
               </div>
             ))
           )}
-        </div>
-      )}
-
-      {!selectedSite && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 p-8">
-          <div className="text-center">
-            <Settings className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500 dark:text-gray-400">
-              문서를 관리할 현장을 선택하세요.
-            </p>
-          </div>
         </div>
       )}
 

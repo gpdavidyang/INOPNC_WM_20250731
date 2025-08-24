@@ -211,8 +211,24 @@ export function ExportDialog({ sites, trigger }: ExportDialogProps) {
         )}
       </DialogTrigger>
       
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent 
+        className="sm:max-w-2xl"
+        style={{
+          position: 'fixed',
+          left: '50%',
+          top: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: '90vw',
+          maxWidth: '42rem',
+          maxHeight: '85vh',
+          display: 'flex',
+          flexDirection: 'column',
+          padding: 0,
+          gap: 0,
+          overflow: 'hidden'
+        }}
+      >
+        <DialogHeader className="px-6 py-4 border-b border-gray-200 dark:border-gray-700" style={{ flexShrink: 0 }}>
           <DialogTitle className="flex items-center gap-2">
             <Download className="w-5 h-5" />
             데이터 내보내기
@@ -222,7 +238,8 @@ export function ExportDialog({ sites, trigger }: ExportDialogProps) {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="px-6 py-4" style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
+          <div className="space-y-6">
           {/* Export Format Selection */}
           <div>
             <Label className="text-sm font-medium mb-3 block">내보내기 형식</Label>
@@ -461,6 +478,7 @@ export function ExportDialog({ sites, trigger }: ExportDialogProps) {
                 </>
               )}
             </Button>
+          </div>
           </div>
         </div>
       </DialogContent>

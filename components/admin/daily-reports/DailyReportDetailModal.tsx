@@ -30,7 +30,7 @@ interface DailyReport {
   npc1000_used: number
   npc1000_remaining: number
   issues: string
-  status: 'draft' | 'submitted' | 'completed'
+  status: 'draft' | 'submitted'
   created_at: string
   updated_at: string
   created_by: string
@@ -65,14 +65,12 @@ interface DailyReportDetailModalProps {
 
 const statusLabels = {
   draft: '임시저장',
-  submitted: '제출됨',
-  completed: '완료'
+  submitted: '제출됨'
 }
 
 const statusColors = {
   draft: 'bg-gray-100 text-gray-800',
-  submitted: 'bg-blue-100 text-blue-800',
-  completed: 'bg-green-100 text-green-800'
+  submitted: 'bg-blue-100 text-blue-800'
 }
 
 export default function DailyReportDetailModal({ report, onClose, onUpdated }: DailyReportDetailModalProps) {
@@ -686,14 +684,7 @@ export default function DailyReportDetailModal({ report, onClose, onUpdated }: D
         <div className="border-t border-gray-200 p-6">
           <div className="flex justify-between items-center">
             <div className="flex gap-2">
-              {!isEditing && report.status === 'submitted' && (
-                <button
-                  onClick={() => handleStatusChange('completed')}
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                >
-                  완료 처리
-                </button>
-              )}
+              {/* 상태 변경 버튼 제거 - 임시저장과 제출됨 상태만 사용 */}
             </div>
             
             <div className="flex gap-2">

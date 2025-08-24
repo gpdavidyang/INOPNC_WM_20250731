@@ -15,6 +15,7 @@ import {
 } from '@/app/actions/admin/sites'
 import { Plus, Search, Filter, Eye, Edit, MapPin, Calendar, Phone, Users, FileText } from 'lucide-react'
 import SiteDetail from './sites/SiteDetail'
+import SiteWorkersModal from './SiteWorkersModal'
 
 interface SiteManagementProps {
   profile?: Profile
@@ -44,6 +45,8 @@ export default function SiteManagement({ profile }: SiteManagementProps) {
   const [editingSite, setEditingSite] = useState<Site | null>(null)
   const [showDetailModal, setShowDetailModal] = useState(false)
   const [viewingSite, setViewingSite] = useState<Site | null>(null)
+  const [isWorkersModalOpen, setIsWorkersModalOpen] = useState(false)
+  const [selectedSiteForWorkers, setSelectedSiteForWorkers] = useState<Site | null>(null)
 
   // Load sites data
   const loadSites = async () => {
@@ -138,6 +141,25 @@ export default function SiteManagement({ profile }: SiteManagementProps) {
     setShowDetailModal(true)
   }
 
+  // Handle delete single site
+  const handleDeleteSite = async (site: Site) => {
+    if (!confirm(`정말로 "${site.name}" 현장을 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`)) {
+      return
+    }
+    
+    try {
+      const result = await deleteSites([site.id])
+      if (result.success) {
+        await loadSites()
+        alert(`"${site.name}" 현장이 삭제되었습니다.`)
+      } else {
+        alert(result.error || '현장 삭제에 실패했습니다.')
+      }
+    } catch (error) {
+      alert('현장 삭제 중 오류가 발생했습니다.')
+    }
+  }
+
   // Handle document management navigation
   const handleDocumentManagement = (site: Site) => {
     window.location.href = `/dashboard/admin/sites/${site.id}/documents`
@@ -154,7 +176,12 @@ export default function SiteManagement({ profile }: SiteManagementProps) {
         <div className="flex items-center">
           <MapPin className="h-4 w-4 text-gray-400 mr-2" />
           <div>
-            <div className="font-medium text-gray-900 dark:text-gray-100">{value}</div>
+            <button
+              onClick={() => handleViewSite(site)}
+              className="font-medium text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-left"
+            >
+              {value}
+            </button>
             <div className="text-sm text-gray-500 dark:text-gray-400 truncate max-w-xs">
               {site.address}
             </div>
@@ -296,6 +323,7 @@ export default function SiteManagement({ profile }: SiteManagementProps) {
             getRowId={(site: Site) => site.id}
             onView={handleViewSite}
             onEdit={handleEditSite}
+            onDelete={handleDeleteSite}
             customActions={[
               {
                 icon: FileText,

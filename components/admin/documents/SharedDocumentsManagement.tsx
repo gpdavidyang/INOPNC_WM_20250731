@@ -2,20 +2,22 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { FileText, Search, Download, Eye, Trash2, Building2, Users, Share2, Calendar, RefreshCw, Upload } from 'lucide-react'
+import { Search, Download, Trash2, Building2, Users, Share2, RefreshCw, Upload, X, FileText, Calendar, User, MapPin, Edit2 } from 'lucide-react'
 
 interface Document {
   id: string
   title: string
   description?: string
   file_name: string
-  file_path: string
+  file_url: string
   file_size: number
   mime_type: string
-  location: 'personal' | 'shared'
+  document_type: string
+  folder_path: string
+  is_public: boolean
   created_at: string
   updated_at: string
-  created_by: string
+  owner_id: string
   site_id?: string
   profiles?: {
     id: string
@@ -43,6 +45,21 @@ export default function SharedDocumentsManagement() {
   const [selectedSite, setSelectedSite] = useState<string>('')
   const [currentPage, setCurrentPage] = useState(1)
   const [totalCount, setTotalCount] = useState(0)
+  const [selectedDocument, setSelectedDocument] = useState<Document | null>(null)
+  const [showDetailModal, setShowDetailModal] = useState(false)
+  const [isEditMode, setIsEditMode] = useState(false)
+  const [editFormData, setEditFormData] = useState<{
+    title: string
+    description: string
+    site_id: string | null
+    is_public: boolean
+  }>({
+    title: '',
+    description: '',
+    site_id: null,
+    is_public: false
+  })
+  const [saving, setSaving] = useState(false)
   const itemsPerPage = 20
 
   const supabase = createClient()
@@ -69,10 +86,10 @@ export default function SharedDocumentsManagement() {
         .from('documents')
         .select(`
           *,
-          profiles!documents_created_by_fkey(id, full_name, email),
-          sites(id, name, address)
+          profiles!owner_id(id, full_name, email),
+          sites!documents_site_id_fkey(id, name, address)
         `, { count: 'exact' })
-        .eq('location', 'shared')
+        .eq('is_public', true)
 
       // 검색 필터 적용
       if (searchTerm) {
@@ -124,7 +141,7 @@ export default function SharedDocumentsManagement() {
   const handleDownloadDocument = async (document: Document) => {
     try {
       // 실제 구현에서는 Supabase Storage URL을 사용
-      window.open(document.file_path, '_blank')
+      window.open(document.file_url, '_blank')
     } catch (error) {
       console.error('Error downloading document:', error)
       alert('문서 다운로드에 실패했습니다.')
@@ -147,6 +164,84 @@ export default function SharedDocumentsManagement() {
     return '📁'
   }
 
+  const handleDocumentClick = (document: Document) => {
+    setSelectedDocument(document)
+    setShowDetailModal(true)
+    setIsEditMode(false)
+  }
+
+  const closeDetailModal = () => {
+    setShowDetailModal(false)
+    setSelectedDocument(null)
+    setIsEditMode(false)
+    setEditFormData({
+      title: '',
+      description: '',
+      site_id: null,
+      is_public: false
+    })
+  }
+
+  const startEditMode = () => {
+    if (selectedDocument) {
+      setEditFormData({
+        title: selectedDocument.title,
+        description: selectedDocument.description || '',
+        site_id: selectedDocument.site_id,
+        is_public: selectedDocument.is_public
+      })
+      setIsEditMode(true)
+    }
+  }
+
+  const cancelEditMode = () => {
+    setIsEditMode(false)
+    setEditFormData({
+      title: '',
+      description: '',
+      site_id: null,
+      is_public: false
+    })
+  }
+
+  const saveDocumentChanges = async () => {
+    if (!selectedDocument) return
+
+    setSaving(true)
+    try {
+      const { error } = await supabase
+        .from('documents')
+        .update({
+          title: editFormData.title,
+          description: editFormData.description,
+          site_id: editFormData.site_id,
+          is_public: editFormData.is_public,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', selectedDocument.id)
+
+      if (error) throw error
+
+      // Update local state
+      const updatedDoc = {
+        ...selectedDocument,
+        ...editFormData
+      }
+      setSelectedDocument(updatedDoc)
+      setDocuments(documents.map(doc => 
+        doc.id === selectedDocument.id ? updatedDoc : doc
+      ))
+      
+      setIsEditMode(false)
+      alert('문서가 성공적으로 수정되었습니다.')
+    } catch (error) {
+      console.error('Error updating document:', error)
+      alert('문서 수정 중 오류가 발생했습니다.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   useEffect(() => {
     fetchSites()
   }, [])
@@ -167,7 +262,7 @@ export default function SharedDocumentsManagement() {
             <input
               type="text"
               placeholder="문서명, 파일명으로 검색..."
-              className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="pl-10 pr-4 py-2 w-full bg-white border border-gray-300 rounded-md text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white"
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value)
@@ -179,7 +274,7 @@ export default function SharedDocumentsManagement() {
           <div className="relative">
             <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <select
-              className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none"
+              className="pl-10 pr-4 py-2 w-full bg-white border border-gray-300 rounded-md text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white appearance-none"
               value={selectedSite}
               onChange={(e) => {
                 setSelectedSite(e.target.value)
@@ -279,9 +374,12 @@ export default function SharedDocumentsManagement() {
                           {getFileTypeIcon(document.mime_type)}
                         </span>
                         <div>
-                          <div className="text-sm font-medium text-gray-900">
+                          <button
+                            onClick={() => handleDocumentClick(document)}
+                            className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline text-left"
+                          >
                             {document.title}
-                          </div>
+                          </button>
                           {document.description && (
                             <div className="text-sm text-gray-500 mt-1">
                               {document.description}
@@ -397,6 +495,317 @@ export default function SharedDocumentsManagement() {
             >
               다음
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Document Detail Modal */}
+      {showDetailModal && selectedDocument && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-gray-900">
+                {isEditMode ? '문서 정보 수정' : '문서 상세 정보'}
+              </h2>
+              <button
+                onClick={closeDetailModal}
+                className="text-gray-400 hover:text-gray-500 p-2 rounded-lg hover:bg-gray-100"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="px-6 py-4 space-y-6">
+              {/* Document Header */}
+              <div className="flex items-start space-x-4">
+                <span className="text-5xl">
+                  {getFileTypeIcon(selectedDocument.mime_type)}
+                </span>
+                <div className="flex-1">
+                  {isEditMode ? (
+                    <>
+                      <input
+                        type="text"
+                        value={editFormData.title}
+                        onChange={(e) => setEditFormData(prev => ({ ...prev, title: e.target.value }))}
+                        className="w-full text-2xl font-bold text-gray-900 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="문서 제목"
+                      />
+                      <textarea
+                        value={editFormData.description}
+                        onChange={(e) => setEditFormData(prev => ({ ...prev, description: e.target.value }))}
+                        className="mt-2 w-full text-gray-600 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                        rows={2}
+                        placeholder="문서 설명 (선택사항)"
+                      />
+                    </>
+                  ) : (
+                    <>
+                      <h3 className="text-2xl font-bold text-gray-900">
+                        {selectedDocument.title}
+                      </h3>
+                      {selectedDocument.description && (
+                        <p className="mt-2 text-gray-600">
+                          {selectedDocument.description}
+                        </p>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Document Information Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* File Information */}
+                <div className="space-y-4">
+                  <h4 className="font-semibold text-gray-900 flex items-center">
+                    <FileText className="w-5 h-5 mr-2 text-gray-500" />
+                    파일 정보
+                  </h4>
+                  <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                    <div>
+                      <dt className="text-sm text-gray-500">파일명</dt>
+                      <dd className="mt-1 text-sm text-gray-900 font-medium">
+                        {selectedDocument.file_name}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm text-gray-500">파일 크기</dt>
+                      <dd className="mt-1 text-sm text-gray-900 font-medium">
+                        {formatFileSize(selectedDocument.file_size)}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm text-gray-500">파일 형식</dt>
+                      <dd className="mt-1 text-sm text-gray-900 font-medium">
+                        {selectedDocument.mime_type}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm text-gray-500">문서 유형</dt>
+                      <dd className="mt-1 text-sm text-gray-900 font-medium">
+                        {selectedDocument.document_type}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm text-gray-500">저장 경로</dt>
+                      <dd className="mt-1 text-sm text-gray-900 font-medium">
+                        {selectedDocument.folder_path}
+                      </dd>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Upload Information */}
+                <div className="space-y-4">
+                  <h4 className="font-semibold text-gray-900 flex items-center">
+                    <User className="w-5 h-5 mr-2 text-gray-500" />
+                    등록 정보
+                  </h4>
+                  <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                    <div>
+                      <dt className="text-sm text-gray-500">등록자</dt>
+                      <dd className="mt-1 text-sm text-gray-900 font-medium">
+                        {selectedDocument.profiles?.full_name || '알 수 없음'}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm text-gray-500">이메일</dt>
+                      <dd className="mt-1 text-sm text-gray-900 font-medium">
+                        {selectedDocument.profiles?.email || '-'}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm text-gray-500">등록일시</dt>
+                      <dd className="mt-1 text-sm text-gray-900 font-medium">
+                        {new Date(selectedDocument.created_at).toLocaleDateString('ko-KR', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          second: '2-digit'
+                        })}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm text-gray-500">수정일시</dt>
+                      <dd className="mt-1 text-sm text-gray-900 font-medium">
+                        {new Date(selectedDocument.updated_at).toLocaleDateString('ko-KR', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          second: '2-digit'
+                        })}
+                      </dd>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Site Information */}
+              <div className="space-y-4">
+                <h4 className="font-semibold text-gray-900 flex items-center">
+                  <MapPin className="w-5 h-5 mr-2 text-gray-500" />
+                  현장 정보
+                </h4>
+                <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                  {isEditMode ? (
+                    <div>
+                      <label className="text-sm text-gray-500">현장 선택</label>
+                      <select
+                        value={editFormData.site_id || ''}
+                        onChange={(e) => setEditFormData(prev => ({ 
+                          ...prev, 
+                          site_id: e.target.value || null 
+                        }))}
+                        className="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">현장 미지정</option>
+                        {sites.map((site) => (
+                          <option key={site.id} value={site.id}>
+                            {site.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  ) : (
+                    selectedDocument.sites ? (
+                      <>
+                        <div>
+                          <dt className="text-sm text-gray-500">현장명</dt>
+                          <dd className="mt-1 text-sm text-gray-900 font-medium">
+                            {selectedDocument.sites.name}
+                          </dd>
+                        </div>
+                        <div>
+                          <dt className="text-sm text-gray-500">현장 주소</dt>
+                          <dd className="mt-1 text-sm text-gray-900 font-medium">
+                            {selectedDocument.sites.address}
+                          </dd>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="text-sm text-gray-500">현장 미지정</div>
+                    )
+                  )}
+                </div>
+              </div>
+
+              {/* Sharing Status */}
+              <div className="space-y-4">
+                <h4 className="font-semibold text-gray-900 flex items-center">
+                  <Share2 className="w-5 h-5 mr-2 text-gray-500" />
+                  공유 상태
+                </h4>
+                <div className="bg-gray-50 rounded-lg p-4">
+                  {isEditMode ? (
+                    <div className="flex items-center space-x-3">
+                      <input
+                        type="checkbox"
+                        id="is_public"
+                        checked={editFormData.is_public}
+                        onChange={(e) => setEditFormData(prev => ({ 
+                          ...prev, 
+                          is_public: e.target.checked 
+                        }))}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <label htmlFor="is_public" className="text-sm text-gray-700">
+                        공개 문서로 설정 (모든 사용자가 이 문서를 볼 수 있습니다)
+                      </label>
+                    </div>
+                  ) : (
+                    <div className="flex items-center">
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        selectedDocument.is_public 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {selectedDocument.is_public ? '공개 문서' : '비공개 문서'}
+                      </span>
+                      {selectedDocument.is_public && (
+                        <span className="ml-2 text-sm text-gray-600">
+                          모든 사용자가 이 문서를 볼 수 있습니다
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="sticky bottom-0 bg-gray-50 px-6 py-4 flex items-center justify-between border-t">
+              {isEditMode ? (
+                <>
+                  <div className="flex items-center space-x-3">
+                    <button
+                      onClick={cancelEditMode}
+                      className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition-colors"
+                    >
+                      취소
+                    </button>
+                  </div>
+                  <button
+                    onClick={saveDocumentChanges}
+                    disabled={isSaving}
+                    className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isSaving ? '저장 중...' : '저장'}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center space-x-3">
+                    <button
+                      onClick={startEditMode}
+                      className="flex items-center px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition-colors"
+                    >
+                      <Edit2 className="w-4 h-4 mr-2" />
+                      수정
+                    </button>
+                    <button
+                      onClick={() => handleDownloadDocument(selectedDocument)}
+                      className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      다운로드
+                    </button>
+                    <button
+                      onClick={() => {
+                        // TODO: 공유 설정 기능
+                        alert('공유 설정 기능은 준비 중입니다.')
+                      }}
+                      className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                    >
+                      <Users className="w-4 h-4 mr-2" />
+                      공유 설정
+                    </button>
+                    <button
+                      onClick={() => {
+                        closeDetailModal()
+                        handleDeleteDocument(selectedDocument.id)
+                      }}
+                      className="flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      삭제
+                    </button>
+                  </div>
+                  <button
+                    onClick={closeDetailModal}
+                    className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 transition-colors"
+                  >
+                    닫기
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         </div>
       )}

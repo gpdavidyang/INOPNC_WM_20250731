@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react'
 import { 
   Plus, Search, Filter, MoreHorizontal, Building2, 
-  Calendar, MapPin, Phone, Mail, Users, Edit, Trash2, CheckCircle, XCircle
+  Calendar, MapPin, Phone, Mail, Users, Edit, Trash2, CheckCircle, XCircle,
+  LayoutGrid, List
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
@@ -19,7 +20,7 @@ interface Organization {
   updated_at: string
   profiles?: Array<{
     id: string
-    name: string
+    full_name: string
     email: string
     phone?: string
     role: string
@@ -31,6 +32,7 @@ export default function OrganizationPartnerList() {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [viewMode, setViewMode] = useState<'card' | 'list'>('card')
   const supabase = createClient()
 
   const loadOrganizations = async () => {
@@ -42,7 +44,7 @@ export default function OrganizationPartnerList() {
           *,
           profiles (
             id,
-            name,
+            full_name,
             email,
             phone,
             role
@@ -170,20 +172,78 @@ export default function OrganizationPartnerList() {
         </div>
       </div>
 
-      {/* Organizations Grid */}
-      {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="animate-pulse bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-              <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded mb-4"></div>
-              <div className="space-y-2">
-                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
-                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-              </div>
-            </div>
-          ))}
+      {/* View Toggle */}
+      <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
+        <div className="flex justify-between items-center">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white">파트너사 목록</h3>
+          <div className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-md p-1">
+            <button
+              onClick={() => setViewMode('card')}
+              className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${
+                viewMode === 'card'
+                  ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
+                  : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+              }`}
+            >
+              <LayoutGrid className="h-4 w-4" />
+              <span className="text-sm font-medium">카드</span>
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${
+                viewMode === 'list'
+                  ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
+                  : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+              }`}
+            >
+              <List className="h-4 w-4" />
+              <span className="text-sm font-medium">리스트</span>
+            </button>
+          </div>
         </div>
+      </div>
+
+      {/* Organizations Display */}
+      {loading ? (
+        viewMode === 'card' ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="animate-pulse bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+                <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded mb-4"></div>
+                <div className="space-y-2">
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+            <div className="animate-pulse">
+              <div className="px-6 py-3 bg-gray-50 dark:bg-gray-700">
+                <div className="flex space-x-4">
+                  <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-24"></div>
+                  <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-20"></div>
+                  <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-32"></div>
+                  <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-24"></div>
+                  <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-16"></div>
+                </div>
+              </div>
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+                  <div className="flex space-x-4">
+                    <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-24"></div>
+                    <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-20"></div>
+                    <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-32"></div>
+                    <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-24"></div>
+                    <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-16"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
       ) : organizations.length === 0 ? (
         <div className="text-center py-12">
           <Building2 className="mx-auto h-12 w-12 text-gray-400" />
@@ -200,7 +260,113 @@ export default function OrganizationPartnerList() {
             }
           </p>
         </div>
+      ) : viewMode === 'list' ? (
+        // List View (Table)
+        <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead className="bg-gray-50 dark:bg-gray-700">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  파트너사명
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  상태
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  연락처
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  담당자
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  주소
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  작업
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+              {organizations.map((org) => (
+                <tr key={org.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      <Building2 className="h-5 w-5 text-blue-600 mr-3 flex-shrink-0" />
+                      <div>
+                        <div className="text-sm font-medium text-gray-900 dark:text-white">
+                          {org.name}
+                        </div>
+                        {org.description && (
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                            {org.description}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {getStatusBadge(org.is_active)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {org.phone && (
+                      <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                        <Phone className="h-4 w-4 mr-1 flex-shrink-0" />
+                        {org.phone}
+                      </div>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {org.profiles && org.profiles.length > 0 ? (
+                      <div className="text-sm">
+                        <div className="text-gray-900 dark:text-white font-medium">
+                          {org.profiles[0].full_name}
+                        </div>
+                        {org.profiles[0].email && (
+                          <div className="text-gray-500 dark:text-gray-400">
+                            {org.profiles[0].email}
+                          </div>
+                        )}
+                        {org.profiles.length > 1 && (
+                          <div className="text-xs text-gray-400">
+                            외 {org.profiles.length - 1}명
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-gray-400 text-sm">담당자 없음</span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="text-sm text-gray-600 dark:text-gray-400 max-w-xs truncate">
+                      {org.address || '-'}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <div className="flex items-center justify-end gap-2">
+                      <button
+                        onClick={() => handleToggleStatus(org)}
+                        className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                      >
+                        {org.is_active ? '비활성화' : '활성화'}
+                      </button>
+                      <button className="p-1 hover:bg-gray-100 dark:hover:bg-gray-600 rounded">
+                        <Edit className="h-4 w-4 text-gray-400" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(org.id)}
+                        className="p-1 hover:bg-gray-100 dark:hover:bg-gray-600 rounded"
+                      >
+                        <Trash2 className="h-4 w-4 text-gray-400" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       ) : (
+        // Card View (existing implementation)
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {organizations.map((org) => (
             <div
@@ -254,7 +420,7 @@ export default function OrganizationPartnerList() {
                   <div className="space-y-1">
                     {org.profiles.slice(0, 2).map((profile) => (
                       <div key={profile.id} className="text-xs text-gray-600 dark:text-gray-400">
-                        <span className="font-medium">{profile.name}</span>
+                        <span className="font-medium">{profile.full_name}</span>
                         {profile.email && (
                           <span className="block text-gray-500">{profile.email}</span>
                         )}

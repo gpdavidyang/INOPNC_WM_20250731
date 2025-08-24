@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Edit3, Search, Download, Eye, Trash2, Building2, Calendar, RefreshCw, Upload, PenTool, History, GitBranch } from 'lucide-react'
+import { Edit3, Search, Download, Eye, Trash2, Building2, Calendar, RefreshCw, Upload, PenTool, History, GitBranch, X, FileText, User, MapPin, Edit2 } from 'lucide-react'
 import MarkupDocumentVersionModal from './MarkupDocumentVersionModal'
 
 interface MarkupDocument {
@@ -50,6 +50,11 @@ export default function MarkupDocumentsManagement() {
   const [totalCount, setTotalCount] = useState(0)
   const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null)
   const [isVersionModalOpen, setIsVersionModalOpen] = useState(false)
+  const [selectedDocument, setSelectedDocument] = useState<MarkupDocument | null>(null)
+  const [showDetailModal, setShowDetailModal] = useState(false)
+  const [isEditMode, setIsEditMode] = useState(false)
+  const [editFormData, setEditFormData] = useState<Partial<MarkupDocument>>({})
+  const [isSaving, setIsSaving] = useState(false)
   const itemsPerPage = 20
 
   const supabase = createClient()
@@ -148,6 +153,75 @@ export default function MarkupDocumentsManagement() {
     setIsVersionModalOpen(true)
   }
 
+  const handleDocumentClick = (document: MarkupDocument) => {
+    setSelectedDocument(document)
+    setShowDetailModal(true)
+  }
+
+  const closeDetailModal = () => {
+    setShowDetailModal(false)
+    setSelectedDocument(null)
+    setIsEditMode(false)
+    setEditFormData({})
+  }
+
+  const startEditMode = () => {
+    if (selectedDocument) {
+      setEditFormData({
+        title: selectedDocument.title,
+        description: selectedDocument.description || '',
+        location: selectedDocument.location,
+        site_id: selectedDocument.site_id
+      })
+      setIsEditMode(true)
+    }
+  }
+
+  const cancelEditMode = () => {
+    setIsEditMode(false)
+    setEditFormData({})
+  }
+
+  const saveDocumentChanges = async () => {
+    if (!selectedDocument || !editFormData) return
+
+    setIsSaving(true)
+    try {
+      const { error } = await supabase
+        .from('markup_documents')
+        .update({
+          title: editFormData.title,
+          description: editFormData.description,
+          location: editFormData.location,
+          site_id: editFormData.site_id || null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', selectedDocument.id)
+
+      if (error) throw error
+
+      // 목록 새로고침
+      await fetchDocuments()
+      
+      // 선택된 문서 업데이트
+      const updatedDoc = { 
+        ...selectedDocument, 
+        ...editFormData,
+        updated_at: new Date().toISOString()
+      }
+      setSelectedDocument(updatedDoc as MarkupDocument)
+      
+      setIsEditMode(false)
+      setEditFormData({})
+      alert('도면마킹 문서가 성공적으로 수정되었습니다.')
+    } catch (error) {
+      console.error('Error updating document:', error)
+      alert('도면마킹 문서 수정에 실패했습니다.')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   const handleVersionRestore = () => {
     // 버전 복원 후 목록 새로고침
     fetchDocuments()
@@ -173,7 +247,7 @@ export default function MarkupDocumentsManagement() {
             <input
               type="text"
               placeholder="도면명, 파일명으로 검색..."
-              className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="pl-10 pr-4 py-2 w-full bg-white border border-gray-300 rounded-md text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white"
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value)
@@ -185,7 +259,7 @@ export default function MarkupDocumentsManagement() {
           <div className="relative">
             <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <select
-              className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none"
+              className="pl-10 pr-4 py-2 w-full bg-white border border-gray-300 rounded-md text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white appearance-none"
               value={selectedSite}
               onChange={(e) => {
                 setSelectedSite(e.target.value)
@@ -296,9 +370,12 @@ export default function MarkupDocumentsManagement() {
                           )}
                         </div>
                         <div>
-                          <div className="text-sm font-medium text-gray-900">
+                          <button
+                            onClick={() => handleDocumentClick(document)}
+                            className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline text-left"
+                          >
                             {document.title}
-                          </div>
+                          </button>
                           <div className="text-sm text-gray-500 mt-1">
                             {document.original_blueprint_filename}
                           </div>
@@ -453,6 +530,258 @@ export default function MarkupDocumentsManagement() {
           }}
           onVersionRestore={handleVersionRestore}
         />
+      )}
+
+      {/* 문서 상세 정보 모달 */}
+      {showDetailModal && selectedDocument && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+              <div className="flex items-center space-x-3">
+                <Edit3 className="h-6 w-6 text-blue-600" />
+                <h2 className="text-xl font-semibold text-gray-900">도면마킹 문서 상세 정보</h2>
+              </div>
+              <button
+                onClick={closeDetailModal}
+                className="text-gray-400 hover:text-gray-500"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+            
+            <div className="overflow-y-auto max-h-[calc(90vh-8rem)]">
+              <div className="px-6 py-4 space-y-6">
+                {/* 문서 정보 */}
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-3">문서 정보</h3>
+                  <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                    <div className="flex items-start space-x-3">
+                      <FileText className="h-5 w-5 text-gray-400 mt-0.5" />
+                      <div className="flex-1">
+                        {isEditMode ? (
+                          <div className="space-y-2">
+                            <div>
+                              <label className="text-xs text-gray-500">제목</label>
+                              <input
+                                type="text"
+                                value={editFormData.title || ''}
+                                onChange={(e) => setEditFormData(prev => ({ ...prev, title: e.target.value }))}
+                                className="w-full text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded px-2 py-1 mt-1"
+                                placeholder="문서 제목을 입력하세요"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs text-gray-500">설명</label>
+                              <textarea
+                                value={editFormData.description || ''}
+                                onChange={(e) => setEditFormData(prev => ({ ...prev, description: e.target.value }))}
+                                className="w-full text-sm text-gray-700 bg-white border border-gray-300 rounded px-2 py-1 mt-1 resize-none"
+                                rows={2}
+                                placeholder="문서 설명을 입력하세요"
+                              />
+                            </div>
+                          </div>
+                        ) : (
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">{selectedDocument.title}</p>
+                            {selectedDocument.description && (
+                              <p className="text-sm text-gray-500 mt-1">{selectedDocument.description}</p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 pt-3 border-t border-gray-200">
+                      <div>
+                        <p className="text-xs text-gray-500">원본 파일명</p>
+                        <p className="text-sm text-gray-900 mt-1">{selectedDocument.original_blueprint_filename}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500">마킹 개수</p>
+                        <p className="text-sm text-gray-900 mt-1">{selectedDocument.markup_count || 0}개</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500">버전</p>
+                        <p className="text-sm text-gray-900 mt-1">v{selectedDocument.version_number || 1}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500">위치</p>
+                        {isEditMode ? (
+                          <select
+                            value={editFormData.location || 'personal'}
+                            onChange={(e) => setEditFormData(prev => ({ ...prev, location: e.target.value as 'personal' | 'shared' }))}
+                            className="w-full text-sm text-gray-900 bg-white border border-gray-300 rounded px-2 py-1 mt-1"
+                          >
+                            <option value="personal">개인 문서</option>
+                            <option value="shared">공유 문서</option>
+                          </select>
+                        ) : (
+                          <p className="text-sm text-gray-900 mt-1">
+                            {selectedDocument.location === 'shared' ? '공유 문서' : '개인 문서'}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    {isEditMode && (
+                      <div className="pt-3 border-t border-gray-200">
+                        <label className="text-xs text-gray-500">현장 선택</label>
+                        <select
+                          value={editFormData.site_id || ''}
+                          onChange={(e) => setEditFormData(prev => ({ ...prev, site_id: e.target.value || null }))}
+                          className="w-full text-sm text-gray-900 bg-white border border-gray-300 rounded px-2 py-1 mt-1"
+                        >
+                          <option value="">현장 선택 안함</option>
+                          {sites.map((site) => (
+                            <option key={site.id} value={site.id}>
+                              {site.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* 작성자 정보 */}
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-3">작성자 정보</h3>
+                  <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                    <div className="flex items-center space-x-3">
+                      <User className="h-5 w-5 text-gray-400" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">
+                          {selectedDocument.profiles?.full_name || '알 수 없음'}
+                        </p>
+                        <p className="text-sm text-gray-500">{selectedDocument.profiles?.email}</p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 pt-3 border-t border-gray-200">
+                      <div>
+                        <p className="text-xs text-gray-500">생성일</p>
+                        <p className="text-sm text-gray-900 mt-1">
+                          {new Date(selectedDocument.created_at).toLocaleDateString('ko-KR', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500">수정일</p>
+                        <p className="text-sm text-gray-900 mt-1">
+                          {new Date(selectedDocument.updated_at).toLocaleDateString('ko-KR', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 현장 정보 */}
+                {selectedDocument.sites && (
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-3">현장 정보</h3>
+                    <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+                      <div className="flex items-start space-x-3">
+                        <MapPin className="h-5 w-5 text-gray-400 mt-0.5" />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-gray-900">{selectedDocument.sites.name}</p>
+                          <p className="text-sm text-gray-500 mt-1">{selectedDocument.sites.address}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* 변경 요약 */}
+                {selectedDocument.change_summary && (
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-3">변경 내역</h3>
+                    <div className="bg-yellow-50 rounded-lg p-4">
+                      <p className="text-sm text-gray-700">{selectedDocument.change_summary}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-gray-50 px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
+              {isEditMode ? (
+                <>
+                  <button
+                    onClick={cancelEditMode}
+                    className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 flex items-center space-x-2"
+                  >
+                    <X className="h-4 w-4" />
+                    <span>취소</span>
+                  </button>
+                  <button
+                    onClick={saveDocumentChanges}
+                    disabled={isSaving}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                  >
+                    {isSaving ? (
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    ) : (
+                      <FileText className="h-4 w-4" />
+                    )}
+                    <span>{isSaving ? '저장 중...' : '저장'}</span>
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() => handleViewDocument(selectedDocument)}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center space-x-2"
+                  >
+                    <Eye className="h-4 w-4" />
+                    <span>열기</span>
+                  </button>
+                  <button
+                    onClick={() => handleOpenVersionModal(selectedDocument)}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center space-x-2"
+                  >
+                    <GitBranch className="h-4 w-4" />
+                    <span>버전 관리</span>
+                  </button>
+                  <button
+                    onClick={() => handleDownloadDocument(selectedDocument)}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center space-x-2"
+                  >
+                    <Download className="h-4 w-4" />
+                    <span>다운로드</span>
+                  </button>
+                  <button
+                    onClick={startEditMode}
+                    className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 flex items-center space-x-2"
+                  >
+                    <Edit2 className="h-4 w-4" />
+                    <span>수정</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      if(confirm('이 문서를 삭제하시겠습니까?')) {
+                        handleDeleteDocument(selectedDocument.id)
+                        closeDetailModal()
+                      }
+                    }}
+                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center space-x-2"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    <span>삭제</span>
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

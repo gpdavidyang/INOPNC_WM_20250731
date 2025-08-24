@@ -33,7 +33,7 @@ interface DailyReport {
   npc1000_used: number
   npc1000_remaining: number
   issues: string
-  status: 'draft' | 'submitted' | 'completed'
+  status: 'draft' | 'submitted'
   created_at: string
   updated_at: string
   created_by: string
@@ -63,14 +63,12 @@ interface FilterState {
 
 const statusLabels = {
   draft: '임시저장',
-  submitted: '제출됨',
-  completed: '완료'
+  submitted: '제출됨'
 }
 
 const statusColors = {
   draft: 'bg-gray-100 text-gray-800',
-  submitted: 'bg-blue-100 text-blue-800',
-  completed: 'bg-green-100 text-green-800'
+  submitted: 'bg-blue-100 text-blue-800'
 }
 
 export default function DailyReportsManagement() {
@@ -247,7 +245,6 @@ export default function DailyReportsManagement() {
                   <option value="">모든 상태</option>
                   <option value="draft">임시저장</option>
                   <option value="submitted">제출됨</option>
-                  <option value="completed">완료</option>
                 </select>
               </div>
               <div>
@@ -293,7 +290,7 @@ export default function DailyReportsManagement() {
       </div>
 
       {/* Reports Table */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         {loading ? (
           <div className="p-12 text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
@@ -306,7 +303,7 @@ export default function DailyReportsManagement() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full min-w-[1200px]">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -330,7 +327,7 @@ export default function DailyReportsManagement() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     작성자
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">
                     작업
                   </th>
                 </tr>
@@ -396,25 +393,25 @@ export default function DailyReportsManagement() {
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex justify-end gap-2">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex justify-center gap-2">
                         <button
                           onClick={() => openDetailModal(report)}
-                          className="text-blue-600 hover:text-blue-900 transition-colors"
+                          className="p-1 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded transition-colors"
                           title="상세보기"
                         >
                           <Eye className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => openDetailModal(report)}
-                          className="text-gray-600 hover:text-gray-900 transition-colors"
+                          className="p-1 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded transition-colors"
                           title="편집"
                         >
                           <Edit className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => handleDeleteReport(report.id)}
-                          className="text-red-600 hover:text-red-900 transition-colors"
+                          className="p-1 text-red-600 hover:text-red-900 hover:bg-red-50 rounded transition-colors"
                           title="삭제"
                         >
                           <Trash2 className="h-4 w-4" />

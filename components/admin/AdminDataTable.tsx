@@ -167,7 +167,7 @@ export default function AdminDataTable<T extends Record<string, any>>({
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700">
       {/* Table */}
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+        <table className="w-full min-w-[1400px] divide-y divide-gray-200 dark:divide-gray-700">
           <thead className="bg-gray-50 dark:bg-gray-900">
             <tr>
               {selectable && (
@@ -233,7 +233,7 @@ export default function AdminDataTable<T extends Record<string, any>>({
               {(onView || onEdit || onDelete || customActions.length > 0) && (
                 <th className={`${
                   touchMode === 'glove' ? 'px-7 py-4' : touchMode === 'precision' ? 'px-5 py-2' : 'px-6 py-3'
-                } text-right ${getFullTypographyClass('caption', 'xs', isLargeFont)} font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider w-24`}>
+                } text-center ${getFullTypographyClass('caption', 'xs', isLargeFont)} font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[150px]`}>
                   작업
                 </th>
               )}
@@ -320,14 +320,14 @@ export default function AdminDataTable<T extends Record<string, any>>({
                     {(onView || onEdit || onDelete || customActions.length > 0) && (
                       <td className={`${
                         touchMode === 'glove' ? 'px-7 py-5' : touchMode === 'precision' ? 'px-5 py-3' : 'px-6 py-4'
-                      } whitespace-nowrap text-right ${getFullTypographyClass('body', 'sm', isLargeFont)}`}>
-                        <div className="flex items-center justify-end space-x-2">
+                      } whitespace-nowrap text-center ${getFullTypographyClass('body', 'sm', isLargeFont)}`}>
+                        <div className="flex items-center justify-center gap-2">
                           {onView && (
                             <button
                               onClick={() => onView(row)}
-                              className={`text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 ${
+                              className={`text-gray-600 hover:text-gray-900 hover:bg-gray-50 dark:text-gray-400 dark:hover:text-gray-100 dark:hover:bg-gray-700 rounded ${
                                 touchMode === 'glove' ? 'p-2' : touchMode === 'precision' ? 'p-0.5' : 'p-1'
-                              }`}
+                              } transition-colors`}
                               title="보기"
                             >
                               <Eye className="h-4 w-4" />
@@ -336,9 +336,9 @@ export default function AdminDataTable<T extends Record<string, any>>({
                           {onEdit && (
                             <button
                               onClick={() => onEdit(row)}
-                              className={`text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-100 ${
+                              className={`text-blue-600 hover:text-blue-900 hover:bg-blue-50 dark:text-blue-400 dark:hover:text-blue-100 dark:hover:bg-blue-900/20 rounded ${
                                 touchMode === 'glove' ? 'p-2' : touchMode === 'precision' ? 'p-0.5' : 'p-1'
-                              }`}
+                              } transition-colors`}
                               title="편집"
                             >
                               <Edit className="h-4 w-4" />
@@ -368,9 +368,9 @@ export default function AdminDataTable<T extends Record<string, any>>({
                           {onDelete && (
                             <button
                               onClick={() => onDelete(row)}
-                              className={`text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-100 ${
+                              className={`text-red-600 hover:text-red-900 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-100 dark:hover:bg-red-900/20 rounded ${
                                 touchMode === 'glove' ? 'p-2' : touchMode === 'precision' ? 'p-0.5' : 'p-1'
-                              }`}
+                              } transition-colors`}
                               title="삭제"
                             >
                               <Trash2 className="h-4 w-4" />

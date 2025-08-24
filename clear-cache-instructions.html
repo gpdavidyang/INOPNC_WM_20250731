@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>브라우저 캐시 및 Service Worker 완전 초기화 방법</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .step {
+            background: #f8f9fa;
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        kbd {
+            background: #eee;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            padding: 2px 6px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 브라우저 캐시 및 Service Worker 완전 초기화</h1>
+    
+    <div class="warning">
+        <strong>⚠️ 문제 상황:</strong> Service Worker 캐시 충돌로 인한 리소스 로딩 실패
+    </div>
+
+    <h2>📱 Chrome/Safari 완전 초기화 방법</h2>
+
+    <div class="step">
+        <h3>1단계: 개발자 도구 열기</h3>
+        <p><kbd>F12</kbd> 또는 <kbd>Cmd+Option+I</kbd> (Mac) / <kbd>Ctrl+Shift+I</kbd> (Windows)</p>
+    </div>
+
+    <div class="step">
+        <h3>2단계: Application 탭으로 이동</h3>
+        <p>개발자 도구에서 "Application" 탭 클릭</p>
+    </div>
+
+    <div class="step">
+        <h3>3단계: Storage 완전 삭제</h3>
+        <p>왼쪽 메뉴에서:</p>
+        <ul>
+            <li><strong>Service Workers</strong> → 등록된 SW 모두 "Unregister" 클릭</li>
+            <li><strong>Cache Storage</strong> → 모든 캐시 삭제</li>
+            <li><strong>Local Storage</strong> → 모든 데이터 삭제</li>
+            <li><strong>Session Storage</strong> → 모든 데이터 삭제</li>
+        </ul>
+    </div>
+
+    <div class="step">
+        <h3>4단계: 하드 리프레시</h3>
+        <p><kbd>Cmd+Shift+R</kbd> (Mac) / <kbd>Ctrl+Shift+R</kbd> (Windows)</p>
+        <p>또는 새로고침 버튼 우클릭 → "하드 새로고침" 선택</p>
+    </div>
+
+    <h2>🚀 빠른 해결 방법</h2>
+
+    <div class="step">
+        <h3>시크릿/프라이빗 브라우징 모드 사용</h3>
+        <p><kbd>Cmd+Shift+N</kbd> (Mac) / <kbd>Ctrl+Shift+N</kbd> (Windows)</p>
+        <p>새 시크릿 창에서 <strong>http://localhost:3000/dashboard/admin/documents</strong> 접속</p>
+    </div>
+
+    <div class="success">
+        <h3>✅ 최종 확인 단계</h3>
+        <p>1. 콘솔에서 Service Worker 에러가 사라졌는지 확인</p>
+        <p>2. 새로운 4개 탭 인터페이스가 정상 로딩되는지 확인</p>
+        <p>3. 각 탭 클릭 시 정상 전환되는지 확인</p>
+    </div>
+
+    <h2>🔗 접속 링크</h2>
+    <p><strong>새 문서함 관리 페이지:</strong></p>
+    <p><a href="http://localhost:3000/auth/login" target="_blank">http://localhost:3000/auth/login</a></p>
+    <p><small>(admin@inopnc.com / password123 로그인 후 사이드바 → '문서함 및 도구' → '문서함 관리')</small></p>
+
+</body>
+</html>

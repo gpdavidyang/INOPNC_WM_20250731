@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>모달 중앙 정렬 검증</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900">
+    <div class="min-h-screen p-8">
+        <div class="max-w-6xl mx-auto">
+            <h1 class="text-3xl font-bold mb-8 text-gray-900 dark:text-gray-100">
+                빠른 작업 설정 모달 - 중앙 정렬 검증
+            </h1>
+            
+            <!-- Before/After Comparison -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <!-- Before -->
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+                    <h2 class="text-xl font-semibold mb-4 text-red-600">❌ 수정 전 (문제)</h2>
+                    <ul class="space-y-2 text-sm">
+                        <li class="flex items-start">
+                            <span class="text-red-500 mr-2">•</span>
+                            <span>모달이 오른쪽으로 치우쳐 나타남</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-red-500 mr-2">•</span>
+                            <span>스크롤이 전체 모달에 적용되어 헤더도 스크롤됨</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-red-500 mr-2">•</span>
+                            <span>위치 지정이 제대로 되지 않음</span>
+                        </li>
+                    </ul>
+                    <div class="mt-4 p-3 bg-red-50 dark:bg-red-900/20 rounded">
+                        <code class="text-xs text-red-700 dark:text-red-300">
+                            className="max-w-4xl max-h-[90vh] overflow-y-auto"
+                        </code>
+                    </div>
+                </div>
+                
+                <!-- After -->
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+                    <h2 class="text-xl font-semibold mb-4 text-green-600">✅ 수정 후 (해결)</h2>
+                    <ul class="space-y-2 text-sm">
+                        <li class="flex items-start">
+                            <span class="text-green-500 mr-2">•</span>
+                            <span>모달이 화면 정중앙에 표시</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-green-500 mr-2">•</span>
+                            <span>헤더 고정, 콘텐츠만 스크롤</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-green-500 mr-2">•</span>
+                            <span>반응형 너비 (화면의 90%)</span>
+                        </li>
+                    </ul>
+                    <div class="mt-4 p-3 bg-green-50 dark:bg-green-900/20 rounded">
+                        <code class="text-xs text-green-700 dark:text-green-300">
+                            className="fixed top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] max-w-4xl w-[90vw] max-h-[85vh]"
+                        </code>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Demo Button -->
+            <div class="text-center">
+                <button id="showModal" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">
+                    수정된 모달 열기
+                </button>
+            </div>
+            
+            <!-- Visual Guide -->
+            <div class="mt-8 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-6">
+                <h3 class="text-lg font-semibold mb-3 text-blue-900 dark:text-blue-100">
+                    📐 중앙 정렬 원리
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div class="bg-white dark:bg-gray-800 rounded p-3">
+                        <div class="font-semibold text-blue-600 mb-1">1. Position Fixed</div>
+                        <p class="text-gray-600 dark:text-gray-400">뷰포트 기준 고정 위치</p>
+                    </div>
+                    <div class="bg-white dark:bg-gray-800 rounded p-3">
+                        <div class="font-semibold text-blue-600 mb-1">2. 50% 위치</div>
+                        <p class="text-gray-600 dark:text-gray-400">top: 50%, left: 50%</p>
+                    </div>
+                    <div class="bg-white dark:bg-gray-800 rounded p-3">
+                        <div class="font-semibold text-blue-600 mb-1">3. Transform 보정</div>
+                        <p class="text-gray-600 dark:text-gray-400">translate(-50%, -50%)</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal -->
+    <div id="modalOverlay" class="fixed inset-0 bg-black bg-opacity-50 hidden z-40"></div>
+    <div id="modalContent" class="fixed top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] max-w-4xl w-[90vw] max-h-[85vh] bg-white dark:bg-gray-800 rounded-lg shadow-xl overflow-hidden flex flex-col hidden z-50">
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">빠른 작업 설정</h2>
+        </div>
+        <div class="flex-1 overflow-y-auto px-6 py-4">
+            <div class="space-y-6">
+                <!-- Sample content -->
+                <div class="border rounded-lg p-4">
+                    <h3 className="font-medium mb-4">새 빠른 작업 추가</h3>
+                    <div class="space-y-4">
+                        <input type="text" placeholder="제목" class="w-full px-3 py-2 border rounded">
+                        <textarea placeholder="설명" rows="2" class="w-full px-3 py-2 border rounded"></textarea>
+                        <input type="text" placeholder="링크 URL" class="w-full px-3 py-2 border rounded">
+                    </div>
+                </div>
+                
+                <!-- Dummy list for scroll test -->
+                <div class="space-y-2">
+                    <h3 class="font-medium">현재 빠른 작업 목록</h3>
+                    <div class="border rounded p-3">사용자 관리</div>
+                    <div class="border rounded p-3">현장 관리</div>
+                    <div class="border rounded p-3">급여 관리</div>
+                    <div class="border rounded p-3">자재 관리</div>
+                    <div class="border rounded p-3">문서 관리</div>
+                    <div class="border rounded p-3">작업일지 관리</div>
+                    <div class="border rounded p-3">출근 관리</div>
+                    <div class="border rounded p-3">알림 관리</div>
+                    <div class="border rounded p-3">커뮤니케이션</div>
+                    <div class="border rounded p-3">백업 관리</div>
+                </div>
+            </div>
+        </div>
+        <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+            <button id="closeModal" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded">
+                닫기
+            </button>
+        </div>
+    </div>
+    
+    <script>
+        const showBtn = document.getElementById('showModal');
+        const closeBtn = document.getElementById('closeModal');
+        const overlay = document.getElementById('modalOverlay');
+        const modal = document.getElementById('modalContent');
+        
+        function showModal() {
+            overlay.classList.remove('hidden');
+            modal.classList.remove('hidden');
+        }
+        
+        function hideModal() {
+            overlay.classList.add('hidden');
+            modal.classList.add('hidden');
+        }
+        
+        showBtn.addEventListener('click', showModal);
+        closeBtn.addEventListener('click', hideModal);
+        overlay.addEventListener('click', hideModal);
+        
+        // Show position indicator
+        showBtn.addEventListener('click', () => {
+            console.log('Modal position:', {
+                top: modal.style.top || '50%',
+                left: modal.style.left || '50%',
+                transform: getComputedStyle(modal).transform
+            });
+        });
+    </script>
+</body>
+</html>

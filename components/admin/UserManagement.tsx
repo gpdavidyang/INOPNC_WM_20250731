@@ -19,6 +19,7 @@ import {
 } from '@/app/actions/admin/users'
 import { Plus, Search, User, Phone, Mail, Shield, MapPin, Key, UserCheck, UserX, FileText, ClipboardCheck, Calendar, Building } from 'lucide-react'
 import UserDetailModal from './UserDetailModal'
+import UserSiteAssignmentModal from './UserSiteAssignmentModal'
 
 interface UserManagementProps {
   profile: Profile
@@ -435,6 +436,29 @@ export default function UserManagement({ profile }: UserManagementProps) {
       show: (user: UserWithSites) => user.role !== 'system_admin' || profile.role === 'system_admin'
     }
   ]
+  
+  // Handle individual user deletion
+  const handleDeleteUser = async (user: UserWithSites) => {
+    if (!confirm(`정말로 ${user.full_name || user.email} 사용자를 삭제하시겠습니까?`)) {
+      return
+    }
+
+    setIsLoading(true)
+    try {
+      const result = await deleteUsers([user.id])
+      if (result.success) {
+        toast.success('사용자가 삭제되었습니다')
+        await loadUsers()
+      } else {
+        toast.error(result.error || '사용자 삭제에 실패했습니다')
+      }
+    } catch (error) {
+      console.error('Failed to delete user:', error)
+      toast.error('사용자 삭제 중 오류가 발생했습니다')
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -500,6 +524,7 @@ export default function UserManagement({ profile }: UserManagementProps) {
         getRowId={(user: UserWithSites) => user.id}
         onView={handleViewUser}
         onEdit={handleEditUser}
+        onDelete={handleDeleteUser}
         customActions={customActions}
         currentPage={currentPage}
         totalPages={totalPages}

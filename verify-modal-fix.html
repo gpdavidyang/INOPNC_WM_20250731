@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modal Fix Verification - Interactive Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* The fixed styles applied to DialogContent with inline styles */
+        .modal-fixed {
+            position: fixed !important;
+            left: 50% !important;
+            top: 50% !important;
+            transform: translate(-50%, -50%) !important;
+            width: 90vw !important;
+            max-width: 64rem !important;
+            max-height: 85vh !important;
+            display: flex !important;
+            flex-direction: column !important;
+            padding: 0 !important;
+            gap: 0 !important;
+            overflow: hidden !important;
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            z-index: 50;
+        }
+        
+        .modal-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+            flex-shrink: 0;
+        }
+        
+        .modal-content {
+            flex: 1;
+            overflow-y: auto;
+            min-height: 0;
+            padding: 1rem 1.5rem;
+        }
+        
+        .backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 40;
+        }
+        
+        /* Visual center indicators */
+        .center-guide {
+            position: fixed;
+            border: 2px dashed #ef4444;
+            pointer-events: none;
+            z-index: 30;
+        }
+        .center-h {
+            width: 100%;
+            height: 0;
+            top: 50%;
+            left: 0;
+        }
+        .center-v {
+            height: 100%;
+            width: 0;
+            left: 50%;
+            top: 0;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Center guides for visual verification -->
+    <div class="center-guide center-h"></div>
+    <div class="center-guide center-v"></div>
+    
+    <div class="p-8">
+        <h1 class="text-3xl font-bold mb-4 text-gray-900">모달 중앙 정렬 수정 검증 - Interactive</h1>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <!-- Before card -->
+            <div class="bg-red-50 rounded-lg p-6 border-2 border-red-200">
+                <h2 class="text-xl font-semibold mb-4 text-red-700">❌ 수정 전 (문제)</h2>
+                <ul class="space-y-2 text-sm text-red-600">
+                    <li>• 모달이 오른쪽으로 치우침</li>
+                    <li>• 전체 모달이 스크롤되어 헤더도 움직임</li>
+                    <li>• 중앙 정렬이 깨짐</li>
+                </ul>
+                <div class="mt-4 p-3 bg-red-100 rounded">
+                    <code class="text-xs text-red-800">
+                        className="max-w-4xl max-h-[90vh] overflow-y-auto"
+                    </code>
+                </div>
+            </div>
+            
+            <!-- After card -->
+            <div class="bg-green-50 rounded-lg p-6 border-2 border-green-200">
+                <h2 class="text-xl font-semibold mb-4 text-green-700">✅ 수정 후 (해결)</h2>
+                <ul class="space-y-2 text-sm text-green-600">
+                    <li>• 모달이 화면 정중앙에 위치</li>
+                    <li>• 헤더 고정, 콘텐츠만 스크롤</li>
+                    <li>• 완벽한 중앙 정렬</li>
+                </ul>
+                <div class="mt-4 p-3 bg-green-100 rounded">
+                    <code class="text-xs text-green-800">
+                        style={{ position: 'fixed', left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }}
+                    </code>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-6 mb-6">
+            <h3 class="text-lg font-semibold mb-3 text-blue-800">🎯 빨간 점선이 화면 중앙을 표시합니다</h3>
+            <p class="text-blue-600 mb-4">모달을 열면 빨간 점선 교차점(화면 중앙)에 모달이 정확히 위치해야 합니다.</p>
+            <button onclick="showModal()" class="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-medium">
+                수정된 모달 열기 (중앙 정렬 테스트)
+            </button>
+        </div>
+        
+        <div class="bg-yellow-50 border border-yellow-300 rounded-lg p-4">
+            <h3 class="text-sm font-semibold text-yellow-800 mb-2">📱 실제 컴포넌트 테스트</h3>
+            <p class="text-sm text-yellow-700">
+                서버 주소: <a href="http://localhost:3001/test-modal" target="_blank" class="text-blue-500 underline font-medium">http://localhost:3001/test-modal</a>
+            </p>
+            <p class="text-sm text-yellow-700 mt-1">실제 React 컴포넌트에서 작동 확인이 필요합니다.</p>
+        </div>
+    </div>
+    
+    <!-- Modal -->
+    <div id="backdrop" class="backdrop hidden"></div>
+    <div id="modal" class="modal-fixed hidden">
+        <div class="modal-header">
+            <div class="flex items-center justify-between">
+                <h2 class="text-xl font-bold">빠른 작업 설정</h2>
+                <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <div class="modal-content">
+            <div class="space-y-6">
+                <!-- Test scroll indicator -->
+                <div class="bg-blue-50 border border-blue-200 rounded p-3">
+                    <p class="text-sm text-blue-700">📌 스크롤 테스트: 이 헤더는 고정되어 있고, 아래 콘텐츠만 스크롤됩니다.</p>
+                </div>
+                
+                <div class="border rounded-lg p-4">
+                    <h3 class="font-medium mb-4">새 빠른 작업 추가</h3>
+                    <form class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-1">제목 *</label>
+                            <input type="text" class="w-full px-3 py-2 border rounded" placeholder="예: 사용자 관리">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">설명</label>
+                            <textarea class="w-full px-3 py-2 border rounded" rows="2" placeholder="빠른 작업에 대한 설명을 입력하세요"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">링크 URL *</label>
+                            <input type="text" class="w-full px-3 py-2 border rounded" placeholder="/dashboard/admin/users">
+                        </div>
+                    </form>
+                </div>
+                
+                <div>
+                    <h3 class="font-medium mb-4">현재 빠른 작업 목록 (스크롤 테스트용)</h3>
+                    <div class="space-y-2">
+                        <div class="border rounded p-3 bg-gray-50">1. 사용자 관리</div>
+                        <div class="border rounded p-3 bg-gray-50">2. 현장 관리</div>
+                        <div class="border rounded p-3 bg-gray-50">3. 급여 관리</div>
+                        <div class="border rounded p-3 bg-gray-50">4. 자재 관리</div>
+                        <div class="border rounded p-3 bg-gray-50">5. 문서 관리</div>
+                        <div class="border rounded p-3 bg-gray-50">6. 작업일지 관리</div>
+                        <div class="border rounded p-3 bg-gray-50">7. 출근 관리</div>
+                        <div class="border rounded p-3 bg-gray-50">8. 알림 관리</div>
+                        <div class="border rounded p-3 bg-gray-50">9. 커뮤니케이션</div>
+                        <div class="border rounded p-3 bg-gray-50">10. 백업 관리</div>
+                        <div class="border rounded p-3 bg-gray-50">11. 시스템 설정</div>
+                        <div class="border rounded p-3 bg-gray-50">12. 보고서 관리</div>
+                        <div class="border rounded p-3 bg-gray-50">13. 권한 관리</div>
+                        <div class="border rounded p-3 bg-gray-50">14. 로그 관리</div>
+                        <div class="border rounded p-3 bg-gray-50">15. 데이터베이스 관리</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function showModal() {
+            document.getElementById('backdrop').classList.remove('hidden');
+            document.getElementById('modal').classList.remove('hidden');
+            
+            // Log and verify modal position
+            setTimeout(() => {
+                const modal = document.getElementById('modal');
+                const rect = modal.getBoundingClientRect();
+                const centerX = window.innerWidth / 2;
+                const centerY = window.innerHeight / 2;
+                const modalCenterX = rect.left + rect.width / 2;
+                const modalCenterY = rect.top + rect.height / 2;
+                
+                console.log('✅ Modal Center Verification:');
+                console.log('  Viewport center:', { x: centerX, y: centerY });
+                console.log('  Modal center:', { x: modalCenterX, y: modalCenterY });
+                console.log('  Offset from center:', {
+                    x: Math.abs(modalCenterX - centerX) + 'px',
+                    y: Math.abs(modalCenterY - centerY) + 'px'
+                });
+                
+                if (Math.abs(modalCenterX - centerX) < 5 && Math.abs(modalCenterY - centerY) < 5) {
+                    console.log('🎯 Perfect center alignment!');
+                } else {
+                    console.warn('⚠️ Modal is not perfectly centered');
+                }
+            }, 100);
+        }
+        
+        function closeModal() {
+            document.getElementById('backdrop').classList.add('hidden');
+            document.getElementById('modal').classList.add('hidden');
+        }
+        
+        // Close on backdrop click
+        document.getElementById('backdrop').addEventListener('click', closeModal);
+        
+        // Show center guides on load
+        console.log('🎯 Red dashed lines show the exact center of the viewport');
+        console.log('📍 When modal opens, it should align with the intersection point');
+    </script>
+</body>
+</html>

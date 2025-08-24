@@ -105,48 +105,16 @@ const menuCategories = [
     ]
   },
   {
-    id: 'documents',
-    label: '문서함 관리',
+    id: 'documents-tools',
+    label: '문서함 및 도구',
     collapsible: true,
     items: [
       {
-        id: 'my-documents',
-        label: '내문서함',
+        id: 'documents-management',
+        label: '문서함 관리',
         icon: FolderOpen,
-        href: '/dashboard/admin/documents/my-documents',
-        hidden: true  // Private function - 나중에 필요시 활용
+        href: '/dashboard/admin/documents'
       },
-      {
-        id: 'shared-documents',
-        label: '공유문서함',
-        icon: Share2,
-        href: '/dashboard/admin/documents/shared'
-      },
-      {
-        id: 'markup-documents',
-        label: '도면마킹문서함',
-        icon: Edit3,
-        href: '/dashboard/admin/documents/markup'
-      },
-      {
-        id: 'required-documents',
-        label: '필수제출서류함',
-        icon: FileCheck,
-        href: '/dashboard/admin/documents/required'
-      },
-      {
-        id: 'invoice-documents',
-        label: '기성청구문서함',
-        icon: FileText,
-        href: '/dashboard/admin/documents/invoice'
-      }
-    ]
-  },
-  {
-    id: 'tools',
-    label: '도구 관리',
-    collapsible: true,
-    items: [
       {
         id: 'photo-grid-tool',
         label: '사진대지 도구',

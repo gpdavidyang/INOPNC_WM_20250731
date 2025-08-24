@@ -223,8 +223,24 @@ export function NotificationSettings({ isOpen, onClose }: NotificationSettingsPr
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
-        <DialogHeader>
+      <DialogContent 
+        className="sm:max-w-2xl"
+        style={{
+          position: 'fixed',
+          left: '50%',
+          top: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: '90vw',
+          maxWidth: '42rem',
+          maxHeight: '85vh',
+          display: 'flex',
+          flexDirection: 'column',
+          padding: 0,
+          gap: 0,
+          overflow: 'hidden'
+        }}
+      >
+        <DialogHeader className="px-6 py-4 border-b border-gray-200 dark:border-gray-700" style={{ flexShrink: 0 }}>
           <DialogTitle className="flex items-center gap-2">
             <Settings2 className="h-5 w-5" />
             알림 설정
@@ -234,7 +250,8 @@ export function NotificationSettings({ isOpen, onClose }: NotificationSettingsPr
           </DialogDescription>
         </DialogHeader>
         
-        <div className="flex-1 overflow-y-auto space-y-6 px-1">
+        <div className="px-6 py-4" style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
+          <div className="space-y-6">
           {/* 푸시 알림 설정 */}
           <SettingCard
             title="푸시 알림"
@@ -595,9 +612,10 @@ export function NotificationSettings({ isOpen, onClose }: NotificationSettingsPr
               </div>
             </div>
           </div>
+          </div>
         </div>
 
-        <DialogFooter className="flex gap-2">
+        <DialogFooter className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex gap-2" style={{ flexShrink: 0 }}>
           <Button
             variant="outline"
             onClick={handleReset}

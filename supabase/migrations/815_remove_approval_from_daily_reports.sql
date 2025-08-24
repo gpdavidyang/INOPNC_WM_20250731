@@ -4,23 +4,23 @@
 -- Date: 2025-08-23
 -- =====================================================
 
--- 1. Update existing approved/rejected records to completed
+-- 1. Update existing approved/rejected/completed records to submitted
 UPDATE daily_reports 
-SET status = 'completed',
+SET status = 'submitted',
     updated_at = NOW()
-WHERE status IN ('approved', 'rejected');
+WHERE status IN ('approved', 'rejected', 'completed');
 
 -- 2. Drop the old constraint
 ALTER TABLE daily_reports 
 DROP CONSTRAINT IF EXISTS daily_reports_status_check;
 
--- 3. Add new constraint without approved/rejected
+-- 3. Add new constraint with only draft and submitted
 ALTER TABLE daily_reports 
 ADD CONSTRAINT daily_reports_status_check 
-CHECK (status IN ('draft', 'submitted', 'completed'));
+CHECK (status IN ('draft', 'submitted'));
 
 -- 4. Update column comment
-COMMENT ON COLUMN daily_reports.status IS 'Status of the daily report: draft (임시저장), submitted (제출됨), completed (완료)';
+COMMENT ON COLUMN daily_reports.status IS 'Status of the daily report: draft (임시저장), submitted (제출됨)';
 
 -- 5. Update the RLS policy to remove approval-related logic
 DROP POLICY IF EXISTS "daily_reports_update_policy" ON daily_reports;
@@ -56,4 +56,4 @@ CREATE INDEX IF NOT EXISTS idx_daily_reports_status_work_date
 ON daily_reports(status, work_date DESC);
 
 -- 9. Add comment to table
-COMMENT ON TABLE daily_reports IS 'Daily work reports without approval workflow';
+COMMENT ON TABLE daily_reports IS 'Daily work reports with only draft and submitted status';

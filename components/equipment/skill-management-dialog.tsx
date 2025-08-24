@@ -168,16 +168,32 @@ export function SkillManagementDialog({
     }
   }
 
+  const contentStyle = {
+    position: 'fixed' as const,
+    left: '50%',
+    top: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: '90vw',
+    maxWidth: '64rem',
+    maxHeight: '85vh',
+    display: 'flex',
+    flexDirection: 'column' as const,
+    padding: 0,
+    gap: 0,
+    overflow: 'hidden' as const
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-4xl">
         <DialogHeader>
-          <DialogTitle className={getTypographyClass('xl', isLargeFont)}>
+          <DialogTitle>
             기술 관리: {worker?.full_name}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="px-6 py-4" style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
+          <div className="space-y-6">
           {/* Current Skills */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">

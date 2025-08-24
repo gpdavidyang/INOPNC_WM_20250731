@@ -230,14 +230,31 @@ export function QuickActionsSettings({ onUpdate }: QuickActionsSettingsProps) {
           }`} />
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent 
+        className="sm:max-w-4xl"
+        style={{
+          position: 'fixed',
+          left: '50%',
+          top: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: '90vw',
+          maxWidth: '64rem',
+          maxHeight: '85vh',
+          display: 'flex',
+          flexDirection: 'column',
+          padding: 0,
+          gap: 0,
+          overflow: 'hidden'
+        }}
+      >
+        <DialogHeader className="px-6 py-4 border-b border-gray-200 dark:border-gray-700" style={{ flexShrink: 0 }}>
           <DialogTitle className={getFullTypographyClass('heading', 'lg', isLargeFont)}>
             빠른 작업 설정
           </DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-6">
+        <div className="px-6 py-4" style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
+          <div className="space-y-6">
           {error && (
             <div className="p-3 bg-red-50 border border-red-200 rounded-md">
               <p className={`${getFullTypographyClass('body', 'sm', isLargeFont)} text-red-600`}>
@@ -384,6 +401,7 @@ export function QuickActionsSettings({ onUpdate }: QuickActionsSettingsProps) {
                 </div>
               )}
             </div>
+          </div>
           </div>
         </div>
       </DialogContent>

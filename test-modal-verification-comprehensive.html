@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>모달 수정 검증 - 종합 테스트</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Center guide lines */
+        .center-guide {
+            position: fixed;
+            border: 2px dashed #ef4444;
+            pointer-events: none;
+            z-index: 100;
+        }
+        .center-h {
+            width: 100%;
+            height: 0;
+            top: 50%;
+            left: 0;
+        }
+        .center-v {
+            height: 100%;
+            width: 0;
+            left: 50%;
+            top: 0;
+        }
+        
+        /* Modal styles matching the React fix */
+        .modal-fixed {
+            position: fixed !important;
+            left: 50% !important;
+            top: 50% !important;
+            transform: translate(-50%, -50%) !important;
+            width: 90vw !important;
+            max-width: 64rem !important;
+            max-height: 85vh !important;
+            display: flex !important;
+            flex-direction: column !important;
+            padding: 0 !important;
+            gap: 0 !important;
+            overflow: hidden !important;
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            z-index: 50;
+        }
+        
+        .modal-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+            flex-shrink: 0;
+        }
+        
+        .modal-content {
+            flex: 1;
+            overflow-y: auto;
+            min-height: 0;
+            padding: 1rem 1.5rem;
+        }
+        
+        .backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 40;
+        }
+        
+        /* Broken modal styles (for comparison) */
+        .modal-broken {
+            max-width: 64rem;
+            max-height: 90vh;
+            overflow-y: auto;
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            z-index: 50;
+            padding: 1.5rem;
+        }
+        
+        /* Visual indicators */
+        .check-icon {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            background: #10b981;
+            border-radius: 50%;
+            color: white;
+            text-align: center;
+            line-height: 20px;
+            font-size: 14px;
+        }
+        
+        .x-icon {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            background: #ef4444;
+            border-radius: 50%;
+            color: white;
+            text-align: center;
+            line-height: 20px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Center guides -->
+    <div class="center-guide center-h"></div>
+    <div class="center-guide center-v"></div>
+    
+    <div class="p-8">
+        <h1 class="text-3xl font-bold mb-8 text-gray-900">🔍 모달 중앙 정렬 및 스크롤 수정 검증</h1>
+        
+        <!-- Status Report -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-xl font-bold mb-4">📊 현재 상태 보고서</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Issue 1: Modal Centering -->
+                <div class="border rounded-lg p-4">
+                    <h3 class="font-semibold mb-2 flex items-center gap-2">
+                        <span class="check-icon">✓</span>
+                        Issue 1: 모달 중앙 정렬
+                    </h3>
+                    <div class="text-sm space-y-2">
+                        <p class="text-red-600">❌ 문제: 모달이 오른쪽으로 치우침</p>
+                        <p class="text-green-600">✅ 해결: position:fixed + transform 적용</p>
+                        <div class="bg-gray-100 p-2 rounded mt-2">
+                            <code class="text-xs">
+                                left: 50%, top: 50%,<br>
+                                transform: translate(-50%, -50%)
+                            </code>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Issue 2: Scrolling -->
+                <div class="border rounded-lg p-4">
+                    <h3 class="font-semibold mb-2 flex items-center gap-2">
+                        <span class="check-icon">✓</span>
+                        Issue 2: 스크롤 문제
+                    </h3>
+                    <div class="text-sm space-y-2">
+                        <p class="text-red-600">❌ 문제: 전체 모달이 스크롤됨</p>
+                        <p class="text-green-600">✅ 해결: flex layout + 헤더 고정</p>
+                        <div class="bg-gray-100 p-2 rounded mt-2">
+                            <code class="text-xs">
+                                display: flex,<br>
+                                header: flex-shrink: 0,<br>
+                                content: flex: 1, overflow-y: auto
+                            </code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Test Buttons -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-xl font-bold mb-4">🧪 테스트 버튼</h2>
+            <p class="text-gray-600 mb-4">빨간 점선이 화면 정중앙을 표시합니다. 모달이 교차점에 정확히 위치해야 합니다.</p>
+            
+            <div class="flex flex-wrap gap-4">
+                <button onclick="showFixedModal()" class="px-6 py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium">
+                    ✅ 수정된 모달 열기
+                </button>
+                <button onclick="showBrokenModal()" class="px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium">
+                    ❌ 문제있는 모달 열기 (비교용)
+                </button>
+            </div>
+        </div>
+        
+        <!-- Technical Details -->
+        <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-6 mb-8">
+            <h2 class="text-xl font-bold mb-4 text-blue-800">🔧 적용된 수정 사항</h2>
+            
+            <div class="bg-white rounded p-4">
+                <h3 class="font-semibold mb-2">components/admin/quick-actions-settings.tsx</h3>
+                <pre class="text-xs bg-gray-100 p-3 rounded overflow-x-auto"><code>&lt;DialogContent 
+  className="sm:max-w-4xl"
+  style={{
+    position: 'fixed',
+    left: '50%',
+    top: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: '90vw',
+    maxWidth: '64rem',
+    maxHeight: '85vh',
+    display: 'flex',
+    flexDirection: 'column',
+    padding: 0,
+    gap: 0,
+    overflow: 'hidden'
+  }}
+&gt;
+  &lt;DialogHeader style={{ flexShrink: 0 }}&gt;...&lt;/DialogHeader&gt;
+  &lt;div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}&gt;
+    {/* Content */}
+  &lt;/div&gt;
+&lt;/DialogContent&gt;</code></pre>
+            </div>
+        </div>
+        
+        <!-- React App Link -->
+        <div class="bg-yellow-50 border border-yellow-300 rounded-lg p-4">
+            <h3 class="text-sm font-semibold text-yellow-800 mb-2">📱 실제 React 컴포넌트 테스트</h3>
+            <p class="text-sm text-yellow-700">
+                개발 서버: <a href="http://localhost:3001/test-modal" target="_blank" class="text-blue-500 underline font-medium">http://localhost:3001/test-modal</a>
+            </p>
+            <p class="text-sm text-yellow-700 mt-1">위 링크에서 실제 React 컴포넌트가 올바르게 작동하는지 확인하세요.</p>
+        </div>
+    </div>
+    
+    <!-- Fixed Modal (Correct) -->
+    <div id="backdropFixed" class="backdrop hidden"></div>
+    <div id="modalFixed" class="modal-fixed hidden">
+        <div class="modal-header">
+            <div class="flex items-center justify-between">
+                <h2 class="text-xl font-bold">✅ 수정된 모달 (올바른 동작)</h2>
+                <button onclick="closeFixedModal()" class="text-gray-500 hover:text-gray-700">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <div class="modal-content">
+            <div class="space-y-6">
+                <div class="bg-green-50 border border-green-200 rounded p-4">
+                    <h3 class="font-semibold text-green-800 mb-2">✅ 정상 작동 확인</h3>
+                    <ul class="text-sm text-green-700 space-y-1">
+                        <li>• 모달이 화면 정중앙에 위치</li>
+                        <li>• 헤더는 고정되어 있음</li>
+                        <li>• 콘텐츠 영역만 스크롤 가능</li>
+                        <li>• 빨간 점선 교차점에 정확히 위치</li>
+                    </ul>
+                </div>
+                
+                <!-- Long content for scroll test -->
+                <div class="space-y-3">
+                    <h4 class="font-semibold">스크롤 테스트용 긴 콘텐츠</h4>
+                    <p class="text-sm text-gray-600">아래로 스크롤해도 상단 헤더는 고정되어 있습니다.</p>
+                    <div class="space-y-2">
+                        <div class="border rounded p-3 bg-gray-50">1. 사용자 관리</div>
+                        <div class="border rounded p-3 bg-gray-50">2. 현장 관리</div>
+                        <div class="border rounded p-3 bg-gray-50">3. 급여 관리</div>
+                        <div class="border rounded p-3 bg-gray-50">4. 자재 관리</div>
+                        <div class="border rounded p-3 bg-gray-50">5. 문서 관리</div>
+                        <div class="border rounded p-3 bg-gray-50">6. 작업일지 관리</div>
+                        <div class="border rounded p-3 bg-gray-50">7. 출근 관리</div>
+                        <div class="border rounded p-3 bg-gray-50">8. 알림 관리</div>
+                        <div class="border rounded p-3 bg-gray-50">9. 커뮤니케이션</div>
+                        <div class="border rounded p-3 bg-gray-50">10. 백업 관리</div>
+                        <div class="border rounded p-3 bg-gray-50">11. 시스템 설정</div>
+                        <div class="border rounded p-3 bg-gray-50">12. 보고서 관리</div>
+                        <div class="border rounded p-3 bg-gray-50">13. 권한 관리</div>
+                        <div class="border rounded p-3 bg-gray-50">14. 로그 관리</div>
+                        <div class="border rounded p-3 bg-gray-50">15. 데이터베이스 관리</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Broken Modal (Incorrect) -->
+    <div id="backdropBroken" class="backdrop hidden"></div>
+    <div id="modalBroken" class="modal-broken hidden" style="position: absolute; right: 10%; top: 10%;">
+        <h2 class="text-xl font-bold mb-4">❌ 문제있는 모달 (잘못된 동작)</h2>
+        <div class="bg-red-50 border border-red-200 rounded p-4 mb-4">
+            <h3 class="font-semibold text-red-800 mb-2">❌ 문제점</h3>
+            <ul class="text-sm text-red-700 space-y-1">
+                <li>• 모달이 오른쪽으로 치우침</li>
+                <li>• 전체 모달이 스크롤됨 (헤더 포함)</li>
+                <li>• 중앙 정렬이 되지 않음</li>
+            </ul>
+        </div>
+        <div class="space-y-2">
+            <p>스크롤하면 헤더도 같이 움직입니다.</p>
+            <div class="border rounded p-3">Item 1</div>
+            <div class="border rounded p-3">Item 2</div>
+            <div class="border rounded p-3">Item 3</div>
+            <div class="border rounded p-3">Item 4</div>
+            <div class="border rounded p-3">Item 5</div>
+            <div class="border rounded p-3">Item 6</div>
+            <div class="border rounded p-3">Item 7</div>
+            <div class="border rounded p-3">Item 8</div>
+            <div class="border rounded p-3">Item 9</div>
+            <div class="border rounded p-3">Item 10</div>
+        </div>
+        <button onclick="closeBrokenModal()" class="mt-4 px-4 py-2 bg-gray-500 text-white rounded">닫기</button>
+    </div>
+    
+    <script>
+        // Fixed modal functions
+        function showFixedModal() {
+            document.getElementById('backdropFixed').classList.remove('hidden');
+            document.getElementById('modalFixed').classList.remove('hidden');
+            verifyModalPosition('modalFixed', '✅ 수정된 모달');
+        }
+        
+        function closeFixedModal() {
+            document.getElementById('backdropFixed').classList.add('hidden');
+            document.getElementById('modalFixed').classList.add('hidden');
+        }
+        
+        // Broken modal functions
+        function showBrokenModal() {
+            document.getElementById('backdropBroken').classList.remove('hidden');
+            document.getElementById('modalBroken').classList.remove('hidden');
+            verifyModalPosition('modalBroken', '❌ 문제있는 모달');
+        }
+        
+        function closeBrokenModal() {
+            document.getElementById('backdropBroken').classList.add('hidden');
+            document.getElementById('modalBroken').classList.add('hidden');
+        }
+        
+        // Position verification
+        function verifyModalPosition(modalId, modalName) {
+            setTimeout(() => {
+                const modal = document.getElementById(modalId);
+                const rect = modal.getBoundingClientRect();
+                const centerX = window.innerWidth / 2;
+                const centerY = window.innerHeight / 2;
+                const modalCenterX = rect.left + rect.width / 2;
+                const modalCenterY = rect.top + rect.height / 2;
+                
+                const offsetX = Math.abs(modalCenterX - centerX);
+                const offsetY = Math.abs(modalCenterY - centerY);
+                
+                console.log(`\n========== ${modalName} ==========`);
+                console.log('화면 중앙:', { x: centerX.toFixed(0), y: centerY.toFixed(0) });
+                console.log('모달 중앙:', { x: modalCenterX.toFixed(0), y: modalCenterY.toFixed(0) });
+                console.log('중앙에서 벗어난 거리:', {
+                    x: offsetX.toFixed(0) + 'px',
+                    y: offsetY.toFixed(0) + 'px'
+                });
+                
+                if (offsetX < 5 && offsetY < 5) {
+                    console.log('🎯 완벽한 중앙 정렬!');
+                } else if (offsetX < 50 && offsetY < 50) {
+                    console.log('⚠️ 거의 중앙 정렬 (약간 벗어남)');
+                } else {
+                    console.log('❌ 중앙 정렬 실패!');
+                }
+                console.log('=====================================\n');
+            }, 100);
+        }
+        
+        // Close on backdrop click
+        document.getElementById('backdropFixed').addEventListener('click', closeFixedModal);
+        document.getElementById('backdropBroken').addEventListener('click', closeBrokenModal);
+        
+        // Initial console message
+        console.log('🎯 빨간 점선이 화면 정중앙을 표시합니다.');
+        console.log('📍 모달을 열면 콘솔에서 정확한 위치를 확인할 수 있습니다.');
+        console.log('✅ 수정된 모달은 정중앙에 위치해야 합니다.');
+        console.log('❌ 문제있는 모달은 오른쪽으로 치우쳐 있을 것입니다.');
+    </script>
+</body>
+</html>

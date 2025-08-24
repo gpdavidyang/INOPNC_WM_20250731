@@ -295,13 +295,6 @@ export default function SignupApprovals() {
                   {request.status === 'pending' && (
                     <div className="flex items-center gap-2 ml-4">
                       <button
-                        onClick={() => setSelectedRequest(request)}
-                        className="p-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
-                        title="상세보기"
-                      >
-                        <Eye className="h-5 w-5" />
-                      </button>
-                      <button
                         onClick={() => handleApproveClick(request)}
                         disabled={processing}
                         className="p-2 text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 disabled:opacity-50"

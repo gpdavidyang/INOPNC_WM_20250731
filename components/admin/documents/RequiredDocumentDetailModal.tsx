@@ -69,6 +69,14 @@ export default function RequiredDocumentDetailModal({
   const [isEditing, setIsEditing] = useState(false)
   const [error, setError] = useState<string>('')
   const [reviewNotes, setReviewNotes] = useState('')
+  
+  // Edit functionality states
+  const [isEditMode, setIsEditMode] = useState(false)
+  const [editFormData, setEditFormData] = useState({
+    title: '',
+    description: ''
+  })
+  const [isSaving, setIsSaving] = useState(false)
 
   const supabase = createClient()
 
@@ -102,6 +110,10 @@ export default function RequiredDocumentDetailModal({
       if (docError) throw docError
       setDocument(docData)
       setReviewNotes(docData.review_notes || '')
+      setEditFormData({
+        title: docData.title || '',
+        description: docData.description || ''
+      })
 
       // Fetch submission status
       if (docData.submitted_by && docData.requirement_id) {
@@ -180,6 +192,53 @@ export default function RequiredDocumentDetailModal({
       setError(error.message || '상태 업데이트에 실패했습니다.')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const startEditMode = () => {
+    setIsEditMode(true)
+  }
+
+  const cancelEditMode = () => {
+    setIsEditMode(false)
+    if (document) {
+      setEditFormData({
+        title: document.title || '',
+        description: document.description || ''
+      })
+    }
+  }
+
+  const saveDocumentChanges = async () => {
+    if (!document) return
+
+    setIsSaving(true)
+    try {
+      const { error } = await supabase
+        .from('documents')
+        .update({
+          title: editFormData.title,
+          description: editFormData.description,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', document.id)
+
+      if (error) throw error
+
+      // Update local document state
+      setDocument(prev => prev ? {
+        ...prev,
+        title: editFormData.title,
+        description: editFormData.description
+      } : null)
+
+      setIsEditMode(false)
+      onSuccess() // Refresh parent component
+    } catch (error: any) {
+      console.error('Error updating document:', error)
+      setError(error.message || '문서 수정에 실패했습니다.')
+    } finally {
+      setIsSaving(false)
     }
   }
 
@@ -304,7 +363,20 @@ export default function RequiredDocumentDetailModal({
           <div className="mt-6 space-y-6">
             {/* 문서 기본 정보 */}
             <div className="bg-gray-50 p-4 rounded-lg">
-              <h4 className="text-lg font-medium text-gray-900 mb-3">{document.title}</h4>
+              {/* 제목 부분 */}
+              <div className="mb-3">
+                {isEditMode ? (
+                  <input
+                    type="text"
+                    value={editFormData.title}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, title: e.target.value }))}
+                    className="w-full text-lg font-medium text-gray-900 bg-white border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="문서 제목을 입력하세요"
+                  />
+                ) : (
+                  <h4 className="text-lg font-medium text-gray-900">{document.title}</h4>
+                )}
+              </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div>
@@ -358,12 +430,21 @@ export default function RequiredDocumentDetailModal({
                 )}
               </div>
 
-              {document.description && (
-                <div className="mt-3">
-                  <span className="font-medium text-gray-700">설명:</span>
-                  <p className="text-gray-900 mt-1">{document.description}</p>
-                </div>
-              )}
+              {/* 설명 부분 */}
+              <div className="mt-3">
+                <span className="font-medium text-gray-700">설명:</span>
+                {isEditMode ? (
+                  <textarea
+                    value={editFormData.description}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, description: e.target.value }))}
+                    rows={3}
+                    className="w-full mt-1 px-3 py-2 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-vertical"
+                    placeholder="문서 설명을 입력하세요"
+                  />
+                ) : (
+                  <p className="text-gray-900 mt-1">{document.description || '설명이 없습니다.'}</p>
+                )}
+              </div>
             </div>
 
             {/* 승인 상태 */}
@@ -454,24 +535,54 @@ export default function RequiredDocumentDetailModal({
             <button
               onClick={onClose}
               className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md"
-              disabled={loading}
+              disabled={loading || isSaving}
             >
               닫기
             </button>
+            
+            {!canApprove && !isEditMode && (
+              <button
+                onClick={startEditMode}
+                className="px-4 py-2 text-sm font-medium text-blue-700 bg-blue-100 hover:bg-blue-200 rounded-md"
+              >
+                <Edit2 className="w-4 h-4 mr-1 inline" />
+                편집
+              </button>
+            )}
+            
+            {isEditMode && (
+              <>
+                <button
+                  onClick={cancelEditMode}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md"
+                  disabled={isSaving}
+                >
+                  취소
+                </button>
+                <button
+                  onClick={saveDocumentChanges}
+                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md disabled:opacity-50"
+                  disabled={isSaving}
+                >
+                  <Save className="w-4 h-4 mr-1 inline" />
+                  {isSaving ? '저장 중...' : '저장'}
+                </button>
+              </>
+            )}
             
             {canApprove && (
               <>
                 <button
                   onClick={() => handleStatusUpdate('rejected')}
                   className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={loading}
+                  disabled={loading || isEditMode}
                 >
                   거부
                 </button>
                 <button
                   onClick={() => handleStatusUpdate('approved')}
                   className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={loading}
+                  disabled={loading || isEditMode}
                 >
                   승인
                 </button>

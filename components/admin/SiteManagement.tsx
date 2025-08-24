@@ -165,6 +165,12 @@ export default function SiteManagement({ profile }: SiteManagementProps) {
     window.location.href = `/dashboard/admin/sites/${site.id}/documents`
   }
 
+  // Handle worker management
+  const handleWorkerManagement = (site: Site) => {
+    setSelectedSiteForWorkers(site)
+    setIsWorkersModalOpen(true)
+  }
+
   // Define table columns
   const columns = [
     {
@@ -326,6 +332,12 @@ export default function SiteManagement({ profile }: SiteManagementProps) {
             onDelete={handleDeleteSite}
             customActions={[
               {
+                icon: Users,
+                label: '작업자 관리',
+                onClick: handleWorkerManagement,
+                variant: 'default' as const
+              },
+              {
                 icon: FileText,
                 label: '문서 관리',
                 onClick: handleDocumentManagement,
@@ -390,6 +402,18 @@ export default function SiteManagement({ profile }: SiteManagementProps) {
                 setEditingSite(viewingSite)
                 setShowEditModal(true)
               }}
+            />
+          )}
+
+          {/* Site Workers Modal */}
+          {isWorkersModalOpen && selectedSiteForWorkers && (
+            <SiteWorkersModal
+              isOpen={isWorkersModalOpen}
+              onClose={() => {
+                setIsWorkersModalOpen(false)
+                setSelectedSiteForWorkers(null)
+              }}
+              site={selectedSiteForWorkers}
             />
           )}
         </div>

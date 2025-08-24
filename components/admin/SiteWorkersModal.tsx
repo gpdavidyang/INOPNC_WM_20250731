@@ -462,7 +462,8 @@ export default function SiteWorkersModal({
               )}
             </div>
           </TabsContent>
-        </Tabs>
+          </Tabs>
+        </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>

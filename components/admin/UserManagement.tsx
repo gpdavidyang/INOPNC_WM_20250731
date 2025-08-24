@@ -18,6 +18,7 @@ import {
   UserWithSites 
 } from '@/app/actions/admin/users'
 import { Plus, Search, User, Phone, Mail, Shield, MapPin, Key, UserCheck, UserX, FileText, ClipboardCheck, Calendar, Building } from 'lucide-react'
+import { toast } from 'sonner'
 import UserDetailModal from './UserDetailModal'
 import UserSiteAssignmentModal from './UserSiteAssignmentModal'
 
@@ -50,6 +51,8 @@ export default function UserManagement({ profile }: UserManagementProps) {
   const [editingUser, setEditingUser] = useState<UserWithSites | null>(null)
   const [showDetailModal, setShowDetailModal] = useState(false)
   const [detailUser, setDetailUser] = useState<UserWithSites | null>(null)
+  const [showSiteAssignmentModal, setShowSiteAssignmentModal] = useState(false)
+  const [siteAssignmentUser, setSiteAssignmentUser] = useState<UserWithSites | null>(null)
 
   // Load users data
   const loadUsers = async () => {
@@ -209,7 +212,12 @@ export default function UserManagement({ profile }: UserManagementProps) {
         <div className="flex items-center">
           <User className="h-8 w-8 text-gray-400 mr-3" />
           <div>
-            <div className="font-medium text-gray-900 dark:text-gray-100">{value}</div>
+            <button
+              onClick={() => handleViewUser(user)}
+              className="font-medium text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer text-left"
+            >
+              {value}
+            </button>
             <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center">
               <Mail className="h-3 w-3 mr-1" />
               {user.email}
@@ -443,7 +451,7 @@ export default function UserManagement({ profile }: UserManagementProps) {
       return
     }
 
-    setIsLoading(true)
+    setLoading(true)
     try {
       const result = await deleteUsers([user.id])
       if (result.success) {
@@ -456,7 +464,7 @@ export default function UserManagement({ profile }: UserManagementProps) {
       console.error('Failed to delete user:', error)
       toast.error('사용자 삭제 중 오류가 발생했습니다')
     } finally {
-      setIsLoading(false)
+      setLoading(false)
     }
   }
 
@@ -602,7 +610,6 @@ function UserCreateEditModal({ isOpen, onClose, onSuccess, user }: UserCreateEdi
   })
   
   const [loading, setLoading] = useState(false)
-  const [errors, setErrors] = useState<Record<string, string>>({})
 
   const isEditing = !!user
 

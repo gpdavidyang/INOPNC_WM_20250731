@@ -221,8 +221,8 @@ export default function SiteWorkersModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
-        <DialogHeader>
+      <DialogContent className="max-w-4xl">
+        <DialogHeader className="px-6 py-4 border-b">
           <DialogTitle className="flex items-center gap-2">
             <Building2 className="h-5 w-5" />
             {site.name} - 작업자 관리
@@ -232,53 +232,55 @@ export default function SiteWorkersModal({
           </DialogDescription>
         </DialogHeader>
 
-        {/* Site Info Card */}
-        <Card className="mb-4">
-          <CardContent className="pt-4">
-            <div className="flex items-start justify-between">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <MapPin className="h-4 w-4" />
-                  {site.address}
+        <div className="flex-1 overflow-hidden flex flex-col">
+          {/* Site Info Card */}
+          <Card className="mx-6 mb-4 flex-shrink-0">
+            <CardContent className="pt-4">
+              <div className="flex items-start justify-between">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <MapPin className="h-4 w-4" />
+                    {site.address}
+                  </div>
+                  <div className="flex items-center gap-4 text-sm">
+                    {site.manager_name && (
+                      <span>관리자: {site.manager_name}</span>
+                    )}
+                    {site.construction_manager_phone && (
+                      <span className="flex items-center gap-1">
+                        <Phone className="h-3 w-3" />
+                        {site.construction_manager_phone}
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <div className="flex items-center gap-4 text-sm">
-                  {site.manager_name && (
-                    <span>관리자: {site.manager_name}</span>
-                  )}
-                  {site.construction_manager_phone && (
-                    <span className="flex items-center gap-1">
-                      <Phone className="h-3 w-3" />
-                      {site.construction_manager_phone}
-                    </span>
-                  )}
-                </div>
+                <Badge variant="outline">
+                  배정된 인원: {assignments.filter(a => a.is_active).length}명
+                </Badge>
               </div>
-              <Badge variant="outline">
-                배정된 인원: {assignments.filter(a => a.is_active).length}명
-              </Badge>
+            </CardContent>
+          </Card>
+
+          {error && (
+            <div className="mx-6 p-3 text-sm text-red-600 bg-red-50 rounded-md border border-red-200 mb-4 flex-shrink-0">
+              {error}
             </div>
-          </CardContent>
-        </Card>
+          )}
 
-        {error && (
-          <div className="p-3 text-sm text-red-600 bg-red-50 rounded-md border border-red-200 mb-4">
-            {error}
-          </div>
-        )}
+          <div className="flex-1 overflow-hidden px-6">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
+              <TabsList className="grid w-full grid-cols-2 flex-shrink-0">
+                <TabsTrigger value="workers" className="flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  배정된 작업자 ({assignments.filter(a => a.is_active).length})
+                </TabsTrigger>
+                <TabsTrigger value="assign" className="flex items-center gap-2">
+                  <UserPlus className="h-4 w-4" />
+                  작업자 배정
+                </TabsTrigger>
+              </TabsList>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 overflow-hidden">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="workers" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              배정된 작업자 ({assignments.filter(a => a.is_active).length})
-            </TabsTrigger>
-            <TabsTrigger value="assign" className="flex items-center gap-2">
-              <UserPlus className="h-4 w-4" />
-              작업자 배정
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="workers" className="overflow-auto max-h-[400px]">
+              <TabsContent value="workers" className="flex-1 overflow-auto mt-4">
             {loading ? (
               <div className="flex items-center justify-center py-8">
                 <div className="text-sm text-muted-foreground">배정 정보를 불러오는 중...</div>
@@ -341,9 +343,9 @@ export default function SiteWorkersModal({
             )}
           </TabsContent>
 
-          <TabsContent value="assign" className="space-y-4 overflow-auto max-h-[400px]">
+          <TabsContent value="assign" className="flex-1 overflow-auto mt-4 space-y-4">
             {/* Assignment Form */}
-            <Card className="p-4">
+            <Card className="p-4 flex-shrink-0">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
                 <div className="space-y-2">
                   <Label>사용자 선택</Label>

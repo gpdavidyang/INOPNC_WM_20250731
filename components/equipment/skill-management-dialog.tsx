@@ -168,48 +168,34 @@ export function SkillManagementDialog({
     }
   }
 
-  const contentStyle = {
-    position: 'fixed' as const,
-    left: '50%',
-    top: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: '90vw',
-    maxWidth: '64rem',
-    maxHeight: '85vh',
-    display: 'flex',
-    flexDirection: 'column' as const,
-    padding: 0,
-    gap: 0,
-    overflow: 'hidden' as const
-  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-4xl">
-        <DialogHeader>
+        <DialogHeader className="px-6 py-4 border-b">
           <DialogTitle>
             기술 관리: {worker?.full_name}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="px-6 py-4" style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
-          <div className="space-y-6">
-          {/* Current Skills */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className={`font-medium ${getTypographyClass('large', isLargeFont)}`}>
-                보유 기술 목록
-              </h3>
-              <Button 
-                size={getButtonSize()}
-                onClick={handleAddSkill}
-                disabled={availableSkills.length === 0}
-                className="gap-2"
-              >
-                <Plus className="h-4 w-4" />
-                기술 추가
-              </Button>
-            </div>
+        <div className="flex-1 overflow-hidden flex flex-col">
+          <div className="px-6 py-4 space-y-6 flex-1 overflow-auto">
+            {/* Current Skills */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className={`font-medium ${getTypographyClass('large', isLargeFont)}`}>
+                  보유 기술 목록
+                </h3>
+                <Button 
+                  size={getButtonSize()}
+                  onClick={handleAddSkill}
+                  disabled={availableSkills.length === 0}
+                  className="gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  기술 추가
+                </Button>
+              </div>
 
             {skillAssignments.length > 0 ? (
               <div className="grid gap-4 md:grid-cols-2">
@@ -292,9 +278,9 @@ export function SkillManagementDialog({
             )}
           </div>
 
-          {/* Add/Edit Skill Form */}
-          {editingSkill && (
-            <div className="border-t pt-6">
+            {/* Add/Edit Skill Form */}
+            {editingSkill && (
+              <div className="border-t pt-6">
               <h3 className={`font-medium ${getTypographyClass('large', isLargeFont)} mb-4`}>
                 {editingSkill === 'new' ? '새 기술 추가' : '기술 수정'}
               </h3>
@@ -443,16 +429,17 @@ export function SkillManagementDialog({
                   </Button>
                 </div>
               </form>
-            </div>
-          )}
+              </div>
+            )}
 
-          {availableSkills.length === 0 && !editingSkill && (
-            <div className="text-center py-4">
-              <p className={`${getTypographyClass('base', isLargeFont)} text-gray-500`}>
-                모든 기술이 이미 할당되었습니다.
-              </p>
-            </div>
-          )}
+            {availableSkills.length === 0 && !editingSkill && (
+              <div className="text-center py-4">
+                <p className={`${getTypographyClass('base', isLargeFont)} text-gray-500`}>
+                  모든 기술이 이미 할당되었습니다.
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       </DialogContent>
     </Dialog>

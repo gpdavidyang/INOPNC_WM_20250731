@@ -1,0 +1,20 @@
+INOPNC 데이터베이스 백업 리포트
+===========================================
+백업 시간: 2025-08-24T10:41:48.642Z
+총 테이블 수: 10
+총 레코드 수: 1609
+성공한 테이블: 10
+
+테이블별 상세:
+- profiles: ✅ 30개 레코드
+- organizations: ✅ 22개 레코드
+- sites: ✅ 20개 레코드
+- site_assignments: ✅ 29개 레코드
+- daily_reports: ✅ 185개 레코드
+- attendance_records: ✅ 369개 레코드
+- documents: ✅ 182개 레코드
+- markup_documents: ✅ 27개 레코드
+- notifications: ✅ 718개 레코드
+- materials: ✅ 27개 레코드
+
+백업 파일: backup_2025-08-24T10-41-48.json

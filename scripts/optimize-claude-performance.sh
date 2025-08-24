@@ -52,11 +52,22 @@ fi
 
 # 4. TypeScript 캐시 정리
 echo "4️⃣ TypeScript 캐시 정리 중..."
+cache_cleared=false
 if [ -d "node_modules/.cache" ]; then
     rm -rf node_modules/.cache 2>/dev/null
-    echo -e "   ${GREEN}✅ TypeScript 캐시 정리 완료${NC}"
+    cache_cleared=true
+fi
+
+# ESLint 캐시도 정리
+if [ -f ".eslintcache" ]; then
+    rm -f .eslintcache 2>/dev/null
+    cache_cleared=true
+fi
+
+if $cache_cleared; then
+    echo -e "   ${GREEN}✅ TypeScript/ESLint 캐시 정리 완료${NC}"
 else
-    echo "   ℹ️ TypeScript 캐시가 존재하지 않음"
+    echo "   ℹ️ 정리할 캐시가 존재하지 않음"
 fi
 
 # 5. 백업 파일 이동
@@ -70,8 +81,19 @@ else
     echo "   ℹ️ 이동할 백업 파일 없음"
 fi
 
-# 6. Git 저장소 최적화
-echo "6️⃣ Git 저장소 최적화 중..."
+# 6. 임시 파일 정리
+echo "6️⃣ 임시 파일 정리 중..."
+temp_files=$(find . -name "*.tmp" -o -name "*.temp" -o -name ".DS_Store" 2>/dev/null)
+temp_count=$(echo "$temp_files" | grep -c . 2>/dev/null || echo 0)
+if [ $temp_count -gt 0 ]; then
+    echo "$temp_files" | xargs rm -f 2>/dev/null
+    echo -e "   ${GREEN}✅ ${temp_count}개의 임시 파일 삭제 완료${NC}"
+else
+    echo "   ℹ️ 삭제할 임시 파일 없음"
+fi
+
+# 7. Git 저장소 최적화
+echo "7️⃣ Git 저장소 최적화 중..."
 if [ -d ".git" ]; then
     before_size=$(du -sh .git 2>/dev/null | cut -f1)
     git gc --aggressive --prune=now 2>/dev/null

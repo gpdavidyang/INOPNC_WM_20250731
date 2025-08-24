@@ -264,7 +264,7 @@ export default function AnalyticsDashboard({ profile }: AnalyticsDashboardProps)
       </div>
       
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
         <Card className={`${
           touchMode === 'glove' ? 'p-5' : touchMode === 'precision' ? 'p-3' : 'p-4'
         }`}>
@@ -353,7 +353,7 @@ export default function AnalyticsDashboard({ profile }: AnalyticsDashboardProps)
       </div>
       
       {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
         {/* Site Productivity Chart */}
         <Card className={`${
           touchMode === 'glove' ? 'p-6' : touchMode === 'precision' ? 'p-4' : 'p-5'

@@ -525,10 +525,10 @@ export default function MaterialsManagement({ profile }: MaterialsManagementProp
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* NPC-1000 Summary (only show when npc1000 tab is active) */}
       {activeTab === 'npc1000' && (
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-6 xl:grid-cols-6 gap-3">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 border border-gray-200 dark:border-gray-700">
             <div className="text-sm font-medium text-gray-500 dark:text-gray-400">전체 현장</div>
             <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">{npcSummary.total_sites}</div>

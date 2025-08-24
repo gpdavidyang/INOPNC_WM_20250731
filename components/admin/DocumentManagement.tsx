@@ -322,9 +322,9 @@ export default function DocumentManagement({ profile }: DocumentManagementProps)
   ]
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-3">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700">
           <div className="flex items-center">
             <div className="flex-shrink-0">

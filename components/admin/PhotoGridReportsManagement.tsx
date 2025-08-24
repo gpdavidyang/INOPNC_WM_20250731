@@ -232,7 +232,7 @@ export default function PhotoGridReportsManagement({ profile }: PhotoGridReports
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* 헤더 */}
       <div className="flex items-center justify-between">
         <div>

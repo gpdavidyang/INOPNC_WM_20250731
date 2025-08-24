@@ -518,7 +518,7 @@ export default function SiteDocumentManagement({ siteId, siteName }: SiteDocumen
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
@@ -633,13 +633,13 @@ export default function SiteDocumentManagement({ siteId, siteName }: SiteDocumen
 
       {/* Document List */}
       {siteId && (
-        <div className="space-y-6">
+        <div className="space-y-4">
           {loading ? (
-            <div className="space-y-6">
+            <div className="space-y-4">
               {/* Skeleton for each document type */}
               {['ptw', 'blueprint', 'other'].map((docType) => (
                 <div key={docType} className="bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700">
-                  <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                  <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
                     <div className="flex items-center justify-between">
                       <div>
                         <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded w-32 animate-pulse"></div>
@@ -651,7 +651,7 @@ export default function SiteDocumentManagement({ siteId, siteName }: SiteDocumen
                   
                   <div className="divide-y divide-gray-200 dark:divide-gray-700">
                     {[1, 2, 3].map((item) => (
-                      <div key={item} className="px-6 py-4">
+                      <div key={item} className="px-4 py-3">
                         <div className="flex items-center justify-between">
                           <div className="flex items-start space-x-3 flex-1 min-w-0">
                             <div className="flex items-center space-x-2">
@@ -669,7 +669,7 @@ export default function SiteDocumentManagement({ siteId, siteName }: SiteDocumen
                             </div>
                           </div>
                           
-                          <div className="flex items-center space-x-2 ml-4">
+                          <div className="flex items-center space-x-1 ml-4">
                             {[1, 2, 3, 4].map((btn) => (
                               <div key={btn} className="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
                             ))}

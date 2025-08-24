@@ -486,9 +486,9 @@ export default function SalaryManagement({ profile }: SalaryManagementProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-6 xl:grid-cols-6 gap-4">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 border border-gray-200 dark:border-gray-700">
           <div className="text-sm font-medium text-gray-500 dark:text-gray-400">총 근로자</div>
           <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">{stats.total_workers}</div>

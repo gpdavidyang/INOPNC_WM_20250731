@@ -35,8 +35,8 @@ export default function AdminPageLayout({
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
       <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-        <div className={`max-w-7xl mx-auto ${
-          touchMode === 'glove' ? 'px-5 sm:px-7 lg:px-9' : touchMode === 'precision' ? 'px-3 sm:px-5 lg:px-7' : 'px-4 sm:px-6 lg:px-8'
+        <div className={`max-w-full mx-auto ${
+          touchMode === 'glove' ? 'px-6 sm:px-8 lg:px-12' : touchMode === 'precision' ? 'px-4 sm:px-6 lg:px-8' : 'px-5 sm:px-7 lg:px-10'
         }`}>
           <div className={`flex items-center justify-between ${
             touchMode === 'glove' ? 'h-20' : touchMode === 'precision' ? 'h-14' : 'h-16'
@@ -81,8 +81,8 @@ export default function AdminPageLayout({
       </div>
 
       {/* Content */}
-      <div className={`max-w-7xl mx-auto ${
-        touchMode === 'glove' ? 'px-5 sm:px-7 lg:px-9 py-10' : touchMode === 'precision' ? 'px-3 sm:px-5 lg:px-7 py-6' : 'px-4 sm:px-6 lg:px-8 py-8'
+      <div className={`max-w-full mx-auto ${
+        touchMode === 'glove' ? 'px-6 sm:px-8 lg:px-12 py-8' : touchMode === 'precision' ? 'px-4 sm:px-6 lg:px-8 py-4' : 'px-5 sm:px-7 lg:px-10 py-6'
       }`}>
         {children}
       </div>

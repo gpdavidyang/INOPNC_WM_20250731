@@ -435,12 +435,24 @@ export default function UserManagement({ profile }: UserManagementProps) {
     }
   ]
 
+  // Handle site assignment
+  const handleSiteAssignment = (user: UserWithSites) => {
+    setSiteAssignmentUser(user)
+    setShowSiteAssignmentModal(true)
+  }
+
   // Custom actions for individual users
   const customActions = [
     {
       icon: Key,
       label: '비밀번호 재설정',
       onClick: handlePasswordReset,
+      show: (user: UserWithSites) => user.role !== 'system_admin' || profile.role === 'system_admin'
+    },
+    {
+      icon: MapPin,
+      label: '현장 할당',
+      onClick: handleSiteAssignment,
       show: (user: UserWithSites) => user.role !== 'system_admin' || profile.role === 'system_admin'
     }
   ]
@@ -586,6 +598,18 @@ export default function UserManagement({ profile }: UserManagementProps) {
             loadUsers()
           }}
           user={editingUser}
+        />
+      )}
+
+      {showSiteAssignmentModal && siteAssignmentUser && (
+        <UserSiteAssignmentModal
+          user={siteAssignmentUser}
+          isOpen={showSiteAssignmentModal}
+          onClose={() => {
+            setShowSiteAssignmentModal(false)
+            setSiteAssignmentUser(null)
+            loadUsers() // Refresh the user list
+          }}
         />
       )}
     </div>

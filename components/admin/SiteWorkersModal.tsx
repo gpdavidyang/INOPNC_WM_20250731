@@ -341,9 +341,9 @@ export default function SiteWorkersModal({
                 ))}
               </div>
             )}
-          </TabsContent>
+              </TabsContent>
 
-          <TabsContent value="assign" className="flex-1 overflow-auto mt-4 space-y-4">
+              <TabsContent value="assign" className="flex-1 overflow-auto mt-4 space-y-4">
             {/* Assignment Form */}
             <Card className="p-4 flex-shrink-0">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
@@ -461,8 +461,9 @@ export default function SiteWorkersModal({
                 ))
               )}
             </div>
-          </TabsContent>
-          </Tabs>
+              </TabsContent>
+            </Tabs>
+          </div>
         </div>
 
         <DialogFooter>

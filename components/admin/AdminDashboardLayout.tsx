@@ -64,18 +64,12 @@ const menuCategories = [
         label: '자재 관리',
         icon: Package,
         href: '/dashboard/admin/materials'
-      },
-      {
-        id: 'signup-requests',
-        label: '가입 요청 관리',
-        icon: UserPlus,
-        href: '/dashboard/admin/signup-requests'
       }
     ]
   },
   {
     id: 'accounts',
-    label: '작업자 관리',
+    label: '사용자 관리',
     collapsible: true,
     items: [
       {
@@ -83,6 +77,12 @@ const menuCategories = [
         label: '사용자 관리',
         icon: Users,
         href: '/dashboard/admin/users'
+      },
+      {
+        id: 'signup-requests',
+        label: '가입 요청 관리',
+        icon: UserPlus,
+        href: '/dashboard/admin/signup-requests'
       },
       {
         id: 'salary',

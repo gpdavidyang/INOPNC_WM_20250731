@@ -221,7 +221,7 @@ export default function SiteWorkersModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[85vh] w-[95vw] sm:w-[90vw] lg:w-[80vw] xl:max-w-4xl overflow-hidden">
+      <DialogContent className="max-w-4xl max-h-[85vh] w-[95vw] sm:w-[90vw] lg:w-[80vw] xl:max-w-4xl overflow-hidden fixed top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%]">
         <DialogHeader className="px-6 py-4 border-b">
           <DialogTitle className="flex items-center gap-2">
             <Building2 className="h-5 w-5" />

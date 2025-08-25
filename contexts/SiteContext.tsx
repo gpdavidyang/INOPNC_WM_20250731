@@ -219,11 +219,11 @@ export function SiteProvider({ children }: { children: ReactNode }) {
 
       // Construct SiteInfo object
       const siteData: SiteInfo = {
-        id: site.id,
-        name: site.name,
+        id: site?.id || '',
+        name: site?.name || '현장명 없음',
         address: address || {
           id: '',
-          site_id: site.id,
+          site_id: site?.id || '',
           full_address: '주소 정보 없음',
           latitude: undefined,
           longitude: undefined,
@@ -233,10 +233,10 @@ export function SiteProvider({ children }: { children: ReactNode }) {
         process: processInfo,
         managers,
         construction_period: {
-          start_date: site.construction_start_date,
-          end_date: site.construction_end_date
+          start_date: site?.construction_start_date,
+          end_date: site?.construction_end_date
         },
-        is_active: site.is_active
+        is_active: site?.is_active ?? false
       }
 
       setCurrentSite(siteData)

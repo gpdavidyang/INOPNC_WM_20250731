@@ -6,18 +6,17 @@ import { createClient } from '@/lib/supabase/client'
 import { 
   Bell, MessageSquare, PlusCircle, Edit, Trash2, 
   CheckCircle, Clock, AlertCircle, User, Building2,
-  Calendar, Eye, Reply, Search, Filter, Mail
+  Calendar, Eye, Reply, Search, Filter
 } from 'lucide-react'
 import AnnouncementsTab from './tabs/AnnouncementsTab'
 import RequestsTab from './tabs/RequestsTab'
-import EmailNotifications from '../EmailNotifications'
 
 interface CommunicationManagementProps {
   profile: Profile
 }
 
 export default function CommunicationManagement({ profile }: CommunicationManagementProps) {
-  const [activeTab, setActiveTab] = useState<'announcements' | 'requests' | 'emails'>('announcements')
+  const [activeTab, setActiveTab] = useState<'announcements' | 'requests'>('announcements')
   const [loading, setLoading] = useState(false)
   const supabase = createClient()
 
@@ -33,12 +32,6 @@ export default function CommunicationManagement({ profile }: CommunicationManage
       label: '본사 요청사항',
       icon: MessageSquare,
       description: '작업자/현장관리자/파트너사 요청사항'
-    },
-    {
-      key: 'emails',
-      label: '이메일 알림',
-      icon: Mail,
-      description: '이메일 알림 및 템플릿 관리'
     }
   ]
 
@@ -100,7 +93,6 @@ export default function CommunicationManagement({ profile }: CommunicationManage
       <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
         {activeTab === 'announcements' && <AnnouncementsTab profile={profile} />}
         {activeTab === 'requests' && <RequestsTab profile={profile} />}
-        {activeTab === 'emails' && <EmailNotifications />}
       </div>
     </div>
   )

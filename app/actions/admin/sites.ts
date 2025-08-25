@@ -38,14 +38,16 @@ export async function getSites(
   page = 1,
   limit = 10,
   search = '',
-  status?: SiteStatus
+  status?: SiteStatus,
+  sortColumn = 'created_at',
+  sortDirection: 'asc' | 'desc' = 'desc'
 ): Promise<AdminActionResult<{ sites: Site[]; total: number; pages: number }>> {
   return withAdminAuth(async (supabase) => {
     try {
       let query = supabase
         .from('sites')
         .select('*', { count: 'exact' })
-        .order('created_at', { ascending: false })
+        .order(sortColumn, { ascending: sortDirection === 'asc' })
 
       // Apply search filter
       if (search.trim()) {

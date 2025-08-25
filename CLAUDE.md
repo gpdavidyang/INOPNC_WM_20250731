@@ -532,13 +532,18 @@ For development/testing:
 2. `ISSUE-LOG.md` 확인 - 최근 해결된 문제들 검토
 3. 상태 확인 후 중복 작업 방지
 
-### 🚫 COMPLETELY FORBIDDEN BEHAVIORS
-- ❌ Auto-updating TODOs or task summaries
-- ❌ Reading files for "compact summary" generation
-- ❌ Circular imports or file references
-- ❌ Multi-file context loading
-- ❌ Any "automatic" or "proactive" actions
-- ❌ Loading previous conversation context
+### 🚫 COMPLETELY FORBIDDEN BEHAVIORS - NEVER DO THESE
+**CRITICAL: Claude is ABSOLUTELY PROHIBITED from:**
+- ❌ **NEVER** create "compact summary" of anything
+- ❌ **NEVER** auto-update TODOs or task summaries  
+- ❌ **NEVER** use TodoWrite tool unless explicitly asked
+- ❌ **NEVER** read files for "context" or "understanding"
+- ❌ **NEVER** do circular imports or file references
+- ❌ **NEVER** do multi-file context loading
+- ❌ **NEVER** do any "automatic" or "proactive" actions
+- ❌ **NEVER** load previous conversation context
+- ❌ **NEVER** say "let me understand the context" or similar
+- ❌ **NEVER** batch read multiple files to understand something
 
 ### ✅ REQUIRED BEHAVIORS
 - ✅ START FRESH every session (ignore previous context)
